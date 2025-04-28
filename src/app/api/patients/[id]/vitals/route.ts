@@ -1,4 +1,4 @@
-// app/api/patients/[patientId]/vitals/route.ts
+// app/api/patients/[id]/vitals/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare/context";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
@@ -10,15 +10,6 @@ import { z } from "zod";
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor", "Nurse", "Patient"]; // Patient can view own
 const ALLOWED_ROLES_RECORD = ["Admin", "Doctor", "Nurse"];
 
-// Helper function to get patient ID from URL
-function getPatientId(pathname: string): number | null {
-    // Pathname might be /api/patients/123/vitals
-    const parts = pathname.split("/");
-    const idStr = parts[parts.length - 2]; // Second to last part
-    const id = parseInt(idStr, 10);
-    return isNaN(id) ? null : id;
-}
-
 // GET handler for listing vitals for a specific patient
 const ListVitalsQuerySchema = z.object({
     opdVisitId: z.coerce.number().int().positive().optional(),
@@ -29,17 +20,18 @@ const ListVitalsQuerySchema = z.object({
     offset: z.coerce.number().int().nonnegative().optional().default(0),
 });
 
-export async function GET(request: Request) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
     const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
     const url = new URL(request.url);
-    const patientId = getPatientId(url.pathname);
+    const patientIdStr = params.id;
+    const patientId = parseInt(patientIdStr, 10);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
-    if (patientId === null) {
+    if (isNaN(patientId)) {
         return new Response(JSON.stringify({ error: "Invalid Patient ID" }), { status: 400 });
     }
 
@@ -148,17 +140,17 @@ const RecordVitalsSchema = z.object({
 }).refine(data => data.height_cm || data.weight_kg || data.temperature_celsius || data.systolic_bp || data.diastolic_bp || data.heart_rate || data.respiratory_rate || data.oxygen_saturation || data.pain_scale,
     { message: "At least one vital measurement must be provided." });
 
-export async function POST(request: Request) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
     const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
-    const url = new URL(request.url);
-    const patientId = getPatientId(url.pathname);
+    const patientIdStr = params.id;
+    const patientId = parseInt(patientIdStr, 10);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_RECORD.includes(session.user.roleName)) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
-    if (patientId === null) {
+    if (isNaN(patientId)) {
         return new Response(JSON.stringify({ error: "Invalid Patient ID" }), { status: 400 });
     }
 
@@ -240,4 +232,5 @@ export async function POST(request: Request) {
         });
     }
 }
+
 
