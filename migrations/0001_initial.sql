@@ -69,7 +69,6 @@ CREATE TABLE Doctors (
     specialty TEXT NOT NULL,
     qualifications TEXT,
     license_number TEXT UNIQUE,
-    -- Add other doctor-specific details as needed
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
@@ -118,6 +117,114 @@ CREATE TABLE Appointments (
     FOREIGN KEY (booked_by_user_id) REFERENCES Users(user_id)
 );
 
+-- Billing & Inventory Modules --
+
+-- Define Billable Items (Services, Procedures, Pharmacy Items, etc.)
+CREATE TABLE BillableItems (
+    item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_code TEXT UNIQUE, -- Optional code for quick lookup
+    item_name TEXT NOT NULL,
+    description TEXT,
+    item_type TEXT NOT NULL CHECK(item_type IN ("Service", "Procedure", "Pharmacy", "Consumable", "EquipmentUsage", "Package")), -- Type of item
+    unit_price REAL NOT NULL CHECK(unit_price >= 0),
+    department TEXT, -- e.g., OPD, IPD, Lab, Radiology, Pharmacy
+    is_taxable BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Define Inventory Items (link to BillableItems if applicable, e.g., Pharmacy type)
+CREATE TABLE InventoryItems (
+    inventory_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    billable_item_id INTEGER UNIQUE, -- Link to BillableItems if this is a sellable item
+    item_name TEXT NOT NULL, -- Can be same as billable item name or different for internal tracking
+    category TEXT, -- e.g., Medicine, Syringe, ECG Machine
+    manufacturer TEXT,
+    unit_of_measure TEXT, -- e.g., Box, Vial, Each, Tablet
+    reorder_level INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (billable_item_id) REFERENCES BillableItems(item_id)
+);
+
+-- Define Stock Batches (for tracking expiry, batch numbers)
+CREATE TABLE StockBatches (
+    batch_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    inventory_item_id INTEGER NOT NULL,
+    batch_number TEXT,
+    expiry_date DATE,
+    quantity_received INTEGER NOT NULL,
+    current_quantity INTEGER NOT NULL CHECK(current_quantity >= 0),
+    cost_price_per_unit REAL, -- Purchase cost
+    selling_price_per_unit REAL, -- Selling price (can override BillableItems price for this batch)
+    supplier_id INTEGER, -- Optional: Link to supplier
+    received_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,
+    FOREIGN KEY (inventory_item_id) REFERENCES InventoryItems(inventory_item_id)
+    -- FOREIGN KEY (supplier_id) REFERENCES Suppliers(supplier_id) -- Add Suppliers table later if needed
+);
+
+-- Define Invoices
+CREATE TABLE Invoices (
+    invoice_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_number TEXT UNIQUE NOT NULL, -- Generate unique invoice numbers
+    patient_id INTEGER NOT NULL,
+    appointment_id INTEGER, -- Optional link to appointment
+    admission_id INTEGER, -- Optional link to IPD admission (Add Admissions table later)
+    invoice_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    due_date DATE,
+    total_amount REAL NOT NULL DEFAULT 0,
+    paid_amount REAL NOT NULL DEFAULT 0,
+    discount_amount REAL DEFAULT 0,
+    tax_amount REAL DEFAULT 0,
+    status TEXT CHECK(status IN ("Draft", "Issued", "Paid", "PartiallyPaid", "Overdue", "Cancelled")) DEFAULT "Draft",
+    notes TEXT,
+    created_by_user_id INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+    FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id),
+    -- FOREIGN KEY (admission_id) REFERENCES Admissions(admission_id),
+    FOREIGN KEY (created_by_user_id) REFERENCES Users(user_id)
+);
+
+-- Define Invoice Items (line items for each invoice)
+CREATE TABLE InvoiceItems (
+    invoice_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_id INTEGER NOT NULL,
+    billable_item_id INTEGER NOT NULL,
+    batch_id INTEGER, -- Optional: Link to specific stock batch if applicable (e.g., Pharmacy)
+    description TEXT, -- Can override item description
+    quantity INTEGER NOT NULL DEFAULT 1,
+    unit_price REAL NOT NULL, -- Price at the time of invoicing
+    discount_amount REAL DEFAULT 0,
+    tax_amount REAL DEFAULT 0,
+    total_amount REAL NOT NULL, -- (quantity * unit_price) - discount + tax
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (invoice_id) REFERENCES Invoices(invoice_id),
+    FOREIGN KEY (billable_item_id) REFERENCES BillableItems(item_id),
+    FOREIGN KEY (batch_id) REFERENCES StockBatches(batch_id)
+);
+
+-- Define Payments
+CREATE TABLE Payments (
+    payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_id INTEGER NOT NULL,
+    patient_id INTEGER NOT NULL,
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    amount_paid REAL NOT NULL,
+    payment_method TEXT CHECK(payment_method IN ("Cash", "Card", "BankTransfer", "Insurance", "Online")), -- Add more as needed
+    transaction_reference TEXT, -- Card transaction ID, cheque number, etc.
+    notes TEXT,
+    received_by_user_id INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (invoice_id) REFERENCES Invoices(invoice_id),
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+    FOREIGN KEY (received_by_user_id) REFERENCES Users(user_id)
+);
+
 -- Create indexes for faster lookups
 CREATE INDEX idx_users_username ON Users (username);
 CREATE INDEX idx_users_email ON Users (email);
@@ -137,6 +244,27 @@ CREATE INDEX idx_appointments_patient_id ON Appointments (patient_id);
 CREATE INDEX idx_appointments_doctor_id ON Appointments (doctor_id);
 CREATE INDEX idx_appointments_datetime ON Appointments (appointment_datetime);
 CREATE INDEX idx_appointments_status ON Appointments (status);
+
+CREATE INDEX idx_billableitems_name ON BillableItems (item_name);
+CREATE INDEX idx_billableitems_type ON BillableItems (item_type);
+
+CREATE INDEX idx_inventoryitems_name ON InventoryItems (item_name);
+CREATE INDEX idx_inventoryitems_category ON InventoryItems (category);
+CREATE INDEX idx_inventoryitems_billable_id ON InventoryItems (billable_item_id);
+
+CREATE INDEX idx_stockbatches_item_id ON StockBatches (inventory_item_id);
+CREATE INDEX idx_stockbatches_expiry ON StockBatches (expiry_date);
+
+CREATE INDEX idx_invoices_patient_id ON Invoices (patient_id);
+CREATE INDEX idx_invoices_status ON Invoices (status);
+CREATE INDEX idx_invoices_date ON Invoices (invoice_date);
+
+CREATE INDEX idx_invoiceitems_invoice_id ON InvoiceItems (invoice_id);
+CREATE INDEX idx_invoiceitems_billable_id ON InvoiceItems (billable_item_id);
+
+CREATE INDEX idx_payments_invoice_id ON Payments (invoice_id);
+CREATE INDEX idx_payments_patient_id ON Payments (patient_id);
+CREATE INDEX idx_payments_date ON Payments (payment_date);
 
 -- Add more tables and constraints as needed for other modules later
 
