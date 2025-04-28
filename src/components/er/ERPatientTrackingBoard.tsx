@@ -22,59 +22,49 @@ import {
   TriangleAlert, // For Fall Risk
   Biohazard // For Isolation
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton for loading state
 
-// Mock data structure - replace with API data
+// Interface for API data
 interface ERPatient {
-  id: string;
-  name: string;
+  id: string; // visit_id
+  patient_id: string;
+  patient_name: string;
   mrn: string;
   age: number;
   sex: string;
-  chiefComplaint: string;
-  arrivalTime: string;
+  chief_complaint: string;
+  arrival_time: string;
   location: string;
   esi: number;
-  waitTime: string; // Calculated: Now - ArrivalTime
-  los: string; // Calculated: Now - ArrivalTime
-  physician: string | null;
-  nurse: string | null;
+  assigned_physician: string | null;
+  assigned_nurse: string | null;
   status: string; // Triage, Assessment, Treatment, Awaiting Disposition, Discharged, Admitted
   indicators: {
-    labPending?: boolean;
-    labReady?: boolean;
-    radPending?: boolean;
-    radReady?: boolean;
-    medsPending?: boolean;
-    consultPending?: boolean;
-    criticalAlert?: string; // e.g., Sepsis, Stroke
+    lab_pending?: boolean;
+    lab_ready?: boolean;
+    rad_pending?: boolean;
+    rad_ready?: boolean;
+    meds_pending?: boolean;
+    consult_pending?: boolean;
+    critical_alert?: string; // e.g., Sepsis, Stroke
     isolation?: string; // e.g., Contact, Droplet
-    fallRisk?: boolean;
+    fall_risk?: boolean;
   };
 }
 
-// Mock data - replace with API fetch
-const mockPatients: ERPatient[] = [
-  {
-    id: "visit_1", name: "John Doe", mrn: "MRN001", age: 65, sex: "M", chiefComplaint: "Chest Pain", arrivalTime: new Date(Date.now() - 65 * 60 * 1000).toISOString(), location: "Room 3", esi: 2, waitTime: "5 min", los: "65 min", physician: "Dr. Smith", nurse: "Nurse Joy", status: "Treatment",
-    indicators: { labPending: true, radPending: true, criticalAlert: "STEMI" }
-  },
-  {
-    id: "visit_2", name: "Jane Smith", mrn: "MRN002", age: 42, sex: "F", chiefComplaint: "Abdominal Pain", arrivalTime: new Date(Date.now() - 120 * 60 * 1000).toISOString(), location: "Room 5", esi: 3, waitTime: "15 min", los: "120 min", physician: "Dr. Jones", nurse: "Nurse Kim", status: "Assessment",
-    indicators: { labReady: true, radPending: true, isolation: "Contact" }
-  },
-  {
-    id: "visit_3", name: "Peter Pan", mrn: "MRN003", age: 28, sex: "M", chiefComplaint: "Laceration", arrivalTime: new Date(Date.now() - 30 * 60 * 1000).toISOString(), location: "Fast Track 1", esi: 4, waitTime: "8 min", los: "30 min", physician: null, nurse: "Nurse Lee", status: "Treatment",
-    indicators: { medsPending: true }
-  },
-  {
-    id: "visit_4", name: "Alice Wonderland", mrn: "MRN004", age: 78, sex: "F", chiefComplaint: "Weakness", arrivalTime: new Date(Date.now() - 15 * 60 * 1000).toISOString(), location: "Triage Room 2", esi: 3, waitTime: "15 min", los: "15 min", physician: null, nurse: "Nurse Ben", status: "Triage",
-    indicators: { fallRisk: true, criticalAlert: "Stroke" }
-  },
-  {
-    id: "visit_5", name: "Bob Builder", mrn: "MRN005", age: 50, sex: "M", chiefComplaint: "Fever, Cough", arrivalTime: new Date(Date.now() - 240 * 60 * 1000).toISOString(), location: "Room 1", esi: 3, waitTime: "20 min", los: "240 min", physician: "Dr. Smith", nurse: "Nurse Joy", status: "Awaiting Disposition",
-    indicators: { labReady: true, radReady: true, consultPending: true }
-  },
-];
+// Helper function to calculate time difference
+const calculateTimeDiff = (startTime: string): string => {
+  const start = new Date(startTime).getTime();
+  const now = Date.now();
+  const diffMinutes = Math.round((now - start) / (1000 * 60));
+  
+  if (diffMinutes < 60) {
+    return `${diffMinutes} min`;
+  }
+  const diffHours = Math.floor(diffMinutes / 60);
+  const remainingMinutes = diffMinutes % 60;
+  return `${diffHours}h ${remainingMinutes}m`;
+};
 
 const getEsiBadgeVariant = (esi: number): "destructive" | "warning" | "success" | "info" | "secondary" => {
   switch (esi) {
@@ -88,28 +78,50 @@ const getEsiBadgeVariant = (esi: number): "destructive" | "warning" | "success" 
 };
 
 export default function ERPatientTrackingBoard() {
-  const [patients, setPatients] = useState<ERPatient[]>(mockPatients);
+  const [patients, setPatients] = useState<ERPatient[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filterName, setFilterName] = useState("");
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterEsi, setFilterEsi] = useState("all");
 
-  // TODO: Fetch data from API: GET /api/er/visits
-  // useEffect(() => {
-  //   fetch("/api/er/visits?status=active") // Example: fetch only active patients
-  //     .then(res => res.json())
-  //     .then(data => setPatients(data));
-  // }, []);
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Assuming an API endpoint exists at /api/er/visits that returns active patients
+        const response = await fetch("/api/er/visits?status=active"); 
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data: ERPatient[] = await response.json();
+        setPatients(data);
+      } catch (err) {
+        console.error("Failed to fetch ER patients:", err);
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // TODO: Implement real-time updates via WebSockets or polling
+    fetchData();
+    
+    // Optional: Set up polling or WebSocket for real-time updates
+    // const intervalId = setInterval(fetchData, 30000); // Poll every 30 seconds
+    // return () => clearInterval(intervalId);
+
+  }, []);
 
   const filteredPatients = patients.filter(p => {
-    const nameMatch = p.name.toLowerCase().includes(filterName.toLowerCase()) || p.mrn.includes(filterName);
+    const nameMatch = p.patient_name.toLowerCase().includes(filterName.toLowerCase()) || p.mrn.includes(filterName);
     const locationMatch = filterLocation === "all" || p.location === filterLocation;
     const esiMatch = filterEsi === "all" || p.esi === parseInt(filterEsi);
     return nameMatch && locationMatch && esiMatch;
   });
 
-  // Get unique locations for filter dropdown
+  // Get unique locations for filter dropdown from fetched data
   const locations = ["all", ...Array.from(new Set(patients.map(p => p.location)))];
 
   return (
@@ -143,6 +155,13 @@ export default function ERPatientTrackingBoard() {
           </SelectContent>
         </Select>
       </div>
+      
+      {error && (
+        <div className="text-red-600 border border-red-600 p-3 rounded-md">
+          Error fetching data: {error}
+        </div>
+      )}
+      
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -159,36 +178,51 @@ export default function ERPatientTrackingBoard() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredPatients.length > 0 ? (
+            {isLoading ? (
+              // Loading Skeleton Rows
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`}>
+                  <TableCell><Skeleton className="h-4 w-3/4" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-1/2" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-12" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-3/4" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-1/2" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-1/2" /></TableCell>
+                </TableRow>
+              ))
+            ) : filteredPatients.length > 0 ? (
               filteredPatients.map((patient) => (
                 <TableRow key={patient.id}>
                   <TableCell>
-                    <div className="font-medium">{patient.name}</div>
+                    <div className="font-medium">{patient.patient_name}</div>
                     <div className="text-sm text-muted-foreground">{patient.mrn} ({patient.age}{patient.sex})</div>
                   </TableCell>
-                  <TableCell className="max-w-[150px] truncate">{patient.chiefComplaint}</TableCell>
+                  <TableCell className="max-w-[150px] truncate">{patient.chief_complaint}</TableCell>
                   <TableCell>{patient.location}</TableCell>
                   <TableCell>
                     <Badge variant={getEsiBadgeVariant(patient.esi)}>ESI {patient.esi}</Badge>
                   </TableCell>
-                  <TableCell>{patient.waitTime}</TableCell>
-                  <TableCell>{patient.los}</TableCell>
+                  <TableCell>{calculateTimeDiff(patient.arrival_time)}</TableCell> {/* Calculate Wait Time dynamically */} 
+                  <TableCell>{calculateTimeDiff(patient.arrival_time)}</TableCell> {/* Calculate LOS dynamically */} 
                   <TableCell>
-                    <div className="text-sm">MD: {patient.physician || "N/A"}</div>
-                    <div className="text-sm">RN: {patient.nurse || "N/A"}</div>
+                    <div className="text-sm">MD: {patient.assigned_physician || "N/A"}</div>
+                    <div className="text-sm">RN: {patient.assigned_nurse || "N/A"}</div>
                   </TableCell>
                   <TableCell>{patient.status}</TableCell>
                   <TableCell>
                     <div className="flex space-x-1">
-                      {patient.indicators.criticalAlert && <AlertCircle className="h-4 w-4 text-red-600" title={`Alert: ${patient.indicators.criticalAlert}`} />}
-                      {patient.indicators.labPending && <FlaskConical className="h-4 w-4 text-blue-500" title="Lab Pending" />}
-                      {patient.indicators.labReady && <FlaskConical className="h-4 w-4 text-green-500" title="Lab Ready" />}
-                      {patient.indicators.radPending && <Radiation className="h-4 w-4 text-blue-500" title="Radiology Pending" />}
-                      {patient.indicators.radReady && <Radiation className="h-4 w-4 text-green-500" title="Radiology Ready" />}
-                      {patient.indicators.medsPending && <Pill className="h-4 w-4 text-orange-500" title="Meds Pending" />}
-                      {patient.indicators.consultPending && <UserCheck className="h-4 w-4 text-purple-500" title="Consult Pending" />}
+                      {patient.indicators.critical_alert && <AlertCircle className="h-4 w-4 text-red-600" title={`Alert: ${patient.indicators.critical_alert}`} />}
+                      {patient.indicators.lab_pending && <FlaskConical className="h-4 w-4 text-blue-500" title="Lab Pending" />}
+                      {patient.indicators.lab_ready && <FlaskConical className="h-4 w-4 text-green-500" title="Lab Ready" />}
+                      {patient.indicators.rad_pending && <Radiation className="h-4 w-4 text-blue-500" title="Radiology Pending" />}
+                      {patient.indicators.rad_ready && <Radiation className="h-4 w-4 text-green-500" title="Radiology Ready" />}
+                      {patient.indicators.meds_pending && <Pill className="h-4 w-4 text-orange-500" title="Meds Pending" />}
+                      {patient.indicators.consult_pending && <UserCheck className="h-4 w-4 text-purple-500" title="Consult Pending" />}
                       {patient.indicators.isolation && <Biohazard className="h-4 w-4 text-yellow-600" title={`Isolation: ${patient.indicators.isolation}`} />}
-                      {patient.indicators.fallRisk && <TriangleAlert className="h-4 w-4 text-yellow-500" title="Fall Risk" />}
+                      {patient.indicators.fall_risk && <TriangleAlert className="h-4 w-4 text-yellow-500" title="Fall Risk" />}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -196,7 +230,7 @@ export default function ERPatientTrackingBoard() {
             ) : (
               <TableRow>
                 <TableCell colSpan={9} className="h-24 text-center">
-                  No patients found.
+                  No active patients found matching criteria.
                 </TableCell>
               </TableRow>
             )}
@@ -206,3 +240,4 @@ export default function ERPatientTrackingBoard() {
     </div>
   );
 }
+
