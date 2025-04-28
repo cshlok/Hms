@@ -45,16 +45,18 @@ Based on our comprehensive analysis of the codebase, the following modules have 
    - Integration with OPD and IPD modules
    - *Note: DICOM/PACS integration for image storage/viewing is a future enhancement.*
 
+7. **Operation Theatre (OT) Management**
+   - Theatre management and scheduling system
+   - Surgery types and procedure templates
+   - Pre-operative assessment and checklists
+   - Intra-operative records and vital monitoring
+   - Post-operative care documentation
+   - Staff assignment and team management
+   - Integration with IPD, User Management, and Billing modules
+
 ## Remaining Modules (In Priority Order)
 
 The following modules from the initial requirements list still need to be implemented:
-
-1. **Operation Theatre (OT) Management**
-   - Scheduling system
-   - Pre-operative assessment
-   - Operation notes
-   - Post-operative care
-   - Integration with IPD module
 
 2. **Emergency Department (ER) Module**
    - Triage system
