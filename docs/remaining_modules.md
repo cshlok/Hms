@@ -54,116 +54,118 @@ Based on our comprehensive analysis of the codebase, the following modules have 
    - Staff assignment and team management
    - Integration with IPD, User Management, and Billing modules
 
+8. **Emergency Department (ER) Module**
+   - Triage system using Emergency Severity Index (ESI)
+   - Patient tracking board with real-time status visualization
+   - Critical alert mechanism for time-sensitive conditions (STEMI, Stroke, Sepsis)
+   - Status and location tracking throughout the ER visit
+   - Integration with IPD (admission), Laboratory (STAT orders), and Radiology modules
+   - Dashboard with key ER metrics and statistics
+
 ## Remaining Modules (In Priority Order)
 
 The following modules from the initial requirements list still need to be implemented:
 
-2. **Emergency Department (ER) Module**
-   - Triage system
-   - Critical alert mechanism
-   - Fast-track admission process
-   - Integration with IPD and OT modules
-
-3. **Billing & Invoicing**
+1. **Billing & Invoicing**
    - Department-wise billing
    - Package billing
    - Emergency billing
    - Integration with all clinical modules
 
-4. **Insurance and TPA Management**
+2. **Insurance and TPA Management**
    - Pre-authorization
    - Billing
    - Claim tracking
    - Integration with billing module
 
-5. **Blood Bank Management**
+3. **Blood Bank Management**
    - Donor database
    - Inventory tracking
    - Crossmatch
    - Integration with laboratory module
 
-6. **Role-Based Access Control (RBAC)**
+4. **Role-Based Access Control (RBAC)**
    - Enhanced permissions for Doctor, Nurse, Receptionist, Admin, Lab Technician, Pharmacist, Radiologist, OT Staff etc.
    - Role-specific dashboards and workflows
 
-7. **HR and Payroll Management**
+5. **HR and Payroll Management**
    - Staff attendance (biometric integration)
    - Leave management
    - Payroll processing
 
-8. **Housekeeping and Maintenance Management**
+6. **Housekeeping and Maintenance Management**
    - Task assignment
    - Completion tracking
    - Inventory management
 
-9. **Biomedical Equipment Management**
+7. **Biomedical Equipment Management**
     - Equipment inventory
     - Maintenance scheduling
     - Service records
 
-10. **Dietary Management**
+8. **Dietary Management**
     - Diet orders
     - Meal planning
     - Integration with IPD module
 
-11. **Ambulance Management**
+9. **Ambulance Management**
     - Fleet management
     - Dispatch system
     - Trip records
 
-12. **Patient Portal (Web + Mobile App)**
+10. **Patient Portal (Web + Mobile App)**
     - Appointments
     - Reports
     - Bills
     - Payments
 
-13. **Doctor Portal (Web + Mobile App)**
+11. **Doctor Portal (Web + Mobile App)**
     - Appointments
     - E-prescriptions
     - Progress notes
 
-14. **E-Prescription and Drug Interaction Checker**
+12. **E-Prescription and Drug Interaction Checker**
     - Electronic prescription system
     - Drug interaction alerts
     - Integration with pharmacy module
 
-15. **Notification System**
+13. **Notification System**
     - SMS/Email/WhatsApp alerts
     - Appointment reminders
     - Result availability notifications
 
-16. **Feedback & Complaint Management**
+14. **Feedback & Complaint Management**
     - Patient feedback collection
     - Complaint tracking
     - Resolution workflow
 
-17. **Marketing CRM Module**
+15. **Marketing CRM Module**
     - Campaigns
     - Reminders
     - Patient engagement
 
-18. **Analytics and Reporting**
+16. **Analytics and Reporting**
     - Revenue
     - OPD/IPD statistics
     - Occupancy rate
     - Advanced dashboards
 
-19. **Medical Records Department (MRD)**
+17. **Medical Records Department (MRD)**
     - ICD coding
     - Document archival
     - Medical record management
 
-20. **NABH / JCI Accreditation Compliance Checklists**
+18. **NABH / JCI Accreditation Compliance Checklists**
     - Standard operating procedures
     - Compliance tracking
     - Audit preparation
 
-21. **Advanced Backup and Disaster Recovery**
+19. **Advanced Backup and Disaster Recovery**
     - Automated backups
     - Recovery testing
     - Business continuity planning
 
-22. **Cybersecurity Measures**
+20. **Cybersecurity Measures**
     - End-to-end encryption
     - Two-factor authentication
     - Audit logs
@@ -171,26 +173,27 @@ The following modules from the initial requirements list still need to be implem
 
 ## Next Steps Recommendation
 
-1. **Implement Radiology Management Module**
-   - This should be the next priority as it complements the already implemented Laboratory module
-   - Follow the same iterative development approach used for previous modules
-   - Create database schema, API routes, and UI components
-   - Ensure integration with existing OPD and IPD modules
+1. **Implement Billing & Invoicing Module**
+   - This should be the next priority as it will tie together all clinical modules
+   - Create comprehensive billing system that integrates with all existing modules
+   - Support different billing types (OPD, IPD, ER, OT, package billing)
+   - Implement payment tracking and receipt generation
 
-2. **Enhance Pharmacy Module**
+2. **Develop Insurance and TPA Management**
+   - This naturally follows the billing module
+   - Focus on pre-authorization workflows, claim submission, and tracking
+   - Ensure integration with the billing system
+
+3. **Enhance Existing Modules**
    - Add additional features to the Pharmacy module:
      - Drug interaction checking
      - Expiry tracking
      - Generic/branded drugs management
-     - Enhanced inventory management
+   - Improve Laboratory and Radiology modules with more advanced reporting
 
-3. **Begin Operation Theatre Module**
-   - This will integrate well with the existing IPD module
-   - Focus on scheduling and basic operation records first
-
-4. **Implement Comprehensive Billing System**
-   - This will tie together all clinical modules
-   - Ensure integration with all existing modules
+4. **Implement Blood Bank Management**
+   - This will integrate well with the existing Laboratory module
+   - Focus on donor management, inventory, and crossmatching
 
 5. **Develop Mobile Responsiveness**
    - Enhance all existing modules to work seamlessly on mobile devices
