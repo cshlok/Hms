@@ -1,0 +1,285 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
+// Main Pharmacy Dashboard Page
+export default function PharmacyPage() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    totalMedications: 0,
+    lowStockItems: 0,
+    pendingPrescriptions: 0,
+    expiringItems: 0
+  });
+
+  useEffect(() => {
+    // Fetch pharmacy dashboard statistics
+    const fetchStats = async () => {
+      setLoading(true);
+      try {
+        // In a real implementation, these would be separate API calls
+        // For now, we'll simulate the data
+        setStats({
+          totalMedications: 125,
+          lowStockItems: 8,
+          pendingPrescriptions: 12,
+          expiringItems: 5
+        });
+      } catch (error) {
+        console.error('Error fetching pharmacy stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard 
+              title="Total Medications" 
+              value={stats.totalMedications} 
+              icon="📦" 
+              color="bg-blue-100" 
+              onClick={() => router.push('/pharmacy/medications')}
+            />
+            <StatCard 
+              title="Low Stock Items" 
+              value={stats.lowStockItems} 
+              icon="⚠️" 
+              color="bg-yellow-100" 
+              onClick={() => router.push('/pharmacy/inventory?low_stock=true')}
+            />
+            <StatCard 
+              title="Pending Prescriptions" 
+              value={stats.pendingPrescriptions} 
+              icon="📋" 
+              color="bg-green-100" 
+              onClick={() => router.push('/pharmacy/prescriptions?status=pending')}
+            />
+            <StatCard 
+              title="Expiring Soon" 
+              value={stats.expiringItems} 
+              icon="⏱️" 
+              color="bg-red-100" 
+              onClick={() => router.push('/pharmacy/inventory?expiry_before=' + getThirtyDaysFromNow())}
+            />
+          </div>
+        );
+      default:
+        return <div>Select a tab to view content</div>;
+    }
+  };
+
+  const getThirtyDaysFromNow = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 30);
+    return date.toISOString().split('T')[0];
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800">Pharmacy Management</h1>
+        <div className="flex space-x-2">
+          <button 
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+            onClick={() => router.push('/pharmacy/inventory/add')}
+          >
+            Add Inventory
+          </button>
+          <button 
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+            onClick={() => router.push('/pharmacy/medications/add')}
+          >
+            Add Medication
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div className="flex border-b">
+          <button
+            className={`px-4 py-3 text-sm font-medium ${
+              activeTab === 'dashboard' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:text-gray-800'
+            }`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </button>
+          <button
+            className={`px-4 py-3 text-sm font-medium ${
+              activeTab === 'inventory' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:text-gray-800'
+            }`}
+            onClick={() => router.push('/pharmacy/inventory')}
+          >
+            Inventory
+          </button>
+          <button
+            className={`px-4 py-3 text-sm font-medium ${
+              activeTab === 'medications' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:text-gray-800'
+            }`}
+            onClick={() => router.push('/pharmacy/medications')}
+          >
+            Medications
+          </button>
+          <button
+            className={`px-4 py-3 text-sm font-medium ${
+              activeTab === 'prescriptions' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:text-gray-800'
+            }`}
+            onClick={() => router.push('/pharmacy/prescriptions')}
+          >
+            Prescriptions
+          </button>
+          <button
+            className={`px-4 py-3 text-sm font-medium ${
+              activeTab === 'dispensing' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:text-gray-800'
+            }`}
+            onClick={() => router.push('/pharmacy/dispensing')}
+          >
+            Dispensing
+          </button>
+        </div>
+
+        <div className="p-6">
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            renderTabContent()
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 bg-blue-50 border-b border-blue-100">
+            <h2 className="text-lg font-semibold text-gray-800">Recent Prescriptions</h2>
+          </div>
+          <div className="p-6">
+            <RecentPrescriptionsList />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="px-6 py-4 bg-blue-50 border-b border-blue-100">
+            <h2 className="text-lg font-semibold text-gray-800">Expiring Medications</h2>
+          </div>
+          <div className="p-6">
+            <ExpiringMedicationsList />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Stat Card Component
+function StatCard({ title, value, icon, color, onClick }) {
+  return (
+    <div 
+      className={`${color} rounded-lg shadow-md p-6 cursor-pointer transition-transform hover:scale-105`}
+      onClick={onClick}
+    >
+      <div className="flex justify-between items-center">
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-3xl font-bold text-gray-800 mt-2">{value}</p>
+        </div>
+        <div className="text-3xl">{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+// Recent Prescriptions List Component
+function RecentPrescriptionsList() {
+  // Mock data for recent prescriptions
+  const recentPrescriptions = [
+    { id: 'presc_1', number: 'PRSC-20250428-1234', patient: 'John Smith', date: '2025-04-28', status: 'pending' },
+    { id: 'presc_2', number: 'PRSC-20250427-5678', patient: 'Jane Doe', date: '2025-04-27', status: 'dispensed' },
+    { id: 'presc_3', number: 'PRSC-20250426-9012', patient: 'Robert Johnson', date: '2025-04-26', status: 'partially_dispensed' },
+  ];
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'pending':
+        return <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>;
+      case 'dispensed':
+        return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Dispensed</span>;
+      case 'partially_dispensed':
+        return <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Partial</span>;
+      default:
+        return <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">{status}</span>;
+    }
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prescription</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {recentPrescriptions.map((prescription) => (
+            <tr key={prescription.id} className="hover:bg-gray-50 cursor-pointer">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{prescription.number}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{prescription.patient}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{prescription.date}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(prescription.status)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// Expiring Medications List Component
+function ExpiringMedicationsList() {
+  // Mock data for expiring medications
+  const expiringMedications = [
+    { id: 'batch_1', medication: 'Amoxicillin 500mg', batch: 'AMX2023001', expiry: '2025-05-15', stock: 120 },
+    { id: 'batch_2', medication: 'Paracetamol 500mg', batch: 'PCM2023001', expiry: '2025-05-20', stock: 85 },
+    { id: 'batch_3', medication: 'Cetirizine 10mg', batch: 'CET2023001', expiry: '2025-05-30', stock: 42 },
+  ];
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medication</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {expiringMedications.map((item) => (
+            <tr key={item.id} className="hover:bg-gray-50 cursor-pointer">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.medication}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.batch}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-medium">{item.expiry}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.stock}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
