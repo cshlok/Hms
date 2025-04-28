@@ -38,129 +38,130 @@ Based on our comprehensive analysis of the codebase, the following modules have 
    - Dispensing workflow
    - Integration with OPD and IPD
 
+6. **Radiology Management**
+   - X-ray, CT, MRI requests and report tracking (RIS functionality)
+   - Database schema for orders, studies, reports, modalities, procedure types
+   - API routes and UI components for workflow management
+   - Integration with OPD and IPD modules
+   - *Note: DICOM/PACS integration for image storage/viewing is a future enhancement.*
+
 ## Remaining Modules (In Priority Order)
 
 The following modules from the initial requirements list still need to be implemented:
 
-1. **Radiology Management**
-   - X-ray, CT, MRI requests and report tracking
-   - DICOM integration for image storage
-   - Radiologist reporting system
-   - Integration with OPD and IPD modules
-
-2. **Operation Theatre (OT) Management**
+1. **Operation Theatre (OT) Management**
    - Scheduling system
    - Pre-operative assessment
    - Operation notes
    - Post-operative care
    - Integration with IPD module
 
-3. **Emergency Department (ER) Module**
+2. **Emergency Department (ER) Module**
    - Triage system
    - Critical alert mechanism
    - Fast-track admission process
    - Integration with IPD and OT modules
 
-4. **Billing & Invoicing**
+3. **Billing & Invoicing**
    - Department-wise billing
    - Package billing
    - Emergency billing
    - Integration with all clinical modules
 
-5. **Insurance and TPA Management**
+4. **Insurance and TPA Management**
    - Pre-authorization
    - Billing
    - Claim tracking
    - Integration with billing module
 
-6. **Blood Bank Management**
+5. **Blood Bank Management**
    - Donor database
    - Inventory tracking
    - Crossmatch
    - Integration with laboratory module
 
-7. **Role-Based Access Control (RBAC)**
-   - Enhanced permissions for Doctor, Nurse, Receptionist, Admin, Lab Technician, Pharmacist
+6. **Role-Based Access Control (RBAC)**
+   - Enhanced permissions for Doctor, Nurse, Receptionist, Admin, Lab Technician, Pharmacist, Radiologist, OT Staff etc.
    - Role-specific dashboards and workflows
 
-8. **HR and Payroll Management**
+7. **HR and Payroll Management**
    - Staff attendance (biometric integration)
    - Leave management
    - Payroll processing
 
-9. **Housekeeping and Maintenance Management**
+8. **Housekeeping and Maintenance Management**
    - Task assignment
    - Completion tracking
    - Inventory management
 
-10. **Biomedical Equipment Management**
+9. **Biomedical Equipment Management**
     - Equipment inventory
     - Maintenance scheduling
     - Service records
 
-11. **Dietary Management**
+10. **Dietary Management**
     - Diet orders
     - Meal planning
     - Integration with IPD module
 
-12. **Ambulance Management**
+11. **Ambulance Management**
     - Fleet management
     - Dispatch system
     - Trip records
 
-13. **Patient Portal (Web + Mobile App)**
+12. **Patient Portal (Web + Mobile App)**
     - Appointments
     - Reports
     - Bills
     - Payments
 
-14. **Doctor Portal (Web + Mobile App)**
+13. **Doctor Portal (Web + Mobile App)**
     - Appointments
     - E-prescriptions
     - Progress notes
 
-15. **E-Prescription and Drug Interaction Checker**
+14. **E-Prescription and Drug Interaction Checker**
     - Electronic prescription system
     - Drug interaction alerts
     - Integration with pharmacy module
 
-16. **Notification System**
+15. **Notification System**
     - SMS/Email/WhatsApp alerts
     - Appointment reminders
     - Result availability notifications
 
-17. **Feedback & Complaint Management**
+16. **Feedback & Complaint Management**
     - Patient feedback collection
     - Complaint tracking
     - Resolution workflow
 
-18. **Marketing CRM Module**
+17. **Marketing CRM Module**
     - Campaigns
     - Reminders
     - Patient engagement
 
-19. **Analytics and Reporting**
+18. **Analytics and Reporting**
     - Revenue
     - OPD/IPD statistics
     - Occupancy rate
     - Advanced dashboards
 
-20. **Medical Records Department (MRD)**
+19. **Medical Records Department (MRD)**
     - ICD coding
     - Document archival
     - Medical record management
 
-21. **NABH / JCI Accreditation Compliance Checklists**
+20. **NABH / JCI Accreditation Compliance Checklists**
     - Standard operating procedures
     - Compliance tracking
     - Audit preparation
 
-22. **Advanced Backup and Disaster Recovery**
+21. **Advanced Backup and Disaster Recovery**
     - Automated backups
     - Recovery testing
     - Business continuity planning
 
-23. **Cybersecurity Measures**
+22. **Cybersecurity Measures**
     - End-to-end encryption
     - Two-factor authentication
     - Audit logs
