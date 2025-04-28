@@ -49,6 +49,8 @@ interface Patient {
   id: number;
   name: string;
   mrn: string;
+  first_name: string;
+  last_name: string;
 }
 
 interface ServiceItem {
@@ -83,25 +85,17 @@ export default function CreateInvoicePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch Patients (Placeholder)
+  // Fetch Patients from real API
   const fetchPatients = useCallback(async (search: string) => {
     setLoadingPatients(true);
     try {
-      // Replace with actual API call: /api/patients?search=...
-      console.log("Simulating fetch patients with search:", search);
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-      const mockPatients: Patient[] = [
-        { id: 101, name: "Alice Smith", mrn: "MRN00101" },
-        { id: 102, name: "Bob Johnson", mrn: "MRN00102" },
-        { id: 103, name: "Charlie Brown", mrn: "MRN00103" },
-      ].filter(p => 
-        p.name.toLowerCase().includes(search.toLowerCase()) || 
-        p.mrn.toLowerCase().includes(search.toLowerCase())
-      );
-      setPatients(mockPatients);
+      const response = await fetch(`/api/patients?search=${encodeURIComponent(search)}`);
+      if (!response.ok) throw new Error("Failed to fetch patients");
+      const data = await response.json();
+      setPatients(data.patients || []);
     } catch (err) {
       console.error("Failed to fetch patients:", err);
-      // Handle error display
+      setError(err instanceof Error ? err.message : "Failed to fetch patients");
     } finally {
       setLoadingPatients(false);
     }
@@ -111,13 +105,13 @@ export default function CreateInvoicePage() {
   const fetchServiceItems = useCallback(async (search: string) => {
     setLoadingServices(true);
     try {
-      const response = await fetch(`/api/billing/service-items?search=${search}`);
+      const response = await fetch(`/api/billing/service-items?search=${encodeURIComponent(search)}`);
       if (!response.ok) throw new Error("Failed to fetch service items");
       const data = await response.json();
       setServiceItems(data.serviceItems || []);
     } catch (err) {
       console.error("Failed to fetch service items:", err);
-      // Handle error display
+      setError(err instanceof Error ? err.message : "Failed to fetch service items");
     } finally {
       setLoadingServices(false);
     }
@@ -198,13 +192,13 @@ export default function CreateInvoicePage() {
         patient_id: selectedPatient.id,
         items: invoiceItems.map(item => ({
           service_item_id: item.id,
+          item_name: item.item_name,
+          description: item.item_name,
           quantity: item.quantity,
           unit_price: item.unit_price,
           subtotal: item.subtotal,
-          // Add discount/tax details here if needed
         })),
         total_amount: invoiceTotal,
-        // Add other invoice details like due_date, notes etc.
       };
       
       const response = await fetch("/api/billing/invoices", {
@@ -220,9 +214,8 @@ export default function CreateInvoicePage() {
       
       const result = await response.json();
       console.log("Invoice created:", result);
-      // Redirect to the newly created invoice page or invoice list
-      router.push(`/dashboard/billing/invoices/${result.invoice.id || 
-'new'}`); // Adjust URL as needed
+      // Redirect to the billing dashboard
+      router.push("/dashboard/billing");
       
     } catch (err) {
       console.error("Error creating invoice:", err);
@@ -415,21 +408,21 @@ export default function CreateInvoicePage() {
             </Table>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-end items-center gap-4 pt-4 border-t">
-          <div className="text-right">
-            {/* Add Discount/Tax fields here if needed */}
-            <div className="text-xl font-semibold">Total Amount: ₹{invoiceTotal.toFixed(2)}</div>
+        <CardFooter className="flex justify-between items-center">
+          <div className="text-lg font-semibold">
+            Total: ₹{invoiceTotal.toFixed(2)}
           </div>
-          <Button 
-            size="lg" 
-            onClick={handleCreateInvoice} 
-            disabled={isSubmitting || !selectedPatient || invoiceItems.length === 0}
-          >
-            {isSubmitting ? "Creating Invoice..." : "Create Invoice"}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+            <Button 
+              onClick={handleCreateInvoice} 
+              disabled={isSubmitting || !selectedPatient || invoiceItems.length === 0}
+            >
+              {isSubmitting ? "Creating..." : "Create Invoice"}
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     </div>
   );
 }
-
