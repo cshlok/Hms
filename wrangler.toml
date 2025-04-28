@@ -8,7 +8,7 @@ compatibility_flags = ["nodejs_compat"]
 directory = ".open-next/assets"
 binding = "ASSETS"
 
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "random_id"
-# database_id = "10183848-4cc7-4198-b8c7-1374015ab09c"
+[[d1_databases]]
+binding = "DB"
+database_name = "hms-db"
+database_id = "local-hms-db"

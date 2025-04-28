@@ -1,26 +1,38 @@
--- Migration number: 0001 	 2025-01-16T13:42:41.031Z
-DROP TABLE IF EXISTS counters;
-DROP TABLE IF EXISTS access_logs;
-
-CREATE TABLE IF NOT EXISTS counters (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT UNIQUE NOT NULL,
-  value INTEGER NOT NULL DEFAULT 0,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- Define Roles
+CREATE TABLE Roles (
+    role_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role_name TEXT NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS access_logs (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  ip TEXT,
-  path TEXT,
-  accessed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- Insert predefined roles
+INSERT INTO Roles (role_name) VALUES
+("Admin"),
+("Doctor"),
+("Nurse"),
+("Receptionist"),
+("Lab Technician"),
+("Pharmacist"),
+("Patient");
+
+-- Define Users table
+CREATE TABLE Users (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    full_name TEXT,
+    phone_number TEXT,
+    role_id INTEGER NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES Roles(role_id)
 );
 
--- 初始数据
-INSERT INTO counters (name, value) VALUES 
-  ('page_views', 0),
-  ('api_calls', 0);
+-- Create indexes for faster lookups
+CREATE INDEX idx_users_username ON Users (username);
+CREATE INDEX idx_users_email ON Users (email);
+CREATE INDEX idx_users_role_id ON Users (role_id);
 
--- 创建索引
-CREATE INDEX idx_access_logs_accessed_at ON access_logs(accessed_at);
-CREATE INDEX idx_counters_name ON counters(name);
+-- Add more tables and constraints as needed for other modules later
+
