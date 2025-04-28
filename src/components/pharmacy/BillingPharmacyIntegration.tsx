@@ -11,69 +11,43 @@ export default function BillingPharmacyIntegration({ patientId }) {
   const [unbilledItems, setUnbilledItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [billTotal, setBillTotal] = useState(0);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // Fetch dispensing records for the patient that haven't been billed
     const fetchUnbilledDispensing = async () => {
+      if (!patientId) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        // In a real implementation, this would be an API call
-        // const response = await fetch(`/api/pharmacy/dispensing?patient_id=${patientId}&billed=false`);
-        // const data = await response.json();
-        // setDispensingRecords(data.dispensing_records || []);
+        setLoading(true);
+        setError(null);
         
-        // Mock data
-        const mockRecords = [
-          {
-            id: 'disp_001',
-            prescription_id: 'presc_001',
-            prescription_item_id: 'item_001',
-            medication_id: 'med_001',
-            generic_name: 'Paracetamol',
-            brand_name: 'Calpol',
-            strength: '500mg',
-            dosage_form: 'Tablet',
-            batch_id: 'batch_001',
-            batch_number: 'PCM2023001',
-            quantity: 10,
-            selling_price: 2.50,
-            dispensed_at: '2025-04-28T10:15:00Z',
-            billed: false
-          },
-          {
-            id: 'disp_002',
-            prescription_id: 'presc_001',
-            prescription_item_id: 'item_002',
-            medication_id: 'med_003',
-            generic_name: 'Cetirizine',
-            brand_name: 'Zyrtec',
-            strength: '10mg',
-            dosage_form: 'Tablet',
-            batch_id: 'batch_002',
-            batch_number: 'CET2023001',
-            quantity: 7,
-            selling_price: 5.00,
-            dispensed_at: '2025-04-28T10:15:00Z',
-            billed: false
-          }
-        ];
+        const response = await fetch(`/api/pharmacy/dispensing?patient_id=${patientId}&billed=false`);
         
-        setDispensingRecords(mockRecords);
-        setUnbilledItems(mockRecords.map(record => ({
+        if (!response.ok) {
+          throw new Error(`Failed to fetch dispensing records: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const records = data.dispensing_records || [];
+        
+        setDispensingRecords(records);
+        setUnbilledItems(records.map(record => ({
           ...record,
           subtotal: record.quantity * record.selling_price
         })));
       } catch (error) {
         console.error('Error fetching unbilled dispensing records:', error);
+        setError('Failed to load pharmacy items. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
-    if (patientId) {
-      fetchUnbilledDispensing();
-    } else {
-      setLoading(false);
-    }
+    fetchUnbilledDispensing();
   }, [patientId]);
 
   // Handle item selection for billing
@@ -101,58 +75,72 @@ export default function BillingPharmacyIntegration({ patientId }) {
     setLoading(true);
     
     try {
-      // In a real implementation, this would be an API call to create a bill
-      // const response = await fetch('/api/billing/pharmacy-bill', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     patient_id: patientId,
-      //     items: selectedItems.map(item => ({
-      //       dispensing_id: item.id,
-      //       medication_id: item.medication_id,
-      //       quantity: item.quantity,
-      //       unit_price: item.selling_price,
-      //       subtotal: item.subtotal
-      //     })),
-      //     total_amount: billTotal
-      //   }),
-      // });
+      const response = await fetch('/api/billing/pharmacy-bill', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patient_id: patientId,
+          items: selectedItems.map(item => ({
+            dispensing_id: item.id,
+            medication_id: item.medication_id,
+            quantity: item.quantity,
+            unit_price: item.selling_price,
+            subtotal: item.subtotal
+          })),
+          total_amount: billTotal
+        }),
+      });
       
-      // Simulate successful bill creation
-      console.log('Generating pharmacy bill for:', selectedItems);
+      if (!response.ok) {
+        throw new Error(`Failed to generate bill: ${response.status}`);
+      }
       
-      setTimeout(() => {
-        // Update UI to reflect billed items
-        setDispensingRecords(prevRecords => 
-          prevRecords.map(record => 
-            selectedItems.some(item => item.id === record.id) 
-              ? { ...record, billed: true } 
-              : record
-          )
-        );
-        
-        setUnbilledItems(prevItems => 
-          prevItems.filter(item => !selectedItems.some(selected => selected.id === item.id))
-        );
-        
-        setSelectedItems([]);
-        setBillTotal(0);
-        
-        alert('Pharmacy bill generated successfully!');
-        setLoading(false);
-      }, 1000);
+      const result = await response.json();
+      
+      // Update UI to reflect billed items
+      setDispensingRecords(prevRecords => 
+        prevRecords.map(record => 
+          selectedItems.some(item => item.id === record.id) 
+            ? { ...record, billed: true } 
+            : record
+        )
+      );
+      
+      setUnbilledItems(prevItems => 
+        prevItems.filter(item => !selectedItems.some(selected => selected.id === item.id))
+      );
+      
+      setSelectedItems([]);
+      setBillTotal(0);
+      
+      alert('Pharmacy bill generated successfully!');
       
     } catch (error) {
       console.error('Error generating pharmacy bill:', error);
       alert('Failed to generate pharmacy bill. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
 
   if (loading && dispensingRecords.length === 0) {
-    return <div className="flex justify-center items-center h-64">Loading pharmacy billing data...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+        <span className="ml-2">Loading pharmacy billing data...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong className="font-bold">Error: </strong>
+        <span className="block sm:inline">{error}</span>
+      </div>
+    );
   }
 
   return (
@@ -266,7 +254,7 @@ export default function BillingPharmacyIntegration({ patientId }) {
                           ₹{(item.quantity * item.selling_price).toFixed(2)}
                         </td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                          {new Date().toLocaleDateString()} {/* In a real app, this would be the actual billing date */}
+                          {item.billed_at ? new Date(item.billed_at).toLocaleDateString() : new Date().toLocaleDateString()}
                         </td>
                       </tr>
                     ))}
