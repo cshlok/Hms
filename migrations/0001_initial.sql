@@ -173,6 +173,7 @@ CREATE TABLE Invoices (
     patient_id INTEGER NOT NULL,
     appointment_id INTEGER, -- Optional link to appointment
     admission_id INTEGER, -- Optional link to IPD admission (Add Admissions table later)
+    opd_visit_id INTEGER, -- Optional link to OPD visit
     invoice_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     due_date DATE,
     total_amount REAL NOT NULL DEFAULT 0,
@@ -187,6 +188,7 @@ CREATE TABLE Invoices (
     FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
     FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id),
     -- FOREIGN KEY (admission_id) REFERENCES Admissions(admission_id),
+    FOREIGN KEY (opd_visit_id) REFERENCES OPDVisits(opd_visit_id),
     FOREIGN KEY (created_by_user_id) REFERENCES Users(user_id)
 );
 
@@ -225,6 +227,149 @@ CREATE TABLE Payments (
     FOREIGN KEY (received_by_user_id) REFERENCES Users(user_id)
 );
 
+-- OPD Management Module --
+
+-- Define OPD Visits (can be linked to an appointment or walk-in)
+CREATE TABLE OPDVisits (
+    opd_visit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id INTEGER NOT NULL,
+    appointment_id INTEGER UNIQUE, -- Link if visit originated from an appointment
+    visit_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    visit_type TEXT CHECK(visit_type IN ("New", "FollowUp", "WalkIn")) DEFAULT "New",
+    doctor_id INTEGER NOT NULL, -- Doctor assigned to the visit
+    department TEXT, -- e.g., General Medicine, Cardiology
+    status TEXT CHECK(status IN ("Waiting", "WithDoctor", "Billing", "Pharmacy", "Lab", "Completed", "Cancelled")) DEFAULT "Waiting",
+    notes TEXT, -- Receptionist notes
+    created_by_user_id INTEGER, -- User who created the visit record (e.g., Receptionist)
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+    FOREIGN KEY (appointment_id) REFERENCES Appointments(appointment_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id),
+    FOREIGN KEY (created_by_user_id) REFERENCES Users(user_id)
+);
+
+-- Define Patient Vitals (recorded during visits)
+CREATE TABLE PatientVitals (
+    vital_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id INTEGER NOT NULL,
+    opd_visit_id INTEGER, -- Link to OPD visit if applicable
+    admission_id INTEGER, -- Link to IPD admission if applicable
+    recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    height_cm REAL,
+    weight_kg REAL,
+    bmi REAL, -- Calculated Body Mass Index
+    temperature_celsius REAL,
+    systolic_bp INTEGER, -- Systolic Blood Pressure (mmHg)
+    diastolic_bp INTEGER, -- Diastolic Blood Pressure (mmHg)
+    heart_rate INTEGER, -- Beats per minute
+    respiratory_rate INTEGER, -- Breaths per minute
+    oxygen_saturation REAL, -- SpO2 (%)
+    pain_scale INTEGER, -- e.g., 0-10
+    notes TEXT,
+    recorded_by_user_id INTEGER, -- User who recorded vitals (e.g., Nurse)
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+    FOREIGN KEY (opd_visit_id) REFERENCES OPDVisits(opd_visit_id),
+    -- FOREIGN KEY (admission_id) REFERENCES Admissions(admission_id),
+    FOREIGN KEY (recorded_by_user_id) REFERENCES Users(user_id)
+);
+
+-- Define Consultations (linked to OPD Visit or IPD Admission)
+CREATE TABLE Consultations (
+    consultation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id INTEGER NOT NULL,
+    doctor_id INTEGER NOT NULL,
+    opd_visit_id INTEGER, -- Link to OPD visit
+    admission_id INTEGER, -- Link to IPD admission
+    consultation_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    chief_complaint TEXT,
+    history_of_present_illness TEXT,
+    physical_examination TEXT,
+    diagnosis TEXT,
+    treatment_plan TEXT,
+    follow_up_instructions TEXT,
+    notes TEXT, -- Doctor's private notes
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id),
+    FOREIGN KEY (opd_visit_id) REFERENCES OPDVisits(opd_visit_id)
+    -- FOREIGN KEY (admission_id) REFERENCES Admissions(admission_id)
+);
+
+-- Define Prescriptions (linked to Consultation)
+CREATE TABLE Prescriptions (
+    prescription_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    consultation_id INTEGER NOT NULL,
+    patient_id INTEGER NOT NULL,
+    doctor_id INTEGER NOT NULL,
+    prescription_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT, -- General notes for the prescription
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (consultation_id) REFERENCES Consultations(consultation_id),
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id)
+);
+
+-- Define Prescription Items (medications within a prescription)
+CREATE TABLE PrescriptionItems (
+    prescription_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    prescription_id INTEGER NOT NULL,
+    inventory_item_id INTEGER NOT NULL, -- Link to the specific drug/item in inventory
+    drug_name TEXT NOT NULL, -- Store name at time of prescription for record
+    dosage TEXT NOT NULL, -- e.g., "500mg", "1 tablet"
+    frequency TEXT NOT NULL, -- e.g., "Twice a day", "Every 6 hours"
+    duration TEXT NOT NULL, -- e.g., "7 days", "Until finished"
+    route TEXT, -- e.g., "Oral", "IV"
+    instructions TEXT, -- e.g., "Take with food"
+    quantity_prescribed INTEGER, -- Optional: Calculated or specified quantity
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (prescription_id) REFERENCES Prescriptions(prescription_id),
+    FOREIGN KEY (inventory_item_id) REFERENCES InventoryItems(inventory_item_id)
+);
+
+-- Define Lab Orders (linked to Consultation)
+CREATE TABLE LabOrders (
+    lab_order_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    consultation_id INTEGER NOT NULL,
+    patient_id INTEGER NOT NULL,
+    doctor_id INTEGER NOT NULL,
+    order_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status TEXT CHECK(status IN ("Ordered", "SampleCollected", "Processing", "Completed", "Cancelled")) DEFAULT "Ordered",
+    notes TEXT, -- Doctor's notes for the lab
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (consultation_id) REFERENCES Consultations(consultation_id),
+    FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id)
+);
+
+-- Define Lab Order Items (specific tests within an order)
+CREATE TABLE LabOrderItems (
+    lab_order_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lab_order_id INTEGER NOT NULL,
+    billable_item_id INTEGER NOT NULL, -- Link to the lab test in BillableItems
+    test_name TEXT NOT NULL, -- Store name at time of order
+    sample_type TEXT, -- e.g., Blood, Urine
+    sample_id TEXT UNIQUE, -- Barcode/Sample Identifier
+    sample_collection_datetime DATETIME,
+    sample_collected_by_user_id INTEGER,
+    result_value TEXT,
+    result_unit TEXT,
+    reference_range TEXT,
+    result_notes TEXT,
+    result_datetime DATETIME,
+    result_verified_by_user_id INTEGER,
+    status TEXT CHECK(status IN ("Ordered", "SampleCollected", "Processing", "Completed", "Cancelled")) DEFAULT "Ordered",
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (lab_order_id) REFERENCES LabOrders(lab_order_id),
+    FOREIGN KEY (billable_item_id) REFERENCES BillableItems(item_id),
+    FOREIGN KEY (sample_collected_by_user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (result_verified_by_user_id) REFERENCES Users(user_id)
+);
+
 -- Create indexes for faster lookups
 CREATE INDEX idx_users_username ON Users (username);
 CREATE INDEX idx_users_email ON Users (email);
@@ -258,6 +403,7 @@ CREATE INDEX idx_stockbatches_expiry ON StockBatches (expiry_date);
 CREATE INDEX idx_invoices_patient_id ON Invoices (patient_id);
 CREATE INDEX idx_invoices_status ON Invoices (status);
 CREATE INDEX idx_invoices_date ON Invoices (invoice_date);
+CREATE INDEX idx_invoices_opd_visit_id ON Invoices (opd_visit_id);
 
 CREATE INDEX idx_invoiceitems_invoice_id ON InvoiceItems (invoice_id);
 CREATE INDEX idx_invoiceitems_billable_id ON InvoiceItems (billable_item_id);
@@ -265,6 +411,33 @@ CREATE INDEX idx_invoiceitems_billable_id ON InvoiceItems (billable_item_id);
 CREATE INDEX idx_payments_invoice_id ON Payments (invoice_id);
 CREATE INDEX idx_payments_patient_id ON Payments (patient_id);
 CREATE INDEX idx_payments_date ON Payments (payment_date);
+
+CREATE INDEX idx_opdvisits_patient_id ON OPDVisits (patient_id);
+CREATE INDEX idx_opdvisits_doctor_id ON OPDVisits (doctor_id);
+CREATE INDEX idx_opdvisits_datetime ON OPDVisits (visit_datetime);
+CREATE INDEX idx_opdvisits_status ON OPDVisits (status);
+
+CREATE INDEX idx_vitals_patient_id ON PatientVitals (patient_id);
+CREATE INDEX idx_vitals_visit_id ON PatientVitals (opd_visit_id);
+CREATE INDEX idx_vitals_recorded_at ON PatientVitals (recorded_at);
+
+CREATE INDEX idx_consultations_patient_id ON Consultations (patient_id);
+CREATE INDEX idx_consultations_doctor_id ON Consultations (doctor_id);
+CREATE INDEX idx_consultations_visit_id ON Consultations (opd_visit_id);
+
+CREATE INDEX idx_prescriptions_consultation_id ON Prescriptions (consultation_id);
+CREATE INDEX idx_prescriptions_patient_id ON Prescriptions (patient_id);
+
+CREATE INDEX idx_prescriptionitems_prescription_id ON PrescriptionItems (prescription_id);
+CREATE INDEX idx_prescriptionitems_inventory_id ON PrescriptionItems (inventory_item_id);
+
+CREATE INDEX idx_laborders_consultation_id ON LabOrders (consultation_id);
+CREATE INDEX idx_laborders_patient_id ON LabOrders (patient_id);
+CREATE INDEX idx_laborders_status ON LabOrders (status);
+
+CREATE INDEX idx_laborderitems_order_id ON LabOrderItems (lab_order_id);
+CREATE INDEX idx_laborderitems_billable_id ON LabOrderItems (billable_item_id);
+CREATE INDEX idx_laborderitems_status ON LabOrderItems (status);
 
 -- Add more tables and constraints as needed for other modules later
 
