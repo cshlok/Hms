@@ -17,38 +17,52 @@ const OrderManagement = () => {
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [viewingOrder, setViewingOrder] = useState(null);
-  const [patients, setPatients] = useState([]); // Assuming patients are fetched elsewhere or via search
-  const [tests, setTests] = useState([]); // Assuming tests are fetched elsewhere or via search
+  const [patients, setPatients] = useState([]);
+  const [tests, setTests] = useState([]);
+  const [orderItems, setOrderItems] = useState([]);
+  const [loadingOrderItems, setLoadingOrderItems] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Fetch patients (simplified - replace with actual patient search/fetch)
+  // Fetch patients
   const fetchPatients = async () => {
     try {
+      setLoading(true);
       const response = await fetch('/api/patients');
       if (!response.ok) throw new Error('Failed to fetch patients');
       const data = await response.json();
       setPatients(data.results || data);
+      setError(null);
     } catch (error) {
       console.error('Error fetching patients:', error);
       message.error('Failed to load patients');
+      setError('Failed to load patients. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch tests (simplified - replace with actual test search/fetch)
+  // Fetch tests
   const fetchTests = async () => {
     try {
+      setLoading(true);
       const response = await fetch('/api/laboratory/tests');
       if (!response.ok) throw new Error('Failed to fetch tests');
       const data = await response.json();
       setTests(data.results || data);
+      setError(null);
     } catch (error) {
       console.error('Error fetching tests:', error);
       message.error('Failed to load tests');
+      setError('Failed to load tests. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   // Fetch orders with filters
   const fetchOrders = async () => {
     setLoading(true);
+    setError(null);
     try {
       let url = '/api/laboratory/orders';
       const params = new URLSearchParams();
@@ -78,15 +92,32 @@ const OrderManagement = () => {
     } catch (error) {
       console.error('Error fetching orders:', error);
       message.error('Failed to load laboratory orders');
+      setError('Failed to load laboratory orders. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch order items for a specific order
+  const fetchOrderItems = async (orderId) => {
+    setLoadingOrderItems(true);
+    try {
+      const response = await fetch(`/api/laboratory/orders/${orderId}/items`);
+      if (!response.ok) throw new Error('Failed to fetch order items');
+      const data = await response.json();
+      setOrderItems(data.results || data);
+    } catch (error) {
+      console.error('Error fetching order items:', error);
+      message.error('Failed to load order items');
+    } finally {
+      setLoadingOrderItems(false);
+    }
+  };
+
   // Load data on component mount
   useEffect(() => {
-    fetchPatients(); // Load patients for dropdown
-    fetchTests(); // Load tests for order creation
+    fetchPatients();
+    fetchTests();
     fetchOrders();
   }, []);
 
@@ -110,11 +141,9 @@ const OrderManagement = () => {
 
   // View order details
   const handleViewOrder = async (order) => {
-    // Fetch order items if not already loaded
-    // For simplicity, assuming items are fetched separately or included in initial fetch
-    // You might need an API call like /api/laboratory/orders/{order.id}/items
     setViewingOrder(order);
     setIsModalVisible(true);
+    fetchOrderItems(order.id);
   };
 
   // Table columns
@@ -194,6 +223,34 @@ const OrderManagement = () => {
     },
   ];
 
+  // Order items columns for the modal
+  const orderItemColumns = [
+    { 
+      title: 'Test/Panel', 
+      dataIndex: 'name', 
+      key: 'name' 
+    },
+    { 
+      title: 'Status', 
+      dataIndex: 'status', 
+      key: 'status',
+      render: (status) => {
+        let color = 'default';
+        if (status === 'pending') color = 'default';
+        if (status === 'in_progress') color = 'processing';
+        if (status === 'completed') color = 'success';
+        if (status === 'canceled') color = 'error';
+        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+      }
+    },
+    { 
+      title: 'Price', 
+      dataIndex: 'price', 
+      key: 'price',
+      render: (price) => `₹${price.toFixed(2)}`
+    },
+  ];
+
   return (
     <div className="order-management-container">
       <Card title="Laboratory Order Management">
@@ -253,12 +310,19 @@ const OrderManagement = () => {
           </Button>
         </div>
         
+        {error && (
+          <div style={{ marginBottom: 16, color: 'red', padding: '8px', background: '#ffeeee', borderRadius: '4px' }}>
+            {error}
+          </div>
+        )}
+        
         <Spin spinning={loading}>
           <Table
             columns={columns}
             dataSource={orders}
             rowKey="id"
             pagination={{ pageSize: 10 }}
+            locale={{ emptyText: 'No laboratory orders found' }}
           />
         </Spin>
       </Card>
@@ -282,26 +346,21 @@ const OrderManagement = () => {
             <p><strong>Notes:</strong> {viewingOrder.notes || 'N/A'}</p>
             
             <h4>Order Items:</h4>
-            {/* You would typically fetch and display order items here */}
-            <p><em>(Order item details would be displayed here - requires fetching /api/laboratory/orders/{viewingOrder.id}/items)</em></p>
-            {/* Example structure:
-            <Table 
-              dataSource={viewingOrder.items} 
-              columns={[
-                { title: 'Test/Panel', dataIndex: 'name', key: 'name' },
-                { title: 'Status', dataIndex: 'status', key: 'status' },
-                { title: 'Price', dataIndex: 'price', key: 'price' },
-              ]}
-              rowKey="id"
-              pagination={false}
-            />
-            */}
+            <Spin spinning={loadingOrderItems}>
+              {orderItems.length > 0 ? (
+                <Table 
+                  dataSource={orderItems} 
+                  columns={orderItemColumns}
+                  rowKey="id"
+                  pagination={false}
+                />
+              ) : (
+                <p>No items found for this order.</p>
+              )}
+            </Spin>
           </div>
         )}
       </Modal>
-      
-      {/* Add Order functionality would typically be in a separate component or modal */}
-      {/* <Button type="primary" icon={<PlusOutlined />}>Create Order</Button> */}
     </div>
   );
 };
