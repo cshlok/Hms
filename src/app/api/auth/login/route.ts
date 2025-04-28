@@ -1,124 +1,84 @@
-// app/api/auth/login/route.ts
-import { NextRequest } from 'next/server';
-import { getDb, initializeDb } from '@/lib/db';
-import { createSession } from '@/lib/session';
-import { z } from 'zod';
-import { compare } from 'bcryptjs';
-
-// Schema for login validation
-const LoginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-});
+// src/app/api/auth/login/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { getRequestContext } from '@cloudflare/next-on-pages';
+import { signToken, setAuthCookie, verifyPassword } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get Cloudflare bindings from request context
-    const env = (request as any).cf?.env;
+    const { email, password } = await request.json();
     
-    // Initialize DB if we have bindings
-    if (env && env.DB) {
-      initializeDb(env);
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: 'Email and password are required' },
+        { status: 400 }
+      );
     }
     
-    // Get DB instance
-    const db = getDb();
+    const { env } = getRequestContext();
     
-    // Parse and validate request body
-    const data = await request.json();
-    const validationResult = LoginSchema.safeParse(data);
+    // Find user by email
+    const { results } = await env.DB.prepare(
+      `SELECT * FROM users WHERE email = ? AND is_active = 1 LIMIT 1`
+    ).bind(email.toLowerCase()).all();
     
-    if (!validationResult.success) {
-      return new Response(JSON.stringify({ 
-        error: "Invalid login data", 
-        details: validationResult.error.format() 
-      }), { 
-        status: 400,
-        headers: { "Content-Type": "application/json" }
-      });
-    }
+    const user = results[0];
     
-    const { username, password } = validationResult.data;
-    
-    // Find user by username
-    const user = await db.prepare(`
-      SELECT 
-        user_id, 
-        username, 
-        password_hash, 
-        is_active
-      FROM 
-        Users
-      WHERE 
-        username = ?
-    `).bind(username).first();
-    
-    // Check if user exists
     if (!user) {
-      return new Response(JSON.stringify({ 
-        error: "Invalid username or password" 
-      }), { 
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
-    }
-    
-    // Check if user is active
-    if (!user.is_active) {
-      return new Response(JSON.stringify({ 
-        error: "Account is inactive. Please contact administrator." 
-      }), { 
-        status: 403,
-        headers: { "Content-Type": "application/json" }
-      });
+      return NextResponse.json(
+        { error: 'Invalid credentials' },
+        { status: 401 }
+      );
     }
     
     // Verify password
-    const passwordValid = await compare(password, user.password_hash);
+    const isPasswordValid = await verifyPassword(password, user.password);
     
-    if (!passwordValid) {
-      return new Response(JSON.stringify({ 
-        error: "Invalid username or password" 
-      }), { 
-        status: 401,
-        headers: { "Content-Type": "application/json" }
-      });
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        { error: 'Invalid credentials' },
+        { status: 401 }
+      );
     }
     
-    // Create session
-    const session = await createSession(user.user_id);
+    // Log login attempt
+    await env.DB.prepare(
+      `INSERT INTO login_logs (user_id, ip_address, user_agent, status)
+       VALUES (?, ?, ?, ?)`
+    ).bind(
+      user.id,
+      request.headers.get('x-forwarded-for') || request.ip || 'unknown',
+      request.headers.get('user-agent') || 'unknown',
+      'success'
+    ).run();
     
-    if (!session) {
-      return new Response(JSON.stringify({ 
-        error: "Failed to create session" 
-      }), { 
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      });
-    }
+    // Create user object without sensitive data
+    const userForToken = {
+      id: user.id,
+      email: user.email,
+      name: `${user.first_name} ${user.last_name}`,
+      role: user.role,
+      permissions: user.permissions ? JSON.parse(user.permissions) : []
+    };
     
-    // Return user data (excluding sensitive information)
-    return new Response(JSON.stringify({ 
-      message: "Login successful",
-      user: {
-        userId: user.user_id,
-        username: user.username,
-        role: session.user?.roleName,
-        permissions: session.user?.permissions
-      }
-    }), { 
-      status: 200,
-      headers: { "Content-Type": "application/json" }
+    // Generate token
+    const token = await signToken(userForToken);
+    
+    // Create response
+    const response = NextResponse.json({
+      user: userForToken,
+      message: 'Login successful'
     });
+    
+    // Set auth cookie
+    setAuthCookie(response, token);
+    
+    return response;
     
   } catch (error) {
-    console.error("Error during login:", error);
-    return new Response(JSON.stringify({ 
-      error: "Login failed", 
-      details: error instanceof Error ? error.message : String(error) 
-    }), { 
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+    console.error('Login error:', error);
+    return NextResponse.json(
+      { error: 'Authentication failed' },
+      { status: 500 }
+    );
   }
 }

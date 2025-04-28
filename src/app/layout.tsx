@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -15,7 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { hasPermission } from '@/lib/session';
-import './globals.css'; // Ensure globals.css is imported
+import Logo from '@/components/ui/logo';
+import './globals.css';
 
 // Layout component for all authenticated pages
 export default function DashboardLayout({
@@ -27,6 +27,7 @@ export default function DashboardLayout({
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
   const [activeModule, setActiveModule] = useState('dashboard');
+  const [darkMode, setDarkMode] = useState(true); // Default to dark mode
   
   useEffect(() => {
     // Fetch user info
@@ -51,13 +52,13 @@ export default function DashboardLayout({
     
     // Determine active module from URL
     const path = window.location.pathname;
-    const currentModule = path.split('/')[1] || 'dashboard'; // Get first part of path
+    const currentModule = path.split('/')[2] || 'dashboard'; // Get second part of path after /dashboard/
     setActiveModule(currentModule);
 
   }, [router]);
   
   const handleModuleClick = (module: string) => {
-    router.push(`/${module}`);
+    router.push(`/dashboard/${module}`);
   };
   
   const handleLogout = async () => {
@@ -74,38 +75,31 @@ export default function DashboardLayout({
     }
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   const sidebarModules = [
-    { name: 'dashboard', label: 'Dashboard', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /> },
-    { name: 'opd', label: 'OPD', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /> },
-    { name: 'ipd', label: 'IPD', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /> },
-    { name: 'patients', label: 'Patients', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /> },
-    { name: 'billing', label: 'Billing', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /> },
-    { name: 'pharmacy', label: 'Pharmacy', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /> },
-    { name: 'laboratory', label: 'Laboratory', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /> },
-    { name: 'radiology', label: 'Radiology', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /> }, // Added Radiology
-    { name: 'ot', label: 'OT', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /> }, // Added OT
-    { name: 'er', label: 'ER', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /> }, // Added ER
-    { name: 'reports', label: 'Reports', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /> },
-    { name: 'settings', label: 'Settings', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /> },
+    { name: 'dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    { name: 'patients', label: 'Patients', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+    { name: 'appointments', label: 'Appointments', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    { name: 'billing', label: 'Billing', icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
+    { name: 'pharmacy', label: 'Pharmacy', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+    { name: 'laboratory', label: 'Laboratory', icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z' },
+    { name: 'radiology', label: 'Radiology', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+    { name: 'er', label: 'Emergency', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { name: 'ipd', label: 'IPD', icon: 'M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    { name: 'ot', label: 'OT', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z' },
+    { name: 'reports', label: 'Reports', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+    { name: 'settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
   ];
   
   return (
-    <div className="min-h-screen bg-gray-100 flex"> {/* Changed background slightly */} 
+    <div className={`min-h-screen flex ${darkMode ? 'dark' : 'light'}`}> 
       {/* Sidebar */}
-      <div className="w-64 shlokam-sidebar flex flex-col flex-shrink-0"> {/* Applied shlokam-sidebar class */}
-        <div className="p-4 border-b border-gray-700 flex items-center"> {/* Adjusted border color */}
-          <div className="mr-3 flex-shrink-0">
-            <Image 
-              src="/shlokam_logo.jpg" // Updated logo path
-              alt="Shlokam Logo" 
-              width={40} 
-              height={40} 
-            />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-white">SHLOKAM</h1> {/* Updated text color */}
-            <p className="text-xs text-gray-300">HEALTHCARE</p> {/* Updated text color */}
-          </div>
+      <div className="w-64 bg-primary-dark flex flex-col flex-shrink-0 text-text-light">
+        <div className="p-4 border-b border-border-dark flex items-center">
+          <Logo variant={darkMode ? 'light' : 'default'} size="md" />
         </div>
         
         <nav className="flex-1 p-4 overflow-y-auto">
@@ -113,12 +107,12 @@ export default function DashboardLayout({
             {sidebarModules.map((mod) => (
               <li key={mod.name}>
                 <Button
-                  variant="ghost" // Use ghost variant for custom styling
-                  className={`w-full justify-start sidebar-item ${activeModule === mod.name ? 'active' : ''}`} // Apply sidebar-item and active classes
+                  variant="ghost"
+                  className={`w-full justify-start text-text-light hover:bg-primary hover:text-secondary ${activeModule === mod.name ? 'bg-primary text-secondary' : ''}`}
                   onClick={() => handleModuleClick(mod.name)}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    {mod.icon}
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mod.icon} />
                   </svg>
                   {mod.label}
                 </Button>
@@ -127,25 +121,21 @@ export default function DashboardLayout({
           </ul>
         </nav>
         
-        <div className="p-4 border-t border-gray-700"> {/* Adjusted border color */}
+        <div className="p-4 border-t border-border-dark">
           <div className="flex items-center mb-4">
-            <div className="mr-3 flex-shrink-0">
-              <Image 
-                src="/user-avatar.png" 
-                alt="User Avatar" 
-                width={40} 
-                height={40} 
-                className="rounded-full"
-              />
+            <div className="mr-3 flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-lg font-semibold text-text-light">
+                {userName ? userName.charAt(0).toUpperCase() : 'U'}
+              </span>
             </div>
             <div>
-              <p className="font-medium text-sm text-white">{userName}</p> {/* Updated text color */}
-              <p className="text-xs text-gray-300">{userRole}</p> {/* Updated text color */}
+              <p className="font-medium text-sm text-text-light">{userName || 'User'}</p>
+              <p className="text-xs text-text-secondary">{userRole || 'Role'}</p>
             </div>
           </div>
           <Button 
             variant="outline" 
-            className="w-full border-gray-500 text-gray-300 hover:bg-gray-700 hover:text-white" // Adjusted styles for dark sidebar
+            className="w-full border-border-dark text-text-light hover:bg-primary hover:text-secondary"
             onClick={handleLogout}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -157,19 +147,35 @@ export default function DashboardLayout({
       </div>
       
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between flex-shrink-0">
-          <h1 className="text-xl font-bold text-gray-800"> {/* Adjusted text color */} 
-            {activeModule.charAt(0).toUpperCase() + activeModule.slice(1)}
+      <div className="flex-1 flex flex-col overflow-hidden bg-background">
+        <header className="bg-card-background border-b border-border-color p-4 flex items-center justify-between flex-shrink-0">
+          <h1 className="text-xl font-bold text-text-primary capitalize">
+            {activeModule}
           </h1>
           
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
             <Input
               type="search"
               placeholder="Search..."
-              className="w-64 mr-4"
+              className="w-64"
             />
-            <Button variant="ghost" size="icon" className="text-gray-600 hover:text-gray-800">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-text-primary"
+              onClick={toggleDarkMode}
+            >
+              {darkMode ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </Button>
+            <Button variant="ghost" size="icon" className="text-text-primary">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
@@ -177,15 +183,14 @@ export default function DashboardLayout({
           </div>
         </header>
         
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-100">
+        <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
         
-        <footer className="bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-500 flex-shrink-0">
+        <footer className="bg-card-background border-t border-border-color p-4 text-center text-sm text-text-secondary flex-shrink-0">
           © {new Date().getFullYear()} Shlokam Healthcare. All rights reserved.
         </footer>
       </div>
     </div>
   );
 }
-

@@ -1,42 +1,39 @@
-// middleware.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { initializeDb, isCloudflareEnvironment } from '@/lib/db';
+// src/middleware.ts
+import { NextRequest, NextResponse } from "next/server";
+import { authMiddleware } from "@/lib/auth";
 
-/**
- * Middleware to initialize database connection for all API routes
- * This runs before API routes are processed
- */
-export function middleware(request: NextRequest) {
-  // Only process API routes
-  if (!request.nextUrl.pathname.startsWith('/api/')) {
-    return NextResponse.next();
-  }
-
-  // Check if we're running in a Cloudflare environment
-  if (isCloudflareEnvironment()) {
-    try {
-      // In a real Cloudflare deployment, we would access bindings here
-      // The exact method depends on how Next.js is deployed to Cloudflare
-      const env = (request as any).cf?.env;
-      
-      if (env && env.DB) {
-        // Initialize the database with the D1 binding
-        initializeDb(env);
-        console.log('Database initialized in middleware');
-      } else {
-        console.warn('Cloudflare bindings not found in request context');
-      }
-    } catch (error) {
-      console.error('Error initializing database in middleware:', error);
+export async function middleware(request: NextRequest) {
+  // Apply authentication middleware to relevant paths
+  if (
+    request.nextUrl.pathname.startsWith("/dashboard") ||
+    request.nextUrl.pathname.startsWith("/api")
+  ) {
+    // Exclude public API routes (e.g., login, maybe public info endpoints)
+    if (
+      request.nextUrl.pathname.startsWith("/api/auth/login") ||
+      request.nextUrl.pathname.startsWith("/api/public") // Example for future public endpoints
+    ) {
+      return NextResponse.next();
     }
-  } else {
-    console.log('Not running in Cloudflare environment, skipping DB initialization');
+    
+    // Apply auth middleware to protected routes
+    return await authMiddleware(request);
   }
-
+  
+  // Allow other requests (e.g., static files, login page) to pass through
   return NextResponse.next();
 }
 
-// Configure middleware to run only for API routes
+// Specify paths middleware should run on
 export const config = {
-  matcher: '/api/:path*',
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - images/ (public images)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|images/).*)",
+  ],
 };

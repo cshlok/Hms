@@ -1,177 +1,236 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* Shlokam HMS Theme Colors */
 :root {
-  /* Shlokam Color Palette */
-  --shlokam-navy: #1a2b4b;
-  --shlokam-teal: #40c9c9;
-  --shlokam-pink: #ff5c8d;
-  --shlokam-light-gray: #f8f9fa;
-  --shlokam-dark-gray: #4b5563;
-
-  /* Base colors */
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-
-  /* Card colors */
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-
-  /* Popover colors */
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-
-  /* Primary colors - using Shlokam teal */
-  --primary: 180 67% 52%;
-  --primary-foreground: 210 40% 98%;
-
-  /* Secondary colors - using Shlokam navy */
-  --secondary: 217 71% 20%;
-  --secondary-foreground: 210 40% 98%;
-
-  /* Accent colors - using Shlokam pink */
-  --accent: 340 100% 68%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-
-  /* Muted colors */
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-
-  /* Destructive colors */
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-
-  /* Border and input colors */
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 222.2 84% 4.9%;
-
-  /* Radius */
-  --radius: 0.5rem;
+  /* Primary Colors */
+  --primary-dark: #1a2342;    /* Dark navy blue (background) */
+  --primary: #2e3b62;         /* Navy blue (hands in logo) */
+  --primary-light: #4a5a8f;   /* Lighter navy blue */
+  
+  /* Secondary Colors */
+  --secondary: #2ec4b6;       /* Teal/turquoise (figure in logo and text) */
+  --secondary-light: #5edfd4; /* Lighter teal */
+  --secondary-dark: #1a9589;  /* Darker teal */
+  
+  /* Accent Colors */
+  --accent: #ff5e8f;          /* Pink (circle in logo) */
+  --accent-light: #ff8fb0;    /* Lighter pink */
+  --accent-dark: #d13e6f;     /* Darker pink */
+  
+  /* Neutral Colors */
+  --background-dark: #1e1e2e; /* Dark background (dark mode) */
+  --background-light: #ffffff; /* Light background (light mode) */
+  --text-dark: #2c2c2c;       /* Dark text */
+  --text-light: #f8f8f8;      /* Light text */
+  
+  /* UI Colors */
+  --success: #22c55e;         /* Green for success messages */
+  --warning: #f59e0b;         /* Amber for warnings */
+  --error: #ef4444;           /* Red for errors */
+  --info: #3b82f6;            /* Blue for information */
+  
+  /* Card and Border Colors */
+  --card-dark: #282838;       /* Dark mode card background */
+  --card-light: #ffffff;      /* Light mode card background */
+  --border-dark: #3f3f5f;     /* Dark mode borders */
+  --border-light: #e2e8f0;    /* Light mode borders */
+  
+  /* Shadow */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+/* Dark Mode (Default) */
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 180 67% 52%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217 71% 20%;
-  --secondary-foreground: 210 40% 98%;
-  --accent: 340 100% 68%;
-  --accent-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
+  --background: var(--background-dark);
+  --card-background: var(--card-dark);
+  --text-primary: var(--text-light);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --border-color: var(--border-dark);
 }
 
-/* Shlokam Custom Styles */
-.shlokam-sidebar {
-  background-color: var(--shlokam-navy);
-  color: white;
+/* Light Mode */
+.light {
+  --background: var(--background-light);
+  --card-background: var(--card-light);
+  --text-primary: var(--text-dark);
+  --text-secondary: rgba(0, 0, 0, 0.7);
+  --border-color: var(--border-light);
 }
 
-.shlokam-sidebar .sidebar-logo {
-  color: var(--shlokam-teal);
+/* Global Styles */
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
 }
 
-.shlokam-sidebar .sidebar-item {
-  color: white;
+/* Button Styles */
+.btn-primary {
+  background-color: var(--secondary);
+  color: var(--text-light);
 }
 
-.shlokam-sidebar .sidebar-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.btn-primary:hover {
+  background-color: var(--secondary-dark);
 }
 
-.shlokam-sidebar .sidebar-item.active {
-  background-color: var(--shlokam-teal);
-  color: var(--shlokam-navy);
+.btn-secondary {
+  background-color: var(--primary);
+  color: var(--text-light);
 }
 
-.shlokam-card {
+.btn-secondary:hover {
+  background-color: var(--primary-light);
+}
+
+.btn-accent {
+  background-color: var(--accent);
+  color: var(--text-light);
+}
+
+.btn-accent:hover {
+  background-color: var(--accent-dark);
+}
+
+/* Card Styles */
+.card {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
-  overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow);
 }
 
-.shlokam-card-header {
-  background-color: var(--shlokam-navy);
-  color: white;
-  padding: 1rem;
+/* Header and Navigation */
+.header {
+  background-color: var(--primary-dark);
 }
 
-.shlokam-button {
-  background: linear-gradient(to right, #1a73e8, #2b88f7);
-  color: white;
-  border-radius: 0.375rem;
-  padding: 0.5rem 1rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
+.nav-item {
+  color: var(--text-light);
 }
 
-.shlokam-button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+.nav-item:hover {
+  color: var(--secondary);
 }
 
-.shlokam-table th {
-  background-color: var(--shlokam-navy);
-  color: white;
-  font-weight: 500;
+.nav-item.active {
+  color: var(--secondary);
+  border-bottom: 2px solid var(--secondary);
+}
+
+/* Status Indicators */
+.status-success {
+  color: var(--success);
+}
+
+.status-warning {
+  color: var(--warning);
+}
+
+.status-error {
+  color: var(--error);
+}
+
+.status-info {
+  color: var(--info);
+}
+
+/* Badge Styles */
+.badge-primary {
+  background-color: var(--primary);
+  color: var(--text-light);
+}
+
+.badge-secondary {
+  background-color: var(--secondary);
+  color: var(--text-light);
+}
+
+.badge-accent {
+  background-color: var(--accent);
+  color: var(--text-light);
+}
+
+/* Table Styles */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  background-color: var(--primary-dark);
+  color: var(--text-light);
   text-align: left;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem;
 }
 
-.shlokam-table tr:nth-child(even) {
-  background-color: rgba(0, 0, 0, 0.02);
+td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.shlokam-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
+tr:hover {
+  background-color: rgba(46, 196, 182, 0.1); /* Subtle teal highlight */
 }
 
-/* Status indicators */
-.status-low {
-  background-color: #fef3c7;
-  color: #92400e;
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+/* Form Elements */
+input, select, textarea {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
 }
 
-.status-medium {
-  background-color: #e0f2fe;
-  color: #0369a1;
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+input:focus, select:focus, textarea:focus {
+  border-color: var(--secondary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(46, 196, 182, 0.2);
 }
 
-.status-high {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+/* Dashboard Cards */
+.dashboard-card {
+  background-color: var(--card-background);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+.dashboard-card:hover {
+  transform: translateY(-2px);
+}
+
+.dashboard-card-icon {
+  color: var(--secondary);
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-card-title {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Logo Styles */
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 40px;
+  margin-right: 0.5rem;
+}
+
+.logo-text {
+  color: var(--secondary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.logo-subtext {
+  color: var(--secondary-light);
+  font-size: 1rem;
+  font-weight: 400;
 }
