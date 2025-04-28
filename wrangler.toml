@@ -1,0 +1,25 @@
+# Top-level configuration
+name = "shlokam-hms" # Replace with your worker name
+main = "src/index.ts" # Adjust if your entry point is different
+compatibility_date = "2024-04-05" # Use a recent date
+
+# D1 Database configuration
+[[d1_databases]]
+binding = "DB" # Binding name used in your code (process.env.DB)
+database_name = "hms-db" # Choose a name for your database
+database_id = "" # This will be filled in by Wrangler automatically for remote deployment, leave empty for local
+preview_database_id = "" # Optional: for use with wrangler dev --remote
+
+# Optional: Environment variables (if needed)
+# [vars]
+# MY_VAR = "my-value"
+
+# Optional: KV Namespaces, R2 Buckets, etc.
+# [[kv_namespaces]]
+# binding = "MY_KV"
+# id = "your_kv_namespace_id"
+
+# [[r2_buckets]]
+# binding = "MY_BUCKET"
+# bucket_name = "your_bucket_name"
+
