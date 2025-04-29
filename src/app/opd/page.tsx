@@ -21,7 +21,7 @@ import OPDAppointmentList from '@/components/opd/OPDAppointmentList';
 import OPDPatientQueue from '@/components/opd/OPDPatientQueue';
 import OPDConsultationForm from '@/components/opd/OPDConsultationForm';
 import OPDStatistics from '@/components/opd/OPDStatistics';
-import { hasPermission } from '@/lib/session';
+// import { hasPermission } from '@/lib/session';
 
 export default function OPDDashboard() {
   const router = useRouter();
@@ -31,13 +31,25 @@ export default function OPDDashboard() {
   const [canViewStatistics, setCanViewStatistics] = useState(false);
   
   useEffect(() => {
-    // Check permissions
+    // Check permissions via API
     const checkPermissions = async () => {
-      const canCreate = await hasPermission('appointment:create');
-      const canViewStats = await hasPermission('statistics:view');
-      
-      setCanCreateAppointment(canCreate);
-      setCanViewStatistics(canViewStats);
+      try {
+        const [createRes, statsRes] = await Promise.all([
+          fetch("/api/session/check-permission?permission=appointment:create"),
+          fetch("/api/session/check-permission?permission=statistics:view")
+        ]);
+
+        const createData = await createRes.json();
+        const statsData = await statsRes.json();
+
+        setCanCreateAppointment(createData.hasPermission || false);
+        setCanViewStatistics(statsData.hasPermission || false);
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+        // Optionally set state to false or show an error message
+        setCanCreateAppointment(false);
+        setCanViewStatistics(false);
+      }
     };
     
     checkPermissions();

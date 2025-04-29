@@ -25,7 +25,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-// Removed direct import: import { hasPermission } from "@/lib/session";
 
 // Define the form schema
 const consultationFormSchema = z.object({
@@ -318,34 +317,6 @@ export default function OPDConsultationForm() {
                             </FormItem>
                           )}
                         />
-                        
-                        <FormField
-                          control={form.control}
-                          name="vitalSigns.respiratoryRate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Respiratory Rate</FormLabel>
-                              <FormControl>
-                                <Input {...field} type="text" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="vitalSigns.bloodPressure"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Blood Pressure</FormLabel>
-                              <FormControl>
-                                <Input {...field} type="text" placeholder="120/80" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                       </div>
                       
                       <FormField
@@ -434,5 +405,131 @@ export default function OPDConsultationForm() {
                                 <FormLabel>Frequency</FormLabel>
                                 <FormControl>
                                   <Input {...field} />
-      
-(Content truncated due to size limit. Use line ranges to read in chunks)
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name={`medications.${index}.duration`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Duration</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name={`medications.${index}.instructions`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Instructions</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addMedication}
+                      className="w-full"
+                    >
+                      Add Medication
+                    </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="labTests">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="grid gap-4">
+                      <div className="mb-4">
+                        <h3 className="text-lg font-medium">Laboratory Tests</h3>
+                        <p className="text-sm text-gray-500">Select tests to order for this patient</p>
+                      </div>
+                      
+                      {/* Lab test selection would go here */}
+                      <div className="text-center p-4 border rounded-md bg-gray-50">
+                        Lab test selection component will be implemented here
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="followUp">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="grid gap-4">
+                      <FormField
+                        control={form.control}
+                        name="followUpDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Follow-up Date</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="date" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Additional Notes</FormLabel>
+                            <FormControl>
+                              <Textarea {...field} rows={4} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+            
+            <div className="mt-6 flex justify-end space-x-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Save Consultation'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      )}
+    </div>
+  );
+}

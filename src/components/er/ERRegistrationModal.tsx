@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast"; // Changed import
 
 // Define the schema for the registration form using Zod
 const registrationFormSchema = z.object({
@@ -56,6 +56,7 @@ export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRe
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [foundPatient, setFoundPatient] = useState<any>(null); // Store found patient data
+  const { toast } = useToast(); // Added hook call
 
   const form = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationFormSchema),
@@ -325,3 +326,4 @@ export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRe
     </Dialog>
   );
 }
+

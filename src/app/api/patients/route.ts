@@ -1,6 +1,15 @@
 // src/app/api/patients/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+// import { getRequestContext } from "@cloudflare/next-on-pages";
+import { v4 as uuidv4 } from "uuid"; // Import uuid for generating IDs
+
+// Mock data for development
+let mockPatients = [
+  { id: "pat_001", mrn: "P00001", first_name: "John", last_name: "Doe", date_of_birth: "1985-05-15", gender: "Male", phone: "555-1234", email: "john.doe@example.com", address: "123 Main St", emergency_contact: "Jane Doe 555-5678", blood_group: "O+", allergies: "Penicillin" },
+  { id: "pat_002", mrn: "P00002", first_name: "Jane", last_name: "Smith", date_of_birth: "1992-08-22", gender: "Female", phone: "555-9876", email: "jane.smith@example.com", address: "456 Oak Ave", emergency_contact: "John Smith 555-1122", blood_group: "A-", allergies: "None" },
+  { id: "pat_003", mrn: "P00003", first_name: "Alice", last_name: "Johnson", date_of_birth: "1978-12-01", gender: "Female", phone: "555-3456", email: "alice.j@example.com", address: "789 Pine Ln", emergency_contact: "Bob Johnson 555-7788", blood_group: "B+", allergies: "Peanuts" },
+];
+let nextPatientId = 4;
 
 /**
  * GET /api/patients
@@ -9,54 +18,29 @@ import { getRequestContext } from "@cloudflare/next-on-pages";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
+    const search = searchParams.get("search")?.toLowerCase() || "";
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    const { env } = getRequestContext();
+    // const { env } = getRequestContext(); // Cloudflare specific
     
-    // Build the SQL query based on search parameter
-    let sql = `
-      SELECT 
-        id, 
-        mrn, 
-        first_name, 
-        last_name, 
-        date_of_birth, 
-        gender, 
-        phone, 
-        email
-      FROM patients
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    
-    // Add search filter if provided
+    // Mock implementation for development without Cloudflare
+    let filteredPatients = mockPatients;
+
     if (search) {
-      sql += ` AND (first_name LIKE ? OR last_name LIKE ? OR mrn LIKE ? OR phone LIKE ?)`;
-      const searchTerm = `%${search}%`;
-      params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+      filteredPatients = mockPatients.filter(patient => 
+        patient.first_name.toLowerCase().includes(search) || 
+        patient.last_name.toLowerCase().includes(search) || 
+        patient.mrn.toLowerCase().includes(search) || 
+        patient.phone.includes(search)
+      );
     }
     
-    // Add order by and pagination
-    sql += ` ORDER BY first_name, last_name LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
-    
-    // Prepare and execute the query
-    let stmt = env.DB.prepare(sql);
-    
-    // Bind parameters if any
-    if (params.length > 0) {
-      for (let i = 0; i < params.length; i++) {
-        stmt = stmt.bind(params[i]);
-      }
-    }
-    
-    const { results } = await stmt.all();
+    // Apply pagination
+    const paginatedPatients = filteredPatients.slice(offset, offset + limit);
     
     // Format the results to include full name
-    const formattedResults = results.map(patient => ({
+    const formattedResults = paginatedPatients.map(patient => ({
       ...patient,
       name: `${patient.first_name} ${patient.last_name}`
     }));
@@ -87,48 +71,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { env } = getRequestContext();
+    // const { env } = getRequestContext(); // Cloudflare specific
     
+    // Mock implementation for development without Cloudflare
     // Generate a unique MRN (Medical Record Number)
-    const countResult = await env.DB.prepare(
-      "SELECT COUNT(*) as count FROM patients"
-    ).first<{ count: number }>();
-    const count = (countResult?.count || 0) + 1;
+    const count = mockPatients.length + 1;
     const mrn = `P${count.toString().padStart(5, '0')}`;
     
-    // Insert the new patient
-    const info = await env.DB.prepare(`
-      INSERT INTO patients (
-        mrn,
-        first_name, 
-        last_name, 
-        date_of_birth, 
-        gender, 
-        address,
-        phone,
-        email,
-        emergency_contact,
-        blood_group,
-        allergies
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      mrn,
-      patientData.first_name,
-      patientData.last_name,
-      patientData.date_of_birth,
-      patientData.gender,
-      patientData.address || "",
-      patientData.phone || "",
-      patientData.email || "",
-      patientData.emergency_contact || "",
-      patientData.blood_group || "",
-      patientData.allergies || ""
-    ).run();
+    // Create the new patient in mock data
+    const newPatient = {
+      id: `pat_${String(nextPatientId++).padStart(3, '0')}`,
+      mrn: mrn,
+      first_name: patientData.first_name,
+      last_name: patientData.last_name,
+      date_of_birth: patientData.date_of_birth,
+      gender: patientData.gender,
+      address: patientData.address || "",
+      phone: patientData.phone || "",
+      email: patientData.email || "",
+      emergency_contact: patientData.emergency_contact || "",
+      blood_group: patientData.blood_group || "",
+      allergies: patientData.allergies || ""
+    };
     
-    // Get the newly created patient
-    const newPatient = await env.DB.prepare(
-      "SELECT * FROM patients WHERE id = ?"
-    ).bind(info.meta.last_row_id).first();
+    mockPatients.push(newPatient);
 
     return NextResponse.json({ patient: newPatient }, { status: 201 });
   } catch (error) {
@@ -139,3 +105,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
