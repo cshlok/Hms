@@ -324,8 +324,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ visits });
   } catch (error) {
     console.error("Error fetching ER visits:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to fetch ER visits", details: error.message },
+      { error: "Failed to fetch ER visits", details: errorMessage },
       { status: 500 }
     );
   }
@@ -353,8 +357,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ visit: newVisit }, { status: 201 });
   } catch (error) {
     console.error("Error creating ER visit:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to create ER visit", details: error.message },
+      { error: "Failed to create ER visit", details: errorMessage },
       { status: 500 }
     );
   }
@@ -381,8 +389,12 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ visit: updatedVisit });
   } catch (error) {
     console.error("Error updating ER visit:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to update ER visit", details: error.message },
+      { error: "Failed to update ER visit", details: errorMessage },
       { status: 500 }
     );
   }

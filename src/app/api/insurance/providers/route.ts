@@ -228,8 +228,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ providers });
   } catch (error) {
     console.error("Error fetching insurance providers:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to fetch insurance providers", details: error.message },
+      { error: "Failed to fetch insurance providers", details: errorMessage },
       { status: 500 }
     );
   }
@@ -257,8 +261,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ provider: newProvider }, { status: 201 });
   } catch (error) {
     console.error("Error creating insurance provider:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to create insurance provider", details: error.message },
+      { error: "Failed to create insurance provider", details: errorMessage },
       { status: 500 }
     );
   }
@@ -285,8 +293,12 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ provider: updatedProvider });
   } catch (error) {
     console.error("Error updating insurance provider:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to update insurance provider", details: error.message },
+      { error: "Failed to update insurance provider", details: errorMessage },
       { status: 500 }
     );
   }
