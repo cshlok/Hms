@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDB } from '@/lib/db';
+import { getDB } from '@/lib/db'; // Using mock DB
 import { getSession } from '@/lib/session';
+
+// Define interface for POST request body
+interface MedicationAdminInput {
+  medication_id: number | string;
+  dosage: string;
+  route: string;
+  administered_time?: string; // Optional, defaults to now
+  notes?: string | null;
+}
 
 // GET /api/ipd/admissions/[id]/medication-administration - Get all medication administration records for an admission
 export async function GET(
@@ -8,7 +17,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession(request);
+    const session = await getSession(); // Removed request argument
     
     // Check authentication
     if (!session || !session.user) {
@@ -17,34 +26,33 @@ export async function GET(
     
     const admissionId = params.id;
     
-    const db = await getDB();
+    const db = getDB(); // Get mock DB
     
-    // Check if admission exists and user has access
-    const admission = await db.prepare(`
+    // Check if admission exists using db.query
+    const admissionResult = await db.query(`
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
       FROM admissions a
       JOIN patients p ON a.patient_id = p.id
       WHERE a.id = ?
-    `).bind(admissionId).first();
+    `, [admissionId]);
+    const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] : null;
     
     if (!admission) {
       return NextResponse.json({ error: 'Admission not found' }, { status: 404 });
     }
     
-    // Check if user has permission to view this admission's medication records
-    const isNurse = session.user.role === 'Nurse';
-    const isDoctor = session.user.role === 'Doctor';
-    const isAdmin = session.user.role === 'Admin';
+    // Check permissions (using mock session data)
+    const isNurse = session.user.roleName === 'Nurse';
+    const isDoctor = session.user.roleName === 'Doctor';
+    const isAdmin = session.user.roleName === 'Admin';
+    const canViewMedAdmin = session.user.permissions.includes('medication_administration:view');
     
-    if (!isNurse && !isDoctor && !isAdmin) {
-      const hasPermission = await session.hasPermission('medication_administration:view');
-      if (!hasPermission) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
+    if (!isNurse && !isDoctor && !isAdmin && !canViewMedAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
-    // Get medication administration records
-    const medicationRecords = await db.prepare(`
+    // Get medication administration records using db.query
+    const medicationRecordsResult = await db.query(`
       SELECT ma.*, 
              pi.item_name as medication_name, 
              u.first_name as administered_by_first_name, 
@@ -54,11 +62,11 @@ export async function GET(
       JOIN users u ON ma.administered_by = u.id
       WHERE ma.admission_id = ?
       ORDER BY ma.administered_time DESC
-    `).bind(admissionId).all();
+    `, [admissionId]);
     
     return NextResponse.json({
       admission,
-      medication_administration: medicationRecords.results
+      medication_administration: medicationRecordsResult.rows || []
     });
   } catch (error) {
     console.error('Error fetching medication administration records:', error);
@@ -72,40 +80,39 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession(request);
+    const session = await getSession(); // Removed request argument
     
     // Check authentication
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check if user is a nurse or doctor or has permission to record medication administration
-    const isNurse = session.user.role === 'Nurse';
-    const isDoctor = session.user.role === 'Doctor';
-    if (!isNurse && !isDoctor) {
-      const hasPermission = await session.hasPermission('medication_administration:create');
-      if (!hasPermission) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
+    // Check permissions (using mock session data)
+    const isNurse = session.user.roleName === 'Nurse';
+    const isDoctor = session.user.roleName === 'Doctor';
+    const canCreateMedAdmin = session.user.permissions.includes('medication_administration:create');
+
+    if (!isNurse && !isDoctor && !canCreateMedAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
     const admissionId = params.id;
-    const data = await request.json();
+    // Fixed: Apply type assertion
+    const data = await request.json() as MedicationAdminInput;
     
-    // Validate required fields
-    const requiredFields = ['medication_id', 'dosage', 'route'];
+    // Basic validation (using typed data)
+    const requiredFields: (keyof MedicationAdminInput)[] = ['medication_id', 'dosage', 'route'];
     for (const field of requiredFields) {
       if (!data[field]) {
         return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
       }
     }
     
-    const db = await getDB();
+    const db = getDB(); // Get mock DB
     
-    // Check if admission exists and is active
-    const admission = await db.prepare('SELECT id, status FROM admissions WHERE id = ?')
-      .bind(admissionId)
-      .first();
+    // Check if admission exists and is active using db.query
+    const admissionResult = await db.query('SELECT id, status FROM admissions WHERE id = ?', [admissionId]);
+    const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] as { id: string; status: string } : null;
       
     if (!admission) {
       return NextResponse.json({ error: 'Admission not found' }, { status: 404 });
@@ -115,45 +122,36 @@ export async function POST(
       return NextResponse.json({ error: 'Cannot record medication administration for a discharged admission' }, { status: 409 });
     }
     
-    // Check if medication exists in inventory
-    const medication = await db.prepare('SELECT id FROM pharmacy_inventory WHERE id = ?')
-      .bind(data.medication_id)
-      .first();
+    // Check if medication exists in inventory using db.query
+    const medicationResult = await db.query('SELECT id FROM pharmacy_inventory WHERE id = ?', [data.medication_id]);
+    const medication = medicationResult.rows && medicationResult.rows.length > 0 ? medicationResult.rows[0] : null;
       
     if (!medication) {
       return NextResponse.json({ error: 'Medication not found in inventory' }, { status: 404 });
     }
     
-    // Insert new medication administration record
-    const result = await db.prepare(`
+    // Insert new medication administration record using db.query
+    // Mock query doesn't return last_row_id
+    await db.query(`
       INSERT INTO medication_administration (
         admission_id, medication_id, administered_by, administered_time, dosage, route, notes
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(
+    `, [
       admissionId,
       data.medication_id,
-      session.user.id,
+      session.user.userId, // Changed from session.user.id
       data.administered_time || new Date().toISOString(),
       data.dosage,
       data.route,
       data.notes || null
-    ).run();
+    ]);
     
-    // Get the newly created medication administration record
-    const newMedicationRecord = await db.prepare(`
-      SELECT ma.*, 
-             pi.item_name as medication_name, 
-             u.first_name as administered_by_first_name, 
-             u.last_name as administered_by_last_name
-      FROM medication_administration ma
-      JOIN pharmacy_inventory pi ON ma.medication_id = pi.id
-      JOIN users u ON ma.administered_by = u.id
-      WHERE ma.id = ?
-    `).bind(result.meta.last_row_id).first();
-    
-    return NextResponse.json(newMedicationRecord, { status: 201 });
+    // Cannot reliably get the new record from mock DB
+    return NextResponse.json({ message: 'Medication administration recorded (mock operation)' }, { status: 201 });
+
   } catch (error) {
     console.error('Error creating medication administration record:', error);
     return NextResponse.json({ error: 'Failed to create medication administration record' }, { status: 500 });
   }
 }
+

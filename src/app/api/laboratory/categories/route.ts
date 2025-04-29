@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { getDB } from '@/lib/db'; // Using mock DB
 import { getSession } from '@/lib/session';
+
+// Define interface for POST request body
+interface CategoryInput {
+  name: string;
+  description?: string;
+}
 
 // GET /api/laboratory/categories - Get all laboratory test categories
 export async function GET(request: NextRequest) {
@@ -12,13 +18,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Execute query
-    const categories = await db.prepare('SELECT * FROM lab_test_categories ORDER BY name ASC').all();
+    const db = getDB(); // Get mock DB
     
-    return NextResponse.json(categories);
+    // Execute query using db.query
+    const categoriesResult = await db.query('SELECT * FROM lab_test_categories ORDER BY name ASC');
+    
+    return NextResponse.json(categoriesResult.rows || []);
   } catch (error) {
     console.error('Error fetching laboratory test categories:', error);
-    return NextResponse.json({ error: 'Failed to fetch laboratory test categories' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return NextResponse.json({ error: 'Failed to fetch laboratory test categories', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -32,34 +41,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Only lab managers and admins can create categories
-    if (!['admin', 'lab_manager'].includes(session.user.role)) {
+    // Check permissions (using mock session data)
+    const canCreateCategory = session.user.permissions.includes('lab_category:create') || session.user.roleName === 'Admin' || session.user.roleName === 'Lab Manager'; // Adjusted roles/permissions
+    if (!canCreateCategory) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
-    // Parse request body
-    const body = await request.json();
+    // Parse request body with type assertion
+    const body = await request.json() as CategoryInput;
     
     // Validate required fields
     if (!body.name) {
       return NextResponse.json({ error: 'Missing required field: name' }, { status: 400 });
     }
     
-    // Insert new category
-    const result = await db.prepare(`
+    const db = getDB(); // Get mock DB
+    
+    // Insert new category using db.query
+    // Mock query doesn't return last_row_id
+    await db.query(`
       INSERT INTO lab_test_categories (name, description)
       VALUES (?, ?)
-    `).bind(
+    `, [
       body.name,
       body.description || ''
-    ).run();
+    ]);
     
-    // Get the inserted category
-    const category = await db.prepare('SELECT * FROM lab_test_categories WHERE id = ?').bind(result.meta.last_row_id).first();
-    
-    return NextResponse.json(category, { status: 201 });
+    // Cannot reliably get the new record from mock DB
+    return NextResponse.json({ message: 'Category created (mock operation)' }, { status: 201 });
+
   } catch (error) {
     console.error('Error creating laboratory test category:', error);
-    return NextResponse.json({ error: 'Failed to create laboratory test category' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return NextResponse.json({ error: 'Failed to create laboratory test category', details: errorMessage }, { status: 500 });
   }
 }
+

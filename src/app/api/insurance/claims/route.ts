@@ -1,355 +1,133 @@
-// src/app/api/insurance/claims/route.ts
 import { NextRequest, NextResponse } from "next/server";
-// import { getRequestContext } from "@cloudflare/next-on-pages"; // Import when ready to use D1
+import { v4 as uuidv4 } from "uuid";
 
-// Placeholder function to simulate database interaction
-async function getInsuranceClaimsFromDB(filters: any) {
-  console.log("Simulating fetching insurance claims with filters:", filters);
-  // Replace with actual D1 query when DB is configured
-  // const { env } = getRequestContext();
-  // let query = `
-  //   SELECT ic.*, pi.policy_number, p.name as patient_name, ip.name as provider_name, inv.invoice_number, inv.total_amount as invoice_amount
-  //   FROM insurance_claims ic
-  //   JOIN patient_insurance pi ON ic.patient_insurance_id = pi.id
-  //   JOIN patients p ON pi.patient_id = p.id
-  //   JOIN insurance_providers ip ON pi.provider_id = ip.id
-  //   JOIN invoices inv ON ic.invoice_id = inv.id
-  //   WHERE 1=1
-  // `;
-  // 
-  // const params = [];
-  // 
-  // if (filters.patient_id) {
-  //   query += " AND pi.patient_id = ?";
-  //   params.push(filters.patient_id);
-  // }
-  // 
-  // if (filters.provider_id) {
-  //   query += " AND pi.provider_id = ?";
-  //   params.push(filters.provider_id);
-  // }
-  // 
-  // if (filters.invoice_id) {
-  //   query += " AND ic.invoice_id = ?";
-  //   params.push(filters.invoice_id);
-  // }
-  // 
-  // if (filters.status) {
-  //   query += " AND ic.status = ?";
-  //   params.push(filters.status);
-  // }
-  // 
-  // query += " ORDER BY ic.claim_submission_date DESC";
-  // 
-  // const { results } = await env.DB.prepare(query).bind(...params).all();
-  // return results;
-  
-  // Return mock data for now
-  const mockInsuranceClaims = [
-    {
-      id: 1,
-      patient_insurance_id: 1,
-      policy_number: "NHI12345678",
-      patient_name: "Alice Smith",
-      provider_name: "National Health Insurance",
-      invoice_id: 1001,
-      invoice_number: "INV-2025-1001",
-      invoice_amount: 75000,
-      claim_submission_date: "2025-04-10T10:00:00Z",
-      claim_amount: 75000,
-      status: "paid",
-      provider_claim_number: "CLAIM-NHI-001",
-      approved_amount: 70000,
-      paid_amount: 70000,
-      rejection_reason: null,
-      payment_date: "2025-04-25T14:00:00Z",
-      notes: "Claim processed and paid successfully.",
-      created_at: "2025-04-10T10:00:00Z",
-      updated_at: "2025-04-25T14:00:00Z"
-    },
-    {
-      id: 2,
-      patient_insurance_id: 2,
-      policy_number: "HSI87654321",
-      patient_name: "Bob Johnson",
-      provider_name: "Health Secure Insurance",
-      invoice_id: 1002,
-      invoice_number: "INV-2025-1002",
-      invoice_amount: 250000,
-      claim_submission_date: "2025-04-15T11:30:00Z",
-      claim_amount: 250000,
-      status: "processing",
-      provider_claim_number: "CLAIM-HSI-002",
-      approved_amount: null,
-      paid_amount: null,
-      rejection_reason: null,
-      payment_date: null,
-      notes: "Claim under review by the provider.",
-      created_at: "2025-04-15T11:30:00Z",
-      updated_at: "2025-04-15T11:30:00Z"
-    },
-    {
-      id: 3,
-      patient_insurance_id: 3,
-      policy_number: "SHI56789012",
-      patient_name: "Charlie Brown",
-      provider_name: "Star Health Insurance",
-      invoice_id: 1003,
-      invoice_number: "INV-2025-1003",
-      invoice_amount: 150000,
-      claim_submission_date: "2025-04-20T09:15:00Z",
-      claim_amount: 150000,
-      status: "rejected",
-      provider_claim_number: "CLAIM-SHI-003",
-      approved_amount: null,
-      paid_amount: null,
-      rejection_reason: "Pre-authorization was rejected.",
-      payment_date: null,
-      notes: "Claim rejected due to prior pre-auth rejection.",
-      created_at: "2025-04-20T09:15:00Z",
-      updated_at: "2025-04-22T16:00:00Z"
-    },
-    {
-      id: 4,
-      patient_insurance_id: 4,
-      policy_number: "NHI23456789",
-      patient_name: "Diana Miller",
-      provider_name: "National Health Insurance",
-      invoice_id: 1004,
-      invoice_number: "INV-2025-1004",
-      invoice_amount: 90000,
-      claim_submission_date: "2025-04-25T16:00:00Z",
-      claim_amount: 90000,
-      status: "partially_approved",
-      provider_claim_number: "CLAIM-NHI-004",
-      approved_amount: 63000, // 70% of 90000
-      paid_amount: 63000,
-      rejection_reason: "Partial rejection based on policy coverage limits for specific items.",
-      payment_date: "2025-05-10T10:00:00Z",
-      notes: "Claim partially approved and paid.",
-      created_at: "2025-04-25T16:00:00Z",
-      updated_at: "2025-05-10T10:00:00Z"
-    }
-  ];
-  
-  return mockInsuranceClaims.filter(claim => {
-    // Apply patient insurance filter (using patient_insurance_id instead of patient_id)
-    if (filters.patient_id && claim.patient_insurance_id.toString() !== filters.patient_id) return false;
-    
-    // Skip provider filter as provider_id is not directly available in the mock data
-    // We could implement this by adding provider_id to the mock data or using a different approach
-    
-    // Apply invoice filter
-    if (filters.invoice_id && claim.invoice_id.toString() !== filters.invoice_id) return false;
-    
-    // Apply status filter
-    if (filters.status && claim.status !== filters.status) return false;
-    
-    // Apply search filter
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      return (
-        claim.patient_name.toLowerCase().includes(searchTerm) ||
-        claim.provider_name.toLowerCase().includes(searchTerm) ||
-        claim.policy_number.toLowerCase().includes(searchTerm) ||
-        claim.invoice_number.toLowerCase().includes(searchTerm) ||
-        (claim.provider_claim_number && claim.provider_claim_number.toLowerCase().includes(searchTerm))
-      );
-    }
-    
-    return true;
-  });
+// Mock data store for insurance claims (replace with actual DB interaction)
+let mockClaims: any[] = [
+  {
+    id: 1,
+    patient_insurance_id: 101,
+    invoice_id: 201,
+    claim_amount: 5000.00,
+    claim_status: "Submitted",
+    claim_number: "CLM001",
+    submission_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+    approval_date: null,
+    rejection_date: null,
+    rejection_reason: null,
+    approved_amount: null,
+    payment_date: null,
+    payment_reference: null,
+    notes: "Initial claim submission",
+    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 2,
+    patient_insurance_id: 102,
+    invoice_id: 202,
+    claim_amount: 8500.00,
+    claim_status: "Approved",
+    claim_number: "CLM002",
+    submission_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
+    approval_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+    rejection_date: null,
+    rejection_reason: null,
+    approved_amount: 8000.00,
+    payment_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    payment_reference: "PAY123456",
+    notes: "Partial approval due to policy limits",
+    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+let nextClaimId = 3;
+
+// Define interface for insurance claim creation input
+interface InsuranceClaimInput {
+  patient_insurance_id: number | string;
+  invoice_id: number | string;
+  claim_amount: number;
+  claim_status?: string; // Optional, defaults to "Submitted"
+  claim_number?: string; // Optional, might be auto-generated
+  submission_date?: string; // Optional, defaults to now
+  notes?: string;
 }
 
-// Placeholder function to simulate creating an insurance claim
-async function createInsuranceClaimInDB(claimData: any) {
-  console.log("Simulating creating insurance claim:", claimData);
-  // Replace with actual D1 insert query when DB is configured
-  // const { env } = getRequestContext();
-  // const info = await env.DB.prepare(
-  //   `INSERT INTO insurance_claims (
-  //     patient_insurance_id, invoice_id, claim_amount, status, notes
-  //   ) VALUES (?, ?, ?, ?, ?)`
-  // ).bind(
-  //   claimData.patient_insurance_id,
-  //   claimData.invoice_id,
-  //   claimData.claim_amount,
-  //   claimData.status || "submitted",
-  //   claimData.notes || null
-  // ).run();
-  // return { id: info.meta.last_row_id, ...claimData };
-  
-  // Return mock success response
-  const newId = Math.floor(Math.random() * 1000) + 10;
-  
-  // Fetch mock patient, provider, policy, invoice details for the response
-  let patientName = "Unknown Patient";
-  let providerName = "Unknown Provider";
-  let policyNumber = "Unknown Policy";
-  let invoiceNumber = "Unknown Invoice";
-  let invoiceAmount = 0;
-  
-  // In a real implementation, these would be fetched from the database
-  if (claimData.patient_insurance_id === 1) {
-    patientName = "Alice Smith";
-    providerName = "National Health Insurance";
-    policyNumber = "NHI12345678";
-  } else if (claimData.patient_insurance_id === 2) {
-    patientName = "Bob Johnson";
-    providerName = "Health Secure Insurance";
-    policyNumber = "HSI87654321";
-  }
-  
-  if (claimData.invoice_id === 1001) {
-    invoiceNumber = "INV-2025-1001";
-    invoiceAmount = 75000;
-  } else if (claimData.invoice_id === 1002) {
-    invoiceNumber = "INV-2025-1002";
-    invoiceAmount = 250000;
-  }
-  
-  return {
-    id: newId,
-    ...claimData,
-    patient_name: patientName,
-    provider_name: providerName,
-    policy_number: policyNumber,
-    invoice_number: invoiceNumber,
-    invoice_amount: invoiceAmount,
-    status: claimData.status || "submitted",
-    claim_submission_date: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
+// Define interface for insurance claim update input
+interface InsuranceClaimUpdateInput {
+  claim_status?: string;
+  approval_date?: string | null;
+  rejection_date?: string | null;
+  rejection_reason?: string | null;
+  approved_amount?: number | null;
+  payment_date?: string | null;
+  payment_reference?: string | null;
+  notes?: string;
 }
 
-// Placeholder function to simulate getting a single insurance claim
+// Helper function to simulate DB interaction (GET)
+async function getInsuranceClaimsFromDB(filters: any = {}) {
+  console.log("Simulating DB fetch for insurance claims with filters:", filters);
+  // Apply filters if implemented
+  let filteredClaims = [...mockClaims];
+  
+  if (filters.status) {
+    filteredClaims = filteredClaims.filter(c => c.claim_status.toLowerCase() === filters.status.toLowerCase());
+  }
+  
+  if (filters.patient_insurance_id) {
+    filteredClaims = filteredClaims.filter(c => c.patient_insurance_id === parseInt(filters.patient_insurance_id));
+  }
+  
+  return filteredClaims.sort((a, b) => new Date(b.submission_date).getTime() - new Date(a.submission_date).getTime());
+}
+
+// Helper function to simulate DB interaction (GET by ID)
 async function getInsuranceClaimByIdFromDB(id: number) {
-  console.log("Simulating fetching insurance claim by ID:", id);
-  // Replace with actual D1 query when DB is configured
-  // const { env } = getRequestContext();
-  // const { results } = await env.DB.prepare(`
-  //   SELECT ic.*, pi.policy_number, p.name as patient_name, ip.name as provider_name, inv.invoice_number, inv.total_amount as invoice_amount
-  //   FROM insurance_claims ic
-  //   JOIN patient_insurance pi ON ic.patient_insurance_id = pi.id
-  //   JOIN patients p ON pi.patient_id = p.id
-  //   JOIN insurance_providers ip ON pi.provider_id = ip.id
-  //   JOIN invoices inv ON ic.invoice_id = inv.id
-  //   WHERE ic.id = ?
-  // `).bind(id).all();
-  // 
-  // if (results.length === 0) return null;
-  // return results[0];
-  
-  // Return mock data for now
-  const mockInsuranceClaims = [
-    {
-      id: 1,
-      patient_insurance_id: 1,
-      policy_number: "NHI12345678",
-      patient_name: "Alice Smith",
-      provider_name: "National Health Insurance",
-      invoice_id: 1001,
-      invoice_number: "INV-2025-1001",
-      invoice_amount: 75000,
-      claim_submission_date: "2025-04-10T10:00:00Z",
-      claim_amount: 75000,
-      status: "paid",
-      provider_claim_number: "CLAIM-NHI-001",
-      approved_amount: 70000,
-      paid_amount: 70000,
-      rejection_reason: null,
-      payment_date: "2025-04-25T14:00:00Z",
-      notes: "Claim processed and paid successfully.",
-      created_at: "2025-04-10T10:00:00Z",
-      updated_at: "2025-04-25T14:00:00Z",
-      // Additional details for single view
-      patient_details: {
-        age: 35,
-        gender: "Female",
-        contact: "+91-9876543210",
-        medical_record_number: "MRN00101"
-      },
-      invoice_details: {
-        date: "2025-04-08",
-        items: [
-          { description: "Appendectomy Procedure", amount: 60000 },
-          { description: "Room Charges (2 days)", amount: 10000 },
-          { description: "Medications", amount: 5000 }
-        ]
-      },
-      policy_details: {
-        plan_name: "Gold Health Plan",
-        expiry_date: "2025-12-31"
-      }
-    },
-    {
-      id: 2,
-      patient_insurance_id: 2,
-      policy_number: "HSI87654321",
-      patient_name: "Bob Johnson",
-      provider_name: "Health Secure Insurance",
-      invoice_id: 1002,
-      invoice_number: "INV-2025-1002",
-      invoice_amount: 250000,
-      claim_submission_date: "2025-04-15T11:30:00Z",
-      claim_amount: 250000,
-      status: "processing",
-      provider_claim_number: "CLAIM-HSI-002",
-      approved_amount: null,
-      paid_amount: null,
-      rejection_reason: null,
-      payment_date: null,
-      notes: "Claim under review by the provider.",
-      created_at: "2025-04-15T11:30:00Z",
-      updated_at: "2025-04-15T11:30:00Z",
-      // Additional details for single view
-      patient_details: {
-        age: 55,
-        gender: "Male",
-        contact: "+91-9876543211",
-        medical_record_number: "MRN00102"
-      },
-      invoice_details: {
-        date: "2025-04-12",
-        items: [
-          { description: "Knee Replacement Surgery", amount: 200000 },
-          { description: "Room Charges (5 days)", amount: 25000 },
-          { description: "Medications & Consumables", amount: 25000 }
-        ]
-      },
-      policy_details: {
-        plan_name: "Family Health Shield",
-        expiry_date: "2026-01-31"
-      }
-    }
-  ];
-  
-  return mockInsuranceClaims.find(claim => claim.id === id) || null;
+  console.log("Simulating DB fetch for insurance claim ID:", id);
+  return mockClaims.find((c) => c.id === id);
 }
 
-// Placeholder function to simulate updating an insurance claim
-async function updateInsuranceClaimInDB(id: number, updateData: any) {
-  console.log("Simulating updating insurance claim:", id, updateData);
-  // Replace with actual D1 update query when DB is configured
-  // const { env } = getRequestContext();
-  // const updateFields = Object.entries(updateData)
-  //   .map(([key, _]) => `${key} = ?`)
-  //   .join(", ");
-  // const updateValues = Object.values(updateData);
-  // 
-  // await env.DB.prepare(
-  //   `UPDATE insurance_claims SET ${updateFields}, updated_at = ? WHERE id = ?`
-  // ).bind(...updateValues, new Date().toISOString(), id).run();
-  // 
-  // return { id, ...updateData };
-  
-  // Return mock success response
-  return {
-    id,
-    ...updateData,
-    updated_at: new Date().toISOString()
+// Helper function to simulate DB interaction (POST)
+async function createInsuranceClaimInDB(data: InsuranceClaimInput) {
+  console.log("Simulating DB create for insurance claim:", data);
+  const now = new Date().toISOString();
+  const newClaim = {
+    id: nextClaimId++,
+    patient_insurance_id: data.patient_insurance_id,
+    invoice_id: data.invoice_id,
+    claim_amount: data.claim_amount,
+    claim_status: data.claim_status || "Submitted",
+    claim_number: data.claim_number || `CLM${String(nextClaimId-1).padStart(3, "0")}`,
+    submission_date: data.submission_date || now,
+    approval_date: null,
+    rejection_date: null,
+    rejection_reason: null,
+    approved_amount: null,
+    payment_date: null,
+    payment_reference: null,
+    notes: data.notes || "",
+    created_at: now,
+    updated_at: now,
   };
+  mockClaims.push(newClaim);
+  return newClaim;
+}
+
+// Helper function to simulate DB interaction (PUT)
+async function updateInsuranceClaimInDB(id: number, data: InsuranceClaimUpdateInput) {
+  console.log(`Simulating DB update for insurance claim ID ${id}:`, data);
+  const claimIndex = mockClaims.findIndex((c) => c.id === id);
+  if (claimIndex === -1) {
+    throw new Error("Insurance claim not found");
+  }
+  const updatedClaim = { 
+    ...mockClaims[claimIndex], 
+    ...data, // Apply updates
+    updated_at: new Date().toISOString(),
+  };
+  mockClaims[claimIndex] = updatedClaim;
+  return updatedClaim;
 }
 
 /**
@@ -359,31 +137,15 @@ async function updateInsuranceClaimInDB(id: number, updateData: any) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const patient_id = searchParams.get("patient_id");
-    const provider_id = searchParams.get("provider_id");
-    const invoice_id = searchParams.get("invoice_id");
-    const status = searchParams.get("status");
-    const search = searchParams.get("search");
-    // Add other filters as needed
+    // Example filters
+    const filters = {
+      status: searchParams.get("status"),
+      patient_insurance_id: searchParams.get("patient_insurance_id"),
+      date_from: searchParams.get("date_from"),
+      date_to: searchParams.get("date_to"),
+    };
 
-    const filters = { patient_id, provider_id, invoice_id, status, search };
-    
-    // Check if this is a request for a specific insurance claim
-    const path = request.nextUrl.pathname;
-    if (path.match(/\/api\/insurance\/claims\/\d+$/)) {
-      const id = parseInt(path.split("/").pop() || "0");
-      if (id > 0) {
-        const claim = await getInsuranceClaimByIdFromDB(id);
-        if (!claim) {
-          return NextResponse.json({ error: "Insurance claim not found" }, { status: 404 });
-        }
-        return NextResponse.json({ claim });
-      }
-    }
-    
-    // Otherwise, return filtered list
     const claims = await getInsuranceClaimsFromDB(filters);
-
     return NextResponse.json({ claims });
   } catch (error) {
     console.error("Error fetching insurance claims:", error);
@@ -404,7 +166,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const claimData = await request.json();
+    const body = await request.json();
+    // Fixed: Apply type assertion
+    const claimData = body as InsuranceClaimInput;
 
     // Basic validation (add more comprehensive validation)
     if (!claimData.patient_insurance_id || !claimData.invoice_id || !claimData.claim_amount) {
@@ -431,34 +195,43 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
+// The PUT handler below seems misplaced in this file which handles the collection (/api/insurance/claims).
+// It should likely be moved to /api/insurance/claims/[id]/route.ts.
+
 /**
- * PUT /api/insurance/claims/[id]
+ * PUT /api/insurance/claims/[id]  <-- This handler likely belongs in [id]/route.ts
  * Updates an existing insurance claim.
  */
-export async function PUT(request: NextRequest) {
-  try {
-    const path = request.nextUrl.pathname;
-    const id = parseInt(path.split("/").pop() || "0");
+// export async function PUT(request: NextRequest) { // Commenting out as it's likely misplaced
+//   try {
+//     const path = request.nextUrl.pathname;
+//     const idString = path.split("/").pop();
+//     const id = idString ? parseInt(idString) : 0;
     
-    if (id <= 0) {
-      return NextResponse.json({ error: "Invalid insurance claim ID" }, { status: 400 });
-    }
+//     if (!id || id <= 0) {
+//       return NextResponse.json({ error: "Invalid or missing insurance claim ID in URL path" }, { status: 400 });
+//     }
     
-    const updateData = await request.json();
+//     const body = await request.json();
+//     const updateData = body as InsuranceClaimUpdateInput;
     
-    // Simulate updating the insurance claim in the database
-    const updatedClaim = await updateInsuranceClaimInDB(id, updateData);
+//     // Simulate updating the insurance claim in the database
+//     const updatedClaim = await updateInsuranceClaimInDB(id, updateData);
 
-    return NextResponse.json({ claim: updatedClaim });
-  } catch (error) {
-    console.error("Error updating insurance claim:", error);
-    let errorMessage = "An unknown error occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json(
-      { error: "Failed to update insurance claim", details: errorMessage },
-      { status: 500 }
-    );
-  }
-}
+//     return NextResponse.json({ claim: updatedClaim });
+//   } catch (error) {
+//     console.error("Error updating insurance claim:", error);
+//     let errorMessage = "An unknown error occurred";
+//     if (error instanceof Error) {
+//       errorMessage = error.message;
+//       if (errorMessage === "Insurance claim not found") {
+//         return NextResponse.json({ error: errorMessage }, { status: 404 });
+//       }
+//     }
+//     return NextResponse.json(
+//       { error: "Failed to update insurance claim", details: errorMessage },
+//       { status: 500 }
+//     );
+//   }
+// }

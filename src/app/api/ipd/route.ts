@@ -1,6 +1,6 @@
 // Example API route for IPD (Inpatient Department) Management
 import { NextRequest } from 'next/server';
-import { getDb, initializeDb } from '@/lib/db';
+import { getDb, initializeDb } from '@/lib/db'; // Using mock DB
 import { z } from 'zod';
 
 // Schema for IPD Admission
@@ -22,16 +22,11 @@ const AdmissionSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    // Get Cloudflare bindings from request context
-    const env = (request as any).cf?.env;
-    
-    // Initialize DB if we have bindings
-    if (env && env.DB) {
-      initializeDb(env);
-    }
+    // Initialize DB (mock function)
+    await initializeDb(); // Removed env argument
     
     // Get DB instance
-    const db = getDb();
+    const db = getDb(); // Using mock getDb
     
     // Get query parameters
     const { searchParams } = new URL(request.url);
@@ -74,7 +69,7 @@ export async function GET(request: NextRequest) {
     
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     
-    // Query to get admissions with patient and doctor names
+    // Query to get admissions with patient and doctor names (using mock db.query)
     const query = `
       SELECT 
         a.admission_id, 
@@ -110,18 +105,19 @@ export async function GET(request: NextRequest) {
     
     params.push(limit, offset);
     
-    const admissions = await db.prepare(query).bind(...params).all();
+    const admissionsResult = await db.query(query, params);
     
-    return new Response(JSON.stringify(admissions.results), {
+    return new Response(JSON.stringify(admissionsResult.rows || []), {
       status: 200,
       headers: { "Content-Type": "application/json" }
     });
     
   } catch (error) {
     console.error('Error fetching IPD admissions:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(JSON.stringify({ 
       error: 'Failed to fetch IPD admissions', 
-      details: error instanceof Error ? error.message : String(error) 
+      details: errorMessage
     }), { 
       status: 500,
       headers: { "Content-Type": "application/json" }
@@ -131,16 +127,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get Cloudflare bindings from request context
-    const env = (request as any).cf?.env;
-    
-    // Initialize DB if we have bindings
-    if (env && env.DB) {
-      initializeDb(env);
-    }
+    // Initialize DB (mock function)
+    await initializeDb(); // Removed env argument
     
     // Get DB instance
-    const db = getDb();
+    const db = getDb(); // Using mock getDb
     
     const data = await request.json();
     
@@ -158,74 +149,38 @@ export async function POST(request: NextRequest) {
     
     const admissionData = validationResult.data;
     
-    // Check if patient exists and is active
-    const patientCheck = await db.prepare(
-      'SELECT patient_id FROM Patients WHERE patient_id = ? AND is_active = TRUE'
-    ).bind(admissionData.patient_id).first();
+    // Mock checks (replace with actual DB queries later)
+    const patientCheckResult = await db.query('SELECT patient_id FROM Patients WHERE patient_id = ? AND is_active = TRUE', [admissionData.patient_id]);
+    const patientCheck = patientCheckResult.rows && patientCheckResult.rows.length > 0;
     
     if (!patientCheck) {
-      return new Response(JSON.stringify({ 
-        error: 'Patient not found or inactive' 
-      }), { 
-        status: 404,
-        headers: { "Content-Type": "application/json" }
-      });
+      return new Response(JSON.stringify({ error: 'Patient not found or inactive' }), { status: 404, headers: { "Content-Type": "application/json" } });
     }
     
-    // Check if doctor exists and is active
-    const doctorCheck = await db.prepare(`
-      SELECT d.doctor_id FROM Doctors d 
-      JOIN Users u ON d.user_id = u.user_id 
-      WHERE d.doctor_id = ? AND u.is_active = TRUE
-    `).bind(admissionData.doctor_id).first();
+    const doctorCheckResult = await db.query('SELECT d.doctor_id FROM Doctors d JOIN Users u ON d.user_id = u.user_id WHERE d.doctor_id = ? AND u.is_active = TRUE', [admissionData.doctor_id]);
+    const doctorCheck = doctorCheckResult.rows && doctorCheckResult.rows.length > 0;
     
     if (!doctorCheck) {
-      return new Response(JSON.stringify({ 
-        error: 'Doctor not found or inactive' 
-      }), { 
-        status: 404,
-        headers: { "Content-Type": "application/json" }
-      });
+      return new Response(JSON.stringify({ error: 'Doctor not found or inactive' }), { status: 404, headers: { "Content-Type": "application/json" } });
     }
     
-    // Check if bed is available
-    const bedCheck = await db.prepare(`
-      SELECT bed_id FROM Beds 
-      WHERE bed_id = ? AND status = 'Available'
-    `).bind(admissionData.bed_id).first();
+    const bedCheckResult = await db.query('SELECT bed_id FROM Beds WHERE bed_id = ? AND status = \'Available\'', [admissionData.bed_id]);
+    const bedCheck = bedCheckResult.rows && bedCheckResult.rows.length > 0;
     
     if (!bedCheck) {
-      return new Response(JSON.stringify({ 
-        error: 'Bed not available' 
-      }), { 
-        status: 409,
-        headers: { "Content-Type": "application/json" }
-      });
+      return new Response(JSON.stringify({ error: 'Bed not available' }), { status: 409, headers: { "Content-Type": "application/json" } });
     }
     
-    // Begin transaction
-    const tx = db.batch([
+    // Mock transaction using sequential queries
+    try {
       // Insert admission record
-      db.prepare(`
+      await db.query(`
         INSERT INTO IPDAdmissions (
-          patient_id, 
-          doctor_id, 
-          admission_date, 
-          expected_discharge_date, 
-          admission_reason, 
-          admission_notes, 
-          ward_id, 
-          bed_id, 
-          admission_type, 
-          package_id, 
-          insurance_id, 
-          insurance_approval_status, 
-          insurance_approval_number,
-          status,
-          created_by,
-          created_at
+          patient_id, doctor_id, admission_date, expected_discharge_date, admission_reason, 
+          admission_notes, ward_id, bed_id, admission_type, package_id, insurance_id, 
+          insurance_approval_status, insurance_approval_number, status, created_by, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?, CURRENT_TIMESTAMP)
-      `).bind(
+      `, [
         admissionData.patient_id,
         admissionData.doctor_id,
         admissionData.admission_date,
@@ -239,34 +194,40 @@ export async function POST(request: NextRequest) {
         admissionData.insurance_id || null,
         admissionData.insurance_approval_status || null,
         admissionData.insurance_approval_number || null,
-        1 // Assuming user ID 1 for now, should be replaced with actual user ID from session
-      ),
+        1 // Mock user ID
+      ]);
       
-      // Update bed status to 'Occupied'
-      db.prepare(`
-        UPDATE Beds SET status = 'Occupied' WHERE bed_id = ?
-      `).bind(admissionData.bed_id)
-    ]);
-    
-    const results = await tx.run();
-    const admissionId = results[0].meta.last_row_id;
-    
-    return new Response(JSON.stringify({ 
-      message: 'IPD Admission created successfully', 
-      admission_id: admissionId 
-    }), { 
-      status: 201,
-      headers: { "Content-Type": "application/json" }
-    });
+      // Update bed status
+      await db.query('UPDATE Beds SET status = \'Occupied\' WHERE bed_id = ?', [admissionData.bed_id]);
+
+      // Cannot get last_row_id from mock db.query
+      const mockAdmissionId = Math.floor(Math.random() * 10000);
+
+      return new Response(JSON.stringify({ 
+        message: 'IPD Admission created successfully (mock operation)', 
+        admission_id: mockAdmissionId 
+      }), { 
+        status: 201,
+        headers: { "Content-Type": "application/json" }
+      });
+
+    } catch (txError) {
+        console.error('Error during mock transaction:', txError);
+        // No rollback needed for mock DB
+        const errorMessage = txError instanceof Error ? txError.message : String(txError);
+        return new Response(JSON.stringify({ error: 'Failed during admission creation database operations', details: errorMessage }), { status: 500, headers: { "Content-Type": "application/json" } });
+    }
     
   } catch (error) {
     console.error('Error creating IPD admission:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(JSON.stringify({ 
       error: 'Failed to create IPD admission', 
-      details: error instanceof Error ? error.message : String(error) 
+      details: errorMessage
     }), { 
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
   }
 }
+

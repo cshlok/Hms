@@ -3,6 +3,14 @@ import { D1Database } from "@cloudflare/workers-types";
 
 export const runtime = "edge";
 
+// Interface for the POST request body
+interface ChecklistResponseBody {
+    checklist_template_id: string; // Assuming ID is string
+    phase: string; // e.g., "Pre-Op", "Intra-Op", "Post-Op"
+    responses: Record<string, any>; // JSON object { "itemId": responseValue, ... }
+    completed_by_id?: string; // Optional, assuming ID is string
+}
+
 // GET /api/ot/bookings/[id]/checklist-responses - Get checklist responses for a booking
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -39,15 +47,22 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // Parse responses JSON
     const parsedResults = results?.map(result => {
         try {
-            result.responses = JSON.parse(result.responses as string);
-        } catch (e) { /* ignore parse error */ }
+            // Ensure result.responses is treated as string before parsing
+            if (typeof result.responses === "string") {
+                result.responses = JSON.parse(result.responses);
+            }
+        } catch (e) { 
+            console.error("Failed to parse responses JSON for result:", result.id, e);
+            // Keep responses as original string if parsing fails
+        }
         return result;
     }) || [];
 
     return NextResponse.json(parsedResults);
   } catch (error) {
     console.error("Error fetching checklist responses:", error);
-    return NextResponse.json({ message: "Error fetching checklist responses" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error fetching checklist responses", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -59,7 +74,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Booking ID is required" }, { status: 400 });
     }
 
-    const body = await request.json();
+    const body = await request.json() as ChecklistResponseBody;
     const {
       checklist_template_id,
       phase,
@@ -95,7 +110,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     ).bind(bookingId, checklist_template_id).all();
 
     let responseId: string;
-    if (existing && existing.length > 0) {
+    if (existing && existing.length > 0 && existing[0].id) {
         // Update existing response
         responseId = existing[0].id as string;
         await DB.prepare(
@@ -129,8 +144,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     if (finalResult && finalResult.length > 0) {
         try {
-            finalResult[0].responses = JSON.parse(finalResult[0].responses as string);
-        } catch (e) { /* ignore */ }
+            // Ensure finalResult[0].responses is treated as string before parsing
+            if (typeof finalResult[0].responses === "string") {
+                finalResult[0].responses = JSON.parse(finalResult[0].responses);
+            }
+        } catch (e) { 
+            console.error("Failed to parse responses JSON for final result:", responseId, e);
+            // Keep responses as original string if parsing fails
+        }
         return NextResponse.json(finalResult[0], { status: existing && existing.length > 0 ? 200 : 201 });
     } else {
         return NextResponse.json({ message: "Checklist response saved, but failed to fetch details" }, { status: 201 });
@@ -138,7 +159,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
   } catch (error) {
     console.error("Error saving checklist response:", error);
-    return NextResponse.json({ message: "Error saving checklist response" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error saving checklist response", details: errorMessage }, { status: 500 });
   }
 }
 

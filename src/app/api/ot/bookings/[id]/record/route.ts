@@ -3,6 +3,24 @@ import { D1Database } from "@cloudflare/workers-types";
 
 export const runtime = "edge";
 
+// Interface for the POST request body
+interface OTRecordBody {
+    actual_start_time?: string | null;
+    actual_end_time?: string | null;
+    anesthesia_start_time?: string | null;
+    anesthesia_end_time?: string | null;
+    anesthesia_type?: string | null;
+    anesthesia_notes?: string | null;
+    surgical_procedure_notes?: string | null;
+    implants_used?: any[] | null; // Assuming array of objects/strings
+    specimens_collected?: any[] | null; // Assuming array of objects/strings
+    blood_loss_ml?: number | null;
+    complications?: string | null;
+    instrument_count_correct?: boolean | null;
+    sponge_count_correct?: boolean | null;
+    recorded_by_id?: string | null; // Assuming ID is string
+}
+
 // GET /api/ot/bookings/[id]/record - Get operation record for a booking
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -26,19 +44,23 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Parse JSON fields if present
+    const record = results[0];
     try {
-        if (results[0].implants_used) {
-            results[0].implants_used = JSON.parse(results[0].implants_used as string);
+        if (record.implants_used && typeof record.implants_used === "string") {
+            record.implants_used = JSON.parse(record.implants_used);
         }
-        if (results[0].specimens_collected) {
-            results[0].specimens_collected = JSON.parse(results[0].specimens_collected as string);
+        if (record.specimens_collected && typeof record.specimens_collected === "string") {
+            record.specimens_collected = JSON.parse(record.specimens_collected);
         }
-    } catch (e) { /* ignore parse errors */ }
+    } catch (e) { 
+        console.error("Failed to parse JSON fields for record:", record.id, e);
+    }
 
-    return NextResponse.json(results[0]);
+    return NextResponse.json(record);
   } catch (error) {
     console.error("Error fetching operation record:", error);
-    return NextResponse.json({ message: "Error fetching operation record" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error fetching operation record", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -50,7 +72,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Booking ID is required" }, { status: 400 });
     }
 
-    const body = await request.json();
+    const body = await request.json() as OTRecordBody;
     const {
       actual_start_time,
       actual_end_time,
@@ -76,28 +98,29 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "OT Booking not found" }, { status: 404 });
     }
 
-    // Update booking status to 'in_progress' if it's currently 'scheduled' or 'confirmed'
-    if (actual_start_time && ['scheduled', 'confirmed'].includes(bookingResults[0].status as string)) {
+    const now = new Date().toISOString();
+
+    // Update booking status based on times provided
+    if (actual_start_time && ["scheduled", "confirmed"].includes(bookingResults[0].status as string)) {
         await DB.prepare("UPDATE OTBookings SET status = 'in_progress', updated_at = ? WHERE id = ?")
-            .bind(new Date().toISOString(), bookingId)
+            .bind(now, bookingId)
             .run();
     }
-    
-    // Update booking status to 'completed' if actual_end_time is provided
     if (actual_end_time) {
         await DB.prepare("UPDATE OTBookings SET status = 'completed', updated_at = ? WHERE id = ?")
-            .bind(new Date().toISOString(), bookingId)
+            .bind(now, bookingId)
             .run();
     }
-
-    const now = new Date().toISOString();
 
     // Check if record already exists
     const { results: existingRecord } = await DB.prepare("SELECT id FROM OTRecords WHERE booking_id = ?").bind(bookingId).all();
     
-    if (existingRecord && existingRecord.length > 0) {
+    let recordId: string;
+    let isNewRecord = false;
+
+    if (existingRecord && existingRecord.length > 0 && existingRecord[0].id) {
         // Update existing record
-        const recordId = existingRecord[0].id;
+        recordId = existingRecord[0].id as string;
         
         // Build update query dynamically
         const fieldsToUpdate: { [key: string]: any } = {};
@@ -117,34 +140,19 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         if (recorded_by_id !== undefined) fieldsToUpdate.recorded_by_id = recorded_by_id;
         fieldsToUpdate.updated_at = now;
         
-        const setClauses = Object.keys(fieldsToUpdate).map(key => `${key} = ?`).join(", ");
-        const values = Object.values(fieldsToUpdate);
-        
-        const updateQuery = `UPDATE OTRecords SET ${setClauses} WHERE id = ?`;
-        values.push(recordId);
-        
-        await DB.prepare(updateQuery).bind(...values).run();
-        
-        // Fetch updated record
-        const { results: updatedRecord } = await DB.prepare("SELECT * FROM OTRecords WHERE id = ?").bind(recordId).all();
-        
-        if (updatedRecord && updatedRecord.length > 0) {
-            try {
-                if (updatedRecord[0].implants_used) {
-                    updatedRecord[0].implants_used = JSON.parse(updatedRecord[0].implants_used as string);
-                }
-                if (updatedRecord[0].specimens_collected) {
-                    updatedRecord[0].specimens_collected = JSON.parse(updatedRecord[0].specimens_collected as string);
-                }
-            } catch (e) { /* ignore parse errors */ }
+        if (Object.keys(fieldsToUpdate).length > 1) { // Only update if there are fields other than updated_at
+            const setClauses = Object.keys(fieldsToUpdate).map(key => `${key} = ?`).join(", ");
+            const values = Object.values(fieldsToUpdate);
             
-            return NextResponse.json(updatedRecord[0]);
-        } else {
-            return NextResponse.json({ message: "Record updated but failed to fetch details" }, { status: 200 });
+            const updateQuery = `UPDATE OTRecords SET ${setClauses} WHERE id = ?`;
+            values.push(recordId);
+            
+            await DB.prepare(updateQuery).bind(...values).run();
         }
     } else {
         // Create new record
-        const recordId = crypto.randomUUID();
+        isNewRecord = true;
+        recordId = crypto.randomUUID();
         
         await DB.prepare(`
             INSERT INTO OTRecords (
@@ -174,27 +182,32 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
             now,
             now
         ).run();
-        
-        // Fetch created record
-        const { results: newRecord } = await DB.prepare("SELECT * FROM OTRecords WHERE id = ?").bind(recordId).all();
-        
-        if (newRecord && newRecord.length > 0) {
-            try {
-                if (newRecord[0].implants_used) {
-                    newRecord[0].implants_used = JSON.parse(newRecord[0].implants_used as string);
-                }
-                if (newRecord[0].specimens_collected) {
-                    newRecord[0].specimens_collected = JSON.parse(newRecord[0].specimens_collected as string);
-                }
-            } catch (e) { /* ignore parse errors */ }
-            
-            return NextResponse.json(newRecord[0], { status: 201 });
-        } else {
-            return NextResponse.json({ message: "Record created but failed to fetch details" }, { status: 201 });
-        }
     }
+
+    // Fetch the created/updated record
+    const { results: finalRecordResult } = await DB.prepare("SELECT * FROM OTRecords WHERE id = ?").bind(recordId).all();
+
+    if (finalRecordResult && finalRecordResult.length > 0) {
+        const finalRecord = finalRecordResult[0];
+        try {
+            if (finalRecord.implants_used && typeof finalRecord.implants_used === "string") {
+                finalRecord.implants_used = JSON.parse(finalRecord.implants_used);
+            }
+            if (finalRecord.specimens_collected && typeof finalRecord.specimens_collected === "string") {
+                finalRecord.specimens_collected = JSON.parse(finalRecord.specimens_collected);
+            }
+        } catch (e) { 
+            console.error("Failed to parse JSON fields for final record:", recordId, e);
+        }
+        return NextResponse.json(finalRecord, { status: isNewRecord ? 201 : 200 });
+    } else {
+        return NextResponse.json({ message: `Record ${isNewRecord ? 'created' : 'updated'} but failed to fetch details` }, { status: isNewRecord ? 201 : 200 });
+    }
+
   } catch (error) {
     console.error("Error saving operation record:", error);
-    return NextResponse.json({ message: "Error saving operation record" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error saving operation record", details: errorMessage }, { status: 500 });
   }
 }
+

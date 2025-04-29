@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDB } from '@/lib/db';
+import { getDB } from '@/lib/db'; // Using the mock DB from lib/db.ts
 import { getSession } from '@/lib/session';
+
+// Define interface for the POST request body
+interface DischargeInput {
+  discharge_date?: string; // Optional, defaults to now
+  discharge_diagnosis: string;
+  treatment_summary: string;
+  medications: string; // Assuming string, could be more complex
+  follow_up?: string | null;
+  home_care_instructions?: string | null;
+}
 
 // GET /api/ipd/admissions/[id]/discharge - Get discharge summary for an admission
 export async function GET(
@@ -8,7 +18,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession(request);
+    const session = await getSession(); // Removed request argument
     
     // Check authentication
     if (!session || !session.user) {
@@ -17,39 +27,39 @@ export async function GET(
     
     const admissionId = params.id;
     
-    const db = await getDB();
+    const db = getDB(); // Get the mock DB object
     
-    // Check if admission exists and user has access
-    const admission = await db.prepare(`
+    // Check if admission exists using db.query
+    const admissionResult = await db.query(`
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
       FROM admissions a
       JOIN patients p ON a.patient_id = p.id
       WHERE a.id = ?
-    `).bind(admissionId).first();
+    `, [admissionId]);
+    const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] : null;
     
     if (!admission) {
       return NextResponse.json({ error: 'Admission not found' }, { status: 404 });
     }
     
-    // Check if user has permission to view this admission's discharge summary
-    const isDoctor = session.user.role === 'Doctor';
-    const isNurse = session.user.role === 'Nurse';
-    const isAdmin = session.user.role === 'Admin';
-    
-    if (!isDoctor && !isNurse && !isAdmin) {
-      const hasPermission = await session.hasPermission('discharge_summary:view');
-      if (!hasPermission) {
+    // Check permissions (using mock session data)
+    const isDoctor = session.user.roleName === 'Doctor';
+    const isNurse = session.user.roleName === 'Nurse';
+    const isAdmin = session.user.roleName === 'Admin';
+    const canViewDischarge = session.user.permissions.includes('discharge_summary:view');
+
+    if (!isDoctor && !isNurse && !isAdmin && !canViewDischarge) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
     }
     
-    // Get discharge summary
-    const dischargeSummary = await db.prepare(`
+    // Get discharge summary using db.query
+    const dischargeSummaryResult = await db.query(`
       SELECT ds.*, u.first_name as doctor_first_name, u.last_name as doctor_last_name
       FROM discharge_summaries ds
       JOIN users u ON ds.doctor_id = u.id
       WHERE ds.admission_id = ?
-    `).bind(admissionId).first();
+    `, [admissionId]);
+    const dischargeSummary = dischargeSummaryResult.rows && dischargeSummaryResult.rows.length > 0 ? dischargeSummaryResult.rows[0] : null;
     
     return NextResponse.json({
       admission,
@@ -67,42 +77,43 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession(request);
+    const session = await getSession(); // Removed request argument
     
     // Check authentication
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check if user is a doctor or has permission to create discharge summaries
-    const isDoctor = session.user.role === 'Doctor';
-    if (!isDoctor) {
-      const hasPermission = await session.hasPermission('discharge_summary:create');
-      if (!hasPermission) {
+    // Check permissions (using mock session data)
+    const isDoctor = session.user.roleName === 'Doctor';
+    const canCreateDischarge = session.user.permissions.includes('discharge_summary:create');
+
+    if (!isDoctor && !canCreateDischarge) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-      }
     }
     
     const admissionId = params.id;
-    const data = await request.json();
+    // Fixed: Apply type assertion to request.json()
+    const data = await request.json() as DischargeInput;
     
-    // Validate required fields
-    const requiredFields = ['discharge_diagnosis', 'treatment_summary', 'medications'];
+    // Basic validation (now using typed data)
+    const requiredFields: (keyof DischargeInput)[] = ['discharge_diagnosis', 'treatment_summary', 'medications'];
     for (const field of requiredFields) {
       if (!data[field]) {
         return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
       }
     }
     
-    const db = await getDB();
+    const db = getDB(); // Get the mock DB object
     
-    // Check if admission exists and is active
-    const admission = await db.prepare(`
+    // Check if admission exists and is active using db.query
+    const admissionResult = await db.query(`
       SELECT a.*, b.id as bed_id
       FROM admissions a
       JOIN beds b ON a.bed_id = b.id
       WHERE a.id = ?
-    `).bind(admissionId).first();
+    `, [admissionId]);
+    const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] as { id: string; status: string; bed_id: string; primary_doctor_id: number } : null;
       
     if (!admission) {
       return NextResponse.json({ error: 'Admission not found' }, { status: 404 });
@@ -112,42 +123,39 @@ export async function POST(
       return NextResponse.json({ error: 'Patient is already discharged' }, { status: 409 });
     }
     
-    // If user is a doctor, check if they are the primary doctor for this admission
-    if (isDoctor && admission.primary_doctor_id !== session.user.id) {
-      const hasPermission = await session.hasPermission('discharge_summary:create_all');
-      if (!hasPermission) {
+    // Check authorization (using mock session data)
+    const canCreateAllDischarge = session.user.permissions.includes('discharge_summary:create_all');
+    if (isDoctor && admission.primary_doctor_id !== session.user.userId && !canCreateAllDischarge) {
         return NextResponse.json({ error: 'You are not authorized to discharge this patient' }, { status: 403 });
-      }
     }
     
-    // Begin transaction
-    await db.exec('BEGIN TRANSACTION');
-    
+    // Mock DB doesn't support transactions or batch, execute queries sequentially
     try {
-      // Update admission status to discharged
-      await db.prepare(`
+      // Update admission status using db.query
+      await db.query(`
         UPDATE admissions 
         SET status = 'discharged', discharge_date = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-      `).bind(
+      `, [
         data.discharge_date || new Date().toISOString(),
         admissionId
-      ).run();
+      ]);
       
-      // Update bed status to available
-      await db.prepare(`
+      // Update bed status using db.query
+      await db.query(`
         UPDATE beds
         SET status = 'available', updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-      `).bind(admission.bed_id).run();
+      `, [admission.bed_id]);
       
-      // Insert discharge summary
-      const result = await db.prepare(`
+      // Insert discharge summary using db.query
+      // Mock query doesn't return last_row_id, so we can't easily fetch the created summary
+      await db.query(`
         INSERT INTO discharge_summaries (
           admission_id, discharge_date, discharge_diagnosis, treatment_summary, 
           medications, follow_up, home_care_instructions, doctor_id
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).bind(
+      `, [
         admissionId,
         data.discharge_date || new Date().toISOString(),
         data.discharge_diagnosis,
@@ -155,31 +163,23 @@ export async function POST(
         data.medications,
         data.follow_up || null,
         data.home_care_instructions || null,
-        session.user.id
-      ).run();
+        session.user.userId
+      ]);
       
-      // Commit transaction
-      await db.exec('COMMIT');
-      
-      // Get the newly created discharge summary
-      const newDischargeSummary = await db.prepare(`
-        SELECT ds.*, u.first_name as doctor_first_name, u.last_name as doctor_last_name
-        FROM discharge_summaries ds
-        JOIN users u ON ds.doctor_id = u.id
-        WHERE ds.id = ?
-      `).bind(result.meta.last_row_id).first();
-      
+      // Since we can't get the ID from the mock DB, return a success message without the summary object
       return NextResponse.json({
-        message: 'Patient successfully discharged',
-        discharge_summary: newDischargeSummary
+        message: 'Patient successfully discharged (mock operation)',
+        discharge_summary: null // Cannot retrieve from mock DB
       }, { status: 201 });
+
     } catch (error) {
-      // Rollback transaction on error
-      await db.exec('ROLLBACK');
-      throw error;
+      console.error('Error during discharge database operations:', error);
+      // No rollback needed for mock DB
+      return NextResponse.json({ error: 'Failed to discharge patient due to database error' }, { status: 500 });
     }
   } catch (error) {
     console.error('Error creating discharge summary:', error);
     return NextResponse.json({ error: 'Failed to create discharge summary' }, { status: 500 });
   }
 }
+
