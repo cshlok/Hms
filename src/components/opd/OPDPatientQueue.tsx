@@ -1,7 +1,8 @@
-'use client';
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { 
   Table, 
   TableBody, 
@@ -9,10 +10,10 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { hasPermission } from '@/lib/session';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge"; // Assuming this will be created
+// Removed direct import: import { hasPermission } from "@/lib/session";
 
 interface Patient {
   id: number;
@@ -20,7 +21,7 @@ interface Patient {
   tokenNumber: number;
   checkInTime: string;
   waitingTime: number; // in minutes
-  status: 'waiting' | 'in-progress' | 'completed' | 'cancelled';
+  status: "waiting" | "in-progress" | "completed" | "cancelled";
   doctorName: string;
 }
 
@@ -34,153 +35,167 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
   const [error, setError] = useState<string | null>(null);
   const [canCallPatient, setCanCallPatient] = useState(false);
   const [canMarkComplete, setCanMarkComplete] = useState(false);
-  
+  const [loadingPermissions, setLoadingPermissions] = useState(true);
+
   useEffect(() => {
-    // Check permissions
+    // Check permissions via API route
     const checkPermissions = async () => {
-      const callPatientPerm = await hasPermission('patient:call');
-      const markCompletePerm = await hasPermission('consultation:complete');
-      
-      setCanCallPatient(callPatientPerm);
-      setCanMarkComplete(markCompletePerm);
+      setLoadingPermissions(true);
+      try {
+        const [callRes, completeRes] = await Promise.all([
+          fetch("/api/auth/check-permission?permission=patient:call"),
+          fetch("/api/auth/check-permission?permission=consultation:complete"),
+        ]);
+
+        if (!callRes.ok || !completeRes.ok) {
+          console.error("Failed to fetch permissions");
+          setCanCallPatient(false);
+          setCanMarkComplete(false);
+          return;
+        }
+
+        const callData = await callRes.json();
+        const completeData = await completeRes.json();
+
+        setCanCallPatient(callData.hasPermission || false);
+        setCanMarkComplete(completeData.hasPermission || false);
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+        setCanCallPatient(false);
+        setCanMarkComplete(false);
+      } finally {
+        setLoadingPermissions(false);
+      }
     };
-    
+
     checkPermissions();
   }, []);
-  
+
   useEffect(() => {
     const fetchPatientQueue = async () => {
-      setLoading(true);
+      // Don't set loading to true on interval refresh to avoid flicker
+      // setLoading(true);
       setError(null);
-      
+
       try {
-        const formattedDate = date.toISOString().split('T')[0];
+        const formattedDate = date.toISOString().split("T")[0];
         const response = await fetch(`/api/opd/queue?date=${formattedDate}`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch patient queue');
+          throw new Error("Failed to fetch patient queue");
         }
-        
+
         const data = await response.json();
         setPatients(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-        console.error('Error fetching patient queue:', err);
+        setError(err instanceof Error ? err.message : "An error occurred");
+        console.error("Error fetching patient queue:", err);
       } finally {
-        setLoading(false);
+        // Only set loading false on initial fetch
+        if (loading) setLoading(false);
       }
     };
-    
+
     fetchPatientQueue();
-    
+
     // Set up polling to refresh the queue every minute
     const intervalId = setInterval(fetchPatientQueue, 60000);
-    
+
     return () => clearInterval(intervalId);
-  }, [date]);
-  
+  }, [date, loading]); // Added loading dependency to manage initial load state
+
   const handleCallPatient = async (patientId: number) => {
     try {
       const response = await fetch(`/api/opd/queue/${patientId}/call`, {
-        method: 'POST',
+        method: "POST",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to call patient');
+        throw new Error("Failed to call patient");
       }
-      
+
       // Update the patient status in the local state
       setPatients(patients.map(patient => 
         patient.id === patientId 
-          ? { ...patient, status: 'in-progress' } 
+          ? { ...patient, status: "in-progress" } 
           : patient
       ));
-      
+
     } catch (err) {
-      console.error('Error calling patient:', err);
+      console.error("Error calling patient:", err);
       // Show error notification
     }
   };
-  
+
   const handleCompleteConsultation = async (patientId: number) => {
     try {
       const response = await fetch(`/api/opd/queue/${patientId}/complete`, {
-        method: 'POST',
+        method: "POST",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to complete consultation');
+        throw new Error("Failed to complete consultation");
       }
-      
+
       // Update the patient status in the local state
       setPatients(patients.map(patient => 
         patient.id === patientId 
-          ? { ...patient, status: 'completed' } 
+          ? { ...patient, status: "completed" } 
           : patient
       ));
-      
+
     } catch (err) {
-      console.error('Error completing consultation:', err);
+      console.error("Error completing consultation:", err);
       // Show error notification
     }
   };
-  
-  const getStatusBadge = (status: Patient['status']) => {
+
+  const getStatusBadge = (status: Patient["status"]) => {
     switch (status) {
-      case 'waiting':
+      case "waiting":
         return <Badge variant="outline">Waiting</Badge>;
-      case 'in-progress':
+      case "in-progress":
         return <Badge variant="default">In Progress</Badge>;
-      case 'completed':
-        return <Badge variant="success">Completed</Badge>;
-      case 'cancelled':
+      case "completed":
+        // Assuming a 'success' variant exists or is styled globally
+        return <Badge variant="default" className="bg-green-500 text-white">Completed</Badge>; 
+      case "cancelled":
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-  
+
   const formatWaitingTime = (minutes: number) => {
     if (minutes < 60) {
       return `${minutes} min`;
     }
-    
+
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    
+
     return `${hours}h ${remainingMinutes}m`;
   };
-  
-  if (loading) {
+
+  if (loading || loadingPermissions) {
     return <div className="flex justify-center p-4">Loading patient queue...</div>;
   }
-  
+
   if (error) {
     return <div className="text-red-500 p-4">Error: {error}</div>;
   }
-  
+
   if (patients.length === 0) {
     return <div className="text-center p-4">No patients in the queue.</div>;
   }
-  
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">Current Queue</h3>
-        <div className="flex items-center">
-          <div className="mr-2">
-            <Image 
-              src="/logo.png" 
-              alt="Shlokam Logo" 
-              width={40} 
-              height={40} 
-              className="rounded-full"
-            />
-          </div>
-          <span className="text-sm font-medium">Shlokam Healthcare</span>
-        </div>
+        {/* Removed logo from here as it's likely in the main layout */}
       </div>
-      
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -195,16 +210,16 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
         </TableHeader>
         <TableBody>
           {patients.map((patient) => (
-            <TableRow key={patient.id} className={patient.status === 'waiting' && patient.waitingTime > 30 ? 'bg-red-50' : ''}>
+            <TableRow key={patient.id} className={patient.status === "waiting" && patient.waitingTime > 30 ? "bg-red-50 dark:bg-red-900/20" : ""}>
               <TableCell className="font-medium">{patient.tokenNumber}</TableCell>
               <TableCell>{patient.name}</TableCell>
-              <TableCell>{new Date(patient.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+              <TableCell>{new Date(patient.checkInTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</TableCell>
               <TableCell>{formatWaitingTime(patient.waitingTime)}</TableCell>
               <TableCell>{patient.doctorName}</TableCell>
               <TableCell>{getStatusBadge(patient.status)}</TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  {canCallPatient && patient.status === 'waiting' && (
+                  {canCallPatient && patient.status === "waiting" && (
                     <Button 
                       variant="default" 
                       size="sm"
@@ -213,10 +228,12 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
                       Call
                     </Button>
                   )}
-                  
-                  {canMarkComplete && patient.status === 'in-progress' && (
+
+                  {canMarkComplete && patient.status === "in-progress" && (
                     <Button 
-                      variant="success" 
+                      // Assuming a 'success' variant exists or is styled globally
+                      variant="default" 
+                      className="bg-green-500 hover:bg-green-600 text-white"
                       size="sm"
                       onClick={() => handleCompleteConsultation(patient.id)}
                     >
@@ -232,3 +249,4 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
     </div>
   );
 }
+
