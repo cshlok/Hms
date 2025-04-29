@@ -4,10 +4,17 @@ import { nanoid } from "nanoid";
 import { getSession } from "@/lib/session";
 import { checkUserRole } from "@/lib/auth";
 
+// Define interface for POST request body
+interface ModalityInput {
+  name?: string;
+  description?: string;
+  location?: string;
+}
+
 // GET all Radiology Modalities
 export async function GET(request: NextRequest) {
   const session = await getSession();
-  if (!session.user || !checkUserRole(session.user, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
+  if (!session?.user || !await checkUserRole(request, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -26,13 +33,13 @@ export async function GET(request: NextRequest) {
 // POST a new Radiology Modality (Admin only)
 export async function POST(request: NextRequest) {
   const session = await getSession();
-  if (!session.user || !checkUserRole(session.user, ["Admin"])) {
+  if (!session?.user || !await checkUserRole(request, ["Admin"])) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   const DB = process.env.DB as unknown as D1Database;
   try {
-    const { name, description, location } = await request.json();
+    const { name, description, location } = await request.json() as ModalityInput; // Cast to ModalityInput
 
     if (!name) {
       return NextResponse.json({ error: "Missing required field: name" }, { status: 400 });
@@ -68,3 +75,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to create radiology modality", details: e.message }, { status: 500 });
   }
 }
+

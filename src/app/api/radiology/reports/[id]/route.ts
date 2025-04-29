@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDB, Database } from "@/lib/db"; // Import Database type
-import { getSession, SessionData } from "@/lib/session";
+import { getDB } from "@/lib/db"; // Import getDB function
+import { getSession, Session } from "@/lib/session"; // Import Session type
 import { checkUserRole } from "@/lib/auth";
+
+// Define a type for the database object based on usage
+// This should align with the actual implementation or a more robust interface
+interface PreparedStatement {
+  bind(...params: any[]): {
+    run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
+    all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+    first<T = any>(colName?: string): Promise<T | null>;
+  };
+  run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
+  all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+  first<T = any>(colName?: string): Promise<T | null>;
+}
+
+interface Database {
+  prepare(sql: string): PreparedStatement;
+  exec(sql: string): Promise<{ count: number; duration: number }>;
+  // Add other methods like query if needed based on db.ts
+}
 
 // Define interfaces
 interface RadiologyReport {
@@ -35,26 +54,23 @@ interface RadiologyReportPutData {
   verified_by_id?: string | null; // Only if verifying
 }
 
-// Assuming SessionData includes user with roles and id
-interface AuthenticatedSession extends SessionData {
-  user: {
-    id: string;
-    roles: string[];
-    // Add other user properties if needed
-  };
-}
+// Use the imported Session type
+// interface AuthenticatedSession extends Session {
+//   // Session already defines the user structure
+// }
 
 // GET a specific Radiology Report by ID
 export async function GET(
-  request: NextRequest,
+  request: NextRequest, // Keep request for potential future use, but don't pass to getSession
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
+    const session = await getSession(); // Removed request argument
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // Role check example (adjust roles as needed)
+    // Assuming checkUserRole works with the Session['user'] structure
     // if (!checkUserRole(session.user, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     // }
@@ -64,7 +80,7 @@ export async function GET(
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const db: Database = await getDB(); // Explicitly type db
+    const db: Database = await getDB(); // Use the defined Database interface
 
     const report = await db.prepare(
       `SELECT
@@ -102,7 +118,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
+    const session = await getSession(); // Removed request argument
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -112,7 +128,7 @@ export async function PUT(
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const db: Database = await getDB(); // Explicitly type db
+    const db: Database = await getDB(); // Use the defined Database interface
     const data = await request.json() as RadiologyReportPutData;
     const updatedAt = new Date().toISOString();
 
@@ -125,10 +141,11 @@ export async function PUT(
       return NextResponse.json({ error: "Radiology report not found" }, { status: 404 });
     }
 
-    // Authorization Check
-    const isAdmin = session.user.roles.includes("Admin");
-    const isRadiologist = session.user.roles.includes("Radiologist");
-    const isOwner = isRadiologist && session.user.id === existingReport.radiologist_id;
+    // Authorization Check - Use session.user.roleName and session.user.userId
+    const isAdmin = session.user.roleName === "Admin"; // Assuming roleName holds the role
+    const isRadiologist = session.user.roleName === "Radiologist";
+    // Assuming user ID is a number in the session, but string in the DB? Adjust types if needed.
+    const isOwner = isRadiologist && String(session.user.userId) === existingReport.radiologist_id;
 
     // Only Admin or the owning Radiologist can update (unless already final)
     if (!isAdmin && !isOwner) {
@@ -140,7 +157,8 @@ export async function PUT(
       return NextResponse.json({ error: "Cannot update a final report. Create an addendum instead." }, { status: 403 });
     }
     // Radiologist cannot verify their own report (assuming this rule)
-    if (isOwner && data.verified_by_id === session.user.id) {
+    // Adjust type comparison if needed (e.g., String(session.user.userId))
+    if (isOwner && data.verified_by_id === String(session.user.userId)) {
         return NextResponse.json({ error: "Radiologists cannot verify their own reports" }, { status: 403 });
     }
 
@@ -177,7 +195,7 @@ export async function PUT(
     const updateStmt = `UPDATE RadiologyReports SET ${setClauses} WHERE id = ?`;
     const info = await db.prepare(updateStmt).bind(...values).run();
 
-    // Check if update actually happened (info.changes might be 0 if values are the same)
+    // Check if update actually happened (info.meta.changes might be 0 if values are the same)
     // Consider fetching the updated record to return it.
 
     // If report status is set to 'final', update related study/order statuses
@@ -216,8 +234,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
-    if (!session?.user || !session.user.roles.includes("Admin")) {
+    const session = await getSession(); // Removed request argument
+    // Use roleName for check
+    if (!session?.user || session.user.roleName !== "Admin") {
       return NextResponse.json({ error: "Unauthorized: Admin role required" }, { status: 403 });
     }
 
@@ -226,7 +245,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const db: Database = await getDB(); // Explicitly type db
+    const db: Database = await getDB(); // Use the defined Database interface
 
     // Option 1: Soft delete (recommended - set status to 'retracted')
     const retractedAt = new Date().toISOString();
@@ -237,7 +256,8 @@ export async function DELETE(
     // Option 2: Hard delete (use with caution)
     // const info = await db.prepare("DELETE FROM RadiologyReports WHERE id = ?").bind(reportId).run();
 
-    if (info.meta.changes === 0) { // Use info.meta.changes for D1
+    // Check info.meta.changes for D1 compatibility
+    if (!info.success || info.meta.changes === 0) { // Check success and changes
       return NextResponse.json({ error: "Radiology report not found or already retracted" }, { status: 404 });
     }
 

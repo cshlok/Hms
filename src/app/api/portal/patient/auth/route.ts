@@ -2,6 +2,24 @@
 import { NextRequest, NextResponse } from "next/server";
 // import { getRequestContext } from "@cloudflare/next-on-pages"; // Import when ready to use D1
 
+// Define interfaces for request bodies
+interface LoginData {
+  email?: string;
+  password?: string;
+}
+
+interface RegisterData {
+  name?: string;
+  email?: string;
+  password?: string;
+  phone?: string;
+  date_of_birth?: string;
+  gender?: string;
+  address?: string;
+  blood_group?: string;
+  emergency_contact?: string;
+}
+
 // Placeholder function to simulate patient login
 async function authenticatePatient(email: string, password: string) {
   console.log("Simulating patient authentication for:", email);
@@ -43,7 +61,7 @@ async function authenticatePatient(email: string, password: string) {
 }
 
 // Placeholder function to simulate patient registration
-async function registerPatient(patientData: any) {
+async function registerPatient(patientData: RegisterData) { // Use RegisterData interface
   console.log("Simulating patient registration:", patientData);
   // Replace with actual D1 insert query when DB is configured
   // const { env } = getRequestContext();
@@ -113,7 +131,8 @@ async function registerPatient(patientData: any) {
 
 /**
  * POST /api/portal/patient/auth/login
- * Authenticates a patient and returns patient data.
+ * POST /api/portal/patient/auth/register
+ * Authenticates or registers a patient and returns patient data.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -129,10 +148,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const data = await request.json();
-    
     if (isLoginRequest) {
       // Handle login request
+      const data = await request.json() as LoginData;
       const { email, password } = data;
       
       if (!email || !password) {
@@ -158,8 +176,9 @@ export async function POST(request: NextRequest) {
         patient,
         token: "mock_jwt_token_for_patient_portal" // Replace with real JWT in production
       });
-    } else {
+    } else { // isRegisterRequest
       // Handle register request
+      const data = await request.json() as RegisterData;
       const { name, email, password, phone, date_of_birth, gender, address, blood_group, emergency_contact } = data;
       
       // Basic validation
@@ -199,11 +218,13 @@ export async function POST(request: NextRequest) {
         token: "mock_jwt_token_for_patient_portal" // Replace with real JWT in production
       }, { status: 201 });
     }
-  } catch (error) {
+  } catch (error: unknown) { // Add type annotation for error
     console.error("Error in patient authentication:", error);
+    const message = error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
     return NextResponse.json(
-      { error: "Authentication failed", details: error.message },
+      { error: "Authentication failed", details: message },
       { status: 500 }
     );
   }
 }
+

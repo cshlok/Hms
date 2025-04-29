@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db'; // Assuming db returns a promise
-import { getSession, SessionData } from '@/lib/session'; // Assuming SessionData is defined
+import { getSession, Session } from '@/lib/session';
 
 // Define interfaces for data structures
 interface Medication {
@@ -36,20 +36,12 @@ interface MedicationPostData {
   narcotic?: boolean;
   description?: string | null;
 }
-
-// Assuming SessionData includes user with roles
-interface AuthenticatedSession extends SessionData {
-  user: {
-    id: string;
-    roles: string[];
-    // Add other user properties if needed
-  };
-}
+// Define interfaces for data structures
 
 // GET /api/pharmacy/medications
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
+    const session = await getSession() as Session | null;
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -119,7 +111,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Execute the query - Adjust based on actual db library return type
     // Assuming .all() returns { results: T[] } or similar
-    const result = await db.prepare(query).bind(...params).all<Medication>();
+    const result = await db.prepare(query).bind(...params).all();
 
     return NextResponse.json({
       medications: result.results || [] // Adapt based on actual return structure
@@ -134,15 +126,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // POST /api/pharmacy/medications
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
+    const session = await getSession() as Session | null;
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const hasPermission = session.user.roles.some(role =>
-      ['admin', 'pharmacy_admin'].includes(role)
-    );
+    const hasPermission = ["admin", "pharmacy_admin"].includes(session!.user!.roleName); // Added non-null assertions
 
     if (!hasPermission) {
       return NextResponse.json({ error: 'Forbidden: Insufficient permissions' }, { status: 403 });
@@ -166,7 +156,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (itemCode) {
       const itemCodeExists = await db.prepare(
         `SELECT id FROM medications WHERE item_code = ?`
-      ).bind(itemCode).first<{ id: string }>();
+      ).bind(itemCode).first();
 
       if (itemCodeExists) {
         return NextResponse.json({ error: 'Item code already exists' }, { status: 409 });
@@ -181,7 +171,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (data.category_id) {
       const categoryExists = await db.prepare(
         `SELECT id FROM medication_categories WHERE id = ?`
-      ).bind(data.category_id).first<{ id: string }>();
+      ).bind(data.category_id).first();
 
       if (!categoryExists) {
         return NextResponse.json({ error: 'Category not found' }, { status: 404 });
@@ -191,7 +181,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (data.manufacturer_id) {
       const manufacturerExists = await db.prepare(
         `SELECT id FROM manufacturers WHERE id = ?`
-      ).bind(data.manufacturer_id).first<{ id: string }>();
+      ).bind(data.manufacturer_id).first();
 
       if (!manufacturerExists) {
         return NextResponse.json({ error: 'Manufacturer not found' }, { status: 404 });
@@ -244,7 +234,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       LEFT JOIN medication_categories mc ON m.category_id = mc.id
       LEFT JOIN manufacturers mfr ON m.manufacturer_id = mfr.id
       WHERE m.id = ?
-    `).bind(medicationId).first<Medication>();
+    `).bind(medicationId).first();
 
     if (!createdMedication) {
         // This shouldn't happen if insert succeeded, but good practice to check

@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { D1Database } from "@cloudflare/workers-types";
+import { D1Database, D1Result } from "@cloudflare/workers-types"; // Import D1Result
 import { getSession } from "@/lib/session";
 import { checkUserRole } from "@/lib/auth";
+
+// Define interface for PUT request body
+interface OrderUpdateInput {
+  status?: string;
+  priority?: string;
+  clinical_indication?: string;
+  procedure_type_id?: string;
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const session = await getSession();
-  if (!session.user || !checkUserRole(session.user, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
+  if (!session?.user || !await checkUserRole(request, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -36,7 +44,7 @@ export async function PUT(
 ) {
   const session = await getSession();
   // Allow Admin, Receptionist, Technician to update status/details
-  if (!session.user || !checkUserRole(session.user, ["Admin", "Receptionist", "Technician"])) {
+  if (!session?.user || !await checkUserRole(request, ["Admin", "Receptionist", "Technician"])) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -44,7 +52,7 @@ export async function PUT(
   const DB = process.env.DB as unknown as D1Database;
 
   try {
-    const { status, priority, clinical_indication, procedure_type_id } = await request.json();
+    const { status, priority, clinical_indication, procedure_type_id } = await request.json() as OrderUpdateInput; // Cast to OrderUpdateInput
     const updatedAt = new Date().toISOString();
 
     // Build the update query dynamically based on provided fields
@@ -64,9 +72,12 @@ export async function PUT(
     const values = [...Object.values(fieldsToUpdate), orderId];
 
     const updateStmt = `UPDATE RadiologyOrders SET ${setClauses} WHERE id = ?`;
-    const info = await DB.prepare(updateStmt).bind(...values).run();
+    const info: D1Result = await DB.prepare(updateStmt).bind(...values).run(); // Add type D1Result
 
-    if (info.changes === 0) {
+    // Check info.meta.changes if available, otherwise check info.success
+    const changesMade = info.meta?.changes ?? (info.success ? 1 : 0); // D1Response meta might have changes
+
+    if (changesMade === 0) {
         // Check if the order exists
         const existingOrder = await DB.prepare("SELECT id FROM RadiologyOrders WHERE id = ?").bind(orderId).first();
         if (!existingOrder) {
@@ -90,7 +101,7 @@ export async function DELETE(
 ) {
   const session = await getSession();
   // Typically only Admins or perhaps Receptionists should cancel orders
-  if (!session.user || !checkUserRole(session.user, ["Admin", "Receptionist"])) {
+  if (!session?.user || !await checkUserRole(request, ["Admin", "Receptionist"])) { // Use await and pass request
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -100,16 +111,20 @@ export async function DELETE(
   try {
     // Instead of deleting, consider marking as 'cancelled'
     const updatedAt = new Date().toISOString();
-    const info = await DB.prepare(
+    const info: D1Result = await DB.prepare( // Add type D1Result
       "UPDATE RadiologyOrders SET status = ?, updated_at = ? WHERE id = ? AND status != ?"
     ).bind("cancelled", updatedAt, orderId, "cancelled").run();
 
-    if (info.changes === 0) {
-        const existingOrder = await DB.prepare("SELECT id, status FROM RadiologyOrders WHERE id = ?").bind(orderId).first<{id: string, status: string}>();
+    // Check info.meta.changes if available, otherwise check info.success
+    const changesMade = info.meta?.changes ?? (info.success ? 1 : 0);
+
+    if (changesMade === 0) {
+        const existingOrder = await DB.prepare("SELECT id, status FROM RadiologyOrders WHERE id = ?").bind(orderId).first(); // Remove type parameter
         if (!existingOrder) {
             return NextResponse.json({ error: "Radiology order not found" }, { status: 404 });
         }
-        if (existingOrder.status === "cancelled") {
+        // Check if existingOrder has status property before accessing it
+        if (typeof existingOrder === 'object' && existingOrder !== null && 'status' in existingOrder && existingOrder.status === "cancelled") {
             return NextResponse.json({ id: orderId, status: "Radiology order already cancelled" });
         }
         return NextResponse.json({ error: "Failed to cancel radiology order (unknown reason)" }, { status: 500 });
