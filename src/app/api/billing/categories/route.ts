@@ -1,6 +1,6 @@
 // src/app/api/billing/categories/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+// import { getRequestContext } from "@cloudflare/next-on-pages";
 
 /**
  * GET /api/billing/categories
@@ -8,22 +8,33 @@ import { getRequestContext } from "@cloudflare/next-on-pages";
  */
 export async function GET(request: NextRequest) {
   try {
-    const { env } = getRequestContext();
+    // const { env } = getRequestContext();
     
-    // Query to get distinct categories from service_items table
-    const { results } = await env.DB.prepare(`
-      SELECT DISTINCT category 
-      FROM service_items 
-      WHERE is_active = 1
-      ORDER BY category
-    `).all();
+    // Mock implementation for development without Cloudflare
+    // In a real implementation, this would connect to your database
     
-    return NextResponse.json({ categories: results.map(row => row.category) });
+    // Mock categories for development
+    const mockCategories = [
+      "Consultation",
+      "Laboratory",
+      "Radiology",
+      "Procedure",
+      "Pharmacy",
+      "Room Charge",
+      "Other"
+    ];
+    
+    return NextResponse.json({ categories: mockCategories });
   } catch (error) {
     console.error("Error fetching service item categories:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to fetch categories", details: error.message },
+      { error: "Failed to fetch categories", details: errorMessage }, // Safely access error message
       { status: 500 }
     );
   }
 }
+

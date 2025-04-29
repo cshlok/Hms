@@ -1,37 +1,18 @@
-import React, { useState } from 'react';
-import { Tabs, Card } from 'antd';
-import TestCatalogManagement from '@/components/laboratory/TestCatalogManagement';
-import OrderManagement from '@/components/laboratory/OrderManagement';
-import SampleManagement from '@/components/laboratory/SampleManagement';
-import ResultManagement from '@/components/laboratory/ResultManagement';
 
-const { TabPane } = Tabs;
+'use client';
 
-export default function LaboratoryPage() {
-  const [activeTab, setActiveTab] = useState('1');
+import React from 'react';
 
-  const handleTabChange = (key) => {
-    setActiveTab(key);
-  };
-
+// Placeholder component for the Laboratory page
+const LaboratoryPage = () => {
   return (
-    <div className="laboratory-container">
-      <Card title="Laboratory Management System" className="laboratory-card">
-        <Tabs activeKey={activeTab} onChange={handleTabChange} type="card">
-          <TabPane tab="Test Catalog" key="1">
-            <TestCatalogManagement />
-          </TabPane>
-          <TabPane tab="Orders" key="2">
-            <OrderManagement />
-          </TabPane>
-          <TabPane tab="Sample Management" key="3">
-            <SampleManagement />
-          </TabPane>
-          <TabPane tab="Results" key="4">
-            <ResultManagement />
-          </TabPane>
-        </Tabs>
-      </Card>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Laboratory Management</h1>
+      <p>Laboratory module content goes here. This section is under development.</p>
+      {/* TODO: Implement Laboratory features (Test Booking, Barcode Tracking, Report Uploading) */}
     </div>
   );
-}
+};
+
+export default LaboratoryPage;
+

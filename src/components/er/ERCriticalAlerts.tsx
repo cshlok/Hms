@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast"; // Changed import
 
 // Mock data structure - replace with API data
 interface CriticalAlert {
@@ -55,6 +55,7 @@ const getAlertBadgeVariant = (status: string): "destructive" | "warning" | "defa
 export default function ERCriticalAlerts() {
   const [alerts, setAlerts] = useState<CriticalAlert[]>(mockAlerts);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast(); // Added hook call
 
   // TODO: Fetch data from API: GET /api/er/alerts?status=active (or similar endpoint)
   // useEffect(() => {
@@ -177,3 +178,4 @@ export default function ERCriticalAlerts() {
     </div>
   );
 }
+

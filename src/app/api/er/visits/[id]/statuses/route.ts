@@ -1,6 +1,6 @@
 // src/app/api/er/visits/[id]/statuses/route.ts
 import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+// import { getRequestContext } from "@cloudflare/next-on-pages";
 
 export const runtime = "edge";
 
@@ -10,8 +10,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { env } = getRequestContext();
-    const db = env.DB;
+    // const { env } = getRequestContext(); // Cloudflare specific
+    // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
 
     // Placeholder for database query

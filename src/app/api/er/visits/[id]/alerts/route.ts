@@ -1,6 +1,6 @@
 // src/app/api/er/visits/[id]/alerts/route.ts
 import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+// import { getRequestContext } from "@cloudflare/next-on-pages";
 import { v4 as uuidv4 } from "uuid";
 
 export const runtime = "edge";
@@ -11,8 +11,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { env } = getRequestContext();
-    const db = env.DB;
+    // const { env } = getRequestContext(); // Cloudflare specific
+    // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
 
     // Placeholder for database query
@@ -61,8 +61,8 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { env } = getRequestContext();
-    const db = env.DB;
+    // const { env } = getRequestContext(); // Cloudflare specific
+    // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
     const alertData = await request.json();
     const alertId = uuidv4();
@@ -102,6 +102,7 @@ export async function POST(
     };
 
     // TODO: Trigger notification system based on alert_type
+    console.log("Mock Trigger Notification:", newAlert);
 
     return NextResponse.json(newAlert, { status: 201 });
   } catch (e: any) {

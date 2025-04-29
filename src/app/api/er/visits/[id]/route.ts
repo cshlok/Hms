@@ -1,6 +1,7 @@
 // src/app/api/er/visits/[id]/route.ts
 import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+// import { getRequestContext } from "@cloudflare/next-on-pages";
+import { v4 as uuidv4 } from "uuid";
 
 export const runtime = "edge";
 
@@ -10,8 +11,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { env } = getRequestContext();
-    const db = env.DB;
+    // const { env } = getRequestContext(); // Cloudflare specific
+    // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
 
     // Placeholder for database query
@@ -58,8 +59,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { env } = getRequestContext();
-    const db = env.DB;
+    // const { env } = getRequestContext(); // Cloudflare specific
+    // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
     const updateData = await request.json();
 
@@ -112,20 +113,13 @@ export async function PUT(
 
     // If status or location changed, log the change
     if (updateData.current_status || updateData.current_location) {
-      /*
-      await db
-        .prepare(
-          "INSERT INTO er_patient_status_logs (id, visit_id, status, location, updated_by_id) VALUES (?, ?, ?, ?, ?)"
-        )
-        .bind(
-          uuidv4(),
-          visitId,
-          updateData.current_status || null,
-          updateData.current_location || null,
-          updateData.updated_by_id
-        )
-        .run();
-      */
+      console.log("Mock Status Log:", {
+        id: uuidv4(),
+        visit_id: visitId,
+        status: updateData.current_status || null,
+        location: updateData.current_location || null,
+        updated_by_id: updateData.updated_by_id
+      });
     }
 
     // Return the updated visit
@@ -149,8 +143,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { env } = getRequestContext();
-    const db = env.DB;
+    // const { env } = getRequestContext(); // Cloudflare specific
+    // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
 
     // Placeholder for database delete
@@ -189,6 +183,8 @@ export async function DELETE(
       .bind(visitId)
       .run();
     */
+
+    console.log("Mock Delete ER Visit:", visitId);
 
     return NextResponse.json(
       { message: "ER visit deleted successfully" },

@@ -61,7 +61,7 @@ export async function createSession(userId: number): Promise<Session | null> {
     const db = getDb();
     
     // Get user data from database
-    const user = await db.prepare(`
+    const userResult = await db.query(`
       SELECT 
         u.user_id, 
         u.username, 
@@ -80,7 +80,9 @@ export async function createSession(userId: number): Promise<Session | null> {
         u.user_id = ?
       GROUP BY 
         u.user_id
-    `).bind(userId).first();
+    `, [userId]);
+    
+    const user = userResult.rows && userResult.rows.length > 0 ? userResult.rows[0] : null;
     
     if (!user) {
       return null;
@@ -129,17 +131,4 @@ export async function createSession(userId: number): Promise<Session | null> {
  */
 export function deleteSession(): void {
   cookies().delete('session');
-}
-
-/**
- * Check if the current user has a specific permission
- */
-export async function hasPermission(permission: string): Promise<boolean> {
-  const session = await getSession();
-  
-  if (!session?.user) {
-    return false;
-  }
-  
-  return session.user.permissions.includes(permission);
 }

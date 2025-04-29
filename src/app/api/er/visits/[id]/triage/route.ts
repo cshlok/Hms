@@ -1,6 +1,6 @@
 // src/app/api/er/visits/[id]/triage/route.ts
 import { NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+// import { getRequestContext } from "@cloudflare/next-on-pages";
 import { v4 as uuidv4 } from "uuid";
 
 export const runtime = "edge";
@@ -11,8 +11,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { env } = getRequestContext();
-    const db = env.DB;
+    // const { env } = getRequestContext(); // Cloudflare specific
+    // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
 
     // Placeholder for database query (usually expect one primary triage)
@@ -60,8 +60,8 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { env } = getRequestContext();
-    const db = env.DB;
+    // const { env } = getRequestContext(); // Cloudflare specific
+    // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
     const triageData = await request.json();
     const triageId = uuidv4();
@@ -98,12 +98,7 @@ export async function POST(
     */
 
     // Optionally update the visit status if it was just triaged
-    /*
-    await db
-      .prepare("UPDATE er_visits SET current_status = ?, updated_at = ? WHERE id = ? AND current_status = ?")
-      .bind("Assessment", new Date().toISOString(), visitId, "Triage")
-      .run();
-    */
+    console.log(`Mock Update Visit Status for ${visitId} to Assessment`);
 
     const newTriage = {
       id: triageId,

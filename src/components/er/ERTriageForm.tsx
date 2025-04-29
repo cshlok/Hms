@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast"; // Changed import
 
 // Define the schema for the triage form using Zod
 const triageFormSchema = z.object({
@@ -41,6 +41,7 @@ const MOCK_NURSE_ID = "nurse_456";
 
 export default function ERTriageForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast(); // Added hook call
 
   const form = useForm<TriageFormValues>({
     resolver: zodResolver(triageFormSchema),
@@ -257,3 +258,4 @@ export default function ERTriageForm() {
     </Form>
   );
 }
+

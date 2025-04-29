@@ -1,6 +1,6 @@
 // src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+// import { getRequestContext } from '@cloudflare/next-on-pages';
 import { signToken, setAuthCookie, verifyPassword } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -14,21 +14,21 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { env } = getRequestContext();
+    // const { env } = getRequestContext();
     
-    // Find user by email
-    const { results } = await env.DB.prepare(
-      `SELECT * FROM users WHERE email = ? AND is_active = 1 LIMIT 1`
-    ).bind(email.toLowerCase()).all();
+    // Mock implementation for development without Cloudflare
+    // In a real implementation, this would connect to your database
     
-    const user = results[0];
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
-    }
+    // Mock user for development
+    const user = {
+      id: '1',
+      email: email.toLowerCase(),
+      password: '$2a$10$GQH.xZm5DqJu8HxEIQG9S.6Xf.POZBCbKXLc/Jx.co.T3xtEP2YKu', // hashed 'password123'
+      first_name: 'Test',
+      last_name: 'User',
+      role: 'doctor',
+      permissions: JSON.stringify(['patient:read', 'patient:write', 'medication:prescribe'])
+    };
     
     // Verify password
     const isPasswordValid = await verifyPassword(password, user.password);
@@ -40,16 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Log login attempt
-    await env.DB.prepare(
-      `INSERT INTO login_logs (user_id, ip_address, user_agent, status)
-       VALUES (?, ?, ?, ?)`
-    ).bind(
-      user.id,
-      request.headers.get('x-forwarded-for') || request.ip || 'unknown',
-      request.headers.get('user-agent') || 'unknown',
-      'success'
-    ).run();
+    // Log login attempt would go here in production
     
     // Create user object without sensitive data
     const userForToken = {
