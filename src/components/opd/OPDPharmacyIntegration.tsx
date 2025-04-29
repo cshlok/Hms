@@ -1,71 +1,138 @@
+
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Define interfaces for data structures
+interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string;
+  gender: string;
+  age: number;
+  phone: string;
+}
+
+interface Medication {
+  id: string;
+  generic_name: string;
+  brand_name: string;
+  strength: string;
+  dosage_form: string;
+}
+
+interface PrescriptionItemInput {
+  medication_id: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  quantity: number | string; // Allow string for input, parse later
+  instructions: string;
+}
+
+interface SelectedMedication extends Medication {
+  dosage: string;
+  frequency: string;
+  duration: string;
+  quantity: string; // Keep as string for input state
+  instructions: string;
+}
+
+interface PrescriptionItemDisplay {
+  medication: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+}
+
+interface Prescription {
+  id: string;
+  date: string;
+  status: 'pending' | 'dispensed' | 'cancelled';
+  items: PrescriptionItemDisplay[];
+}
+
+interface PrescriptionFormData {
+  patient_id: string;
+  doctor_id: string;
+  notes: string;
+  items: PrescriptionItemInput[];
+}
+
 // Component to integrate Pharmacy with OPD module
-export default function OPDPharmacyIntegration() {
+const OPDPharmacyIntegration: React.FC = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [activePatient, setActivePatient] = useState(null);
-  const [prescriptions, setPrescriptions] = useState([]);
-  const [medications, setMedications] = useState([]);
-  const [selectedMedications, setSelectedMedications] = useState([]);
-  const [formData, setFormData] = useState({
+  const [loading, setLoading] = useState<boolean>(true);
+  const [activePatient, setActivePatient] = useState<Patient | null>(null);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [medications, setMedications] = useState<Medication[]>([]);
+  const [selectedMedications, setSelectedMedications] = useState<SelectedMedication[]>([]);
+  const [formData, setFormData] = useState<Omit<PrescriptionFormData, 'items'>>({
     patient_id: '',
-    doctor_id: '',
+    doctor_id: '', // This should ideally come from auth context
     notes: '',
-    items: []
   });
 
   useEffect(() => {
     // Fetch active patient from OPD context
-    const fetchActivePatient = async () => {
+    const fetchActivePatient = async (): Promise<void> => {
       try {
-        // In a real implementation, this would come from a context or API
-        // For now, we'll simulate the data
-        setActivePatient({
+        // Simulate fetching active patient
+        const simulatedPatient: Patient = {
           id: 'pat_12345',
           first_name: 'John',
           last_name: 'Smith',
           gender: 'Male',
           age: 45,
           phone: '555-1234'
-        });
+        };
+        setActivePatient(simulatedPatient);
         
         setFormData(prev => ({
           ...prev,
-          patient_id: 'pat_12345',
-          doctor_id: 'doc_67890' // Current logged in doctor
+          patient_id: simulatedPatient.id,
+          doctor_id: 'doc_67890' // Simulate logged-in doctor ID
         }));
       } catch (error) {
         console.error('Error fetching active patient:', error);
+        // Handle error appropriately (e.g., show message)
       }
     };
 
     // Fetch medications for prescribing
-    const fetchMedications = async () => {
+    const fetchMedications = async (): Promise<void> => {
       try {
-        // In a real implementation, this would be an API call
-        // For now, we'll simulate the data
-        setMedications([
+        // Simulate fetching medications
+        const simulatedMedications: Medication[] = [
           { id: 'med_001', generic_name: 'Paracetamol', brand_name: 'Calpol', strength: '500mg', dosage_form: 'Tablet' },
           { id: 'med_002', generic_name: 'Amoxicillin', brand_name: 'Amoxil', strength: '250mg', dosage_form: 'Capsule' },
           { id: 'med_003', generic_name: 'Cetirizine', brand_name: 'Zyrtec', strength: '10mg', dosage_form: 'Tablet' },
           { id: 'med_004', generic_name: 'Ibuprofen', brand_name: 'Brufen', strength: '400mg', dosage_form: 'Tablet' },
           { id: 'med_005', generic_name: 'Omeprazole', brand_name: 'Prilosec', strength: '20mg', dosage_form: 'Capsule' }
-        ]);
+        ];
+        setMedications(simulatedMedications);
       } catch (error) {
         console.error('Error fetching medications:', error);
+        // Handle error appropriately
       }
     };
 
     // Fetch existing prescriptions for this patient
-    const fetchPrescriptions = async () => {
+    const fetchPrescriptions = async (): Promise<void> => {
+      // Guard clause if patient ID isn't set yet
+      if (!formData.patient_id) {
+        // setLoading(false); // Might need adjustment based on dependency flow
+        // return;
+      }
       try {
-        // In a real implementation, this would be an API call
-        // For now, we'll simulate the data
-        setPrescriptions([
+        // Simulate fetching prescriptions for the active patient
+        // const response = await fetch(`/api/pharmacy/prescriptions?patientId=${formData.patient_id}`);
+        // if (!response.ok) throw new Error('Failed to fetch prescriptions');
+        // const data = await response.json();
+        // setPrescriptions(data.prescriptions || []);
+        
+        const simulatedPrescriptions: Prescription[] = [
           { 
             id: 'presc_001', 
             date: '2025-04-20', 
@@ -83,9 +150,11 @@ export default function OPDPharmacyIntegration() {
               { medication: 'Amoxicillin 250mg', dosage: '1 capsule', frequency: 'BID', duration: '7 days' }
             ]
           }
-        ]);
+        ];
+        setPrescriptions(simulatedPrescriptions);
       } catch (error) {
         console.error('Error fetching prescriptions:', error);
+        // Handle error appropriately
       } finally {
         setLoading(false);
       }
@@ -93,12 +162,20 @@ export default function OPDPharmacyIntegration() {
 
     fetchActivePatient();
     fetchMedications();
-    fetchPrescriptions();
-  }, []);
+    // Fetch prescriptions depends on activePatient being set first
+    if (activePatient) {
+        fetchPrescriptions();
+    } else {
+        // If activePatient is fetched async, fetchPrescriptions might need to be called in its .then() or based on state change
+        setLoading(false); // Set loading false if no patient yet
+    }
 
-  const handleAddMedication = (medication) => {
+  // Dependency array needs careful consideration. Fetching prescriptions depends on activePatient.id
+  }, [activePatient]); // Re-run if activePatient changes
+
+  const handleAddMedication = (medication: Medication): void => {
     if (!selectedMedications.some(med => med.id === medication.id)) {
-      const newMed = {
+      const newMed: SelectedMedication = {
         ...medication,
         dosage: '',
         frequency: '',
@@ -110,19 +187,20 @@ export default function OPDPharmacyIntegration() {
     }
   };
 
-  const handleRemoveMedication = (index) => {
+  const handleRemoveMedication = (index: number): void => {
     const updatedMeds = [...selectedMedications];
     updatedMeds.splice(index, 1);
     setSelectedMedications(updatedMeds);
   };
 
-  const handleMedicationChange = (index, field, value) => {
+  const handleMedicationChange = (index: number, field: keyof SelectedMedication, value: string): void => {
     const updatedMeds = [...selectedMedications];
-    updatedMeds[index][field] = value;
+    // Type assertion needed because field is a key, but value is always string from input/select
+    (updatedMeds[index] as any)[field] = value;
     setSelectedMedications(updatedMeds);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
     if (selectedMedications.length === 0) {
@@ -133,55 +211,70 @@ export default function OPDPharmacyIntegration() {
     setLoading(true);
     
     try {
-      // Prepare prescription items
-      const items = selectedMedications.map(med => ({
-        medication_id: med.id,
-        dosage: med.dosage,
-        frequency: med.frequency,
-        duration: med.duration,
-        quantity: parseInt(med.quantity),
-        instructions: med.instructions
-      }));
+      // Prepare prescription items with proper types
+      const items: PrescriptionItemInput[] = selectedMedications.map(med => {
+        const quantity = parseInt(med.quantity);
+        if (isNaN(quantity) || quantity <= 0) {
+          throw new Error(`Invalid quantity for ${med.generic_name}. Please enter a positive number.`);
+        }
+        return {
+          medication_id: med.id,
+          dosage: med.dosage,
+          frequency: med.frequency,
+          duration: med.duration,
+          quantity: quantity,
+          instructions: med.instructions
+        };
+      });
       
-      const prescriptionData = {
+      const prescriptionData: PrescriptionFormData = {
         ...formData,
         items,
-        source: 'opd',
-        source_id: 'opd_visit_12345' // This would be the actual OPD visit ID
+        // source: 'opd', // Add if API expects it
+        // source_id: 'opd_visit_12345' // Add actual OPD visit ID if API expects it
       };
       
-      // In a real implementation, this would be an API call
       console.log('Submitting prescription:', prescriptionData);
       
+      // Simulate API call
+      // const response = await fetch('/api/pharmacy/prescriptions', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(prescriptionData),
+      // });
+      // if (!response.ok) {
+      //   const errorData = await response.json().catch(() => ({}));
+      //   throw new Error(errorData.error || 'Failed to create prescription');
+      // }
+      
       // Simulate successful submission
-      setTimeout(() => {
-        alert('Prescription created successfully!');
-        setSelectedMedications([]);
-        setFormData({
-          ...formData,
-          notes: ''
-        });
-        
-        // Add the new prescription to the list
-        const newPrescription = {
-          id: `presc_${Date.now()}`,
-          date: new Date().toISOString().split('T')[0],
-          status: 'pending',
-          items: selectedMedications.map(med => ({
-            medication: `${med.generic_name} ${med.strength}`,
-            dosage: med.dosage,
-            frequency: med.frequency,
-            duration: med.duration
-          }))
-        };
-        
-        setPrescriptions([newPrescription, ...prescriptions]);
-        setLoading(false);
-      }, 1000);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+
+      alert('Prescription created successfully!');
+      
+      // Add the new prescription to the local state for display
+      const newPrescription: Prescription = {
+        id: `presc_${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        status: 'pending',
+        items: selectedMedications.map(med => ({
+          medication: `${med.generic_name} ${med.strength}`,
+          dosage: med.dosage,
+          frequency: med.frequency,
+          duration: med.duration
+        }))
+      };
+      setPrescriptions([newPrescription, ...prescriptions]);
+      
+      // Reset form state
+      setSelectedMedications([]);
+      setFormData(prev => ({ ...prev, notes: '' }));
       
     } catch (error) {
       console.error('Error creating prescription:', error);
-      alert('Failed to create prescription. Please try again.');
+      const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+      alert(`Failed to create prescription: ${message}`);
+    } finally {
       setLoading(false);
     }
   };
@@ -236,7 +329,7 @@ export default function OPDPharmacyIntegration() {
             </div>
           </div>
           
-          {/* Selected Medications */}
+          {/* Selected Medications Table */}
           {selectedMedications.length > 0 && (
             <div className="mb-6">
               <h3 className="text-md font-medium text-gray-700 mb-2">Prescription Details</h3>
@@ -263,7 +356,7 @@ export default function OPDPharmacyIntegration() {
                           <input
                             type="text"
                             value={med.dosage}
-                            onChange={(e) => handleMedicationChange(index, 'dosage', e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleMedicationChange(index, 'dosage', e.target.value)}
                             placeholder="e.g., 1 tablet"
                             className="w-full p-1 text-sm border border-gray-300 rounded-md"
                           />
@@ -271,7 +364,7 @@ export default function OPDPharmacyIntegration() {
                         <td className="px-3 py-2 whitespace-nowrap">
                           <select
                             value={med.frequency}
-                            onChange={(e) => handleMedicationChange(index, 'frequency', e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLSelectElement>) => handleMedicationChange(index, 'frequency', e.target.value)}
                             className="w-full p-1 text-sm border border-gray-300 rounded-md"
                           >
                             <option value="">Select</option>
@@ -288,7 +381,7 @@ export default function OPDPharmacyIntegration() {
                           <input
                             type="text"
                             value={med.duration}
-                            onChange={(e) => handleMedicationChange(index, 'duration', e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleMedicationChange(index, 'duration', e.target.value)}
                             placeholder="e.g., 7 days"
                             className="w-full p-1 text-sm border border-gray-300 rounded-md"
                           />
@@ -297,7 +390,7 @@ export default function OPDPharmacyIntegration() {
                           <input
                             type="number"
                             value={med.quantity}
-                            onChange={(e) => handleMedicationChange(index, 'quantity', e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleMedicationChange(index, 'quantity', e.target.value)}
                             placeholder="Qty"
                             min="1"
                             className="w-full p-1 text-sm border border-gray-300 rounded-md"
@@ -307,7 +400,7 @@ export default function OPDPharmacyIntegration() {
                           <input
                             type="text"
                             value={med.instructions}
-                            onChange={(e) => handleMedicationChange(index, 'instructions', e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleMedicationChange(index, 'instructions', e.target.value)}
                             placeholder="Special instructions"
                             className="w-full p-1 text-sm border border-gray-300 rounded-md"
                           />
@@ -329,15 +422,16 @@ export default function OPDPharmacyIntegration() {
             </div>
           )}
           
-          {/* Notes */}
+          {/* Notes Textarea */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="prescriptionNotes" className="block text-sm font-medium text-gray-700 mb-2">
               Notes
             </label>
             <textarea
+              id="prescriptionNotes"
               value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              rows="2"
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, notes: e.target.value})}
+              rows={2}
               className="w-full p-2 border border-gray-300 rounded-md"
               placeholder="Any additional notes for the pharmacist"
             ></textarea>
@@ -355,7 +449,7 @@ export default function OPDPharmacyIntegration() {
           </div>
         </form>
         
-        {/* Previous Prescriptions */}
+        {/* Previous Prescriptions List */}
         {prescriptions.length > 0 && (
           <div className="mt-8">
             <h3 className="text-md font-medium text-gray-700 mb-2">Previous Prescriptions</h3>
@@ -375,31 +469,21 @@ export default function OPDPharmacyIntegration() {
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{prescription.date}</td>
                       <td className="px-4 py-2 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs rounded-full ${
-                          prescription.status === 'dispensed' 
-                            ? 'bg-green-100 text-green-800' 
-                            : prescription.status === 'partially_dispensed'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                          prescription.status === 'dispensed' ? 'bg-green-100 text-green-800' : 
+                          prescription.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                          'bg-red-100 text-red-800'
                         }`}>
                           {prescription.status.charAt(0).toUpperCase() + prescription.status.slice(1)}
                         </span>
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-900">
-                        <ul className="list-disc list-inside">
-                          {prescription.items.map((item, idx) => (
-                            <li key={idx}>
-                              {item.medication} - {item.dosage}, {item.frequency}, {item.duration}
-                            </li>
-                          ))}
-                        </ul>
+                      <td className="px-4 py-2 text-sm text-gray-500">
+                        {prescription.items.map((item, idx) => (
+                          <div key={idx}>{item.medication} ({item.dosage}, {item.frequency}, {item.duration})</div>
+                        ))}
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => router.push(`/pharmacy/prescriptions/${prescription.id}`)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          View Details
-                        </button>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
+                        {/* Add actions like 'View Details' or 'Repeat Prescription' if needed */}
+                        <button className="text-blue-600 hover:text-blue-800">View</button>
                       </td>
                     </tr>
                   ))}
@@ -411,4 +495,7 @@ export default function OPDPharmacyIntegration() {
       </div>
     </div>
   );
-}
+};
+
+export default OPDPharmacyIntegration;
+

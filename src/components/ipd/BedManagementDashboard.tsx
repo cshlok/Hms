@@ -1,48 +1,81 @@
-'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Badge, Button, Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui';
+"use client";
 
-const BedManagementDashboard = () => {
-  const [beds, setBeds] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filterWard, setFilterWard] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+import React, { useState, useEffect, ChangeEvent } from "react";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card"; // Assuming Card and CardContent are correctly imported
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table"; // Assuming Table components are correctly imported
+import { Badge } from "@/components/ui/badge"; // Assuming Badge is correctly imported
+import { Button } from "@/components/ui/button"; // Assuming Button is correctly imported
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Assuming Select components are correctly imported
 
-  // Define ward options
-  const wardOptions = ['All', 'General Ward', 'Semi-Private', 'Private', 'Intensive Care'];
-  
+// Define interfaces
+interface Bed {
+  id: string;
+  bed_number: string;
+  room_number?: string | null;
+  ward: string;
+  category: "general" | "semi-private" | "private" | "icu";
+  status: "available" | "occupied" | "reserved" | "maintenance";
+  price_per_day: number;
+  features?: string | null; // Comma-separated string
+  // Add other bed properties if any
+}
+
+type BedStatus = Bed["status"];
+type BedCategory = Bed["category"];
+
+const BedManagementDashboard: React.FC = () => {
+  const [beds, setBeds] = useState<Bed[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filterWard, setFilterWard] = useState<string>("");
+  const [filterCategory, setFilterCategory] = useState<BedCategory | "">("");
+  const [filterStatus, setFilterStatus] = useState<BedStatus | "">("");
+
+  // Define ward options (example)
+  const wardOptions: string[] = ["All", "General Ward", "Semi-Private", "Private", "Intensive Care"];
+
   // Define category options
-  const categoryOptions = ['All', 'general', 'semi-private', 'private', 'icu'];
-  
+  const categoryOptions: Array<BedCategory | "All"> = ["All", "general", "semi-private", "private", "icu"];
+
   // Define status options
-  const statusOptions = ['All', 'available', 'occupied', 'reserved', 'maintenance'];
+  const statusOptions: Array<BedStatus | "All"> = ["All", "available", "occupied", "reserved", "maintenance"];
 
   useEffect(() => {
     const fetchBeds = async () => {
       try {
         setLoading(true);
-        
-        // Build query parameters
-        const params = new URLSearchParams();
-        if (filterWard && filterWard !== 'All') params.append('ward', filterWard);
-        if (filterCategory && filterCategory !== 'All') params.append('category', filterCategory);
-        if (filterStatus && filterStatus !== 'All') params.append('status', filterStatus);
-        
-        const response = await fetch(`/api/ipd/beds?${params.toString()}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch beds');
-        }
-        
-        const data = await response.json();
-        setBeds(data);
         setError(null);
+
+        const params = new URLSearchParams();
+        if (filterWard && filterWard !== "All") params.append("ward", filterWard);
+        if (filterCategory && filterCategory !== "All") params.append("category", filterCategory);
+        if (filterStatus && filterStatus !== "All") params.append("status", filterStatus);
+
+        const response = await fetch(`/api/ipd/beds?${params.toString()}`);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch beds (status: ${response.status})`);
+        }
+
+        const data: Bed[] = await response.json();
+        setBeds(data || []); // Ensure beds is always an array
       } catch (err) {
-        console.error('Error fetching beds:', err);
-        setError('Failed to load beds. Please try again later.');
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
+        console.error("Error fetching beds:", err);
+        setError(`Failed to load beds: ${message}`);
+        setBeds([]); // Clear beds on error
       } finally {
         setLoading(false);
       }
@@ -51,158 +84,183 @@ const BedManagementDashboard = () => {
     fetchBeds();
   }, [filterWard, filterCategory, filterStatus]);
 
-  // Get bed status color
-  const getBedStatusColor = (status) => {
+  // Get bed status color variant for Badge
+  const getBedStatusVariant = (status: BedStatus): "default" | "destructive" | "secondary" | "outline" | "success" => {
     switch (status) {
-      case 'available':
-        return 'success';
-      case 'occupied':
-        return 'destructive';
-      case 'reserved':
-        return 'secondary';
-      case 'maintenance':
-        return 'outline';
+      case "available":
+        return "success"; // Assuming you have a success variant
+      case "occupied":
+        return "destructive";
+      case "reserved":
+        return "secondary";
+      case "maintenance":
+        return "outline";
       default:
-        return 'default';
+        return "default";
     }
   };
 
+  const handleFilterChange = (value: string, filterType: "ward" | "category" | "status") => {
+    const actualValue = value === "All" ? "" : value;
+    if (filterType === "ward") {
+      setFilterWard(actualValue);
+    } else if (filterType === "category") {
+      setFilterCategory(actualValue as BedCategory | "");
+    } else if (filterType === "status") {
+      setFilterStatus(actualValue as BedStatus | "");
+    }
+  };
+
+  const availableBeds = beds.filter(bed => bed.status === "available").length;
+  const occupiedBeds = beds.filter(bed => bed.status === "occupied").length;
+  const reservedBeds = beds.filter(bed => bed.status === "reserved").length;
+  const maintenanceBeds = beds.filter(bed => bed.status === "maintenance").length;
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div className="flex flex-col space-y-1">
-          <label className="text-sm font-medium">Ward</label>
-          <select 
-            className="h-10 rounded-md border border-gray-300 px-3"
-            value={filterWard}
-            onChange={(e) => setFilterWard(e.target.value)}
-          >
-            {wardOptions.map(ward => (
-              <option key={ward} value={ward === 'All' ? '' : ward}>{ward}</option>
-            ))}
-          </select>
+    <div className="space-y-6 p-4">
+      {/* Filter Section */}
+      <div className="flex flex-wrap gap-4 items-end">
+        <div>
+          <label htmlFor="ward-filter" className="block text-sm font-medium text-gray-700 mb-1">Ward</label>
+          <Select value={filterWard || "All"} onValueChange={(value) => handleFilterChange(value, "ward")}>
+            <SelectTrigger id="ward-filter" className="w-[180px]">
+              <SelectValue placeholder="Select Ward" />
+            </SelectTrigger>
+            <SelectContent>
+              {wardOptions.map(ward => (
+                <SelectItem key={ward} value={ward}>{ward}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        
-        <div className="flex flex-col space-y-1">
-          <label className="text-sm font-medium">Category</label>
-          <select 
-            className="h-10 rounded-md border border-gray-300 px-3"
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-          >
-            {categoryOptions.map(category => (
-              <option key={category} value={category === 'All' ? '' : category}>{category}</option>
-            ))}
-          </select>
+
+        <div>
+          <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <Select value={filterCategory || "All"} onValueChange={(value) => handleFilterChange(value, "category")}>
+            <SelectTrigger id="category-filter" className="w-[180px]">
+              <SelectValue placeholder="Select Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categoryOptions.map(category => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        
-        <div className="flex flex-col space-y-1">
-          <label className="text-sm font-medium">Status</label>
-          <select 
-            className="h-10 rounded-md border border-gray-300 px-3"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            {statusOptions.map(status => (
-              <option key={status} value={status === 'All' ? '' : status}>{status}</option>
-            ))}
-          </select>
+
+        <div>
+          <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <Select value={filterStatus || "All"} onValueChange={(value) => handleFilterChange(value, "status")}>
+            <SelectTrigger id="status-filter" className="w-[180px]">
+              <SelectValue placeholder="Select Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map(status => (
+                <SelectItem key={status} value={status}>{status}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">{beds.filter(bed => bed.status === 'available').length}</div>
-            <div className="text-sm text-gray-500">Available Beds</div>
+            <div className="text-2xl font-bold">{availableBeds}</div>
+            <div className="text-sm text-muted-foreground">Available Beds</div>
           </CardContent>
         </Card>
-        
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">{beds.filter(bed => bed.status === 'occupied').length}</div>
-            <div className="text-sm text-gray-500">Occupied Beds</div>
+            <div className="text-2xl font-bold">{occupiedBeds}</div>
+            <div className="text-sm text-muted-foreground">Occupied Beds</div>
           </CardContent>
         </Card>
-        
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">{beds.filter(bed => bed.status === 'reserved').length}</div>
-            <div className="text-sm text-gray-500">Reserved Beds</div>
+            <div className="text-2xl font-bold">{reservedBeds}</div>
+            <div className="text-sm text-muted-foreground">Reserved Beds</div>
           </CardContent>
         </Card>
-        
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">{beds.filter(bed => bed.status === 'maintenance').length}</div>
-            <div className="text-sm text-gray-500">Under Maintenance</div>
+            <div className="text-2xl font-bold">{maintenanceBeds}</div>
+            <div className="text-sm text-muted-foreground">Under Maintenance</div>
           </CardContent>
         </Card>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
-        </div>
-      ) : error ? (
-        <div className="text-red-500 p-4 text-center">{error}</div>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Bed Number</TableHead>
-              <TableHead>Room</TableHead>
-              <TableHead>Ward</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Price/Day</TableHead>
-              <TableHead>Features</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {beds.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-4">No beds found</TableCell>
-              </TableRow>
-            ) : (
-              beds.map((bed) => (
-                <TableRow key={bed.id}>
-                  <TableCell>{bed.bed_number}</TableCell>
-                  <TableCell>{bed.room_number}</TableCell>
-                  <TableCell>{bed.ward}</TableCell>
-                  <TableCell>{bed.category}</TableCell>
-                  <TableCell>
-                    <Badge variant={getBedStatusColor(bed.status)}>
-                      {bed.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>₹{bed.price_per_day.toFixed(2)}</TableCell>
-                  <TableCell>
-                    {bed.features ? bed.features.split(',').map(feature => (
-                      <Badge key={feature} variant="outline" className="mr-1">
-                        {feature.trim()}
-                      </Badge>
-                    )) : '-'}
-                  </TableCell>
-                  <TableCell>
-                    <Button size="sm" variant="outline" className="mr-2">
-                      View
-                    </Button>
-                    {bed.status === 'available' && (
-                      <Button size="sm" variant="default">
-                        Assign
-                      </Button>
-                    )}
-                  </TableCell>
+      {/* Bed Table */}
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 p-4 text-center">{error}</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Bed No.</TableHead>
+                  <TableHead>Room</TableHead>
+                  <TableHead>Ward</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Price/Day</TableHead>
+                  <TableHead>Features</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      )}
+              </TableHeader>
+              <TableBody>
+                {beds.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center h-24">No beds found matching criteria</TableCell>
+                  </TableRow>
+                ) : (
+                  beds.map((bed) => (
+                    <TableRow key={bed.id}>
+                      <TableCell className="font-medium">{bed.bed_number}</TableCell>
+                      <TableCell>{bed.room_number || "N/A"}</TableCell>
+                      <TableCell>{bed.ward}</TableCell>
+                      <TableCell className="capitalize">{bed.category}</TableCell>
+                      <TableCell>
+                        <Badge variant={getBedStatusVariant(bed.status)} className="capitalize">
+                          {bed.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">₹{bed.price_per_day?.toFixed(2) ?? "N/A"}</TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {bed.features ? bed.features.split(",").map(feature => (
+                          <Badge key={feature.trim()} variant="outline" className="mr-1 mb-1 whitespace-nowrap">
+                            {feature.trim()}
+                          </Badge>
+                        )) : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="outline" className="mr-2 h-8">
+                          View
+                        </Button>
+                        {bed.status === "available" && (
+                          <Button size="sm" variant="default" className="h-8">
+                            Assign
+                          </Button>
+                        )}
+                        {/* Add more actions like Edit, Change Status etc. */}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
 export default BedManagementDashboard;
+

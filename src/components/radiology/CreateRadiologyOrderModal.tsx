@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react'; // Added FormEvent
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -9,46 +9,81 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 
-export default function CreateRadiologyOrderModal({ onClose, onSubmit }) {
-  const [patientId, setPatientId] = useState("");
-  const [procedureTypeId, setProcedureTypeId] = useState("");
-  const [clinicalIndication, setClinicalIndication] = useState("");
-  const [priority, setPriority] = useState("routine");
-  const [referringDoctorId, setReferringDoctorId] = useState(""); // Optional
+// Define interfaces for data types
+interface Patient {
+  id: string;
+  name: string; // Assuming patient object has a name property
+  // Add other relevant patient fields if needed
+}
 
-  const [patients, setPatients] = useState([]);
-  const [procedureTypes, setProcedureTypes] = useState([]);
-  const [doctors, setDoctors] = useState([]); // Assuming a way to fetch doctors
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+interface ProcedureType {
+  id: string;
+  name: string;
+  // Add other relevant procedure type fields if needed
+}
+
+interface Doctor {
+  id: string;
+  name: string; // Assuming user/doctor object has a name property
+  // Add other relevant doctor fields if needed
+}
+
+interface OrderPayload {
+  patient_id: string;
+  procedure_type_id: string;
+  clinical_indication: string;
+  priority: "routine" | "stat";
+  referring_doctor_id: string | null;
+}
+
+interface CreateRadiologyOrderModalProps {
+  onClose: () => void;
+  onSubmit: (payload: OrderPayload) => Promise<void>;
+}
+
+export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateRadiologyOrderModalProps) {
+  const [patientId, setPatientId] = useState<string>("");
+  const [procedureTypeId, setProcedureTypeId] = useState<string>("");
+  const [clinicalIndication, setClinicalIndication] = useState<string>("");
+  const [priority, setPriority] = useState<"routine" | "stat">("routine");
+  const [referringDoctorId, setReferringDoctorId] = useState<string>(""); // Store as string, convert to null on submit if empty
+
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [procedureTypes, setProcedureTypes] = useState<ProcedureType[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
+        // Assuming API endpoints return { results: [...] } or just [...] directly
         const [patientsRes, proceduresRes, doctorsRes] = await Promise.all([
-          fetch("/api/patients"), // Assuming API endpoint exists
+          fetch("/api/patients"), // Adjust if endpoint differs
           fetch("/api/radiology/procedure-types"),
-          fetch("/api/users?role=Doctor") // Assuming API endpoint exists to fetch doctors
+          fetch("/api/users?role=Doctor") // Adjust if endpoint differs
         ]);
 
-        if (!patientsRes.ok) throw new Error("Failed to fetch patients");
-        if (!proceduresRes.ok) throw new Error("Failed to fetch procedure types");
-        if (!doctorsRes.ok) throw new Error("Failed to fetch doctors");
+        if (!patientsRes.ok) throw new Error(`Failed to fetch patients: ${patientsRes.statusText}`);
+        if (!proceduresRes.ok) throw new Error(`Failed to fetch procedure types: ${proceduresRes.statusText}`);
+        if (!doctorsRes.ok) throw new Error(`Failed to fetch doctors: ${doctorsRes.statusText}`);
 
         const patientsData = await patientsRes.json();
         const proceduresData = await proceduresRes.json();
         const doctorsData = await doctorsRes.json();
 
-        setPatients(patientsData);
-        setProcedureTypes(proceduresData);
-        setDoctors(doctorsData);
+        // Handle potential API response structures (e.g., { results: [...] })
+        setPatients(patientsData.results || (Array.isArray(patientsData) ? patientsData : []));
+        setProcedureTypes(proceduresData.results || (Array.isArray(proceduresData) ? proceduresData : []));
+        setDoctors(doctorsData.results || (Array.isArray(doctorsData) ? doctorsData : []));
 
       } catch (err) {
-        console.error("Error fetching data for modal:", err);
-        setError("Failed to load necessary data. Please try again.");
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
+        console.error("Error fetching data for modal:", message);
+        setError(`Failed to load necessary data: ${message}. Please try again.`);
       } finally {
         setLoading(false);
       }
@@ -56,21 +91,30 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }) {
     fetchData();
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!patientId || !procedureTypeId || !clinicalIndication) {
+      // Consider using a toast notification instead of alert
       alert("Please fill in all required fields (Patient, Procedure Type, Clinical Indication).");
       return;
     }
     setIsSubmitting(true);
-    await onSubmit({
-      patient_id: patientId,
-      procedure_type_id: procedureTypeId,
-      clinical_indication: clinicalIndication,
-      priority: priority,
-      referring_doctor_id: referringDoctorId || null,
-    });
-    setIsSubmitting(false);
+    try {
+      await onSubmit({
+        patient_id: patientId,
+        procedure_type_id: procedureTypeId,
+        clinical_indication: clinicalIndication,
+        priority: priority,
+        referring_doctor_id: referringDoctorId || null, // Convert empty string to null
+      });
+      // onClose(); // Optionally close modal on successful submit, handled by parent
+    } catch (submitError) {
+        const message = submitError instanceof Error ? submitError.message : "An unknown error occurred during submission";
+        console.error("Error submitting order:", message);
+        setError(`Submission failed: ${message}`); // Show error to user
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -125,15 +169,16 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }) {
                 <Textarea
                   id="clinicalIndication"
                   value={clinicalIndication}
-                  onChange={(e) => setClinicalIndication(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setClinicalIndication(e.target.value)}
                   className="col-span-3"
                   required
+                  placeholder="Enter reason for the study..."
                 />
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="priority" className="text-right">Priority</Label>
-                <Select value={priority} onValueChange={setPriority}>
+                <Select value={priority} onValueChange={(value: "routine" | "stat") => setPriority(value)}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Priority" />
                   </SelectTrigger>
@@ -151,7 +196,7 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }) {
                     <SelectValue placeholder="Select Referring Doctor (Optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="">None</SelectItem> {/* Use empty string for no selection */}
                     {doctors.map((doctor) => (
                       <SelectItem key={doctor.id} value={doctor.id}>
                         {doctor.name}
@@ -165,7 +210,7 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }) {
               <DialogClose asChild>
                 <Button type="button" variant="outline" disabled={isSubmitting}>Cancel</Button>
               </DialogClose>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || loading}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Create Order
               </Button>

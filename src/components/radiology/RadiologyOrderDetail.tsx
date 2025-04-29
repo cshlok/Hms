@@ -7,18 +7,41 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Edit, Trash2, FilePlus, Eye } from "lucide-react";
 import CreateRadiologyStudyModal from "./CreateRadiologyStudyModal";
-import RadiologyStudiesList from "./RadiologyStudiesList"; // Assuming this can be filtered by orderId
-import RadiologyReportsList from "./RadiologyReportsList"; // Assuming this can be filtered by orderId
+// Import list components if they are to be embedded and filtered
+// import RadiologyStudiesList from "./RadiologyStudiesList"; 
+// import RadiologyReportsList from "./RadiologyReportsList"; 
+
+// Define interface for Radiology Order data
+interface RadiologyOrder {
+  id: string;
+  patient_name: string;
+  patient_id: string;
+  procedure_name: string;
+  order_datetime: string; // Assuming ISO string format
+  status: 'pending' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  priority: 'routine' | 'urgent' | 'stat';
+  referring_doctor_name: string | null;
+  clinical_indication: string;
+}
+
+// Define interface for the data expected by handleCreateStudy
+interface CreateStudyData {
+  orderId: string;
+  // Add other necessary fields for creating a study
+  modality_id: string;
+  scheduled_datetime: string;
+  notes?: string;
+}
 
 export default function RadiologyOrderDetail() {
   const params = useParams();
   const router = useRouter();
-  const orderId = params.id;
+  const orderId = params.id as string; // Assume id is always a string
 
-  const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showCreateStudyModal, setShowCreateStudyModal] = useState(false);
+  const [order, setOrder] = useState<RadiologyOrder | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateStudyModal, setShowCreateStudyModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (orderId) {
@@ -26,55 +49,64 @@ export default function RadiologyOrderDetail() {
     }
   }, [orderId]);
 
-  const fetchOrderDetails = async () => {
+  const fetchOrderDetails = async (): Promise<void> => {
     setLoading(true);
+    setError(null); // Reset error state
     try {
       const response = await fetch(`/api/radiology/orders/${orderId}`);
       if (!response.ok) {
         if (response.status === 404) {
           setError("Radiology order not found.");
+          setOrder(null); // Ensure order is null if not found
         } else {
-          throw new Error("Failed to fetch order details");
+          const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" }));
+          throw new Error(errorData.error || "Failed to fetch order details");
         }
       } else {
-        const data = await response.json();
+        const data: RadiologyOrder = await response.json();
         setOrder(data);
         setError(null);
       }
     } catch (err) {
       console.error("Error fetching order details:", err);
-      setError("Failed to load order details. Please try again later.");
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(`Failed to load order details: ${errorMessage}. Please try again later.`);
+      setOrder(null); // Ensure order is null on error
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateStudy = async (studyData) => {
+  const handleCreateStudy = async (studyData: CreateStudyData): Promise<void> => {
     try {
       const response = await fetch("/api/radiology/studies", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(studyData),
+        // Ensure studyData includes the orderId
+        body: JSON.stringify({ ...studyData, orderId: orderId }), 
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" }));
         throw new Error(errorData.error || "Failed to create radiology study");
       }
 
       setShowCreateStudyModal(false);
-      // Optionally refresh studies list or navigate to the new study
-      fetchOrderDetails(); // Refresh order details which might implicitly refresh related studies/reports lists if they are part of this component
+      // Refresh order details which might implicitly refresh related studies/reports lists
+      fetchOrderDetails(); 
+      // Consider adding a success message
+      alert("Radiology study created successfully.");
 
     } catch (err) {
       console.error("Error creating radiology study:", err);
-      alert(err.message);
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      alert(`Error creating study: ${errorMessage}`);
     }
   };
 
-  const handleCancelOrder = async () => {
+  const handleCancelOrder = async (): Promise<void> => {
     if (!confirm("Are you sure you want to cancel this radiology order?")) {
       return;
     }
@@ -83,28 +115,30 @@ export default function RadiologyOrderDetail() {
         method: 'DELETE',
       });
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" }));
         throw new Error(errorData.error || 'Failed to cancel order');
       }
       alert("Order cancelled successfully.");
       router.push("/dashboard/radiology"); // Go back to the list
     } catch (err) {
       console.error("Error cancelling order:", err);
-      alert(`Failed to cancel order: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      alert(`Failed to cancel order: ${errorMessage}`);
     }
   };
 
-  const getStatusBadge = (status) => {
-    const statusStyles = {
+  const getStatusBadge = (status: RadiologyOrder['status']): React.ReactNode => {
+    const statusStyles: { [key in RadiologyOrder['status']]: string } = {
       pending: "bg-yellow-100 text-yellow-800",
       scheduled: "bg-blue-100 text-blue-800",
       in_progress: "bg-purple-100 text-purple-800",
       completed: "bg-green-100 text-green-800",
       cancelled: "bg-red-100 text-red-800"
     };
+    const statusText = status?.charAt(0).toUpperCase() + status?.slice(1).replace("_", " ");
     return (
       <Badge className={statusStyles[status] || "bg-gray-100"}>
-        {status?.charAt(0).toUpperCase() + status?.slice(1).replace("_", " ")}
+        {statusText}
       </Badge>
     );
   };
@@ -113,14 +147,31 @@ export default function RadiologyOrderDetail() {
     return <div className="flex justify-center items-center h-64"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
   }
 
+  // Separate check for error after loading
   if (error) {
-    return <div className="text-center text-red-500 p-4">{error}</div>;
+    return (
+      <div className="container mx-auto p-4 space-y-6">
+        <Button variant="outline" onClick={() => router.back()} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+        </Button>
+        <div className="text-center text-red-500 p-4">{error}</div>
+      </div>
+    );
   }
 
+  // If not loading and no error, but order is still null (e.g., 404 handled)
   if (!order) {
-    return <div className="text-center text-gray-500 p-4">Order details could not be loaded.</div>;
+     return (
+      <div className="container mx-auto p-4 space-y-6">
+        <Button variant="outline" onClick={() => router.back()} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+        </Button>
+        <div className="text-center text-gray-500 p-4">Order details could not be loaded or order not found.</div>
+      </div>
+     );
   }
 
+  // If order exists, render the details
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Button variant="outline" onClick={() => router.back()} className="mb-4">
@@ -147,7 +198,7 @@ export default function RadiologyOrderDetail() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><strong>Patient:</strong> {order.patient_name} (ID: {order.patient_id.substring(0,6)})</div>
+            <div><strong>Patient:</strong> {order.patient_name} (ID: {order.patient_id?.substring(0,6)})</div>
             <div><strong>Procedure:</strong> {order.procedure_name}</div>
             <div><strong>Date Ordered:</strong> {new Date(order.order_datetime).toLocaleString()}</div>
             <div><strong>Status:</strong> {getStatusBadge(order.status)}</div>
@@ -163,7 +214,6 @@ export default function RadiologyOrderDetail() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Associated Studies</CardTitle>
-            {/* Allow creating study only if order is pending/scheduled */} 
             {(order.status === 'pending' || order.status === 'scheduled') && (
               <Button onClick={() => setShowCreateStudyModal(true)}>
                 <FilePlus className="mr-2 h-4 w-4" /> Create Study
@@ -172,8 +222,7 @@ export default function RadiologyOrderDetail() {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Embed or link to RadiologyStudiesList filtered by order.id */} 
-          {/* For now, just a placeholder message */} 
+          {/* TODO: Embed or link to RadiologyStudiesList filtered by order.id */} 
           <p className="text-gray-500">Studies associated with this order will appear here.</p>
           {/* Example: <RadiologyStudiesList filter={{ orderId: order.id }} /> */} 
         </CardContent>
@@ -185,7 +234,7 @@ export default function RadiologyOrderDetail() {
           <CardTitle>Associated Reports</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Embed or link to RadiologyReportsList filtered by order.id (via studies) */} 
+          {/* TODO: Embed or link to RadiologyReportsList filtered by order.id (via studies) */} 
           <p className="text-gray-500">Reports associated with this order will appear here.</p>
           {/* Example: <RadiologyReportsList filter={{ orderId: order.id }} /> */} 
         </CardContent>
@@ -194,8 +243,9 @@ export default function RadiologyOrderDetail() {
       {showCreateStudyModal && (
         <CreateRadiologyStudyModal
           onClose={() => setShowCreateStudyModal(false)}
-          onSubmit={handleCreateStudy}
+          onSubmit={handleCreateStudy} // Pass the typed handler
           orderId={order.id}
+          // Pass any other required props to the modal
         />
       )}
     </div>

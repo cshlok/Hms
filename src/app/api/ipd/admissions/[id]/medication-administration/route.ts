@@ -26,9 +26,10 @@ export async function GET(
     
     const admissionId = params.id;
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Check if admission exists using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const admissionResult = await db.query(`
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
       FROM admissions a
@@ -45,20 +46,23 @@ export async function GET(
     const isNurse = session.user.roleName === 'Nurse';
     const isDoctor = session.user.roleName === 'Doctor';
     const isAdmin = session.user.roleName === 'Admin';
-    const canViewMedAdmin = session.user.permissions.includes('medication_administration:view');
+    // Assuming permissions are correctly populated in the mock session
+    const canViewMedAdmin = session.user.permissions?.includes('medication_administration:view') ?? false;
     
     if (!isNurse && !isDoctor && !isAdmin && !canViewMedAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
     // Get medication administration records using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const medicationRecordsResult = await db.query(`
       SELECT ma.*, 
-             pi.item_name as medication_name, 
+             m.generic_name as medication_name, -- Changed from pharmacy_inventory to medications
+             m.brand_name as medication_brand_name, -- Added brand name
              u.first_name as administered_by_first_name, 
              u.last_name as administered_by_last_name
       FROM medication_administration ma
-      JOIN pharmacy_inventory pi ON ma.medication_id = pi.id
+      JOIN medications m ON ma.medication_id = m.id -- Changed from pharmacy_inventory
       JOIN users u ON ma.administered_by = u.id
       WHERE ma.admission_id = ?
       ORDER BY ma.administered_time DESC
@@ -70,7 +74,8 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching medication administration records:', error);
-    return NextResponse.json({ error: 'Failed to fetch medication administration records' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to fetch medication administration records', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -90,7 +95,8 @@ export async function POST(
     // Check permissions (using mock session data)
     const isNurse = session.user.roleName === 'Nurse';
     const isDoctor = session.user.roleName === 'Doctor';
-    const canCreateMedAdmin = session.user.permissions.includes('medication_administration:create');
+    // Assuming permissions are correctly populated in the mock session
+    const canCreateMedAdmin = session.user.permissions?.includes('medication_administration:create') ?? false;
 
     if (!isNurse && !isDoctor && !canCreateMedAdmin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -108,9 +114,10 @@ export async function POST(
       }
     }
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Check if admission exists and is active using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const admissionResult = await db.query('SELECT id, status FROM admissions WHERE id = ?', [admissionId]);
     const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] as { id: string; status: string } : null;
       
@@ -119,15 +126,16 @@ export async function POST(
     }
     
     if (admission.status !== 'active') {
-      return NextResponse.json({ error: 'Cannot record medication administration for a discharged admission' }, { status: 409 });
+      return NextResponse.json({ error: 'Cannot record medication administration for a non-active admission' }, { status: 409 });
     }
     
-    // Check if medication exists in inventory using db.query
-    const medicationResult = await db.query('SELECT id FROM pharmacy_inventory WHERE id = ?', [data.medication_id]);
+    // Check if medication exists using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    const medicationResult = await db.query('SELECT id FROM medications WHERE id = ?', [data.medication_id]); // Changed from pharmacy_inventory
     const medication = medicationResult.rows && medicationResult.rows.length > 0 ? medicationResult.rows[0] : null;
       
     if (!medication) {
-      return NextResponse.json({ error: 'Medication not found in inventory' }, { status: 404 });
+      return NextResponse.json({ error: 'Medication not found' }, { status: 404 }); // Updated error message
     }
     
     // Insert new medication administration record using db.query
@@ -139,7 +147,7 @@ export async function POST(
     `, [
       admissionId,
       data.medication_id,
-      session.user.userId, // Changed from session.user.id
+      session.user.userId, // Ensure userId exists on session.user
       data.administered_time || new Date().toISOString(),
       data.dosage,
       data.route,
@@ -151,7 +159,8 @@ export async function POST(
 
   } catch (error) {
     console.error('Error creating medication administration record:', error);
-    return NextResponse.json({ error: 'Failed to create medication administration record' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to create medication administration record', details: errorMessage }, { status: 500 });
   }
 }
 

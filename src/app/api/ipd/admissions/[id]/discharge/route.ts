@@ -27,9 +27,10 @@ export async function GET(
     
     const admissionId = params.id;
     
-    const db = getDB(); // Get the mock DB object
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Check if admission exists using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const admissionResult = await db.query(`
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
       FROM admissions a
@@ -46,7 +47,8 @@ export async function GET(
     const isDoctor = session.user.roleName === 'Doctor';
     const isNurse = session.user.roleName === 'Nurse';
     const isAdmin = session.user.roleName === 'Admin';
-    const canViewDischarge = session.user.permissions.includes('discharge_summary:view');
+    // Assuming permissions are correctly populated in the mock session
+    const canViewDischarge = session.user.permissions?.includes('discharge_summary:view') ?? false;
 
     if (!isDoctor && !isNurse && !isAdmin && !canViewDischarge) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -67,7 +69,8 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching discharge summary:', error);
-    return NextResponse.json({ error: 'Failed to fetch discharge summary' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to fetch discharge summary', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -86,7 +89,8 @@ export async function POST(
     
     // Check permissions (using mock session data)
     const isDoctor = session.user.roleName === 'Doctor';
-    const canCreateDischarge = session.user.permissions.includes('discharge_summary:create');
+    // Assuming permissions are correctly populated in the mock session
+    const canCreateDischarge = session.user.permissions?.includes('discharge_summary:create') ?? false;
 
     if (!isDoctor && !canCreateDischarge) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -104,49 +108,59 @@ export async function POST(
       }
     }
     
-    const db = getDB(); // Get the mock DB object
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Check if admission exists and is active using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const admissionResult = await db.query(`
       SELECT a.*, b.id as bed_id
       FROM admissions a
-      JOIN beds b ON a.bed_id = b.id
+      LEFT JOIN beds b ON a.bed_id = b.id -- Use LEFT JOIN in case bed is unassigned
       WHERE a.id = ?
     `, [admissionId]);
-    const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] as { id: string; status: string; bed_id: string; primary_doctor_id: number } : null;
+    // Added type assertion for clarity
+    const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] as { id: string; status: string; bed_id: string | null; primary_doctor_id: number } : null;
       
     if (!admission) {
       return NextResponse.json({ error: 'Admission not found' }, { status: 404 });
     }
     
     if (admission.status !== 'active') {
-      return NextResponse.json({ error: 'Patient is already discharged' }, { status: 409 });
+      return NextResponse.json({ error: 'Patient is not currently admitted or already discharged' }, { status: 409 });
     }
     
     // Check authorization (using mock session data)
-    const canCreateAllDischarge = session.user.permissions.includes('discharge_summary:create_all');
+    // Assuming permissions are correctly populated in the mock session
+    const canCreateAllDischarge = session.user.permissions?.includes('discharge_summary:create_all') ?? false;
+    // Ensure userId exists on session.user before comparison
     if (isDoctor && admission.primary_doctor_id !== session.user.userId && !canCreateAllDischarge) {
         return NextResponse.json({ error: 'You are not authorized to discharge this patient' }, { status: 403 });
     }
     
     // Mock DB doesn't support transactions or batch, execute queries sequentially
+    // Use db.exec for transaction control if the real DB supports it
+    // await db.exec('BEGIN TRANSACTION'); // Uncomment if using real DB with transactions
     try {
+      const dischargeTimestamp = data.discharge_date || new Date().toISOString();
+      
       // Update admission status using db.query
       await db.query(`
         UPDATE admissions 
         SET status = 'discharged', discharge_date = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `, [
-        data.discharge_date || new Date().toISOString(),
+        dischargeTimestamp,
         admissionId
       ]);
       
-      // Update bed status using db.query
-      await db.query(`
-        UPDATE beds
-        SET status = 'available', updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `, [admission.bed_id]);
+      // Update bed status only if a bed was assigned
+      if (admission.bed_id) {
+          await db.query(`
+            UPDATE beds
+            SET status = 'available', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+          `, [admission.bed_id]);
+      }
       
       // Insert discharge summary using db.query
       // Mock query doesn't return last_row_id, so we can't easily fetch the created summary
@@ -157,14 +171,16 @@ export async function POST(
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         admissionId,
-        data.discharge_date || new Date().toISOString(),
+        dischargeTimestamp,
         data.discharge_diagnosis,
         data.treatment_summary,
         data.medications,
         data.follow_up || null,
         data.home_care_instructions || null,
-        session.user.userId
+        session.user.userId // Ensure userId exists on session.user
       ]);
+      
+      // await db.exec('COMMIT'); // Uncomment if using real DB with transactions
       
       // Since we can't get the ID from the mock DB, return a success message without the summary object
       return NextResponse.json({
@@ -174,12 +190,14 @@ export async function POST(
 
     } catch (error) {
       console.error('Error during discharge database operations:', error);
-      // No rollback needed for mock DB
-      return NextResponse.json({ error: 'Failed to discharge patient due to database error' }, { status: 500 });
+      // await db.exec('ROLLBACK'); // Uncomment if using real DB with transactions
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return NextResponse.json({ error: 'Failed to discharge patient due to database error', details: errorMessage }, { status: 500 });
     }
   } catch (error) {
     console.error('Error creating discharge summary:', error);
-    return NextResponse.json({ error: 'Failed to create discharge summary' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to create discharge summary', details: errorMessage }, { status: 500 });
   }
 }
 

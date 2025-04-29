@@ -1,25 +1,78 @@
 // Placeholder for database utility functions
 // TODO: Implement actual database connection logic (e.g., using Prisma, Drizzle, etc.)
 
-// Placeholder function for API routes importing 'getDB' (uppercase B)
-export const getDB = () => {
-  console.warn("Database connection function 'getDB' is not implemented yet.");
+// Mock implementation for prepare/bind/run/all/first pattern
+const mockPreparedStatement = (sql: string) => {
+  console.warn(`Mock DB Prepare: ${sql}`);
+  let boundParams: any[] = [];
   return {
-    query: async (sql: string, params?: any[]) => {
-      console.warn(`Mock DB Query (getDB): ${sql}`, params);
-      return { rows: [] };
+    bind: (...params: any[]) => {
+      console.warn(`Mock DB Bind:`, params);
+      boundParams = params;
+      return {
+        run: async () => {
+          console.warn(`Mock DB Run (Prepared): ${sql}`, boundParams);
+          // In a real scenario, this would return D1Result
+          return { success: true, meta: { duration: 0 } }; 
+        },
+        all: async () => {
+          console.warn(`Mock DB All (Prepared): ${sql}`, boundParams);
+          // In a real scenario, this would return D1Result
+          return { results: [], success: true, meta: { duration: 0 } }; 
+        },
+        first: async (colName?: string) => {
+          console.warn(`Mock DB First (Prepared): ${sql}`, boundParams, colName);
+          // In a real scenario, this would return a single row or value
+          return null; 
+        },
+      };
+    },
+    // Add direct run/all/first if needed for non-prepared statements (though prepare is used)
+    run: async () => {
+      console.warn(`Mock DB Run (Direct): ${sql}`);
+      return { success: true, meta: { duration: 0 } };
+    },
+    all: async () => {
+      console.warn(`Mock DB All (Direct): ${sql}`);
+      return { results: [], success: true, meta: { duration: 0 } };
+    },
+    first: async (colName?: string) => {
+      console.warn(`Mock DB First (Direct): ${sql}`, colName);
+      return null;
     },
   };
 };
 
+// Placeholder function for API routes importing 'getDB' (uppercase B)
+// Updated to include a mock 'prepare' method
+export const getDB = async () => { // Made async to align with usage
+  console.warn("Database connection function 'getDB' is not implemented yet.");
+  return {
+    query: async (sql: string, params?: any[]) => {
+      console.warn(`Mock DB Query (getDB): ${sql}`, params);
+      return { rows: [] }; // Keep for compatibility if used elsewhere
+    },
+    prepare: (sql: string) => mockPreparedStatement(sql),
+    exec: async (sql: string) => { // Add mock exec for transactions
+        console.warn(`Mock DB Exec: ${sql}`);
+        return { count: 0, duration: 0 };
+    }
+  };
+};
+
 // Placeholder function for API routes importing 'getDb' (lowercase b)
-export const getDb = () => {
+export const getDb = async () => { // Made async
   console.warn("Database connection function 'getDb' is not implemented yet.");
   return {
     query: async (sql: string, params?: any[]) => {
       console.warn(`Mock DB Query (getDb): ${sql}`, params);
       return { rows: [] };
     },
+    prepare: (sql: string) => mockPreparedStatement(sql),
+    exec: async (sql: string) => {
+        console.warn(`Mock DB Exec: ${sql}`);
+        return { count: 0, duration: 0 };
+    }
   };
 };
 
@@ -29,6 +82,11 @@ export const db = {
     console.warn(`Mock DB Query (db): ${sql}`, params);
     return { rows: [] };
   },
+  prepare: (sql: string) => mockPreparedStatement(sql),
+  exec: async (sql: string) => {
+      console.warn(`Mock DB Exec: ${sql}`);
+      return { count: 0, duration: 0 };
+  }
   // Add mock models/methods if needed based on usage
 };
 
@@ -38,6 +96,11 @@ export const DB = {
     console.warn(`Mock DB Query (DB): ${sql}`, params);
     return { rows: [] };
   },
+  prepare: (sql: string) => mockPreparedStatement(sql),
+  exec: async (sql: string) => {
+      console.warn(`Mock DB Exec: ${sql}`);
+      return { count: 0, duration: 0 };
+  }
   // Add mock models/methods if needed based on usage
 };
 
