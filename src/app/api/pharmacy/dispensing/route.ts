@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDB, Database } from "@/lib/db"; // Import Database type
-import { getSession, SessionData } from "@/lib/session"; // Import SessionData
+import { getDB } from "@/lib/db"; // Import Database type
+import { getSession, Session } from "@/lib/session"; // Import Session
 import { checkUserRole } from "@/lib/auth"; // Assuming this exists
 
 // Define interfaces for request data
@@ -117,26 +117,18 @@ interface FinalDispensingRecordResult {
     dispensed_by_last_name: string;
 }
 
-// Assuming SessionData includes user with roles and id
-interface AuthenticatedSession extends SessionData {
-  user: {
-    id: string;
-    roles: string[];
-    // Add other user properties if needed
-  };
-}
 
 // GET /api/pharmacy/dispensing
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null; // Pass request if needed by your getSession implementation
+    const session = await getSession() as Session | null;
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Role check (adjust roles as needed)
-    if (!checkUserRole(session.user, ["Admin", "Pharmacist", "PharmacyAdmin", "Doctor", "Nurse"])) {
+    if (!await checkUserRole(request, ["Admin", "Pharmacist", "PharmacyAdmin", "Doctor", "Nurse"])) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -146,7 +138,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const date_from = searchParams.get("date_from");
     const date_to = searchParams.get("date_to");
 
-    const db: Database = await getDB();
+    const db = await getDB(); // Removed : Database type annotation
 
     let query = `
       SELECT
@@ -205,7 +197,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     query += ` ORDER BY dr.dispensed_at DESC`;
 
-    const result = await db.prepare(query).bind(...params).all<DispensingRecordResult>();
+    const result = await db.prepare(query).bind(...params).all();
 
     return NextResponse.json({
       dispensing_records: result.results || [],
@@ -220,14 +212,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // POST /api/pharmacy/dispensing
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null; // Pass request if needed
+    const session = await getSession() as Session | null;
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if user has pharmacist role
-    if (!checkUserRole(session.user, ["Admin", "Pharmacist", "PharmacyAdmin"])) {
+    if (!await checkUserRole(request, ["Admin", "Pharmacist", "PharmacyAdmin"])) {
       return NextResponse.json({ error: "Forbidden: Only authorized pharmacy staff can dispense medications" }, { status: 403 });
     }
 
@@ -245,12 +237,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    const db: Database = await getDB();
+    const db = await getDB(); // Removed : Database type annotation
 
     // Check prescription status
     const prescription = await db.prepare(`
       SELECT id, status, patient_id FROM prescriptions WHERE id = ?
-    `).bind(data.prescription_id).first<PrescriptionQueryResult>();
+    `).bind(data.prescription_id).first() as PrescriptionQueryResult | null;
 
     if (!prescription) {
       return NextResponse.json({ error: "Prescription not found" }, { status: 404 });
@@ -271,13 +263,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           SELECT id, medication_id, quantity, dispensed_quantity, status
           FROM prescription_items
           WHERE id = ? AND prescription_id = ?
-        `).bind(item.prescription_item_id, data.prescription_id).first<PrescriptionItemQueryResult>();
+        `).bind(item.prescription_item_id, data.prescription_id).first() as PrescriptionItemQueryResult | null;
 
         if (!prescriptionItem) {
           throw new Error(`Prescription item ${item.prescription_item_id} not found or does not belong to prescription ${data.prescription_id}`);
         }
-        if (prescriptionItem.status === "dispensed" || prescriptionItem.status === "cancelled") {
-          throw new Error(`Cannot dispense prescription item ${item.prescription_item_id} with status: ${prescriptionItem.status}`);
+        if (prescriptionItem!.status === "dispensed" || prescriptionItem!.status === "cancelled") {
+          throw new Error(`Cannot dispense prescription item ${item.prescription_item_id} with status: ${prescriptionItem!.status}`);
         }
 
         // Check batch
@@ -285,7 +277,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           SELECT id, medication_id, current_quantity, expiry_date
           FROM inventory_batches
           WHERE id = ?
-        `).bind(item.batch_id).first<BatchQueryResult>();
+        `).bind(item.batch_id).first() as BatchQueryResult | null;
 
         if (!batch) {
           throw new Error(`Batch ${item.batch_id} not found`);
@@ -319,7 +311,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           item.prescription_item_id,
           item.batch_id,
           item.quantity,
-          session.user.id, // Use id from AuthenticatedSession
+          session!.user.userId, // Use userId from Session interface
           item.notes || null,
           false
         ).run();
@@ -345,7 +337,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           item.quantity,
           "dispensing",
           dispensingId,
-          session.user.id, // Use id from AuthenticatedSession
+          session!.user.userId, // Use userId from Session interface
           `Dispensed for prescription ${data.prescription_id}`
         ).run();
 
@@ -364,10 +356,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       // Update overall prescription status
       const allItems = await db.prepare(`
         SELECT status FROM prescription_items WHERE prescription_id = ?
-      `).bind(data.prescription_id).all<{ status: string }>();
+      `).bind(data.prescription_id).all() as { results?: { status: string }[] };
 
-      const allDispensed = allItems.results?.every(i => i.status === "dispensed") ?? false;
-      const anyPartiallyDispensed = allItems.results?.some(i => i.status === "partially_dispensed") ?? false;
+      const allDispensed = allItems.results?.every((i: { status: string }) => i.status === "dispensed") ?? false;
+      const anyPartiallyDispensed = allItems.results?.some((i: { status: string }) => i.status === "partially_dispensed") ?? false;
       const newPrescriptionStatus: PrescriptionQueryResult["status"] = allDispensed ? "dispensed" : (anyPartiallyDispensed ? "partially_dispensed" : "pending");
 
       await db.prepare(`
@@ -398,7 +390,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         JOIN patients pt ON p.patient_id = pt.id
         JOIN users u ON p.doctor_id = u.id
         WHERE p.id = ?
-      `).bind(data.prescription_id).first<UpdatedPrescriptionResult>();
+      `).bind(data.prescription_id).first() as UpdatedPrescriptionResult | null;
 
       const updatedItems = await db.prepare(`
         SELECT
@@ -407,7 +399,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         FROM prescription_items pi
         JOIN medications m ON pi.medication_id = m.id
         WHERE pi.prescription_id = ?
-      `).bind(data.prescription_id).all<UpdatedPrescriptionItemResult>();
+      `).bind(data.prescription_id).all() as { results?: UpdatedPrescriptionItemResult[] };
 
       const finalDispensingRecords = await db.prepare(`
         SELECT
@@ -421,9 +413,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         JOIN medications m ON pi.medication_id = m.id
         JOIN inventory_batches ib ON dr.batch_id = ib.id
         JOIN users u ON dr.dispensed_by = u.id
-        WHERE dr.id IN (${dispensingRecordIds.map(() => '?').join(',')})
+        WHERE dr.id IN (${dispensingRecordIds.map((_id: string) => '?').join(',')})
         ORDER BY dr.dispensed_at DESC
-      `).bind(...dispensingRecordIds).all<FinalDispensingRecordResult>();
+      `).bind(...dispensingRecordIds).all() as { results?: FinalDispensingRecordResult[] };
 
       return NextResponse.json({
         prescription: {

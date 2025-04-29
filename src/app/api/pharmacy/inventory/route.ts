@@ -136,7 +136,23 @@ async function getMedicationsFromDB(filters: any) {
 }
 
 // Placeholder function to simulate creating a medication
-async function createMedicationInDB(medicationData: any) {
+interface MedicationInput {
+  name: string;
+  generic_name: string;
+  category: string;
+  form: string;
+  strength: string;
+  manufacturer?: string;
+  batch_number?: string;
+  expiry_date?: string;
+  current_stock?: number;
+  reorder_level?: number;
+  unit_price?: number;
+  location?: string;
+  // status is usually derived, not input directly
+}
+
+async function createMedicationInDB(medicationData: MedicationInput) {
   console.log("Simulating creating medication:", medicationData);
   // Replace with actual D1 insert query when DB is configured
   // const { env } = getRequestContext();
@@ -161,8 +177,8 @@ async function createMedicationInDB(medicationData: any) {
   
   // Return mock success response
   const newId = Math.floor(Math.random() * 1000) + 10;
-  const status = medicationData.current_stock > 0 
-    ? (medicationData.current_stock <= medicationData.reorder_level ? "low_stock" : "active") 
+  const status = (medicationData.current_stock ?? 0) > 0 
+    ? ((medicationData.current_stock ?? 0) <= (medicationData.reorder_level ?? 0) ? "low_stock" : "active") 
     : "out_of_stock";
   
   return {
@@ -343,10 +359,11 @@ export async function GET(request: NextRequest) {
     const medications = await getMedicationsFromDB(filters);
 
     return NextResponse.json({ medications });
-  } catch (error) {
+  } catch (error: unknown) { // Added type annotation
     console.error("Error fetching medications:", error);
+    const message = error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
     return NextResponse.json(
-      { error: "Failed to fetch medications", details: error.message },
+      { error: "Failed to fetch medications", details: message },
       { status: 500 }
     );
   }
@@ -358,7 +375,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const medicationData = await request.json();
+    const medicationData = await request.json() as MedicationInput;
 
     // Basic validation (add more comprehensive validation)
     if (!medicationData.name || !medicationData.generic_name || !medicationData.category || !medicationData.form || !medicationData.strength) {
@@ -372,10 +389,11 @@ export async function POST(request: NextRequest) {
     const newMedication = await createMedicationInDB(medicationData);
 
     return NextResponse.json({ medication: newMedication }, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) { // Added type annotation
     console.error("Error creating medication:", error);
+    const message = error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
     return NextResponse.json(
-      { error: "Failed to create medication", details: error.message },
+      { error: "Failed to create medication", details: message },
       { status: 500 }
     );
   }
@@ -400,10 +418,11 @@ export async function PUT(request: NextRequest) {
     const updatedMedication = await updateMedicationInDB(id, updateData);
 
     return NextResponse.json({ medication: updatedMedication });
-  } catch (error) {
+  } catch (error: unknown) { // Added type annotation
     console.error("Error updating medication:", error);
+    const message = error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
     return NextResponse.json(
-      { error: "Failed to update medication", details: error.message },
+      { error: "Failed to update medication", details: message },
       { status: 500 }
     );
   }

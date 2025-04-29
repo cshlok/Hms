@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db'; // Assuming db returns a promise
-import { getSession, SessionData } from '@/lib/session'; // Assuming SessionData is defined
+import { getSession, Session } from "@/lib/session";
 
 // Define interfaces
 interface PrescriptionItem {
@@ -57,20 +57,10 @@ interface PrescriptionPostData {
   notes?: string | null;
   items: PrescriptionItemPostData[];
 }
-
-// Assuming SessionData includes user with roles
-interface AuthenticatedSession extends SessionData {
-  user: {
-    id: string;
-    roles: string[];
-    // Add other user properties if needed
-  };
-}
-
-// GET /api/pharmacy/prescriptions
+// Define interfacesy/prescriptions
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
+    const session = await getSession() as Session | null;
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -156,7 +146,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     query += ` ORDER BY p.prescription_date DESC`;
 
-    const result = await db.prepare(query).bind(...params).all<Omit<Prescription, 'items'>>();
+    const result = await db.prepare(query).bind(...params).all();
 
     return NextResponse.json({
       prescriptions: result.results || []
@@ -171,15 +161,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // POST /api/pharmacy/prescriptions
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
+    const session = await getSession() as Session | null;
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const hasPermission = session.user.roles.some(role =>
-      ['admin', 'doctor'].includes(role)
-    );
+    const hasPermission = ["admin", "doctor"].includes(session!.user!.roleName); // Use roleName from Session
 
     if (!hasPermission) {
       return NextResponse.json({ error: 'Forbidden: Only doctors or admins can create prescriptions' }, { status: 403 });
@@ -217,7 +205,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const patientExists = await db.prepare(
       `SELECT id FROM patients WHERE id = ?`
-    ).bind(data.patient_id).first<{ id: string }>();
+    ).bind(data.patient_id).first();
 
     if (!patientExists) {
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
@@ -231,7 +219,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const sourceTable = data.source === 'OPD' ? 'appointments' : 'admissions';
       const sourceExists = await db.prepare(
         `SELECT id FROM ${sourceTable} WHERE id = ?`
-      ).bind(data.source_id).first<{ id: string }>();
+      ).bind(data.source_id).first();
 
       if (!sourceExists) {
         return NextResponse.json({ error: `${data.source} record not found` }, { status: 404 });
@@ -257,7 +245,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         prescriptionId,
         prescriptionNumber,
         data.patient_id,
-        session.user.id,
+        session!.user!.userId, // Use userId from Session
         data.prescription_date || new Date().toISOString().split('T')[0], // Use YYYY-MM-DD format
         data.source,
         data.source_id || null,
@@ -270,7 +258,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         const medicationExists = await db.prepare(
           `SELECT id FROM medications WHERE id = ?`
-        ).bind(item.medication_id).first<{ id: string }>();
+      ).bind(item.medication_id).first();
 
         if (!medicationExists) {
           throw new Error(`Medication not found: ${item.medication_id}`);
@@ -307,11 +295,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         JOIN patients pt ON p.patient_id = pt.id
         JOIN users u ON p.doctor_id = u.id
         WHERE p.id = ?
-      `).bind(prescriptionId).first<Omit<Prescription, 'items'>>();
+      `).bind(prescriptionId).first();
 
       if (!createdPrescription) {
-        throw new Error('Failed to retrieve created prescription details');
+        throw new Error("Failed to retrieve created prescription details");
       }
+
+      // Cast after null check
+      const confirmedPrescription = createdPrescription as Omit<Prescription, "items">;
 
       // Fetch prescription items with medication details
       const prescriptionItemsResult = await db.prepare(`
@@ -322,10 +313,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         FROM prescription_items pi
         JOIN medications m ON pi.medication_id = m.id
         WHERE pi.prescription_id = ?
-      `).bind(prescriptionId).all<PrescriptionItem>();
+      `).bind(prescriptionId).all();
 
       const responseData: Prescription = {
-        ...createdPrescription,
+        ...confirmedPrescription, // Use the casted variable
         items: prescriptionItemsResult.results || []
       };
 

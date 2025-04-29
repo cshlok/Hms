@@ -1,7 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDB } from "@/lib/db"; // Assuming db returns a promise
-import { getSession, SessionData } from "@/lib/session"; // Assuming SessionData is defined
-import { checkUserRole } from "@/lib/auth"; // Assuming this exists and works with SessionData
+import { getDB } from "@/lib/db";
+import { getSession, Session } from "@/lib/session"; // Import Session instead of SessionData
+import { checkUserRole } from "@/lib/auth";
+
+// Define Database interface (can be moved to a shared types file)
+interface PreparedStatement {
+  bind(...params: any[]): {
+    run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
+    all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+    first<T = any>(colName?: string): Promise<T | null>;
+  };
+  run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
+  all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+  first<T = any>(colName?: string): Promise<T | null>;
+}
+
+interface Database {
+  prepare(sql: string): PreparedStatement;
+  exec(sql: string): Promise<{ count: number; duration: number }>;
+}
 
 // Define interfaces
 interface RadiologyStudy {
@@ -36,22 +53,13 @@ interface RadiologyStudyPutData {
   status?: "scheduled" | "in_progress" | "completed" | "reported" | "verified" | "cancelled";
 }
 
-// Assuming SessionData includes user with roles and id
-interface AuthenticatedSession extends SessionData {
-  user: {
-    id: string;
-    roles: string[];
-    // Add other user properties if needed
-  };
-}
-
 // GET a specific Radiology Study by ID
 export async function GET(
-  request: NextRequest,
+  request: NextRequest, // Keep request for potential future use
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
+    const session = await getSession(); // Call without request
     // Allow broader read access
     if (!session?.user) { // Basic check if any logged-in user can view
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -66,7 +74,7 @@ export async function GET(
       return NextResponse.json({ error: "Study ID is required" }, { status: 400 });
     }
 
-    const db = await getDB();
+    const db: Database = await getDB(); // Use defined Database interface
 
     const study = await db.prepare(
       `SELECT
@@ -83,7 +91,7 @@ export async function GET(
        LEFT JOIN Users tech ON rs.technician_id = tech.id
        LEFT JOIN RadiologyModalities mod ON rs.modality_id = mod.id
        WHERE rs.id = ?`
-    ).bind(studyId).first<RadiologyStudy>();
+    ).bind(studyId).first<RadiologyStudy>(); // Use generic type argument
 
     if (!study) {
       return NextResponse.json({ error: "Radiology study not found" }, { status: 404 });
@@ -102,9 +110,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
-    // Allow Technician or Admin to update
-    if (!session?.user || !(session.user.roles.includes("Admin") || session.user.roles.includes("Technician"))) {
+    const session = await getSession(); // Call without request
+    // Use roleName for check
+    if (!session?.user || (session.user.roleName !== "Admin" && session.user.roleName !== "Technician")) {
       return NextResponse.json({ error: "Unauthorized: Admin or Technician role required" }, { status: 403 });
     }
 
@@ -113,7 +121,7 @@ export async function PUT(
       return NextResponse.json({ error: "Study ID is required" }, { status: 400 });
     }
 
-    const db = await getDB();
+    const db: Database = await getDB(); // Use defined Database interface
     const data = await request.json() as RadiologyStudyPutData;
     const updatedAt = new Date().toISOString();
 
@@ -150,7 +158,8 @@ export async function PUT(
     try {
         const info = await db.prepare(updateStmt).bind(...values).run();
 
-        if (info.changes === 0) {
+        // Use info.meta.changes
+        if (!info.success || info.meta.changes === 0) {
             // Check if the study actually exists
             const existingStudy = await db.prepare("SELECT id FROM RadiologyStudies WHERE id = ?").bind(studyId).first();
             if (!existingStudy) {
@@ -158,13 +167,14 @@ export async function PUT(
             }
             // No changes were made, maybe the data was the same
             // Return the existing/updated study data
-            const updatedStudy = await db.prepare("SELECT * FROM RadiologyStudies WHERE id = ?").bind(studyId).first<RadiologyStudy>();
-            return NextResponse.json(updatedStudy || { id: studyId, status: "Radiology study update processed (no changes detected)" });
+            const currentStudy = await db.prepare("SELECT * FROM RadiologyStudies WHERE id = ?").bind(studyId).first<RadiologyStudy>(); // Use generic type argument
+            return NextResponse.json(currentStudy || { id: studyId, message: "Radiology study update processed (no changes detected)" });
         }
 
         // If status is updated to 'completed', 'reported' or 'verified', update the parent order status
         if (fieldsToUpdate.status && ["completed", "reported", "verified"].includes(fieldsToUpdate.status)) {
-            const orderIdResult = await db.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(studyId).first<{ order_id: string }>();
+            const orderIdResult = await db.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(studyId).first<{ order_id: string }>(); // Use generic type argument
+            // Add null check for orderIdResult
             if (orderIdResult?.order_id) {
                 // Determine the appropriate order status (e.g., 'completed' when study is done)
                 const newOrderStatus = "completed"; // Or more complex logic based on study status
@@ -175,8 +185,8 @@ export async function PUT(
         }
 
         // Fetch the updated study to return
-        const updatedStudy = await db.prepare("SELECT * FROM RadiologyStudies WHERE id = ?").bind(studyId).first<RadiologyStudy>();
-        return NextResponse.json(updatedStudy || { id: studyId, status: "Radiology study updated successfully" });
+        const updatedStudy = await db.prepare("SELECT * FROM RadiologyStudies WHERE id = ?").bind(studyId).first<RadiologyStudy>(); // Use generic type argument
+        return NextResponse.json(updatedStudy || { id: studyId, message: "Radiology study updated successfully" });
 
     } catch (dbError) {
         // Handle specific DB errors like UNIQUE constraint
@@ -196,12 +206,13 @@ export async function PUT(
 
 // DELETE a specific Radiology Study (Admin only - consider status update instead)
 export async function DELETE(
-  request: NextRequest,
+  request: NextRequest, // Keep request for potential future use
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(request) as AuthenticatedSession | null;
-    if (!session?.user || !session.user.roles.includes("Admin")) {
+    const session = await getSession(); // Call without request
+    // Use roleName for check
+    if (!session?.user || session.user.roleName !== "Admin") {
       return NextResponse.json({ error: "Unauthorized: Admin role required" }, { status: 403 });
     }
 
@@ -210,7 +221,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Study ID is required" }, { status: 400 });
     }
 
-    const db = await getDB();
+    const db: Database = await getDB(); // Use defined Database interface
 
     // Check if reports are associated with this study before deleting
     const associatedReports = await db.prepare("SELECT id FROM RadiologyReports WHERE study_id = ? LIMIT 1").bind(studyId).first();
@@ -227,7 +238,8 @@ export async function DELETE(
     // Option 2: Hard delete (use with caution)
     const info = await db.prepare("DELETE FROM RadiologyStudies WHERE id = ?").bind(studyId).run();
 
-    if (info.changes === 0) {
+    // Use info.meta.changes
+    if (!info.success || info.meta.changes === 0) {
       return NextResponse.json({ error: "Radiology study not found or already deleted" }, { status: 404 });
     }
 

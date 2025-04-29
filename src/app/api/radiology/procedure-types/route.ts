@@ -4,11 +4,18 @@ import { nanoid } from "nanoid";
 import { getSession } from "@/lib/session";
 import { checkUserRole } from "@/lib/auth";
 
+// Define interface for POST request body
+interface ProcedureTypeInput {
+  name?: string;
+  description?: string;
+  modality_type?: string;
+}
+
 // GET all Radiology Procedure Types
 export async function GET(request: NextRequest) {
   const session = await getSession();
   // Allow broader access for viewing procedure types
-  if (!session.user || !checkUserRole(session.user, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
+  if (!session?.user || !await checkUserRole(request, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -27,13 +34,13 @@ export async function GET(request: NextRequest) {
 // POST a new Radiology Procedure Type (Admin only)
 export async function POST(request: NextRequest) {
   const session = await getSession();
-  if (!session.user || !checkUserRole(session.user, ["Admin"])) {
+  if (!session?.user || !await checkUserRole(request, ["Admin"])) { // Use await, pass request, add optional chaining
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   const DB = process.env.DB as unknown as D1Database;
   try {
-    const { name, description, modality_type } = await request.json();
+    const { name, description, modality_type } = await request.json() as ProcedureTypeInput; // Cast to ProcedureTypeInput
 
     if (!name) {
       return NextResponse.json({ error: "Missing required field: name" }, { status: 400 });

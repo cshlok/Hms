@@ -1,15 +1,61 @@
+
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTable, useSortBy, usePagination, useGlobalFilter } from 'react-table';
+import {
+  useTable,
+  useSortBy,
+  usePagination,
+  useGlobalFilter,
+  Column,
+  Row,
+  CellProps,
+  HeaderGroup,
+  Cell,
+  TableInstance,
+  UsePaginationInstanceProps,
+  UseSortByInstanceProps,
+  UseGlobalFiltersInstanceProps,
+  UsePaginationState,
+  UseGlobalFiltersState,
+  UseSortByColumnProps,
+  // TableState, // Removed, use specific plugin states for initialState
+  ColumnInstance
+} from 'react-table';
+
+// Define the interface for a single medication object
+interface Medication {
+  id: string; // Assuming ID is a string (like nanoid)
+  item_code: string;
+  generic_name: string;
+  brand_name?: string | null;
+  dosage_form: string;
+  strength: string;
+  category_name?: string | null;
+  manufacturer_name?: string | null;
+  total_stock?: number | null;
+  unit_of_measure?: string | null;
+  prescription_required: boolean;
+}
+
+// Extend the react-table types for pagination, sorting, and global filter
+type MedicationTableInstance = TableInstance<Medication> &
+  UsePaginationInstanceProps<Medication> &
+  UseSortByInstanceProps<Medication> &
+  UseGlobalFiltersInstanceProps<Medication> & {
+    state: UsePaginationState<Medication> & UseGlobalFiltersState<Medication>;
+  };
+
+// Extend ColumnInstance type to include sorting props for type safety in headers
+type MedicationColumnInstance = ColumnInstance<Medication> & UseSortByColumnProps<Medication>;
 
 // Medications List Component
 export default function MedicationsListPage() {
   const router = useRouter();
-  const [medicationsData, setMedicationsData] = useState([]);
+  const [medicationsData, setMedicationsData] = useState<Medication[]>([]); // Type the state
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null); // Type the error state
   const [globalFilter, setGlobalFilter] = useState('');
 
   useEffect(() => {
@@ -19,12 +65,26 @@ export default function MedicationsListPage() {
       try {
         const response = await fetch('/api/pharmacy/medications');
         if (!response.ok) {
-          throw new Error('Failed to fetch medications');
+          // Try to parse error response, default to generic message
+          let errorMsg = 'Failed to fetch medications';
+          try {
+            // Define a type for expected error response
+            const errorData: { error?: string } = await response.json();
+            errorMsg = errorData.error || errorMsg;
+          } catch (parseError) {
+            // Ignore if response is not JSON or doesn't match expected structure
+          }
+          throw new Error(errorMsg);
         }
-        const data = await response.json();
+        // Assuming the API returns { medications: Medication[] }
+        const data: { medications?: Medication[] } = await response.json();
         setMedicationsData(data.medications || []);
-      } catch (err) {
-        setError(err.message);
+      } catch (err: unknown) { // Type the error
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
       } finally {
         setLoading(false);
       }
@@ -33,7 +93,7 @@ export default function MedicationsListPage() {
     fetchMedications();
   }, []);
 
-  const columns = useMemo(
+  const columns = useMemo<Column<Medication>[]>( // Type the columns
     () => [
       {
         Header: 'Item Code',
@@ -42,7 +102,7 @@ export default function MedicationsListPage() {
       {
         Header: 'Medication',
         accessor: 'generic_name',
-        Cell: ({ row }) => (
+        Cell: ({ row }: CellProps<Medication>) => ( // Type the row
           <div>
             <div className="font-medium text-gray-900">{row.original.generic_name}</div>
             {row.original.brand_name && (
@@ -54,7 +114,7 @@ export default function MedicationsListPage() {
       {
         Header: 'Form & Strength',
         accessor: 'dosage_form',
-        Cell: ({ row }) => (
+        Cell: ({ row }: CellProps<Medication>) => ( // Type the row
           <div>
             <div>{row.original.dosage_form}</div>
             <div className="text-sm text-gray-500">{row.original.strength}</div>
@@ -64,21 +124,21 @@ export default function MedicationsListPage() {
       {
         Header: 'Category',
         accessor: 'category_name',
-        Cell: ({ value }) => value || '-',
+        Cell: ({ value }: CellProps<Medication>) => value || '-', // Type the value
       },
       {
         Header: 'Manufacturer',
         accessor: 'manufacturer_name',
-        Cell: ({ value }) => value || '-',
+        Cell: ({ value }: CellProps<Medication>) => value || '-', // Type the value
       },
       {
         Header: 'Stock',
         accessor: 'total_stock',
-        Cell: ({ value, row }) => {
+        Cell: ({ value, row }: CellProps<Medication>) => { // Type value and row
           const stockValue = value || 0;
           return (
             <span className={`${stockValue === 0 ? 'text-red-600' : 'text-gray-900'}`}>
-              {stockValue} {row.original.unit_of_measure}
+              {stockValue} {row.original.unit_of_measure || ''}
             </span>
           );
         },
@@ -86,7 +146,7 @@ export default function MedicationsListPage() {
       {
         Header: 'Prescription',
         accessor: 'prescription_required',
-        Cell: ({ value }) => (
+        Cell: ({ value }: CellProps<Medication>) => ( // Type the value
           <span className={`px-2 py-1 text-xs rounded-full ${value ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
             {value ? 'Required' : 'OTC'}
           </span>
@@ -95,7 +155,7 @@ export default function MedicationsListPage() {
       {
         Header: 'Actions',
         id: 'actions',
-        Cell: ({ row }) => (
+        Cell: ({ row }: CellProps<Medication>) => ( // Type the row
           <button
             onClick={() => router.push(`/pharmacy/medications/${row.original.id}`)}
             className="text-blue-600 hover:text-blue-800 text-sm"
@@ -108,37 +168,46 @@ export default function MedicationsListPage() {
     [router]
   );
 
-  const { 
-    getTableProps, 
-    getTableBodyProps, 
-    headerGroups, 
-    page,
-    prepareRow, 
-    canPreviousPage, 
-    canNextPage, 
-    pageOptions, 
-    pageCount, 
-    gotoPage, 
-    nextPage, 
-    previousPage, 
-    setPageSize, 
-    state: { pageIndex, pageSize },
-    setGlobalFilter: setTableGlobalFilter
-  } = useTable(
+  // Define initialState with pagination settings using Partial<UsePaginationState>
+  const initialState: Partial<UsePaginationState<Medication>> = {
+      pageSize: 10,
+      // pageIndex defaults to 0 in usePagination
+  };
+
+  const tableInstance = useTable<Medication>( // Specify the type argument
     {
       columns,
       data: medicationsData,
-      initialState: { pageIndex: 0, pageSize: 10 },
+      // Pass the correctly typed initialState for pagination
+      initialState: initialState,
     },
     useGlobalFilter,
     useSortBy,
     usePagination
-  );
+  ) as MedicationTableInstance; // Cast to the extended type
 
-  const handleGlobalFilterChange = (e) => {
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    page,
+    prepareRow,
+    canPreviousPage,
+    canNextPage,
+    pageOptions,
+    pageCount,
+    gotoPage,
+    nextPage,
+    previousPage,
+    setPageSize,
+    state: { pageIndex, pageSize },
+    setGlobalFilter: setTableGlobalFilter
+  } = tableInstance;
+
+  const handleGlobalFilterChange = (e: ChangeEvent<HTMLInputElement>) => { // Type the event
     const value = e.target.value || undefined;
-    setGlobalFilter(value);
-    setTableGlobalFilter(value);
+    setGlobalFilter(value || ''); // Update local state
+    setTableGlobalFilter(value); // Update table state
   };
 
   if (loading) {
@@ -153,7 +222,7 @@ export default function MedicationsListPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Medications Catalog</h1>
-        <button 
+        <button
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
           onClick={() => router.push('/pharmacy/medications/add')}
         >
@@ -174,17 +243,20 @@ export default function MedicationsListPage() {
         <div className="overflow-x-auto">
           <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
-              {headerGroups.map(headerGroup => (
+              {headerGroups.map((headerGroup) => (
                 <tr {...headerGroup.getHeaderGroupProps()}>
-                  {headerGroup.headers.map(column => (
+                  {/* Let TypeScript infer the column type (HeaderGroup<Medication>) in map */} 
+                  {headerGroup.headers.map((column) => (
                     <th
-                      {...column.getHeaderProps(column.getSortByToggleProps())}
+                      // Cast column to MedicationColumnInstance to access sorting props safely
+                      {...(column as MedicationColumnInstance).getHeaderProps((column as MedicationColumnInstance).getSortByToggleProps())}
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                     >
                       {column.render('Header')}
+                      {/* Add sorting indicator */}
                       <span>
-                        {column.isSorted
-                          ? column.isSortedDesc
+                        {(column as MedicationColumnInstance).isSorted
+                          ? (column as MedicationColumnInstance).isSortedDesc
                             ? ' 🔽'
                             : ' 🔼'
                           : ''}
@@ -195,18 +267,20 @@ export default function MedicationsListPage() {
               ))}
             </thead>
             <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
-              {page.map(row => {
+              {page.map((row: Row<Medication>) => { // Type row
                 prepareRow(row);
                 return (
                   <tr {...row.getRowProps()} className="hover:bg-gray-50">
-                    {row.cells.map(cell => (
-                      <td
-                        {...cell.getCellProps()}
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
-                      >
-                        {cell.render('Cell')}
-                      </td>
-                    ))}
+                    {row.cells.map((cell: Cell<Medication>) => { // Type cell
+                      return (
+                        <td
+                          {...cell.getCellProps()}
+                          className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
+                        >
+                          {cell.render('Cell')}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}
@@ -256,3 +330,4 @@ export default function MedicationsListPage() {
     </div>
   );
 }
+
