@@ -367,8 +367,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ policies });
   } catch (error) {
     console.error("Error fetching patient insurance policies:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to fetch patient insurance policies", details: error.message },
+      { error: "Failed to fetch patient insurance policies", details: errorMessage },
       { status: 500 }
     );
   }
@@ -396,8 +400,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ policy: newPolicy }, { status: 201 });
   } catch (error) {
     console.error("Error creating patient insurance policy:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to create patient insurance policy", details: error.message },
+      { error: "Failed to create patient insurance policy", details: errorMessage },
       { status: 500 }
     );
   }
@@ -424,8 +432,12 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ policy: updatedPolicy });
   } catch (error) {
     console.error("Error updating patient insurance policy:", error);
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to update patient insurance policy", details: error.message },
+      { error: "Failed to update patient insurance policy", details: errorMessage },
       { status: 500 }
     );
   }
