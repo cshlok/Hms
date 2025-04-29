@@ -3,6 +3,23 @@ import { D1Database } from "@cloudflare/workers-types";
 
 export const runtime = "edge";
 
+// Interface for required staff/equipment (example)
+interface RequiredResource {
+    role?: string; // For staff
+    name?: string; // For equipment
+    count?: number;
+}
+
+// Interface for the PUT request body
+interface SurgeryTypeUpdateBody {
+    name?: string;
+    description?: string;
+    specialty?: string;
+    estimated_duration_minutes?: number | null;
+    required_staff?: RequiredResource[] | null;
+    required_equipment?: RequiredResource[] | null;
+}
+
 // GET /api/ot/surgery-types/[id] - Get details of a specific surgery type
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -18,20 +35,24 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ message: "Surgery type not found" }, { status: 404 });
     }
 
+    const surgeryType = results[0];
     // Parse JSON fields
     try {
-        if (results[0].required_staff) {
-            results[0].required_staff = JSON.parse(results[0].required_staff as string);
+        if (surgeryType.required_staff && typeof surgeryType.required_staff === "string") {
+            surgeryType.required_staff = JSON.parse(surgeryType.required_staff);
         }
-        if (results[0].required_equipment) {
-            results[0].required_equipment = JSON.parse(results[0].required_equipment as string);
+        if (surgeryType.required_equipment && typeof surgeryType.required_equipment === "string") {
+            surgeryType.required_equipment = JSON.parse(surgeryType.required_equipment);
         }
-    } catch (e) { /* ignore parse errors */ }
+    } catch (e) { 
+        console.error("Failed to parse JSON fields for surgery type:", surgeryTypeId, e);
+    }
 
-    return NextResponse.json(results[0]);
+    return NextResponse.json(surgeryType);
   } catch (error) {
     console.error("Error fetching surgery type details:", error);
-    return NextResponse.json({ message: "Error fetching surgery type details" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error fetching surgery type details", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -43,11 +64,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ message: "Surgery Type ID is required" }, { status: 400 });
     }
 
-    const body = await request.json();
+    const body = await request.json() as SurgeryTypeUpdateBody;
     const { name, description, specialty, estimated_duration_minutes, required_staff, required_equipment } = body;
 
     // Basic validation
-    if (!name && !description && !specialty && estimated_duration_minutes === undefined && !required_staff && !required_equipment) {
+    if (name === undefined && description === undefined && specialty === undefined && estimated_duration_minutes === undefined && required_staff === undefined && required_equipment === undefined) {
         return NextResponse.json({ message: "No update fields provided" }, { status: 400 });
     }
 
@@ -73,34 +94,43 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const info = await DB.prepare(updateQuery).bind(...values).run();
 
     if (info.meta.changes === 0) {
-        return NextResponse.json({ message: "Surgery type not found or no changes made" }, { status: 404 });
+        // Check if the type actually exists before returning 404
+        const { results: checkExists } = await DB.prepare("SELECT id FROM SurgeryTypes WHERE id = ?").bind(surgeryTypeId).all();
+        if (!checkExists || checkExists.length === 0) {
+            return NextResponse.json({ message: "Surgery type not found" }, { status: 404 });
+        }
+        // If it exists but no changes were made, return 200 OK with current data
     }
 
     // Fetch the updated surgery type details
     const { results } = await DB.prepare("SELECT * FROM SurgeryTypes WHERE id = ?").bind(surgeryTypeId).all();
 
     if (!results || results.length === 0) {
-        return NextResponse.json({ message: "Failed to fetch updated surgery type details" }, { status: 500 });
+        return NextResponse.json({ message: "Failed to fetch updated surgery type details after update" }, { status: 500 });
     }
 
+    const updatedSurgeryType = results[0];
     // Parse JSON fields
     try {
-        if (results[0].required_staff) {
-            results[0].required_staff = JSON.parse(results[0].required_staff as string);
+        if (updatedSurgeryType.required_staff && typeof updatedSurgeryType.required_staff === "string") {
+            updatedSurgeryType.required_staff = JSON.parse(updatedSurgeryType.required_staff);
         }
-        if (results[0].required_equipment) {
-            results[0].required_equipment = JSON.parse(results[0].required_equipment as string);
+        if (updatedSurgeryType.required_equipment && typeof updatedSurgeryType.required_equipment === "string") {
+            updatedSurgeryType.required_equipment = JSON.parse(updatedSurgeryType.required_equipment);
         }
-    } catch (e) { /* ignore parse errors */ }
+    } catch (e) { 
+        console.error("Failed to parse JSON fields for updated surgery type:", surgeryTypeId, e);
+    }
 
-    return NextResponse.json(results[0]);
+    return NextResponse.json(updatedSurgeryType);
 
   } catch (error: any) {
     console.error("Error updating surgery type:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     if (error.message?.includes("UNIQUE constraint failed")) {
-        return NextResponse.json({ message: "Surgery type name must be unique" }, { status: 409 });
+        return NextResponse.json({ message: "Surgery type name must be unique", details: errorMessage }, { status: 409 });
     }
-    return NextResponse.json({ message: "Error updating surgery type" }, { status: 500 });
+    return NextResponse.json({ message: "Error updating surgery type", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -125,11 +155,12 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
   } catch (error: any) {
     console.error("Error deleting surgery type:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     // Handle potential foreign key constraint errors if bookings exist
     if (error.message?.includes("FOREIGN KEY constraint failed")) {
-        return NextResponse.json({ message: "Cannot delete surgery type with existing bookings" }, { status: 409 });
+        return NextResponse.json({ message: "Cannot delete surgery type with existing bookings", details: errorMessage }, { status: 409 });
     }
-    return NextResponse.json({ message: "Error deleting surgery type" }, { status: 500 });
+    return NextResponse.json({ message: "Error deleting surgery type", details: errorMessage }, { status: 500 });
   }
 }
 

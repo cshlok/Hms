@@ -3,6 +3,22 @@ import { D1Database } from "@cloudflare/workers-types";
 
 export const runtime = "edge";
 
+// Interface for checklist item (re-used from [id] route, consider moving to a shared types file)
+interface ChecklistItem {
+    id: string; // Unique ID for the item within the template
+    text: string;
+    type: "checkbox" | "text" | "number" | "select"; // Example types
+    options?: string[]; // For select type
+    required?: boolean;
+}
+
+// Interface for the POST request body
+interface ChecklistTemplateCreateBody {
+    name: string;
+    phase: "pre-op" | "intra-op" | "post-op";
+    items: ChecklistItem[];
+}
+
 // GET /api/ot/checklist-templates - List all checklist templates
 export async function GET(request: NextRequest) {
   try {
@@ -25,14 +41,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(results || []);
   } catch (error) {
     console.error("Error fetching checklist templates:", error);
-    return NextResponse.json({ message: "Error fetching checklist templates" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error fetching checklist templates", details: errorMessage }, { status: 500 });
   }
 }
 
 // POST /api/ot/checklist-templates - Create a new checklist template
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json() as ChecklistTemplateCreateBody;
     const { name, phase, items } = body;
 
     if (!name || !phase || !items || !Array.isArray(items) || items.length === 0) {
@@ -46,8 +63,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate items structure (basic check)
-    if (!items.every(item => typeof item === "object" && item !== null && item.id && item.text)) {
-        return NextResponse.json({ message: "Each item must be an object with 'id' and 'text' properties" }, { status: 400 });
+    if (!items.every(item => typeof item === "object" && item !== null && item.id && item.text && item.type)) {
+        return NextResponse.json({ message: "Each item must be an object with id, text, and type properties" }, { status: 400 });
     }
 
     const DB = (process.env.DB as unknown) as D1Database;
@@ -62,24 +79,29 @@ export async function POST(request: NextRequest) {
     const { results } = await DB.prepare("SELECT * FROM OTChecklistTemplates WHERE id = ?").bind(id).all();
 
     if (results && results.length > 0) {
+        const newTemplate = results[0];
         // Parse items JSON before sending response
         try {
-            results[0].items = JSON.parse(results[0].items as string);
+            if (newTemplate.items && typeof newTemplate.items === "string") {
+                newTemplate.items = JSON.parse(newTemplate.items);
+            }
         } catch (parseError) {
             console.error("Error parsing checklist items JSON:", parseError);
             // Return raw string if parsing fails
         }
-        return NextResponse.json(results[0], { status: 201 });
+        return NextResponse.json(newTemplate, { status: 201 });
     } else {
+        // Fallback response if fetching fails
         return NextResponse.json({ id, name, phase, items, created_at: now, updated_at: now }, { status: 201 });
     }
 
   } catch (error: any) {
     console.error("Error creating checklist template:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     if (error.message?.includes("UNIQUE constraint failed")) {
-        return NextResponse.json({ message: "Checklist template name must be unique" }, { status: 409 });
+        return NextResponse.json({ message: "Checklist template name must be unique", details: errorMessage }, { status: 409 });
     }
-    return NextResponse.json({ message: "Error creating checklist template" }, { status: 500 });
+    return NextResponse.json({ message: "Error creating checklist template", details: errorMessage }, { status: 500 });
   }
 }
 

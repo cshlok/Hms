@@ -3,6 +3,21 @@ import { D1Database } from "@cloudflare/workers-types";
 
 export const runtime = "edge";
 
+// Interface for the POST request body
+interface OTBookingBody {
+    patient_id: string; // Assuming ID is string
+    surgery_type_id: string; // Assuming ID is string
+    theatre_id: string; // Assuming ID is string
+    lead_surgeon_id: string; // Assuming ID is string
+    anesthesiologist_id?: string | null; // Assuming ID is string, optional
+    scheduled_start_time: string; // ISO string format
+    scheduled_end_time: string; // ISO string format
+    booking_type?: string | null; // e.g., 'elective', 'emergency'
+    priority?: string | null; // e.g., 'routine', 'urgent'
+    booking_notes?: string | null;
+    created_by_id?: string | null; // Assuming ID is string, optional
+}
+
 // GET /api/ot/bookings - List OT bookings
 export async function GET(request: NextRequest) {
   try {
@@ -69,14 +84,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(results);
   } catch (error) {
     console.error("Error fetching OT bookings:", error);
-    return NextResponse.json({ message: "Error fetching OT bookings" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error fetching OT bookings", details: errorMessage }, { status: 500 });
   }
 }
 
 // POST /api/ot/bookings - Create a new OT booking
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json() as OTBookingBody;
     const {
       patient_id,
       surgery_type_id,
@@ -153,8 +169,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error("Error creating OT booking:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     // TODO: Add specific error handling for time conflicts if validation is implemented
-    return NextResponse.json({ message: "Error creating OT booking" }, { status: 500 });
+    return NextResponse.json({ message: "Error creating OT booking", details: errorMessage }, { status: 500 });
   }
 }
 
