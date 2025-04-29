@@ -3,6 +3,23 @@ import { D1Database } from "@cloudflare/workers-types";
 
 export const runtime = "edge";
 
+// Interface for required staff/equipment (re-used from [id] route, consider moving to a shared types file)
+interface RequiredResource {
+    role?: string; // For staff
+    name?: string; // For equipment
+    count?: number;
+}
+
+// Interface for the POST request body
+interface SurgeryTypeCreateBody {
+    name: string;
+    description?: string | null;
+    specialty?: string | null;
+    estimated_duration_minutes?: number | null;
+    required_staff?: RequiredResource[] | null;
+    required_equipment?: RequiredResource[] | null;
+}
+
 // GET /api/ot/surgery-types - List all surgery types
 export async function GET(request: NextRequest) {
   try {
@@ -24,17 +41,18 @@ export async function GET(request: NextRequest) {
 
     const { results } = await DB.prepare(query).bind(...params).all();
 
-    return NextResponse.json(results);
+    return NextResponse.json(results || []); // Ensure empty array if results is null/undefined
   } catch (error) {
     console.error("Error fetching surgery types:", error);
-    return NextResponse.json({ message: "Error fetching surgery types" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error fetching surgery types", details: errorMessage }, { status: 500 });
   }
 }
 
 // POST /api/ot/surgery-types - Create a new surgery type
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json() as SurgeryTypeCreateBody;
     const { name, description, specialty, estimated_duration_minutes, required_staff, required_equipment } = body;
 
     if (!name) {
@@ -52,7 +70,7 @@ export async function POST(request: NextRequest) {
         name, 
         description || null, 
         specialty || null, 
-        estimated_duration_minutes || null, 
+        estimated_duration_minutes === undefined ? null : estimated_duration_minutes, // Handle undefined for optional number
         required_staff ? JSON.stringify(required_staff) : null, 
         required_equipment ? JSON.stringify(required_equipment) : null, 
         now, 
@@ -63,17 +81,34 @@ export async function POST(request: NextRequest) {
     const { results } = await DB.prepare("SELECT * FROM SurgeryTypes WHERE id = ?").bind(id).all();
 
     if (results && results.length > 0) {
-        return NextResponse.json(results[0], { status: 201 });
+        const newSurgeryType = results[0];
+        // Parse JSON fields before returning
+        try {
+            if (newSurgeryType.required_staff && typeof newSurgeryType.required_staff === "string") {
+                newSurgeryType.required_staff = JSON.parse(newSurgeryType.required_staff);
+            }
+            if (newSurgeryType.required_equipment && typeof newSurgeryType.required_equipment === "string") {
+                newSurgeryType.required_equipment = JSON.parse(newSurgeryType.required_equipment);
+            }
+        } catch (e) {
+            console.error("Failed to parse JSON fields for new surgery type:", id, e);
+        }
+        return NextResponse.json(newSurgeryType, { status: 201 });
     } else {
-        return NextResponse.json({ id, name, description, specialty, estimated_duration_minutes, required_staff, required_equipment, created_at: now, updated_at: now }, { status: 201 });
+        // Fallback response if fetching fails
+        return NextResponse.json({ 
+            id, name, description, specialty, estimated_duration_minutes, 
+            required_staff, required_equipment, created_at: now, updated_at: now 
+        }, { status: 201 });
     }
 
   } catch (error: any) {
     console.error("Error creating surgery type:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     if (error.message?.includes("UNIQUE constraint failed")) {
-        return NextResponse.json({ message: "Surgery type name must be unique" }, { status: 409 });
+        return NextResponse.json({ message: "Surgery type name must be unique", details: errorMessage }, { status: 409 });
     }
-    return NextResponse.json({ message: "Error creating surgery type" }, { status: 500 });
+    return NextResponse.json({ message: "Error creating surgery type", details: errorMessage }, { status: 500 });
   }
 }
 

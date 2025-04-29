@@ -10,7 +10,7 @@ import { getSession } from '@/lib/session';
 // - date_to: Filter by dispensing date (to)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession(request);
+    const session = await getSession(); // Fixed: Removed request argument
     
     // Check authentication
     if (!session || !session.user) {
@@ -97,7 +97,8 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching dispensing records:', error);
-    return NextResponse.json({ error: 'Failed to fetch dispensing records' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to fetch dispensing records', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -105,7 +106,7 @@ export async function GET(request: NextRequest) {
 // Dispense medications for a prescription
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession(request);
+    const session = await getSession(); // Fixed: Removed request argument
     
     // Check authentication
     if (!session || !session.user) {
@@ -113,9 +114,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if user has pharmacist role
-    const hasPermission = session.user.roles.some(role => 
-      ['admin', 'pharmacy_admin', 'pharmacist'].includes(role)
-    );
+    // Assuming roleName is directly on user object based on session.ts
+    const hasPermission = ['admin', 'pharmacy_admin', 'pharmacist'].includes(session.user.roleName);
     
     if (!hasPermission) {
       return NextResponse.json({ error: 'Forbidden: Only pharmacists can dispense medications' }, { status: 403 });
@@ -246,7 +246,7 @@ export async function POST(request: NextRequest) {
           item.prescription_item_id,
           item.batch_id,
           item.quantity,
-          session.user.id,
+          session.user.userId, // Use userId from session
           item.notes || null,
           false // Not billed yet
         ).run();
@@ -272,7 +272,7 @@ export async function POST(request: NextRequest) {
           item.quantity,
           'dispensing',
           dispensingId,
-          session.user.id,
+          session.user.userId, // Use userId from session
           `Dispensed for prescription ${data.prescription_id}`
         ).run();
         
@@ -407,6 +407,8 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error dispensing medications:', error);
-    return NextResponse.json({ error: 'Failed to dispense medications: ' + error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to dispense medications: ' + errorMessage }, { status: 500 });
   }
 }
+

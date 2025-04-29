@@ -3,6 +3,14 @@ import { D1Database } from "@cloudflare/workers-types";
 
 export const runtime = "edge";
 
+// Interface for the POST request body
+interface TheatreCreateBody {
+    name: string;
+    location?: string | null;
+    specialty?: string | null;
+    equipment?: string | null; // Assuming JSON string or simple text for equipment list
+}
+
 // GET /api/ot/theatres - List all operation theatres
 export async function GET(request: NextRequest) {
   try {
@@ -24,17 +32,18 @@ export async function GET(request: NextRequest) {
 
     const { results } = await DB.prepare(query).bind(...params).all();
 
-    return NextResponse.json(results);
+    return NextResponse.json(results || []); // Ensure empty array if results is null/undefined
   } catch (error) {
     console.error("Error fetching operation theatres:", error);
-    return NextResponse.json({ message: "Error fetching operation theatres" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error fetching operation theatres", details: errorMessage }, { status: 500 });
   }
 }
 
 // POST /api/ot/theatres - Create a new operation theatre
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json() as TheatreCreateBody;
     const { name, location, specialty, equipment } = body;
 
     if (!name) {
@@ -56,15 +65,19 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(results[0], { status: 201 });
     } else {
         // Fallback if select fails immediately after insert
-        return NextResponse.json({ id, name, location, specialty, equipment, status: "available", created_at: now, updated_at: now }, { status: 201 });
+        return NextResponse.json({ 
+            id, name, location, specialty, equipment, 
+            status: "available", created_at: now, updated_at: now 
+        }, { status: 201 });
     }
 
   } catch (error: any) {
     console.error("Error creating operation theatre:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     if (error.message?.includes("UNIQUE constraint failed")) {
-        return NextResponse.json({ message: "Operation theatre name must be unique" }, { status: 409 });
+        return NextResponse.json({ message: "Operation theatre name must be unique", details: errorMessage }, { status: 409 });
     }
-    return NextResponse.json({ message: "Error creating operation theatre" }, { status: 500 });
+    return NextResponse.json({ message: "Error creating operation theatre", details: errorMessage }, { status: 500 });
   }
 }
 
