@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDB } from '@/lib/db';
+import { getDB } from '@/lib/db'; // Using mock DB
 import { getSession } from '@/lib/session';
+
+// Define interface for POST request body
+interface BedInput {
+  bed_number: string;
+  room_number: string;
+  ward: string;
+  category: string;
+  price_per_day: number;
+  status?: string; // Optional, defaults to 'available'
+  features?: string | null;
+}
 
 // GET /api/ipd/beds - Get all beds with optional filtering
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession(request);
+    const session = await getSession(); // Removed request argument
     
     // Check authentication
     if (!session || !session.user) {
@@ -17,7 +28,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const status = searchParams.get('status');
     
-    const db = await getDB();
+    const db = getDB(); // Get mock DB
     
     let query = 'SELECT * FROM beds WHERE 1=1';
     const params: any[] = [];
@@ -39,57 +50,60 @@ export async function GET(request: NextRequest) {
     
     query += ' ORDER BY ward, room_number, bed_number';
     
-    const beds = await db.prepare(query).bind(...params).all();
+    // Use db.query instead of db.prepare
+    const bedsResult = await db.query(query, params);
     
-    return NextResponse.json(beds.results);
+    return NextResponse.json(bedsResult.rows || []);
   } catch (error) {
     console.error('Error fetching beds:', error);
-    return NextResponse.json({ error: 'Failed to fetch beds' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return NextResponse.json({ error: 'Failed to fetch beds', details: errorMessage }, { status: 500 });
   }
 }
 
 // POST /api/ipd/beds - Create a new bed
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession(request);
+    const session = await getSession(); // Removed request argument
     
     // Check authentication and permissions
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check if user has permission to create beds
-    const hasPermission = await session.hasPermission('bed:create');
-    if (!hasPermission) {
+    // Check permissions (using mock session data)
+    const canCreateBed = session.user.permissions.includes('bed:create');
+    if (!canCreateBed) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
-    const data = await request.json();
+    // Fixed: Apply type assertion
+    const data = await request.json() as BedInput;
     
-    // Validate required fields
-    const requiredFields = ['bed_number', 'room_number', 'ward', 'category', 'price_per_day'];
+    // Basic validation (using typed data)
+    const requiredFields: (keyof BedInput)[] = ['bed_number', 'room_number', 'ward', 'category', 'price_per_day'];
     for (const field of requiredFields) {
       if (!data[field]) {
         return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
       }
     }
     
-    const db = await getDB();
+    const db = getDB(); // Get mock DB
     
-    // Check if bed number already exists
-    const existingBed = await db.prepare('SELECT id FROM beds WHERE bed_number = ? AND room_number = ?')
-      .bind(data.bed_number, data.room_number)
-      .first();
+    // Check if bed number already exists using db.query
+    const existingBedResult = await db.query('SELECT id FROM beds WHERE bed_number = ? AND room_number = ?', [data.bed_number, data.room_number]);
+    const existingBed = existingBedResult.rows && existingBedResult.rows.length > 0 ? existingBedResult.rows[0] : null;
       
     if (existingBed) {
       return NextResponse.json({ error: 'Bed number already exists in this room' }, { status: 409 });
     }
     
-    // Insert new bed
-    const result = await db.prepare(`
+    // Insert new bed using db.query
+    // Mock query doesn't return last_row_id
+    await db.query(`
       INSERT INTO beds (bed_number, room_number, ward, category, status, price_per_day, features)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(
+    `, [
       data.bed_number,
       data.room_number,
       data.ward,
@@ -97,16 +111,15 @@ export async function POST(request: NextRequest) {
       data.status || 'available',
       data.price_per_day,
       data.features || null
-    ).run();
+    ]);
     
-    // Get the newly created bed
-    const newBed = await db.prepare('SELECT * FROM beds WHERE id = ?')
-      .bind(result.meta.last_row_id)
-      .first();
-    
-    return NextResponse.json(newBed, { status: 201 });
+    // Cannot reliably get the new record from mock DB
+    return NextResponse.json({ message: 'Bed created (mock operation)' }, { status: 201 });
+
   } catch (error) {
     console.error('Error creating bed:', error);
-    return NextResponse.json({ error: 'Failed to create bed' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return NextResponse.json({ error: 'Failed to create bed', details: errorMessage }, { status: 500 });
   }
 }
+

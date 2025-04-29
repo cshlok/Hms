@@ -3,6 +3,12 @@ import { D1Database } from "@cloudflare/workers-types";
 
 export const runtime = "edge";
 
+// Interface for the POST request body
+interface StaffAssignmentBody {
+    user_id: string; // Assuming ID is string
+    role: string;
+}
+
 // GET /api/ot/bookings/[id]/staff - Get staff assigned to a specific OT booking
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -25,7 +31,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json(results || []);
   } catch (error) {
     console.error("Error fetching OT staff assignments:", error);
-    return NextResponse.json({ message: "Error fetching OT staff assignments" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error fetching OT staff assignments", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -37,7 +44,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ message: "Booking ID is required" }, { status: 400 });
     }
 
-    const body = await request.json();
+    const body = await request.json() as StaffAssignmentBody;
     const { user_id, role } = body;
 
     if (!user_id || !role) {
@@ -103,12 +110,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (results && results.length > 0) {
         return NextResponse.json(results[0], { status: 201 });
     } else {
+        // Fallback response if fetching the joined data fails
         return NextResponse.json({ id, booking_id: bookingId, user_id, role, assigned_at: now }, { status: 201 });
     }
 
   } catch (error) {
     console.error("Error assigning staff to OT booking:", error);
-    return NextResponse.json({ message: "Error assigning staff to OT booking" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error assigning staff to OT booking", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -125,11 +134,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ 
       message: "Staff assignments removed successfully", 
-      count: info.meta.changes 
+      // D1 delete doesn't reliably return changes, so we might not have an accurate count
+      // count: info.meta.changes 
     }, { status: 200 });
 
   } catch (error) {
     console.error("Error removing staff assignments:", error);
-    return NextResponse.json({ message: "Error removing staff assignments" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error removing staff assignments", details: errorMessage }, { status: 500 });
   }
 }
+

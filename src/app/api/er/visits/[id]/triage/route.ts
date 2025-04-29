@@ -1,11 +1,20 @@
-// src/app/api/er/visits/[id]/triage/route.ts
-import { NextResponse } from "next/server";
-// import { getRequestContext } from "@cloudflare/next-on-pages";
+import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
+// import { getRequestContext } from "@cloudflare/next-on-pages"; // Cloudflare specific
 
-export const runtime = "edge";
+// Mock data store for triage assessments (replace with actual DB interaction)
+let mockTriageAssessments: any[] = [];
 
-// GET /api/er/visits/[id]/triage - Get triage assessment for a visit
+// Define interface for triage input data
+interface TriageInput {
+  triage_nurse_id: string | number;
+  esi_level: number; // Emergency Severity Index (1-5)
+  vital_signs: Record<string, any>; // e.g., { temp: 37.0, hr: 80, rr: 16, bp: "120/80", spo2: 98 }
+  assessment_notes?: string;
+  triage_timestamp?: string; // Optional, defaults to now
+}
+
+// GET /api/er/visits/[id]/triage - Get triage assessment(s) for a specific ER visit
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -15,55 +24,40 @@ export async function GET(
     // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
 
-    // Placeholder for database query (usually expect one primary triage)
+    // Placeholder for database query
     /*
     const { results } = await db
-      .prepare("SELECT * FROM er_triage_assessments WHERE visit_id = ? ORDER BY triage_timestamp DESC LIMIT 1")
+      .prepare("SELECT * FROM er_triage_assessments WHERE visit_id = ? ORDER BY triage_timestamp DESC")
       .bind(visitId)
       .all();
-
-    if (results.length === 0) {
-      return NextResponse.json(
-        { error: "Triage assessment not found for this visit" },
-        { status: 404 }
-      );
-    }
-    const triage = results[0];
     */
 
-    // Mock data
-    const triage = {
-        id: uuidv4(),
-        visit_id: visitId,
-        triage_timestamp: new Date().toISOString(),
-        triage_nurse_id: "nurse_456",
-        esi_level: 3,
-        vital_signs: JSON.stringify({ HR: 90, BP: "120/80", RR: 18, Temp: 37.2, SpO2: 98 }),
-        assessment_notes: "Patient presents with abdominal pain.",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    };
+    // Mock implementation
+    const assessments = mockTriageAssessments.filter((t) => t.visit_id === visitId)
+                                          .sort((a, b) => new Date(b.triage_timestamp).getTime() - new Date(a.triage_timestamp).getTime());
 
-    return NextResponse.json(triage);
+    return NextResponse.json(assessments);
   } catch (e: any) {
-    console.error({ message: "Error fetching triage assessment", error: e.message });
+    console.error({ message: "Error fetching triage assessments", error: e.message });
     return NextResponse.json(
-      { error: "Failed to fetch triage assessment", details: e.message },
+      { error: "Failed to fetch triage assessments", details: e.message },
       { status: 500 }
     );
   }
 }
 
-// POST /api/er/visits/[id]/triage - Create a triage assessment for a visit
+// POST /api/er/visits/[id]/triage - Create a new triage assessment for an ER visit
 export async function POST(
-  request: Request,
+  request: NextRequest, // Use NextRequest for json()
   { params }: { params: { id: string } }
 ) {
   try {
     // const { env } = getRequestContext(); // Cloudflare specific
     // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
-    const triageData = await request.json();
+    const body = await request.json();
+    // Fixed: Apply type assertion
+    const triageData = body as TriageInput;
     const triageId = uuidv4();
 
     // Basic validation
@@ -92,7 +86,7 @@ export async function POST(
         triageData.esi_level,
         JSON.stringify(triageData.vital_signs), // Ensure vital_signs is stored as JSON string
         triageData.assessment_notes || null,
-        new Date().toISOString() // Use provided triage_timestamp if available
+        triageData.triage_timestamp || new Date().toISOString() // Use provided or default to now
       )
       .run();
     */
@@ -103,10 +97,15 @@ export async function POST(
     const newTriage = {
       id: triageId,
       visit_id: visitId,
-      ...triageData,
-      triage_timestamp: new Date().toISOString(),
-      vital_signs: JSON.stringify(triageData.vital_signs), // Ensure consistency
+      triage_nurse_id: triageData.triage_nurse_id,
+      esi_level: triageData.esi_level,
+      vital_signs: JSON.stringify(triageData.vital_signs), // Store as JSON string
+      assessment_notes: triageData.assessment_notes || null,
+      triage_timestamp: triageData.triage_timestamp || new Date().toISOString(),
     };
+
+    // Mock implementation
+    mockTriageAssessments.push(newTriage);
 
     return NextResponse.json(newTriage, { status: 201 });
   } catch (e: any) {

@@ -1,24 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { getSession } from '@/lib/session';
+import { NextRequest, NextResponse } from "next/server";
+import { getDB } from "@/lib/db"; // Using mock DB
+import { getSession } from "@/lib/session"; // Using mock session
+
+// --- Interfaces ---
+
+interface SampleInput {
+  id?: number; // For updates
+  order_id: number;
+  sample_type: string;
+  barcode?: string; // Optional for creation, required for update?
+  status?: "collected" | "received" | "processing" | "rejected";
+  rejection_reason?: string;
+  notes?: string;
+}
+
+interface LabSample {
+  id: number;
+  order_id: number;
+  barcode: string;
+  sample_type: string;
+  collected_by: number | null;
+  collected_at: string | null;
+  received_by: number | null;
+  received_at: string | null;
+  status: "collected" | "received" | "processing" | "rejected";
+  rejection_reason: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined fields
+  patient_id?: number;
+  patient_name?: string;
+  collector_name?: string;
+  receiver_name?: string;
+}
+
+// --- API Route Handlers ---
 
 // GET /api/laboratory/samples - Get laboratory samples
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
-    
-    // Check authentication
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    // Parse query parameters
+
     const { searchParams } = new URL(request.url);
-    const orderId = searchParams.get('orderId');
-    const barcode = searchParams.get('barcode');
-    const status = searchParams.get('status');
-    
-    // Build query
+    const orderId = searchParams.get("orderId");
+    const barcode = searchParams.get("barcode");
+    const status = searchParams.get("status");
+
+    const db = getDB();
     let query = `
       SELECT s.*, 
         o.patient_id,
@@ -31,38 +63,36 @@ export async function GET(request: NextRequest) {
       LEFT JOIN users c ON s.collected_by = c.id
       LEFT JOIN users r ON s.received_by = r.id
     `;
-    
+
     const params: any[] = [];
     const conditions: string[] = [];
-    
+
     if (orderId) {
-      conditions.push('s.order_id = ?');
+      conditions.push("s.order_id = ?");
       params.push(orderId);
     }
-    
     if (barcode) {
-      conditions.push('s.barcode = ?');
+      conditions.push("s.barcode = ?");
       params.push(barcode);
     }
-    
     if (status) {
-      conditions.push('s.status = ?');
+      conditions.push("s.status = ?");
       params.push(status);
     }
-    
+
     if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
+      query += " WHERE " + conditions.join(" AND ");
     }
-    
-    query += ' ORDER BY s.created_at DESC';
-    
-    // Execute query
-    const samples = await db.prepare(query).bind(...params).all();
-    
-    return NextResponse.json(samples);
+    query += " ORDER BY s.created_at DESC";
+
+    // Fixed: Use db.query
+    const samplesResult = await db.query(query, params);
+    return NextResponse.json(samplesResult.rows || []);
+
   } catch (error) {
-    console.error('Error fetching laboratory samples:', error);
-    return NextResponse.json({ error: 'Failed to fetch laboratory samples' }, { status: 500 });
+    console.error("Error fetching laboratory samples:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return NextResponse.json({ error: "Failed to fetch laboratory samples", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -70,124 +100,112 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
-    
-    // Check authentication
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    // Only lab staff and admins can manage samples
-    const allowedRoles = ['lab_technician', 'lab_manager', 'phlebotomist', 'admin'];
-    if (!allowedRoles.includes(session.user.role)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    // Fixed: Use roleName
+    const allowedRoles = ["Lab Technician", "Lab Manager", "Phlebotomist", "Admin"]; // Adjust role names
+    if (!allowedRoles.includes(session.user.roleName)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    
-    // Parse request body
-    const body = await request.json();
-    
-    // Check if this is an update to an existing sample
+
+    const body = await request.json() as SampleInput;
+    const db = getDB();
+
     if (body.id) {
-      // Update existing sample
-      const sample = await db.prepare('SELECT * FROM lab_samples WHERE id = ?').bind(body.id).first();
-      
-      if (!sample) {
-        return NextResponse.json({ error: 'Sample not found' }, { status: 404 });
+      // --- Update existing sample ---
+      const sampleResult = await db.query("SELECT * FROM lab_samples WHERE id = ?", [body.id]);
+      const existingSample = (sampleResult.rows && sampleResult.rows.length > 0 ? sampleResult.rows[0] : null) as LabSample | null;
+
+      if (!existingSample) {
+        return NextResponse.json({ error: "Sample not found" }, { status: 404 });
       }
-      
-      // Build update query
+
       const updates: string[] = [];
       const params: any[] = [];
-      
+
       if (body.status) {
-        updates.push('status = ?');
+        updates.push("status = ?");
         params.push(body.status);
-        
-        // If status is changing to 'collected', update collected_by and collected_at
-        if (body.status === 'collected' && sample.status !== 'collected') {
-          updates.push('collected_by = ?');
-          params.push(session.user.id);
-          
-          updates.push('collected_at = CURRENT_TIMESTAMP');
+
+        if (body.status === "collected" && existingSample.status !== "collected") {
+          updates.push("collected_by = ?", "collected_at = CURRENT_TIMESTAMP");
+          params.push(session.user.userId);
         }
-        
-        // If status is changing to 'received', update received_by and received_at
-        if (body.status === 'received' && sample.status !== 'received') {
-          updates.push('received_by = ?');
-          params.push(session.user.id);
-          
-          updates.push('received_at = CURRENT_TIMESTAMP');
+        if (body.status === "received" && existingSample.status !== "received") {
+          updates.push("received_by = ?", "received_at = CURRENT_TIMESTAMP");
+          params.push(session.user.userId);
         }
-        
-        // If status is changing to 'rejected', require rejection_reason
-        if (body.status === 'rejected' && !body.rejection_reason) {
-          return NextResponse.json({ error: 'Rejection reason is required' }, { status: 400 });
+        if (body.status === "rejected" && !body.rejection_reason) {
+          return NextResponse.json({ error: "Rejection reason is required when rejecting a sample" }, { status: 400 });
         }
       }
-      
       if (body.rejection_reason) {
-        updates.push('rejection_reason = ?');
+        updates.push("rejection_reason = ?");
         params.push(body.rejection_reason);
       }
-      
       if (body.notes) {
-        updates.push('notes = ?');
+        updates.push("notes = ?");
         params.push(body.notes);
       }
-      
+
       if (updates.length === 0) {
-        return NextResponse.json({ error: 'No updates provided' }, { status: 400 });
+        return NextResponse.json({ error: "No updates provided" }, { status: 400 });
       }
-      
-      // Add id to params
-      params.push(body.id);
-      
-      // Execute update
-      await db.prepare(`
-        UPDATE lab_samples
-        SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `).bind(...params).run();
-      
-      // Get updated sample
-      const updatedSample = await db.prepare('SELECT * FROM lab_samples WHERE id = ?').bind(body.id).first();
-      
+
+      params.push(body.id); // Add ID for WHERE clause
+
+      // Fixed: Use db.query for update
+      await db.query(`UPDATE lab_samples SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, params);
+
+      // Fixed: Use db.query to get updated sample
+      const updatedSampleResult = await db.query("SELECT * FROM lab_samples WHERE id = ?", [body.id]);
+      const updatedSample = updatedSampleResult.rows && updatedSampleResult.rows.length > 0 ? updatedSampleResult.rows[0] : null;
+
       return NextResponse.json(updatedSample);
+
     } else {
-      // Create new sample
-      // Validate required fields
-      const requiredFields = ['order_id', 'sample_type'];
+      // --- Create new sample ---
+      const requiredFields: (keyof SampleInput)[] = ["order_id", "sample_type"];
       for (const field of requiredFields) {
         if (!body[field]) {
           return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
         }
       }
-      
-      // Generate unique barcode
-      const timestamp = new Date().getTime();
+
+      const timestamp = Date.now();
       const random = Math.floor(Math.random() * 1000);
       const barcode = body.barcode || `LAB${timestamp}${random}`;
-      
-      // Insert new sample
-      const result = await db.prepare(`
-        INSERT INTO lab_samples (
-          order_id, barcode, sample_type, collected_by, collected_at, status, notes
-        ) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?)
-      `).bind(
+
+      // Fixed: Use db.query for insert (mock DB doesn't return last_row_id)
+      await db.query(`
+        INSERT INTO lab_samples (order_id, barcode, sample_type, collected_by, collected_at, status, notes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `, [
         body.order_id,
         barcode,
         body.sample_type,
-        session.user.id,
-        'collected', // New samples are automatically marked as collected
-        body.notes || ''
-      ).run();
-      
-      // Get the inserted sample
-      const sample = await db.prepare('SELECT * FROM lab_samples WHERE id = ?').bind(result.meta.last_row_id).first();
-      
-      return NextResponse.json(sample, { status: 201 });
+        session.user.userId,
+        "collected", // New samples start as collected
+        body.notes || "",
+      ]);
+
+      // Fetch the created sample (mock fetch by barcode)
+      const newSampleResult = await db.query("SELECT * FROM lab_samples WHERE barcode = ? ORDER BY created_at DESC LIMIT 1", [barcode]);
+      const newSample = newSampleResult.rows && newSampleResult.rows.length > 0 ? newSampleResult.rows[0] : null;
+
+      if (!newSample) {
+          // Fallback if mock fetch fails
+          return NextResponse.json({ message: "Sample created (mock), but could not fetch immediately.", barcode: barcode }, { status: 201 });
+      }
+
+      return NextResponse.json(newSample, { status: 201 });
     }
   } catch (error) {
-    console.error('Error managing laboratory sample:', error);
-    return NextResponse.json({ error: 'Failed to manage laboratory sample' }, { status: 500 });
+    console.error("Error managing laboratory sample:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return NextResponse.json({ error: "Failed to manage laboratory sample", details: errorMessage }, { status: 500 });
   }
 }
+

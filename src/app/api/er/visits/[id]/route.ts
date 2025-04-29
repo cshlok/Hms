@@ -1,11 +1,27 @@
-// src/app/api/er/visits/[id]/route.ts
-import { NextResponse } from "next/server";
-// import { getRequestContext } from "@cloudflare/next-on-pages";
+import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
+// import { getRequestContext } from "@cloudflare/next-on-pages"; // Cloudflare specific
 
-export const runtime = "edge";
+// Mock data store for ER visits (replace with actual DB interaction)
+let mockVisits: any[] = [];
 
-// GET /api/er/visits/[id] - Get a specific ER visit by ID
+// Define interface for ER visit update data
+interface ERVisitUpdateInput {
+  assigned_physician_id?: string | number;
+  assigned_nurse_id?: string | number;
+  current_location?: string; // e.g., "Waiting Room", "Triage", "Resuscitation Bay", "Observation"
+  current_status?: string; // e.g., "Pending Triage", "Under Assessment", "Awaiting Admission", "Discharged", "Admitted"
+  disposition?: string; // e.g., "Admitted", "Discharged Home", "Transferred", "Left Against Medical Advice"
+  discharge_timestamp?: string; // ISO string
+  updated_by_id?: string | number; // User ID performing the update
+}
+
+// Removed the duplicate GET handler for listing visits, as it belongs in /api/er/visits/route.ts
+
+// POST /api/er/visits - Create a new ER visit (patient arrival)
+// ... (Assuming POST handler exists in the correct file: /api/er/visits/route.ts)
+
+// GET /api/er/visits/[id] - Get details of a specific ER visit
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -28,26 +44,22 @@ export async function GET(
         { status: 404 }
       );
     }
-
-    const visit = results[0];
+    return NextResponse.json(results[0]);
     */
 
-    // Mock data for development
-    const visit = {
-      id: visitId,
-      patient_id: "patient_123",
-      arrival_timestamp: new Date().toISOString(),
-      arrival_mode: "Ambulance",
-      chief_complaint: "Chest pain",
-      current_location: "Room 3",
-      current_status: "Treatment",
-    };
-
+    // Mock implementation
+    const visit = mockVisits.find((v) => v.id === visitId);
+    if (!visit) {
+      return NextResponse.json(
+        { error: "ER visit not found" },
+        { status: 404 }
+      );
+    }
     return NextResponse.json(visit);
   } catch (e: any) {
-    console.error({ message: "Error fetching ER visit", error: e.message });
+    console.error({ message: "Error fetching ER visit details", error: e.message });
     return NextResponse.json(
-      { error: "Failed to fetch ER visit", details: e.message },
+      { error: "Failed to fetch ER visit details", details: e.message },
       { status: 500 }
     );
   }
@@ -55,29 +67,16 @@ export async function GET(
 
 // PUT /api/er/visits/[id] - Update a specific ER visit
 export async function PUT(
-  request: Request,
+  request: NextRequest, // Use NextRequest for json()
   { params }: { params: { id: string } }
 ) {
   try {
     // const { env } = getRequestContext(); // Cloudflare specific
     // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
-    const updateData = await request.json();
-
-    // Validate the visit exists
-    /*
-    const { results } = await db
-      .prepare("SELECT id FROM er_visits WHERE id = ?")
-      .bind(visitId)
-      .all();
-
-    if (results.length === 0) {
-      return NextResponse.json(
-        { error: "ER visit not found" },
-        { status: 404 }
-      );
-    }
-    */
+    const body = await request.json();
+    // Fixed: Apply type assertion
+    const updateData = body as ERVisitUpdateInput;
 
     // Prepare update fields and values
     const allowedFields = [
@@ -89,6 +88,7 @@ export async function PUT(
       "discharge_timestamp",
     ];
     
+    // Fixed: Object.keys works correctly now with typed updateData
     const updateFields = Object.keys(updateData).filter(field => 
       allowedFields.includes(field)
     );
@@ -103,7 +103,8 @@ export async function PUT(
     // Placeholder for database update
     /*
     const setClause = updateFields.map(field => `${field} = ?`).join(", ");
-    const values = updateFields.map(field => updateData[field]);
+    // Need to cast updateData[field] to the correct type if using strict checks
+    const values = updateFields.map(field => (updateData as any)[field]); 
     
     await db
       .prepare(`UPDATE er_visits SET ${setClause}, updated_at = ? WHERE id = ?`)
@@ -111,23 +112,32 @@ export async function PUT(
       .run();
     */
 
-    // If status or location changed, log the change
+    // Mock implementation
+    const visitIndex = mockVisits.findIndex((v) => v.id === visitId);
+    if (visitIndex === -1) {
+      return NextResponse.json({ error: "ER visit not found" }, { status: 404 });
+    }
+    const updatedVisit = { ...mockVisits[visitIndex] };
+    updateFields.forEach(field => {
+      (updatedVisit as any)[field] = (updateData as any)[field];
+    });
+    updatedVisit.updated_at = new Date().toISOString();
+    mockVisits[visitIndex] = updatedVisit;
+
+    // If status or location changed, log the change (mock)
     if (updateData.current_status || updateData.current_location) {
       console.log("Mock Status Log:", {
         id: uuidv4(),
         visit_id: visitId,
         status: updateData.current_status || null,
         location: updateData.current_location || null,
-        updated_by_id: updateData.updated_by_id
+        updated_by_id: updateData.updated_by_id, // Assuming updated_by_id is passed in request
+        timestamp: new Date().toISOString()
       });
     }
 
     // Return the updated visit
-    return NextResponse.json({
-      id: visitId,
-      ...updateData,
-      updated_at: new Date().toISOString(),
-    });
+    return NextResponse.json(updatedVisit);
   } catch (e: any) {
     console.error({ message: "Error updating ER visit", error: e.message });
     return NextResponse.json(
@@ -184,6 +194,13 @@ export async function DELETE(
       .run();
     */
 
+    // Mock implementation
+    const initialLength = mockVisits.length;
+    mockVisits = mockVisits.filter(v => v.id !== visitId);
+    if (mockVisits.length === initialLength) {
+       return NextResponse.json({ error: "ER visit not found" }, { status: 404 });
+    }
+
     console.log("Mock Delete ER Visit:", visitId);
 
     return NextResponse.json(
@@ -198,3 +215,4 @@ export async function DELETE(
     );
   }
 }
+
