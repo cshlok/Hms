@@ -29,9 +29,10 @@ export async function GET(
     
     const admissionId = params.id;
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Check if admission exists using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const admissionResult = await db.query(`
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
       FROM admissions a
@@ -48,13 +49,15 @@ export async function GET(
     const isNurse = session.user.roleName === 'Nurse';
     const isDoctor = session.user.roleName === 'Doctor';
     const isAdmin = session.user.roleName === 'Admin';
-    const canViewVitals = session.user.permissions.includes('vital_signs:view');
+    // Assuming permissions are correctly populated in the mock session
+    const canViewVitals = session.user.permissions?.includes('vital_signs:view') ?? false;
     
     if (!isNurse && !isDoctor && !isAdmin && !canViewVitals) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
     // Get vital signs using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const vitalSignsResult = await db.query(`
       SELECT vs.*, u.first_name as recorded_by_first_name, u.last_name as recorded_by_last_name
       FROM vital_signs_records vs
@@ -69,7 +72,8 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching vital signs:', error);
-    return NextResponse.json({ error: 'Failed to fetch vital signs' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to fetch vital signs', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -89,7 +93,8 @@ export async function POST(
     // Check permissions (using mock session data)
     const isNurse = session.user.roleName === 'Nurse';
     const isDoctor = session.user.roleName === 'Doctor';
-    const canCreateVitals = session.user.permissions.includes('vital_signs:create');
+    // Assuming permissions are correctly populated in the mock session
+    const canCreateVitals = session.user.permissions?.includes('vital_signs:create') ?? false;
 
     if (!isNurse && !isDoctor && !canCreateVitals) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -105,9 +110,10 @@ export async function POST(
       return NextResponse.json({ error: 'At least one vital sign must be provided' }, { status: 400 });
     }
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Check if admission exists and is active using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const admissionResult = await db.query('SELECT id, status FROM admissions WHERE id = ?', [admissionId]);
     const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] as { id: string; status: string } : null;
       
@@ -116,7 +122,7 @@ export async function POST(
     }
     
     if (admission.status !== 'active') {
-      return NextResponse.json({ error: 'Cannot add vital signs to a discharged admission' }, { status: 409 });
+      return NextResponse.json({ error: 'Cannot add vital signs to a non-active admission' }, { status: 409 }); // Updated error message
     }
     
     // Insert new vital signs record using db.query
@@ -128,7 +134,7 @@ export async function POST(
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       admissionId,
-      session.user.userId, // Changed from session.user.id
+      session.user.userId, // Ensure userId exists on session.user
       data.record_time || new Date().toISOString(),
       data.temperature || null,
       data.pulse || null,
@@ -144,7 +150,8 @@ export async function POST(
 
   } catch (error) {
     console.error('Error creating vital signs record:', error);
-    return NextResponse.json({ error: 'Failed to create vital signs record' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to create vital signs record', details: errorMessage }, { status: 500 });
   }
 }
 

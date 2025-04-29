@@ -6,25 +6,63 @@ import moment from 'moment';
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-const OrderManagement = () => {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({
+// Define interfaces for data types
+interface Patient {
+  id: string;
+  first_name: string;
+  last_name: string;
+}
+
+interface Test {
+  id: string;
+  name: string;
+  price: number;
+}
+
+interface OrderItem {
+  id: string;
+  name: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'canceled';
+  price: number;
+}
+
+interface Order {
+  id: string;
+  patient_name: string;
+  doctor_name: string | null;
+  order_date: string;
+  source: string;
+  priority: 'routine' | 'urgent' | 'stat';
+  status: 'pending' | 'collected' | 'processing' | 'completed' | 'canceled';
+  notes?: string;
+}
+
+interface FilterState {
+  patientId: string;
+  status: string | null;
+  source: string | null;
+  dateRange: [moment.Moment, moment.Moment] | null;
+}
+
+const OrderManagement: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [filters, setFilters] = useState<FilterState>({
     patientId: '',
     status: null,
     source: null,
     dateRange: null,
   });
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [viewingOrder, setViewingOrder] = useState(null);
-  const [patients, setPatients] = useState([]);
-  const [tests, setTests] = useState([]);
-  const [orderItems, setOrderItems] = useState([]);
-  const [loadingOrderItems, setLoadingOrderItems] = useState(false);
-  const [error, setError] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [tests, setTests] = useState<Test[]>([]);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [loadingOrderItems, setLoadingOrderItems] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch patients
-  const fetchPatients = async () => {
+  const fetchPatients = async (): Promise<void> => {
     try {
       setLoading(true);
       const response = await fetch('/api/patients');
@@ -42,7 +80,7 @@ const OrderManagement = () => {
   };
 
   // Fetch tests
-  const fetchTests = async () => {
+  const fetchTests = async (): Promise<void> => {
     try {
       setLoading(true);
       const response = await fetch('/api/laboratory/tests');
@@ -60,7 +98,7 @@ const OrderManagement = () => {
   };
 
   // Fetch orders with filters
-  const fetchOrders = async () => {
+  const fetchOrders = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
@@ -99,7 +137,7 @@ const OrderManagement = () => {
   };
 
   // Fetch order items for a specific order
-  const fetchOrderItems = async (orderId) => {
+  const fetchOrderItems = async (orderId: string): Promise<void> => {
     setLoadingOrderItems(true);
     try {
       const response = await fetch(`/api/laboratory/orders/${orderId}/items`);
@@ -126,11 +164,11 @@ const OrderManagement = () => {
     fetchOrders();
   }, [filters]);
 
-  const handleFilterChange = (key, value) => {
+  const handleFilterChange = (key: keyof FilterState, value: any): void => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const resetFilters = () => {
+  const resetFilters = (): void => {
     setFilters({
       patientId: '',
       status: null,
@@ -140,7 +178,7 @@ const OrderManagement = () => {
   };
 
   // View order details
-  const handleViewOrder = async (order) => {
+  const handleViewOrder = async (order: Order): Promise<void> => {
     setViewingOrder(order);
     setIsModalVisible(true);
     fetchOrderItems(order.id);
@@ -165,28 +203,28 @@ const OrderManagement = () => {
       dataIndex: 'doctor_name',
       key: 'doctor_name',
       width: '15%',
-      render: (name) => name || 'N/A',
+      render: (name: string | null) => name || 'N/A',
     },
     {
       title: 'Order Date',
       dataIndex: 'order_date',
       key: 'order_date',
       width: '15%',
-      render: (date) => moment(date).format('YYYY-MM-DD HH:mm'),
+      render: (date: string) => moment(date).format('YYYY-MM-DD HH:mm'),
     },
     {
       title: 'Source',
       dataIndex: 'source',
       key: 'source',
       width: '10%',
-      render: (source) => source.toUpperCase(),
+      render: (source: string) => source.toUpperCase(),
     },
     {
       title: 'Priority',
       dataIndex: 'priority',
       key: 'priority',
       width: '10%',
-      render: (priority) => {
+      render: (priority: string) => {
         let color = 'blue';
         if (priority === 'urgent') color = 'orange';
         if (priority === 'stat') color = 'red';
@@ -198,7 +236,7 @@ const OrderManagement = () => {
       dataIndex: 'status',
       key: 'status',
       width: '10%',
-      render: (status) => {
+      render: (status: string) => {
         let color = 'default';
         if (status === 'collected') color = 'processing';
         if (status === 'processing') color = 'warning';
@@ -211,7 +249,7 @@ const OrderManagement = () => {
       title: 'Actions',
       key: 'actions',
       width: '10%',
-      render: (_, record) => (
+      render: (_: any, record: Order) => (
         <Button 
           type="link" 
           icon={<EyeOutlined />} 
@@ -234,7 +272,7 @@ const OrderManagement = () => {
       title: 'Status', 
       dataIndex: 'status', 
       key: 'status',
-      render: (status) => {
+      render: (status: string) => {
         let color = 'default';
         if (status === 'pending') color = 'default';
         if (status === 'in_progress') color = 'processing';
@@ -247,7 +285,7 @@ const OrderManagement = () => {
       title: 'Price', 
       dataIndex: 'price', 
       key: 'price',
-      render: (price) => `₹${price.toFixed(2)}`
+      render: (price: number) => `₹${price.toFixed(2)}`
     },
   ];
 
@@ -260,9 +298,9 @@ const OrderManagement = () => {
             placeholder="Search Patient"
             optionFilterProp="children"
             value={filters.patientId || undefined}
-            onChange={(value) => handleFilterChange('patientId', value)}
+            onChange={(value: string) => handleFilterChange('patientId', value)}
             style={{ width: 200 }}
-            filterOption={(input, option) =>
+            filterOption={(input: string, option: any) =>
               option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
             }
             allowClear
@@ -275,7 +313,7 @@ const OrderManagement = () => {
             allowClear
             style={{ width: 150 }}
             value={filters.status}
-            onChange={(value) => handleFilterChange('status', value)}
+            onChange={(value: string | null) => handleFilterChange('status', value)}
           >
             <Option value="pending">Pending</Option>
             <Option value="collected">Collected</Option>
@@ -289,7 +327,7 @@ const OrderManagement = () => {
             allowClear
             style={{ width: 150 }}
             value={filters.source}
-            onChange={(value) => handleFilterChange('source', value)}
+            onChange={(value: string | null) => handleFilterChange('source', value)}
           >
             <Option value="opd">OPD</Option>
             <Option value="ipd">IPD</Option>

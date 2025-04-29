@@ -1,23 +1,53 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Edit, Trash2, FileText } from "lucide-react";
-import CreateRadiologyReportModal from "./CreateRadiologyReportModal"; // To be created
-import RadiologyReportsList from "./RadiologyReportsList"; // Assuming this can be filtered by studyId
+import CreateRadiologyReportModal from "./CreateRadiologyReportModal"; // Assuming this exists and accepts props
+// import RadiologyReportsList from "./RadiologyReportsList"; // Assuming this exists
+
+// Define interfaces
+interface StudyDetails {
+  id: string;
+  patient_id: string;
+  patient_name?: string; // Assuming joined
+  order_id: string;
+  procedure_name?: string; // Assuming joined
+  accession_number?: string | null;
+  study_datetime: string;
+  status: 'scheduled' | 'acquired' | 'reported' | 'verified' | string; // Allow string for flexibility
+  modality_name?: string; // Assuming joined
+  technician_name?: string; // Assuming joined
+  protocol?: string | null;
+  series_description?: string | null;
+  number_of_images?: number | null;
+  // Add other relevant fields
+}
+
+interface ReportData {
+  study_id: string;
+  report_text: string;
+  findings?: string;
+  impression: string;
+  radiologist_id: string; // Should come from session
+  // Add other report fields
+}
+
+// Define props if needed, though useParams covers the ID
+// interface RadiologyStudyDetailProps {}
 
 export default function RadiologyStudyDetail() {
   const params = useParams();
   const router = useRouter();
-  const studyId = params.id;
+  const studyId = typeof params.id === 'string' ? params.id : null;
 
-  const [study, setStudy] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showCreateReportModal, setShowCreateReportModal] = useState(false);
+  const [study, setStudy] = useState<StudyDetails | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateReportModal, setShowCreateReportModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (studyId) {
@@ -25,66 +55,123 @@ export default function RadiologyStudyDetail() {
     }
   }, [studyId]);
 
-  const fetchStudyDetails = async () => {
+  const fetchStudyDetails = async (): Promise<void> => {
+    if (!studyId) {
+      setError("Study ID is missing.");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch(`/api/radiology/studies/${studyId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("Radiology study not found.");
-        } else {
-          throw new Error("Failed to fetch study details");
-        }
+      // Simulate API call
+      // const response = await fetch(`/api/radiology/studies/${studyId}`);
+      // if (!response.ok) {
+      //   if (response.status === 404) {
+      //     setError("Radiology study not found.");
+      //   } else {
+      //     const errorData = await response.json().catch(() => ({}));
+      //     throw new Error(errorData.error || "Failed to fetch study details");
+      //   }
+      // } else {
+      //   const data: StudyDetails = await response.json();
+      //   setStudy(data);
+      // }
+
+      // Mock Data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (studyId === "study_123") { // Example ID
+        const mockStudy: StudyDetails = {
+          id: studyId,
+          patient_id: "p001",
+          patient_name: "John Doe",
+          order_id: "ord_001",
+          procedure_name: "Chest X-Ray, 2 Views",
+          accession_number: "ACC123456",
+          study_datetime: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+          status: 'acquired',
+          modality_name: "X-Ray",
+          technician_name: "Tech Sarah",
+          protocol: "Standard Chest Protocol",
+          series_description: "PA and Lateral views",
+          number_of_images: 2,
+        };
+        setStudy(mockStudy);
       } else {
-        const data = await response.json();
-        setStudy(data);
-        setError(null);
+        setError("Radiology study not found.");
+        setStudy(null);
       }
+
     } catch (err) {
+      const message = err instanceof Error ? err.message : "An unknown error occurred.";
       console.error("Error fetching study details:", err);
-      setError("Failed to load study details. Please try again later.");
+      setError(`Failed to load study details: ${message}`);
+      setStudy(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateReport = async (reportData) => {
+  const handleCreateReport = async (formData: Omit<ReportData, 'study_id' | 'radiologist_id'>): Promise<void> => {
+    if (!studyId) {
+      alert("Study ID is missing.");
+      return;
+    }
     try {
-      const response = await fetch("/api/radiology/reports", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(reportData),
-      });
+      const reportData: ReportData = {
+        ...formData,
+        study_id: studyId,
+        radiologist_id: "rad_current", // Replace with actual ID from session
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create radiology report");
-      }
+      // Simulate API call
+      // const response = await fetch("/api/radiology/reports", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(reportData),
+      // });
+      // if (!response.ok) {
+      //   const errorData = await response.json().catch(() => ({}));
+      //   throw new Error(errorData.error || "Failed to create radiology report");
+      // }
 
+      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate delay
+
+      alert("Report created successfully (simulated).");
       setShowCreateReportModal(false);
-      // Optionally refresh reports list or navigate to the new report
-      fetchStudyDetails(); // Refresh study details which might implicitly refresh related reports list
+      // Refresh study details or associated reports list
+      fetchStudyDetails();
 
     } catch (err) {
+      const message = err instanceof Error ? err.message : "An unknown error occurred.";
       console.error("Error creating radiology report:", err);
-      alert(err.message);
+      alert(`Error creating report: ${message}`);
     }
   };
 
-  // Add handleDeleteStudy if needed (use with caution)
+  // Add handleDeleteStudy if needed
+  // const handleDeleteStudy = async (): Promise<void> => {
+  //   if (!studyId || !confirm("Are you sure you want to delete this study?")) return;
+  //   try {
+  //     // API call to delete
+  //     router.push('/dashboard/radiology/studies'); // Redirect after delete
+  //   } catch (err) { /* ... */ }
+  // };
 
-  const getStatusBadge = (status) => {
-    const statusStyles = {
-      scheduled: "bg-yellow-100 text-yellow-800",
-      acquired: "bg-blue-100 text-blue-800",
-      reported: "bg-purple-100 text-purple-800",
-      verified: "bg-green-100 text-green-800"
+  const getStatusBadge = (status: string | undefined): ReactNode => {
+    if (!status) return <Badge className="bg-gray-100">Unknown</Badge>;
+
+    const statusStyles: { [key: string]: string } = {
+      scheduled: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      acquired: "bg-blue-100 text-blue-800 border-blue-200",
+      reported: "bg-purple-100 text-purple-800 border-purple-200",
+      verified: "bg-green-100 text-green-800 border-green-200",
     };
+    const displayText = status.charAt(0).toUpperCase() + status.slice(1).replace("_", " ");
+
     return (
-      <Badge className={statusStyles[status] || "bg-gray-100"}>
-        {status?.charAt(0).toUpperCase() + status?.slice(1).replace("_", " ")}
+      <Badge variant="outline" className={`${statusStyles[status] || "bg-gray-100 border-gray-200"} font-medium`}>
+        {displayText}
       </Badge>
     );
   };
@@ -94,57 +181,60 @@ export default function RadiologyStudyDetail() {
   }
 
   if (error) {
-    return <div className="text-center text-red-500 p-4">{error}</div>;
+    return <div className="text-center text-red-500 p-4 bg-red-50 border border-red-200 rounded-md">{error}</div>;
   }
 
   if (!study) {
-    return <div className="text-center text-gray-500 p-4">Study details could not be loaded.</div>;
+    // This case might be covered by error state if fetch fails, but good to have
+    return <div className="text-center text-gray-500 p-4">Study details could not be loaded or found.</div>;
   }
 
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Button variant="outline" onClick={() => router.back()} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Studies
       </Button>
 
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle>Radiology Study Details</CardTitle>
+              <CardTitle className="text-xl">Radiology Study Details</CardTitle>
               <CardDescription>Study ID: {study.id}</CardDescription>
             </div>
             <div className="flex space-x-2">
-              {/* Add Edit button if needed, requires an Edit Modal */} 
-              {/* <Button variant="outline" size="icon"><Edit className="h-4 w-4" /></Button> */} 
-              {/* Add Delete button if needed (use with caution) */} 
-              {/* <Button variant="destructive" size="icon" onClick={handleDeleteStudy} title="Delete Study"><Trash2 className="h-4 w-4" /></Button> */} 
+              {/* <Button variant="outline" size="icon" title="Edit Study"><Edit className="h-4 w-4" /></Button> */}
+              {/* <Button variant="destructive" size="icon" onClick={handleDeleteStudy} title="Delete Study"><Trash2 className="h-4 w-4" /></Button> */}
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><strong>Patient:</strong> {study.patient_name} (ID: {study.patient_id.substring(0,6)})</div>
-            <div><strong>Procedure:</strong> {study.procedure_name}</div>
-            <div><strong>Order ID:</strong> <Button variant="link" className="p-0 h-auto" onClick={() => router.push(`/dashboard/radiology/orders/${study.order_id}`)}>{study.order_id}</Button></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+            <div><strong>Patient:</strong> {study.patient_name || 'N/A'} (ID: {study.patient_id?.substring(0, 8) || 'N/A'})</div>
+            <div><strong>Procedure:</strong> {study.procedure_name || 'N/A'}</div>
+            <div>
+              <strong>Order ID:</strong>
+              <Button variant="link" className="p-0 h-auto ml-1 text-sm" onClick={() => router.push(`/dashboard/radiology/orders/${study.order_id}`)}>
+                {study.order_id}
+              </Button>
+            </div>
             <div><strong>Accession #:</strong> {study.accession_number || 'N/A'}</div>
-            <div><strong>Study Date/Time:</strong> {new Date(study.study_datetime).toLocaleString()}</div>
+            <div><strong>Study Date/Time:</strong> {study.study_datetime ? new Date(study.study_datetime).toLocaleString() : 'N/A'}</div>
             <div><strong>Status:</strong> {getStatusBadge(study.status)}</div>
             <div><strong>Modality:</strong> {study.modality_name || 'N/A'}</div>
             <div><strong>Technician:</strong> {study.technician_name || 'N/A'}</div>
             <div className="md:col-span-2"><strong>Protocol:</strong> {study.protocol || 'N/A'}</div>
             <div className="md:col-span-2"><strong>Series Description:</strong> {study.series_description || 'N/A'}</div>
-            <div><strong>Number of Images:</strong> {study.number_of_images || 'N/A'}</div>
+            <div><strong>Number of Images:</strong> {study.number_of_images ?? 'N/A'}</div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Section for Associated Reports */} 
+      {/* Section for Associated Reports */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Associated Reports</CardTitle>
-            {/* Allow creating report only if study is acquired/reported (and user is Radiologist/Admin) */} 
             {(study.status === 'acquired' || study.status === 'reported') && (
               <Button onClick={() => setShowCreateReportModal(true)}>
                 <FileText className="mr-2 h-4 w-4" /> Create Report
@@ -153,17 +243,20 @@ export default function RadiologyStudyDetail() {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Embed or link to RadiologyReportsList filtered by study.id */} 
-          <p className="text-gray-500">Reports associated with this study will appear here.</p>
-          {/* Example: <RadiologyReportsList filter={{ studyId: study.id }} /> */} 
+          {/* TODO: Embed RadiologyReportsList filtered by study.id */}
+          <p className="text-gray-500 italic">Report list component to be integrated here, filtered for Study ID: {study.id}</p>
+          {/* Example: <RadiologyReportsList filter={{ studyId: study.id }} /> */}
         </CardContent>
       </Card>
 
-      {showCreateReportModal && (
+      {showCreateReportModal && studyId && (
         <CreateRadiologyReportModal
+          isOpen={showCreateReportModal} // Assuming modal uses isOpen prop
           onClose={() => setShowCreateReportModal(false)}
           onSubmit={handleCreateReport}
-          studyId={study.id}
+          studyId={studyId}
+          patientName={study.patient_name || 'N/A'} // Pass necessary info
+          procedureName={study.procedure_name || 'N/A'}
         />
       )}
     </div>

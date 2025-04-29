@@ -1,23 +1,59 @@
-'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+
+import React, { useState, useEffect, ChangeEvent } from "react";
+import { useRouter } from "next/navigation";
+
+// Define interfaces for data structures
+interface DispensingRecord {
+  id: string;
+  patient_id: string;
+  medication_id: string;
+  generic_name: string;
+  brand_name?: string;
+  strength: string;
+  batch_number: string;
+  quantity: number;
+  selling_price: number;
+  dispensed_at: string; // ISO date string
+  billed: boolean;
+  billed_at?: string; // ISO date string
+}
+
+interface UnbilledItem extends DispensingRecord {
+  subtotal: number;
+}
+
+interface BillItem {
+  dispensing_id: string;
+  medication_id: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+}
+
+interface BillingPharmacyIntegrationProps {
+  patientId: string | null; // Allow null if patient might not be selected initially
+}
 
 // Component to integrate Pharmacy with Billing module
-export default function BillingPharmacyIntegration({ patientId }) {
+const BillingPharmacyIntegration: React.FC<BillingPharmacyIntegrationProps> = ({ patientId }) => {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [dispensingRecords, setDispensingRecords] = useState([]);
-  const [unbilledItems, setUnbilledItems] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [billTotal, setBillTotal] = useState(0);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [dispensingRecords, setDispensingRecords] = useState<DispensingRecord[]>([]);
+  const [unbilledItems, setUnbilledItems] = useState<UnbilledItem[]>([]);
+  const [selectedItems, setSelectedItems] = useState<UnbilledItem[]>([]);
+  const [billTotal, setBillTotal] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Fetch dispensing records for the patient that haven't been billed
-    const fetchUnbilledDispensing = async () => {
+    const fetchUnbilledDispensing = async (): Promise<void> => {
       if (!patientId) {
         setLoading(false);
+        setDispensingRecords([]);
+        setUnbilledItems([]);
+        setError(null);
         return;
       }
 
@@ -32,16 +68,25 @@ export default function BillingPharmacyIntegration({ patientId }) {
         }
         
         const data = await response.json();
-        const records = data.dispensing_records || [];
+        // Assuming API returns { dispensing_records: DispensingRecord[] }
+        const records: DispensingRecord[] = data.dispensing_records || [];
         
-        setDispensingRecords(records);
-        setUnbilledItems(records.map(record => ({
-          ...record,
-          subtotal: record.quantity * record.selling_price
-        })));
-      } catch (error) {
-        console.error('Error fetching unbilled dispensing records:', error);
-        setError('Failed to load pharmacy items. Please try again.');
+        setDispensingRecords(records); // Store all records (for recently billed display)
+        
+        const calculatedUnbilledItems: UnbilledItem[] = records
+          .filter(record => !record.billed) // Ensure we only process unbilled ones
+          .map(record => ({
+            ...record,
+            subtotal: record.quantity * record.selling_price
+          }));
+        setUnbilledItems(calculatedUnbilledItems);
+
+      } catch (err) {
+        console.error("Error fetching unbilled dispensing records:", err);
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(`Failed to load pharmacy items: ${message}. Please try again.`);
+        setDispensingRecords([]);
+        setUnbilledItems([]);
       } finally {
         setLoading(false);
       }
@@ -51,7 +96,7 @@ export default function BillingPharmacyIntegration({ patientId }) {
   }, [patientId]);
 
   // Handle item selection for billing
-  const handleItemSelection = (item, isSelected) => {
+  const handleItemSelection = (item: UnbilledItem, isSelected: boolean): void => {
     if (isSelected) {
       setSelectedItems([...selectedItems, item]);
     } else {
@@ -66,66 +111,83 @@ export default function BillingPharmacyIntegration({ patientId }) {
   }, [selectedItems]);
 
   // Generate pharmacy bill
-  const handleGenerateBill = async () => {
+  const handleGenerateBill = async (): Promise<void> => {
     if (selectedItems.length === 0) {
-      alert('Please select at least one item to bill');
+      alert("Please select at least one item to bill");
       return;
     }
     
     setLoading(true);
     
     try {
-      const response = await fetch('/api/billing/pharmacy-bill', {
-        method: 'POST',
+      const billItems: BillItem[] = selectedItems.map(item => ({
+        dispensing_id: item.id,
+        medication_id: item.medication_id,
+        quantity: item.quantity,
+        unit_price: item.selling_price,
+        subtotal: item.subtotal
+      }));
+
+      const response = await fetch("/api/billing/pharmacy-bill", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           patient_id: patientId,
-          items: selectedItems.map(item => ({
-            dispensing_id: item.id,
-            medication_id: item.medication_id,
-            quantity: item.quantity,
-            unit_price: item.selling_price,
-            subtotal: item.subtotal
-          })),
+          items: billItems,
           total_amount: billTotal
         }),
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to generate bill: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to generate bill: ${response.status}`);
       }
       
-      const result = await response.json();
+      const result = await response.json(); // Assuming API returns some confirmation
       
-      // Update UI to reflect billed items
+      // Update UI state after successful billing
+      const billedIds = new Set(selectedItems.map(item => item.id));
+      const now = new Date().toISOString();
+
       setDispensingRecords(prevRecords => 
         prevRecords.map(record => 
-          selectedItems.some(item => item.id === record.id) 
-            ? { ...record, billed: true } 
+          billedIds.has(record.id)
+            ? { ...record, billed: true, billed_at: now } 
             : record
         )
       );
       
       setUnbilledItems(prevItems => 
-        prevItems.filter(item => !selectedItems.some(selected => selected.id === item.id))
+        prevItems.filter(item => !billedIds.has(item.id))
       );
       
       setSelectedItems([]);
       setBillTotal(0);
       
-      alert('Pharmacy bill generated successfully!');
+      alert("Pharmacy bill generated successfully!");
+      // Optionally navigate or show bill details: router.push(`/billing/invoices/${result.invoiceId}`);
       
-    } catch (error) {
-      console.error('Error generating pharmacy bill:', error);
-      alert('Failed to generate pharmacy bill. Please try again.');
+    } catch (err) {
+      console.error("Error generating pharmacy bill:", err);
+      const message = err instanceof Error ? err.message : "An unknown error occurred";
+      alert(`Failed to generate pharmacy bill: ${message}. Please try again.`);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading && dispensingRecords.length === 0) {
+  // Handle selecting/deselecting all items
+  const handleSelectAll = (event: ChangeEvent<HTMLInputElement>): void => {
+    if (event.target.checked) {
+      setSelectedItems([...unbilledItems]);
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
+  if (loading && unbilledItems.length === 0 && !error) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
@@ -136,7 +198,7 @@ export default function BillingPharmacyIntegration({ patientId }) {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mt-6" role="alert">
         <strong className="font-bold">Error: </strong>
         <span className="block sm:inline">{error}</span>
       </div>
@@ -150,22 +212,22 @@ export default function BillingPharmacyIntegration({ patientId }) {
       </div>
       
       <div className="p-6">
-        {unbilledItems.length === 0 ? (
+        {unbilledItems.length === 0 && !loading ? (
           <div className="text-center py-8">
             <p className="text-gray-500">No unbilled pharmacy items for this patient.</p>
           </div>
         ) : (
           <>
-            <div className="mb-4 flex justify-between items-center">
-              <h3 className="text-md font-medium text-gray-700">Unbilled Pharmacy Items</h3>
-              <div className="text-right">
-                <div className="text-lg font-bold text-gray-900">Total: ₹{billTotal.toFixed(2)}</div>
+            <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+              <h3 className="text-md font-medium text-gray-700 mb-2 sm:mb-0">Unbilled Pharmacy Items</h3>
+              <div className="text-left sm:text-right w-full sm:w-auto">
+                <div className="text-lg font-bold text-gray-900">Total Selected: ₹{billTotal.toFixed(2)}</div>
                 <button
                   onClick={handleGenerateBill}
                   disabled={loading || selectedItems.length === 0}
-                  className="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50"
+                  className="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 w-full sm:w-auto"
                 >
-                  Generate Bill
+                  {loading ? "Generating..." : "Generate Bill for Selected"}
                 </button>
               </div>
             </div>
@@ -177,20 +239,16 @@ export default function BillingPharmacyIntegration({ patientId }) {
                     <th className="px-4 py-2 w-12">
                       <input
                         type="checkbox"
+                        aria-label="Select all unbilled items"
                         checked={selectedItems.length === unbilledItems.length && unbilledItems.length > 0}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedItems([...unbilledItems]);
-                          } else {
-                            setSelectedItems([]);
-                          }
-                        }}
+                        onChange={handleSelectAll}
+                        disabled={unbilledItems.length === 0}
                         className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
                     </th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medication</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dispensed On</th>
@@ -198,18 +256,19 @@ export default function BillingPharmacyIntegration({ patientId }) {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {unbilledItems.map((item) => (
-                    <tr key={item.id} className={selectedItems.some(i => i.id === item.id) ? 'bg-blue-50' : ''}>
+                    <tr key={item.id} className={selectedItems.some(i => i.id === item.id) ? "bg-blue-50" : ""}>
                       <td className="px-4 py-2">
                         <input
                           type="checkbox"
+                          aria-label={`Select item ${item.generic_name}`}
                           checked={selectedItems.some(i => i.id === item.id)}
-                          onChange={(e) => handleItemSelection(item, e.target.checked)}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) => handleItemSelection(item, e.target.checked)}
                           className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{item.generic_name} {item.strength}</div>
-                        {item.brand_name && <div className="text-sm text-gray-500">{item.brand_name}</div>}
+                        {item.brand_name && <div className="text-sm text-gray-500">({item.brand_name})</div>}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{item.batch_number}</td>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.quantity}</td>
@@ -226,7 +285,7 @@ export default function BillingPharmacyIntegration({ patientId }) {
           </>
         )}
         
-        {/* Recently Billed Items */}
+        {/* Recently Billed Items Section */}
         {dispensingRecords.some(record => record.billed) && (
           <div className="mt-8">
             <h3 className="text-md font-medium text-gray-700 mb-2">Recently Billed Items</h3>
@@ -243,18 +302,19 @@ export default function BillingPharmacyIntegration({ patientId }) {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {dispensingRecords
                     .filter(record => record.billed)
+                    .sort((a, b) => new Date(b.billed_at || 0).getTime() - new Date(a.billed_at || 0).getTime()) // Sort by billed date descending
                     .map((item) => (
                       <tr key={item.id}>
                         <td className="px-4 py-2 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{item.generic_name} {item.strength}</div>
-                          {item.brand_name && <div className="text-sm text-gray-500">{item.brand_name}</div>}
+                          {item.brand_name && <div className="text-sm text-gray-500">({item.brand_name})</div>}
                         </td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.quantity}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
                           ₹{(item.quantity * item.selling_price).toFixed(2)}
                         </td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                          {item.billed_at ? new Date(item.billed_at).toLocaleDateString() : new Date().toLocaleDateString()}
+                          {item.billed_at ? new Date(item.billed_at).toLocaleDateString() : "N/A"}
                         </td>
                       </tr>
                     ))}
@@ -266,4 +326,7 @@ export default function BillingPharmacyIntegration({ patientId }) {
       </div>
     </div>
   );
-}
+};
+
+export default BillingPharmacyIntegration;
+

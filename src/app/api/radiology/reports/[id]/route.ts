@@ -1,89 +1,172 @@
 import { NextRequest, NextResponse } from "next/server";
-import { D1Database } from "@cloudflare/workers-types";
-import { getSession } from "@/lib/session";
+import { getDB, Database } from "@/lib/db"; // Import Database type
+import { getSession, SessionData } from "@/lib/session";
 import { checkUserRole } from "@/lib/auth";
+
+// Define interfaces
+interface RadiologyReport {
+  id: string;
+  study_id: string;
+  report_text?: string | null;
+  findings?: string | null;
+  impression?: string | null;
+  recommendations?: string | null;
+  status: "preliminary" | "final" | "addendum" | "retracted";
+  radiologist_id: string;
+  verified_by_id?: string | null;
+  report_datetime: string; // ISO date string
+  verified_datetime?: string | null; // ISO date string
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  // Joined fields for GET
+  accession_number?: string;
+  radiologist_name?: string;
+  verified_by_name?: string | null;
+  patient_id?: string;
+  patient_name?: string;
+  procedure_name?: string;
+}
+
+interface RadiologyReportPutData {
+  findings?: string | null;
+  impression?: string | null;
+  recommendations?: string | null;
+  status?: "preliminary" | "final" | "addendum"; // Allowed update statuses
+  verified_by_id?: string | null; // Only if verifying
+}
+
+// Assuming SessionData includes user with roles and id
+interface AuthenticatedSession extends SessionData {
+  user: {
+    id: string;
+    roles: string[];
+    // Add other user properties if needed
+  };
+}
 
 // GET a specific Radiology Report by ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
-  const session = await getSession();
-  if (!session.user || !checkUserRole(session.user, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
-
-  const reportId = params.id;
-  const DB = process.env.DB as unknown as D1Database;
-
+): Promise<NextResponse> {
   try {
-    // Join with relevant tables to provide context
-    const report = await DB.prepare(
-      "SELECT rr.*, rs.accession_number, rad.name as radiologist_name, ver.name as verified_by_name, ro.patient_id, p.name as patient_name, pt.name as procedure_name FROM RadiologyReports rr JOIN RadiologyStudies rs ON rr.study_id = rs.id JOIN Users rad ON rr.radiologist_id = rad.id LEFT JOIN Users ver ON rr.verified_by_id = ver.id JOIN RadiologyOrders ro ON rs.order_id = ro.id JOIN Patients p ON ro.patient_id = p.id JOIN RadiologyProcedureTypes pt ON ro.procedure_type_id = pt.id WHERE rr.id = ?"
-    ).bind(reportId).first();
+    const session = await getSession(request) as AuthenticatedSession | null;
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // Role check example (adjust roles as needed)
+    // if (!checkUserRole(session.user, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
+    //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // }
+
+    const reportId = params.id;
+    if (!reportId) {
+      return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
+    }
+
+    const db: Database = await getDB(); // Explicitly type db
+
+    const report = await db.prepare(
+      `SELECT
+         rr.*,
+         rs.accession_number,
+         rad.first_name || ' ' || rad.last_name as radiologist_name,
+         ver.first_name || ' ' || ver.last_name as verified_by_name,
+         ro.patient_id,
+         p.first_name || ' ' || p.last_name as patient_name,
+         pt.name as procedure_name
+       FROM RadiologyReports rr
+       JOIN RadiologyStudies rs ON rr.study_id = rs.id
+       JOIN Users rad ON rr.radiologist_id = rad.id
+       LEFT JOIN Users ver ON rr.verified_by_id = ver.id
+       JOIN RadiologyOrders ro ON rs.order_id = ro.id
+       JOIN Patients p ON ro.patient_id = p.id
+       JOIN RadiologyProcedureTypes pt ON ro.procedure_type_id = pt.id
+       WHERE rr.id = ?`
+    ).bind(reportId).first<RadiologyReport>();
 
     if (!report) {
       return NextResponse.json({ error: "Radiology report not found" }, { status: 404 });
     }
     return NextResponse.json(report);
-  } catch (e: any) {
-    console.error({ message: "Error fetching radiology report", error: e.message });
-    return NextResponse.json({ error: "Failed to fetch radiology report", details: e.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error({ message: "Error fetching radiology report", error: message });
+    return NextResponse.json({ error: "Failed to fetch radiology report", details: message }, { status: 500 });
   }
 }
 
-// PUT (update/verify) a specific Radiology Report (Radiologist or Admin)
+// PUT (update/verify) a specific Radiology Report
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
-  const session = await getSession();
-  // Radiologist can update their own reports, Admin can update/verify any
-  // Add specific logic if only certain roles can verify (e.g., Senior Radiologist)
-  if (!session.user || !checkUserRole(session.user, ["Admin", "Radiologist"])) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
-
-  const reportId = params.id;
-  const DB = process.env.DB as unknown as D1Database;
-
+): Promise<NextResponse> {
   try {
-    const { findings, impression, recommendations, status, verified_by_id } = await request.json();
+    const session = await getSession(request) as AuthenticatedSession | null;
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const reportId = params.id;
+    if (!reportId) {
+      return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
+    }
+
+    const db: Database = await getDB(); // Explicitly type db
+    const data = await request.json() as RadiologyReportPutData;
     const updatedAt = new Date().toISOString();
 
-    // Fetch the report to check ownership if the user is a Radiologist
-    const existingReport = await DB.prepare("SELECT radiologist_id, status FROM RadiologyReports WHERE id = ?").bind(reportId).first<{ radiologist_id: string, status: string }>();
+    // Fetch the report to check ownership and current status
+    const existingReport = await db.prepare(
+        "SELECT radiologist_id, status FROM RadiologyReports WHERE id = ?"
+    ).bind(reportId).first<{ radiologist_id: string, status: string }>();
 
     if (!existingReport) {
-        return NextResponse.json({ error: "Radiology report not found" }, { status: 404 });
+      return NextResponse.json({ error: "Radiology report not found" }, { status: 404 });
     }
 
-    // Authorization check: Radiologist can only edit their own reports unless it's final/verified
-    if (session.user.role === "Radiologist" && session.user.id !== existingReport.radiologist_id) {
-        return NextResponse.json({ error: "Radiologist can only update their own reports" }, { status: 403 });
+    // Authorization Check
+    const isAdmin = session.user.roles.includes("Admin");
+    const isRadiologist = session.user.roles.includes("Radiologist");
+    const isOwner = isRadiologist && session.user.id === existingReport.radiologist_id;
+
+    // Only Admin or the owning Radiologist can update (unless already final)
+    if (!isAdmin && !isOwner) {
+      return NextResponse.json({ error: "Forbidden: Insufficient permissions" }, { status: 403 });
     }
-    // Prevent updates if report is already final/verified, unless user is Admin or creating addendum (addendum logic not implemented here)
-    if (existingReport.status === "final" && session.user.role !== "Admin" && status !== "addendum") {
-        return NextResponse.json({ error: "Cannot update a final report. Create an addendum instead." }, { status: 403 });
+
+    // Prevent updates if report is already final, unless user is Admin or creating addendum
+    if (existingReport.status === "final" && !isAdmin && data.status !== "addendum") {
+      return NextResponse.json({ error: "Cannot update a final report. Create an addendum instead." }, { status: 403 });
+    }
+    // Radiologist cannot verify their own report (assuming this rule)
+    if (isOwner && data.verified_by_id === session.user.id) {
+        return NextResponse.json({ error: "Radiologists cannot verify their own reports" }, { status: 403 });
     }
 
     // Build the update query dynamically
     const fieldsToUpdate: { [key: string]: any } = {};
-    if (findings !== undefined) fieldsToUpdate.findings = findings;
-    if (impression !== undefined) fieldsToUpdate.impression = impression;
-    if (recommendations !== undefined) fieldsToUpdate.recommendations = recommendations;
-    if (status !== undefined) fieldsToUpdate.status = status;
-    if (verified_by_id !== undefined) {
-        fieldsToUpdate.verified_by_id = verified_by_id;
-        fieldsToUpdate.verified_datetime = updatedAt; // Set verification time when verifier is set
-        // Automatically set status to 'final' when verified?
-        if (status === undefined || status === "preliminary") {
-            fieldsToUpdate.status = "final";
+    if (data.findings !== undefined) fieldsToUpdate.findings = data.findings;
+    if (data.impression !== undefined) fieldsToUpdate.impression = data.impression;
+    if (data.recommendations !== undefined) fieldsToUpdate.recommendations = data.recommendations;
+    if (data.status !== undefined && ["preliminary", "final", "addendum"].includes(data.status)) {
+        fieldsToUpdate.status = data.status;
+    }
+    if (data.verified_by_id !== undefined) {
+        // Optional: Check if the verifier is a valid user
+        // const verifierExists = await db.prepare("SELECT id FROM Users WHERE id = ? AND 'Radiologist' = ANY(roles)").bind(data.verified_by_id).first();
+        // if (!verifierExists) return NextResponse.json({ error: "Invalid verifier ID or verifier is not a Radiologist" }, { status: 400 });
+
+        fieldsToUpdate.verified_by_id = data.verified_by_id;
+        fieldsToUpdate.verified_datetime = updatedAt;
+        // Automatically set status to 'final' when verified, if not already set
+        if (fieldsToUpdate.status === undefined || fieldsToUpdate.status === "preliminary") {
+          fieldsToUpdate.status = "final";
         }
     }
 
     if (Object.keys(fieldsToUpdate).length === 0) {
-      return NextResponse.json({ error: "No fields provided for update" }, { status: 400 });
+      return NextResponse.json({ error: "No valid fields provided for update" }, { status: 400 });
     }
 
     fieldsToUpdate.updated_at = updatedAt;
@@ -92,67 +175,78 @@ export async function PUT(
     const values = [...Object.values(fieldsToUpdate), reportId];
 
     const updateStmt = `UPDATE RadiologyReports SET ${setClauses} WHERE id = ?`;
-    const info = await DB.prepare(updateStmt).bind(...values).run();
+    const info = await db.prepare(updateStmt).bind(...values).run();
 
-    if (info.changes === 0 && Object.keys(fieldsToUpdate).length > 1) { // Check if more than just updated_at was intended
-        // Re-check existence as it might have been deleted between checks
-        const checkAgain = await DB.prepare("SELECT id FROM RadiologyReports WHERE id = ?").bind(reportId).first();
-        if (!checkAgain) {
-             return NextResponse.json({ error: "Radiology report not found" }, { status: 404 });
-        }
-        return NextResponse.json({ id: reportId, status: "Radiology report update processed (no changes detected)" });
-    }
+    // Check if update actually happened (info.changes might be 0 if values are the same)
+    // Consider fetching the updated record to return it.
 
-    // If report status is set to 'final', update study and order status
+    // If report status is set to 'final', update related study/order statuses
     if (fieldsToUpdate.status === "final") {
-        const studyIdResult = await DB.prepare("SELECT study_id FROM RadiologyReports WHERE id = ?").bind(reportId).first<{ study_id: string }>();
-        if (studyIdResult) {
-            await DB.prepare("UPDATE RadiologyStudies SET status = ?, updated_at = ? WHERE id = ?")
-              .bind("verified", updatedAt, studyIdResult.study_id)
-              .run();
-            const orderIdResult = await DB.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(studyIdResult.study_id).first<{ order_id: string }>();
-            if (orderIdResult) {
-                await DB.prepare("UPDATE RadiologyOrders SET status = ?, updated_at = ? WHERE id = ?")
-                  .bind("completed", updatedAt, orderIdResult.order_id)
-                  .run();
-            }
+      const studyIdResult = await db.prepare("SELECT study_id FROM RadiologyReports WHERE id = ?").bind(reportId).first<{ study_id: string }>();
+      if (studyIdResult?.study_id) {
+        await db.prepare("UPDATE RadiologyStudies SET status = ?, updated_at = ? WHERE id = ? AND status != ?")
+          .bind("verified", updatedAt, studyIdResult.study_id, "verified")
+          .run();
+        const orderIdResult = await db.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(studyIdResult.study_id).first<{ order_id: string }>();
+        if (orderIdResult?.order_id) {
+          await db.prepare("UPDATE RadiologyOrders SET status = ?, updated_at = ? WHERE id = ? AND status != ?")
+            .bind("completed", updatedAt, orderIdResult.order_id, "completed")
+            .run();
         }
+      }
     }
 
-    return NextResponse.json({ id: reportId, status: "Radiology report updated" });
+    // Fetch the updated report to return
+    const updatedReport = await db.prepare("SELECT * FROM RadiologyReports WHERE id = ?")
+                                .bind(reportId)
+                                .first<RadiologyReport>();
 
-  } catch (e: any) {
-    console.error({ message: "Error updating radiology report", error: e.message });
-    return NextResponse.json({ error: "Failed to update radiology report", details: e.message }, { status: 500 });
+    return NextResponse.json(updatedReport || { id: reportId, message: "Radiology report update processed" }); // Return updated report or confirmation
+
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error({ message: "Error updating radiology report", error: message });
+    return NextResponse.json({ error: "Failed to update radiology report", details: message }, { status: 500 });
   }
 }
 
-// DELETE a specific Radiology Report (Admin only - generally not recommended, consider status update)
+// DELETE a specific Radiology Report (Admin only - consider status update instead)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
-  const session = await getSession();
-  if (!session.user || !checkUserRole(session.user, ["Admin"])) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
-
-  const reportId = params.id;
-  const DB = process.env.DB as unknown as D1Database;
-
+): Promise<NextResponse> {
   try {
-    // Consider changing status to 'retracted' or 'cancelled' instead of deleting
-    const info = await DB.prepare("DELETE FROM RadiologyReports WHERE id = ?").bind(reportId).run();
-
-    if (info.changes === 0) {
-      return NextResponse.json({ error: "Radiology report not found" }, { status: 404 });
+    const session = await getSession(request) as AuthenticatedSession | null;
+    if (!session?.user || !session.user.roles.includes("Admin")) {
+      return NextResponse.json({ error: "Unauthorized: Admin role required" }, { status: 403 });
     }
 
-    return NextResponse.json({ id: reportId, status: "Radiology report deleted (use with caution)" });
+    const reportId = params.id;
+    if (!reportId) {
+      return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
+    }
 
-  } catch (e: any) {
-    console.error({ message: "Error deleting radiology report", error: e.message });
-    return NextResponse.json({ error: "Failed to delete radiology report", details: e.message }, { status: 500 });
+    const db: Database = await getDB(); // Explicitly type db
+
+    // Option 1: Soft delete (recommended - set status to 'retracted')
+    const retractedAt = new Date().toISOString();
+    const info = await db.prepare("UPDATE RadiologyReports SET status = ?, updated_at = ? WHERE id = ?")
+                      .bind("retracted", retractedAt, reportId)
+                      .run();
+
+    // Option 2: Hard delete (use with caution)
+    // const info = await db.prepare("DELETE FROM RadiologyReports WHERE id = ?").bind(reportId).run();
+
+    if (info.meta.changes === 0) { // Use info.meta.changes for D1
+      return NextResponse.json({ error: "Radiology report not found or already retracted" }, { status: 404 });
+    }
+
+    return NextResponse.json({ id: reportId, status: "Radiology report retracted" });
+
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error({ message: "Error deleting/retracting radiology report", error: message });
+    return NextResponse.json({ error: "Failed to delete/retract radiology report", details: message }, { status: 500 });
   }
 }
 

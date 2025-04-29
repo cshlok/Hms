@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     const barcode = searchParams.get("barcode");
     const status = searchParams.get("status");
 
-    const db = getDB();
+    const db = await getDB();
     let query = `
       SELECT s.*, 
         o.patient_id,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json() as SampleInput;
-    const db = getDB();
+    const db = await getDB();
 
     if (body.id) {
       // --- Update existing sample ---

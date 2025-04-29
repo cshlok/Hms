@@ -8,49 +8,64 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+// Define interface for Radiology Study data
+interface RadiologyStudy {
+  id: string;
+  patient_name: string;
+  procedure_name: string;
+  accession_number: string | null;
+  study_datetime: string; // Assuming ISO string format
+  status: 'scheduled' | 'acquired' | 'reported' | 'verified';
+}
+
 export default function RadiologyStudiesList() {
-  const [studies, setStudies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [studies, setStudies] = useState<RadiologyStudy[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     fetchStudies();
   }, []);
 
-  const fetchStudies = async () => {
+  const fetchStudies = async (): Promise<void> => {
     setLoading(true);
+    setError(null); // Reset error state before fetching
     try {
       const response = await fetch('/api/radiology/studies');
       if (!response.ok) {
         throw new Error('Failed to fetch radiology studies');
       }
       const data = await response.json();
-      setStudies(data);
+      // Assuming the API returns an array of studies
+      setStudies(Array.isArray(data) ? data : []); 
       setError(null);
     } catch (err) {
       console.error('Error fetching radiology studies:', err);
-      setError('Failed to load radiology studies. Please try again later.');
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(`Failed to load radiology studies: ${errorMessage}. Please try again later.`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleViewStudy = (studyId) => {
+  const handleViewStudy = (studyId: string): void => {
     router.push(`/dashboard/radiology/studies/${studyId}`);
   };
 
-  const getStatusBadge = (status) => {
-    const statusStyles = {
+  const getStatusBadge = (status: RadiologyStudy['status']): React.ReactNode => {
+    const statusStyles: { [key in RadiologyStudy['status']]: string } = {
       scheduled: "bg-yellow-100 text-yellow-800",
       acquired: "bg-blue-100 text-blue-800",
       reported: "bg-purple-100 text-purple-800",
       verified: "bg-green-100 text-green-800"
     };
     
+    const statusText = status?.charAt(0).toUpperCase() + status?.slice(1).replace('_', ' ');
+    
     return (
       <Badge className={statusStyles[status] || "bg-gray-100"}>
-        {status?.charAt(0).toUpperCase() + status?.slice(1).replace('_', ' ')}
+        {statusText}
       </Badge>
     );
   };
@@ -84,7 +99,7 @@ export default function RadiologyStudiesList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {studies.map((study) => (
+                {studies.map((study: RadiologyStudy) => (
                   <TableRow key={study.id}>
                     <TableCell>{study.patient_name}</TableCell>
                     <TableCell>{study.procedure_name}</TableCell>
@@ -106,3 +121,4 @@ export default function RadiologyStudiesList() {
     </Card>
   );
 }
+

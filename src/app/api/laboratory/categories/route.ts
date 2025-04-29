@@ -18,9 +18,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Execute query using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const categoriesResult = await db.query('SELECT * FROM lab_test_categories ORDER BY name ASC');
     
     return NextResponse.json(categoriesResult.rows || []);
@@ -42,7 +43,9 @@ export async function POST(request: NextRequest) {
     }
     
     // Check permissions (using mock session data)
-    const canCreateCategory = session.user.permissions.includes('lab_category:create') || session.user.roleName === 'Admin' || session.user.roleName === 'Lab Manager'; // Adjusted roles/permissions
+    // Assuming permissions are correctly populated in the mock session
+    // Fixed: Added parentheses around the nullish coalescing operation
+    const canCreateCategory = (session.user.permissions?.includes('lab_category:create') ?? false) || session.user.roleName === 'Admin' || session.user.roleName === 'Lab Manager'; // Adjusted roles/permissions
     if (!canCreateCategory) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -51,20 +54,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as CategoryInput;
     
     // Validate required fields
-    if (!body.name) {
-      return NextResponse.json({ error: 'Missing required field: name' }, { status: 400 });
+    if (!body.name || !body.name.trim()) { // Also check if name is not just whitespace
+      return NextResponse.json({ error: 'Missing or empty required field: name' }, { status: 400 });
     }
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Insert new category using db.query
     // Mock query doesn't return last_row_id
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     await db.query(`
       INSERT INTO lab_test_categories (name, description)
       VALUES (?, ?)
     `, [
-      body.name,
-      body.description || ''
+      body.name.trim(), // Trim whitespace from name
+      body.description?.trim() || '' // Trim whitespace from description
     ]);
     
     // Cannot reliably get the new record from mock DB
@@ -73,6 +77,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating laboratory test category:', error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    // Check for potential duplicate entry errors if the DB provides specific codes
+    // if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') { // Example for SQLite
+    //   return NextResponse.json({ error: 'Category name already exists' }, { status: 409 });
+    // }
     return NextResponse.json({ error: 'Failed to create laboratory test category', details: errorMessage }, { status: 500 });
   }
 }

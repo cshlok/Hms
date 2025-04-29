@@ -27,9 +27,10 @@ export async function GET(
     
     const admissionId = params.id;
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Check if admission exists using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const admissionResult = await db.query(`
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
       FROM admissions a
@@ -46,13 +47,15 @@ export async function GET(
     const isNurse = session.user.roleName === 'Nurse';
     const isDoctor = session.user.roleName === 'Doctor';
     const isAdmin = session.user.roleName === 'Admin';
-    const canViewNotes = session.user.permissions.includes('nursing_notes:view');
+    // Assuming permissions are correctly populated in the mock session
+    const canViewNotes = session.user.permissions?.includes('nursing_notes:view') ?? false;
     
     if (!isNurse && !isDoctor && !isAdmin && !canViewNotes) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
     // Get nursing notes using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const nursingNotesResult = await db.query(`
       SELECT nn.*, u.first_name as nurse_first_name, u.last_name as nurse_last_name
       FROM nursing_notes nn
@@ -67,7 +70,8 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching nursing notes:', error);
-    return NextResponse.json({ error: 'Failed to fetch nursing notes' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to fetch nursing notes', details: errorMessage }, { status: 500 });
   }
 }
 
@@ -86,7 +90,8 @@ export async function POST(
     
     // Check permissions (using mock session data)
     const isNurse = session.user.roleName === 'Nurse';
-    const canCreateNotes = session.user.permissions.includes('nursing_notes:create');
+    // Assuming permissions are correctly populated in the mock session
+    const canCreateNotes = session.user.permissions?.includes('nursing_notes:create') ?? false;
 
     if (!isNurse && !canCreateNotes) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -101,9 +106,10 @@ export async function POST(
       return NextResponse.json({ error: 'Missing required field: notes' }, { status: 400 });
     }
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     // Check if admission exists and is active using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const admissionResult = await db.query('SELECT id, status FROM admissions WHERE id = ?', [admissionId]);
     const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] as { id: string; status: string } : null;
       
@@ -112,7 +118,7 @@ export async function POST(
     }
     
     if (admission.status !== 'active') {
-      return NextResponse.json({ error: 'Cannot add nursing notes to a discharged admission' }, { status: 409 });
+      return NextResponse.json({ error: 'Cannot add nursing notes to a non-active admission' }, { status: 409 }); // Updated error message
     }
     
     // Insert new nursing note using db.query
@@ -123,7 +129,7 @@ export async function POST(
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       admissionId,
-      session.user.userId, // Changed from session.user.id
+      session.user.userId, // Ensure userId exists on session.user
       data.note_date || new Date().toISOString(),
       data.vital_signs || null,
       data.intake_output || null,
@@ -137,7 +143,8 @@ export async function POST(
 
   } catch (error) {
     console.error('Error creating nursing note:', error);
-    return NextResponse.json({ error: 'Failed to create nursing note' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to create nursing note', details: errorMessage }, { status: 500 });
   }
 }
 

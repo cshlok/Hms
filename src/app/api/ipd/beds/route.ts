@@ -9,7 +9,7 @@ interface BedInput {
   ward: string;
   category: string;
   price_per_day: number;
-  status?: string; // Optional, defaults to 'available'
+  status?: 'available' | 'occupied' | 'maintenance'; // Optional, defaults to 'available'
   features?: string | null;
 }
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const status = searchParams.get('status');
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     let query = 'SELECT * FROM beds WHERE 1=1';
     const params: any[] = [];
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     
     query += ' ORDER BY ward, room_number, bed_number';
     
-    // Use db.query instead of db.prepare
+    // Use db.query (assuming it exists and returns { rows: [...] } based on db.ts mock)
     const bedsResult = await db.query(query, params);
     
     return NextResponse.json(bedsResult.rows || []);
@@ -72,7 +72,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Check permissions (using mock session data)
-    const canCreateBed = session.user.permissions.includes('bed:create');
+    // Assuming permissions are correctly populated in the mock session
+    const canCreateBed = session.user.permissions?.includes('bed:create') ?? false;
     if (!canCreateBed) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -83,19 +84,25 @@ export async function POST(request: NextRequest) {
     // Basic validation (using typed data)
     const requiredFields: (keyof BedInput)[] = ['bed_number', 'room_number', 'ward', 'category', 'price_per_day'];
     for (const field of requiredFields) {
-      if (!data[field]) {
-        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 });
+      // Check if the field exists and is not empty (for strings)
+      if (!data[field] || (typeof data[field] === 'string' && !(data[field] as string).trim())) {
+        return NextResponse.json({ error: `Missing or empty required field: ${field}` }, { status: 400 });
       }
     }
+    // Validate price is a positive number
+    if (typeof data.price_per_day !== 'number' || data.price_per_day <= 0) {
+        return NextResponse.json({ error: 'Invalid price_per_day: must be a positive number' }, { status: 400 });
+    }
     
-    const db = getDB(); // Get mock DB
+    const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
-    // Check if bed number already exists using db.query
-    const existingBedResult = await db.query('SELECT id FROM beds WHERE bed_number = ? AND room_number = ?', [data.bed_number, data.room_number]);
+    // Check if bed number already exists in the same room using db.query
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    const existingBedResult = await db.query('SELECT id FROM beds WHERE bed_number = ? AND room_number = ? AND ward = ?', [data.bed_number, data.room_number, data.ward]);
     const existingBed = existingBedResult.rows && existingBedResult.rows.length > 0 ? existingBedResult.rows[0] : null;
       
     if (existingBed) {
-      return NextResponse.json({ error: 'Bed number already exists in this room' }, { status: 409 });
+      return NextResponse.json({ error: 'Bed number already exists in this room and ward' }, { status: 409 });
     }
     
     // Insert new bed using db.query

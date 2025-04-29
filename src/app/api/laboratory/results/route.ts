@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const orderItemId = searchParams.get('orderItemId');
     const patientId = searchParams.get('patientId');
 
-    const db = getDB();
+    const db = await getDB();
     let query = `
       SELECT r.*, 
         oi.test_id, oi.panel_id,
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json() as LabResultInput;
-    const db = getDB();
+    const db = await getDB();
 
     if (body.id) {
       // --- Update existing result ---

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     await initializeDb(); // Removed env argument
     
     // Get DB instance
-    const db = getDb(); // Using mock getDb
+    const db = await getDb(); // Fixed: Await the promise returned by getDb()
     
     // Get query parameters
     const { searchParams } = new URL(request.url);
@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     
     // Query to get admissions with patient and doctor names (using mock db.query)
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const query = `
       SELECT 
         a.admission_id, 
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest) {
     await initializeDb(); // Removed env argument
     
     // Get DB instance
-    const db = getDb(); // Using mock getDb
+    const db = await getDb(); // Fixed: Await the promise returned by getDb()
     
     const data = await request.json();
     
@@ -150,6 +151,7 @@ export async function POST(request: NextRequest) {
     const admissionData = validationResult.data;
     
     // Mock checks (replace with actual DB queries later)
+    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
     const patientCheckResult = await db.query('SELECT patient_id FROM Patients WHERE patient_id = ? AND is_active = TRUE', [admissionData.patient_id]);
     const patientCheck = patientCheckResult.rows && patientCheckResult.rows.length > 0;
     
@@ -174,6 +176,7 @@ export async function POST(request: NextRequest) {
     // Mock transaction using sequential queries
     try {
       // Insert admission record
+      // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
       await db.query(`
         INSERT INTO IPDAdmissions (
           patient_id, doctor_id, admission_date, expected_discharge_date, admission_reason, 
@@ -198,6 +201,7 @@ export async function POST(request: NextRequest) {
       ]);
       
       // Update bed status
+      // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
       await db.query('UPDATE Beds SET status = \'Occupied\' WHERE bed_id = ?', [admissionData.bed_id]);
 
       // Cannot get last_row_id from mock db.query

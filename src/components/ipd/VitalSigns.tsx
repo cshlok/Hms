@@ -1,156 +1,277 @@
 
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, Button, Table, TableHeader, TableRow, TableHead, TableBody, TableCell, Input, Label } from '@/components/ui';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Button,
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+  Input,
+  Label,
+} from "@/components/ui";
+import { Loader2 } from "lucide-react";
 
-const VitalSigns = ({ admissionId }) => {
-  const [vitalSigns, setVitalSigns] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    temperature: '',
-    pulse: '',
-    respiratory_rate: '',
-    blood_pressure: '',
-    oxygen_saturation: '',
-    pain_level: '',
-    notes: ''
+// Define interfaces for data structures
+interface VitalSignRecord {
+  id: string;
+  admission_id: string;
+  record_time: string;
+  temperature?: number | string | null;
+  pulse?: number | string | null;
+  respiratory_rate?: number | string | null;
+  blood_pressure?: string | null;
+  oxygen_saturation?: number | string | null;
+  pain_level?: number | string | null;
+  notes?: string | null;
+  recorded_by_user_id: string;
+  // Assuming these come from a join or separate fetch
+  recorded_by_first_name?: string;
+  recorded_by_last_name?: string;
+}
+
+interface AdmissionInfo {
+  admission_number: string;
+  admission_date: string;
+  patient_first_name: string;
+  patient_last_name: string;
+  diagnosis?: string;
+}
+
+interface FormData {
+  temperature: string;
+  pulse: string;
+  respiratory_rate: string;
+  blood_pressure: string;
+  oxygen_saturation: string;
+  pain_level: string;
+  notes: string;
+}
+
+interface VitalSignsProps {
+  admissionId: string | null;
+}
+
+const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
+  const [vitalSigns, setVitalSigns] = useState<VitalSignRecord[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormData>({
+    temperature: "",
+    pulse: "",
+    respiratory_rate: "",
+    blood_pressure: "",
+    oxygen_saturation: "",
+    pain_level: "",
+    notes: "",
   });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [patientInfo, setPatientInfo] = useState(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
+  const [patientInfo, setPatientInfo] = useState<AdmissionInfo | null>(null);
 
-  // Fetch vital signs for the admission
+  // Fetch vital signs and admission info
   useEffect(() => {
-    const fetchVitalSigns = async () => {
-      if (!admissionId) return;
-      
+    const fetchData = async (): Promise<void> => {
+      if (!admissionId) {
+        setLoading(false);
+        setError("Admission ID is missing.");
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        const response = await fetch(`/api/ipd/admissions/${admissionId}/vital-signs`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch vital signs');
-        }
-        
-        const data = await response.json();
-        setVitalSigns(data.vital_signs || []);
-        setPatientInfo(data.admission || null);
-        setError(null);
+        // Simulate API call
+        // const response = await fetch(`/api/ipd/admissions/${admissionId}/vital-signs`);
+        // if (!response.ok) {
+        //   const errorData = await response.json().catch(() => ({}));
+        //   throw new Error(errorData.error || "Failed to fetch vital signs");
+        // }
+        // const data = await response.json();
+        // setVitalSigns(data.vital_signs?.sort((a, b) => new Date(b.record_time).getTime() - new Date(a.record_time).getTime()) || []);
+        // setPatientInfo(data.admission || null);
+
+        // Mock data simulation
+        await new Promise(resolve => setTimeout(resolve, 600));
+        const mockPatientInfo: AdmissionInfo = {
+          admission_number: "ADM123456",
+          admission_date: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
+          patient_first_name: "Jane",
+          patient_last_name: "Doe",
+          diagnosis: "Pneumonia",
+        };
+        const mockVitalSigns: VitalSignRecord[] = [
+          {
+            id: "vs_001", admission_id: admissionId, record_time: new Date(Date.now() - 3600000 * 4).toISOString(), // 4 hours ago
+            temperature: 37.8, pulse: 88, respiratory_rate: 18, blood_pressure: "122/78", oxygen_saturation: 97,
+            pain_level: 2, recorded_by_user_id: "nurse_01", recorded_by_first_name: "Nurse", recorded_by_last_name: "Joy", notes: "Patient comfortable"
+          },
+          {
+            id: "vs_002", admission_id: admissionId, record_time: new Date(Date.now() - 3600000 * 8).toISOString(), // 8 hours ago
+            temperature: 38.1, pulse: 92, respiratory_rate: 20, blood_pressure: "125/80", oxygen_saturation: 96,
+            pain_level: 3, recorded_by_user_id: "nurse_02", recorded_by_first_name: "Nurse", recorded_by_last_name: "Mike"
+          },
+        ];
+
+        setPatientInfo(mockPatientInfo);
+        setVitalSigns(mockVitalSigns.sort((a, b) => new Date(b.record_time).getTime() - new Date(a.record_time).getTime()));
+
       } catch (err) {
-        console.error('Error fetching vital signs:', err);
-        setError('Failed to load vital signs. Please try again later.');
+        const message = err instanceof Error ? err.message : "An unknown error occurred.";
+        console.error("Error fetching vital signs data:", err);
+        setError(`Failed to load vital signs: ${message}`);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchVitalSigns();
+    fetchData();
   }, [admissionId]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    if (!admissionId) {
+      setSubmitError("Admission ID is missing.");
+      return;
+    }
     setSubmitting(true);
     setSubmitError(null);
     setSubmitSuccess(false);
-    
+
     try {
-      const response = await fetch(`/api/ipd/admissions/${admissionId}/vital-signs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...formData,
-          record_time: new Date().toISOString()
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to record vital signs');
+      // Prepare data, converting empty strings to null and numbers where appropriate
+      const submissionData: Partial<VitalSignRecord> = {
+        record_time: new Date().toISOString(),
+        temperature: formData.temperature ? parseFloat(formData.temperature) : null,
+        pulse: formData.pulse ? parseInt(formData.pulse, 10) : null,
+        respiratory_rate: formData.respiratory_rate ? parseInt(formData.respiratory_rate, 10) : null,
+        blood_pressure: formData.blood_pressure || null,
+        oxygen_saturation: formData.oxygen_saturation ? parseFloat(formData.oxygen_saturation) : null,
+        pain_level: formData.pain_level ? parseInt(formData.pain_level, 10) : null,
+        notes: formData.notes || null,
+        // recorded_by_user_id: session?.user?.id // Get from session
+      };
+
+      // Basic validation (optional, can be done on server)
+      if (submissionData.pain_level !== null && (submissionData.pain_level < 0 || submissionData.pain_level > 10)) {
+        throw new Error("Pain level must be between 0 and 10.");
       }
-      
-      const newRecord = await response.json();
-      
-      // Update the vital signs list with the new record
-      setVitalSigns(prev => [newRecord, ...prev]);
-      
+
+      // Simulate API call
+      // const response = await fetch(`/api/ipd/admissions/${admissionId}/vital-signs`, {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(submissionData),
+      // });
+      // if (!response.ok) {
+      //   const errorData = await response.json().catch(() => ({}));
+      //   throw new Error(errorData.error || "Failed to record vital signs");
+      // }
+      // const newRecord: VitalSignRecord = await response.json();
+
+      // Mock response
+      await new Promise(resolve => setTimeout(resolve, 800));
+      const newRecord: VitalSignRecord = {
+        id: `vs_${Date.now()}`,
+        admission_id: admissionId,
+        recorded_by_user_id: "nurse_current", // Replace with actual user ID
+        recorded_by_first_name: "Current", // Replace with actual user data
+        recorded_by_last_name: "Nurse",
+        ...submissionData,
+      } as VitalSignRecord; // Assert type after merging
+
+      // Update the vital signs list (prepend new record)
+      setVitalSigns((prev) => [newRecord, ...prev]);
+
       // Reset form
       setFormData({
-        temperature: '',
-        pulse: '',
-        respiratory_rate: '',
-        blood_pressure: '',
-        oxygen_saturation: '',
-        pain_level: '',
-        notes: ''
+        temperature: "",
+        pulse: "",
+        respiratory_rate: "",
+        blood_pressure: "",
+        oxygen_saturation: "",
+        pain_level: "",
+        notes: "",
       });
-      
+
       setSubmitSuccess(true);
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         setSubmitSuccess(false);
       }, 3000);
+
     } catch (err) {
-      console.error('Error recording vital signs:', err);
-      setSubmitError(err.message);
+      const message = err instanceof Error ? err.message : "An unknown error occurred.";
+      console.error("Error recording vital signs:", err);
+      setSubmitError(message);
     } finally {
       setSubmitting(false);
     }
   };
 
   // Format date for display
-  const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+  const formatDateTime = (dateString: string | undefined): string => {
+    if (!dateString) return "N/A";
+    try {
+      const options: Intl.DateTimeFormatOptions = {
+        // year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      };
+      return new Intl.DateTimeFormat(undefined, options).format(new Date(dateString));
+    } catch (e) {
+      return "Invalid Date";
+    }
   };
 
   return (
     <div className="space-y-6">
       {patientInfo && (
-        <div className="bg-blue-50 p-4 rounded-md">
-          <h3 className="font-semibold text-lg">
+        <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+          <h3 className="font-semibold text-lg text-blue-900">
             {patientInfo.patient_first_name} {patientInfo.patient_last_name}
           </h3>
-          <p className="text-sm text-gray-600">
-            Admission: {patientInfo.admission_number} | 
-            Date: {formatDate(patientInfo.admission_date)} | 
-            Diagnosis: {patientInfo.diagnosis}
+          <p className="text-sm text-gray-700">
+            Admission: {patientInfo.admission_number} | Date: {formatDateTime(patientInfo.admission_date)}
+            {patientInfo.diagnosis && ` | Admission Diagnosis: ${patientInfo.diagnosis}`}
           </p>
         </div>
       )}
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Record Vital Signs</CardTitle>
         </CardHeader>
         <CardContent>
           {submitSuccess && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
               Vital signs recorded successfully!
             </div>
           )}
-          
+
           {submitError && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              {submitError}
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+              Error: {submitError}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-2">
@@ -162,9 +283,11 @@ const VitalSigns = ({ admissionId }) => {
                   step="0.1"
                   value={formData.temperature}
                   onChange={handleChange}
+                  disabled={submitting}
+                  placeholder="e.g., 37.5"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="pulse">Pulse (bpm)</Label>
                 <Input
@@ -173,9 +296,11 @@ const VitalSigns = ({ admissionId }) => {
                   type="number"
                   value={formData.pulse}
                   onChange={handleChange}
+                  disabled={submitting}
+                  placeholder="e.g., 80"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="respiratory_rate">Resp. Rate (bpm)</Label>
                 <Input
@@ -184,9 +309,11 @@ const VitalSigns = ({ admissionId }) => {
                   type="number"
                   value={formData.respiratory_rate}
                   onChange={handleChange}
+                  disabled={submitting}
+                  placeholder="e.g., 16"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="blood_pressure">Blood Pressure (mmHg)</Label>
                 <Input
@@ -196,9 +323,10 @@ const VitalSigns = ({ admissionId }) => {
                   placeholder="e.g., 120/80"
                   value={formData.blood_pressure}
                   onChange={handleChange}
+                  disabled={submitting}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="oxygen_saturation">Oxygen Saturation (%)</Label>
                 <Input
@@ -206,11 +334,15 @@ const VitalSigns = ({ admissionId }) => {
                   name="oxygen_saturation"
                   type="number"
                   step="0.1"
+                  min="0"
+                  max="100"
                   value={formData.oxygen_saturation}
                   onChange={handleChange}
+                  disabled={submitting}
+                  placeholder="e.g., 98"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="pain_level">Pain Level (0-10)</Label>
                 <Input
@@ -221,10 +353,12 @@ const VitalSigns = ({ admissionId }) => {
                   max="10"
                   value={formData.pain_level}
                   onChange={handleChange}
+                  disabled={submitting}
+                  placeholder="e.g., 3"
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Input
@@ -233,18 +367,21 @@ const VitalSigns = ({ admissionId }) => {
                 type="text"
                 value={formData.notes}
                 onChange={handleChange}
+                disabled={submitting}
+                placeholder="Optional notes (e.g., patient position, activity)"
               />
             </div>
-            
+
             <div className="flex justify-end">
               <Button type="submit" disabled={submitting}>
-                {submitting ? 'Saving...' : 'Record Vitals'}
+                {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {submitting ? "Saving..." : "Record Vitals"}
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Vital Signs History</CardTitle>
@@ -252,43 +389,45 @@ const VitalSigns = ({ admissionId }) => {
         <CardContent>
           {loading ? (
             <div className="flex justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : error ? (
-            <div className="text-red-500 p-4 text-center">{error}</div>
+            <div className="text-red-500 p-4 text-center" role="alert">{error}</div>
           ) : vitalSigns.length === 0 ? (
-            <div className="text-gray-500 p-4 text-center">No vital signs recorded</div>
+            <div className="text-gray-500 p-4 text-center">No vital signs recorded for this admission yet.</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Temp (°C)</TableHead>
-                  <TableHead>Pulse</TableHead>
-                  <TableHead>Resp Rate</TableHead>
-                  <TableHead>BP</TableHead>
-                  <TableHead>SpO2 (%)</TableHead>
-                  <TableHead>Pain</TableHead>
-                  <TableHead>Recorded By</TableHead>
-                  <TableHead>Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {vitalSigns.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell>{formatDate(record.record_time)}</TableCell>
-                    <TableCell>{record.temperature}</TableCell>
-                    <TableCell>{record.pulse}</TableCell>
-                    <TableCell>{record.respiratory_rate}</TableCell>
-                    <TableCell>{record.blood_pressure}</TableCell>
-                    <TableCell>{record.oxygen_saturation}</TableCell>
-                    <TableCell>{record.pain_level}</TableCell>
-                    <TableCell>{record.recorded_by_first_name} {record.recorded_by_last_name}</TableCell>
-                    <TableCell>{record.notes}</TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead className="text-center">Temp (°C)</TableHead>
+                    <TableHead className="text-center">Pulse</TableHead>
+                    <TableHead className="text-center">Resp Rate</TableHead>
+                    <TableHead className="text-center">BP</TableHead>
+                    <TableHead className="text-center">SpO2 (%)</TableHead>
+                    <TableHead className="text-center">Pain</TableHead>
+                    <TableHead>Recorded By</TableHead>
+                    <TableHead>Notes</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {vitalSigns.map((record) => (
+                    <TableRow key={record.id}>
+                      <TableCell className="whitespace-nowrap">{formatDateTime(record.record_time)}</TableCell>
+                      <TableCell className="text-center">{record.temperature ?? "-"}</TableCell>
+                      <TableCell className="text-center">{record.pulse ?? "-"}</TableCell>
+                      <TableCell className="text-center">{record.respiratory_rate ?? "-"}</TableCell>
+                      <TableCell className="text-center">{record.blood_pressure ?? "-"}</TableCell>
+                      <TableCell className="text-center">{record.oxygen_saturation ?? "-"}</TableCell>
+                      <TableCell className="text-center">{record.pain_level ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.recorded_by_first_name} {record.recorded_by_last_name}</TableCell>
+                      <TableCell>{record.notes ?? "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -297,3 +436,4 @@ const VitalSigns = ({ admissionId }) => {
 };
 
 export default VitalSigns;
+

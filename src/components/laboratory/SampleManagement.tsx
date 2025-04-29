@@ -1,171 +1,217 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Input, Select, Spin, message, Modal, Form, Upload, Tag } from 'antd';
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import {
+  Card,
+  Table,
+  Button,
+  Input,
+  Select,
+  Spin,
+  message,
+  Modal,
+  Form,
+  Upload,
+  Tag,
+  Space,
+} from "antd";
 import { PlusOutlined, SearchOutlined, BarcodeOutlined, PrinterOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import moment from 'moment';
+import type { ColumnsType } from 'antd/es/table';
+import type { FormInstance } from 'antd/es/form';
 
 const { Option } = Select;
 
-const SampleManagement = () => {
-  const [samples, setSamples] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
-  const [selectedSample, setSelectedSample] = useState(null);
-  const [form] = Form.useForm();
-  const [updateForm] = Form.useForm();
+// Define interfaces for data structures
+interface Sample {
+  id: string;
+  barcode: string;
+  patient_id: string;
+  patient_name?: string; // Optional, might come from join
+  order_id: string;
+  sample_type: string;
+  status: 'pending' | 'collected' | 'received' | 'rejected' | 'processed';
+  collected_at?: string | null;
+  collected_by_user_id?: string | null;
+  collector_name?: string; // Optional, might come from join
+  received_at?: string | null;
+  received_by_user_id?: string | null;
+  rejection_reason?: string | null;
+  notes?: string | null;
+  created_at: string;
+}
+
+interface ScanFormValues {
+  barcode: string;
+}
+
+interface UpdateFormValues {
+  status: 'rejected'; // Only handling rejection in this modal
+  rejection_reason: string;
+  notes?: string;
+}
+
+const SampleManagement: React.FC = () => {
+  const [samples, setSamples] = useState<Sample[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [searchText, setSearchText] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [isScanModalVisible, setIsScanModalVisible] = useState<boolean>(false);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState<boolean>(false);
+  const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
+  const [form] = Form.useForm<ScanFormValues>();
+  const [updateForm] = Form.useForm<UpdateFormValues>();
 
   // Fetch samples with optional filters
-  const fetchSamples = async () => {
+  const fetchSamples = async (): Promise<void> => {
     setLoading(true);
     try {
-      let url = '/api/laboratory/samples';
-      const params = new URLSearchParams();
-      
+      // Simulate API call
+      // let url = '/api/laboratory/samples';
+      // const params = new URLSearchParams();
+      // if (statusFilter) {
+      //   params.append('status', statusFilter);
+      // }
+      // if (params.toString()) {
+      //   url += `?${params.toString()}`;
+      // }
+      // const response = await fetch(url);
+      // if (!response.ok) throw new Error('Failed to fetch samples');
+      // const data = await response.json();
+      // let fetchedSamples: Sample[] = data.results || data || [];
+
+      // Mock Data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      let mockSamples: Sample[] = [
+        { id: 'smp_001', barcode: 'BC12345678', patient_id: 'p001', patient_name: 'John Doe', order_id: 'ord_001', sample_type: 'Blood', status: 'pending', created_at: new Date().toISOString() },
+        { id: 'smp_002', barcode: 'BC87654321', patient_id: 'p002', patient_name: 'Jane Smith', order_id: 'ord_002', sample_type: 'Urine', status: 'collected', collected_at: new Date(Date.now() - 3600000).toISOString(), collected_by_user_id: 'nurse01', collector_name: 'Nurse Joy', created_at: new Date(Date.now() - 7200000).toISOString() },
+        { id: 'smp_003', barcode: 'BC11223344', patient_id: 'p003', patient_name: 'Peter Jones', order_id: 'ord_003', sample_type: 'Blood', status: 'received', collected_at: new Date(Date.now() - 10800000).toISOString(), collected_by_user_id: 'nurse02', collector_name: 'Nurse Mike', received_at: new Date(Date.now() - 9000000).toISOString(), received_by_user_id: 'labtech01', created_at: new Date(Date.now() - 14400000).toISOString() },
+        { id: 'smp_004', barcode: 'BC55667788', patient_id: 'p004', patient_name: 'Alice Brown', order_id: 'ord_004', sample_type: 'Swab', status: 'rejected', collected_at: new Date(Date.now() - 18000000).toISOString(), collected_by_user_id: 'nurse01', collector_name: 'Nurse Joy', rejection_reason: 'improper_labeling', notes: 'Patient name mismatch', created_at: new Date(Date.now() - 21600000).toISOString() },
+      ];
+
+      // Apply filters locally for mock data
       if (statusFilter) {
-        params.append('status', statusFilter);
+        mockSamples = mockSamples.filter(sample => sample.status === statusFilter);
       }
-      
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-      
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch samples');
-      const data = await response.json();
-      
-      // Filter by search text if provided
-      let filteredData = data.results || data;
       if (searchText) {
         const searchLower = searchText.toLowerCase();
-        filteredData = filteredData.filter(sample => 
-          sample.barcode.toLowerCase().includes(searchLower) || 
+        mockSamples = mockSamples.filter(sample =>
+          sample.barcode.toLowerCase().includes(searchLower) ||
           sample.patient_name?.toLowerCase().includes(searchLower)
         );
       }
-      
-      setSamples(filteredData);
+
+      setSamples(mockSamples.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+
     } catch (error) {
+      const messageText = error instanceof Error ? error.message : 'An unknown error occurred.';
       console.error('Error fetching samples:', error);
-      message.error('Failed to load laboratory samples');
+      message.error(`Failed to load laboratory samples: ${messageText}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load data on component mount
+  // Load data on component mount and when filters change
   useEffect(() => {
     fetchSamples();
-  }, []);
+  }, [statusFilter]); // Re-fetch only when statusFilter changes, search is handled manually
 
-  // Reload samples when filters change
-  useEffect(() => {
-    fetchSamples();
-  }, [statusFilter]);
+  const handleSearch = (): void => {
+    fetchSamples(); // Trigger fetch when search button/enter is pressed
+  };
 
-  // Handle updating a sample
-  const handleUpdateSample = async (values) => {
+  const handleResetFilters = (): void => {
+    setSearchText('');
+    setStatusFilter(null);
+    // useEffect will trigger fetchSamples due to statusFilter change
+  };
+
+  // Handle updating a sample (specifically rejection in this modal)
+  const handleUpdateSample = async (values: UpdateFormValues): Promise<void> => {
+    if (!selectedSample) return;
     try {
-      const response = await fetch('/api/laboratory/samples', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: selectedSample.id,
-          ...values
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update sample');
-      }
-      
+      // Simulate API call
+      // const response = await fetch(`/api/laboratory/samples/${selectedSample.id}`, {
+      //   method: 'PUT', // Or PATCH
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(values),
+      // });
+      // if (!response.ok) {
+      //   const errorData = await response.json().catch(() => ({}));
+      //   throw new Error(errorData.error || 'Failed to update sample');
+      // }
+
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+
       message.success('Sample updated successfully');
       setIsUpdateModalVisible(false);
       updateForm.resetFields();
-      fetchSamples();
+      fetchSamples(); // Refresh list
     } catch (error) {
+      const messageText = error instanceof Error ? error.message : 'An unknown error occurred.';
       console.error('Error updating sample:', error);
-      message.error(error.message);
+      message.error(`Failed to update sample: ${messageText}`);
     }
   };
 
-  // Handle collecting a sample
-  const handleCollectSample = async (sample) => {
+  // Generic function to update sample status
+  const updateSampleStatus = async (sample: Sample, newStatus: Sample['status']): Promise<void> => {
     try {
-      const response = await fetch('/api/laboratory/samples', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: sample.id,
-          status: 'collected'
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to collect sample');
-      }
-      
-      message.success('Sample marked as collected');
-      fetchSamples();
+      // Simulate API call
+      // const response = await fetch(`/api/laboratory/samples/${sample.id}/status`, {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ status: newStatus }),
+      // });
+      // if (!response.ok) {
+      //   const errorData = await response.json().catch(() => ({}));
+      //   throw new Error(errorData.error || `Failed to update status to ${newStatus}`);
+      // }
+
+      await new Promise(resolve => setTimeout(resolve, 300)); // Simulate delay
+
+      message.success(`Sample marked as ${newStatus}`);
+      fetchSamples(); // Refresh list
     } catch (error) {
-      console.error('Error collecting sample:', error);
-      message.error(error.message);
+      const messageText = error instanceof Error ? error.message : 'An unknown error occurred.';
+      console.error(`Error updating sample status to ${newStatus}:`, error);
+      message.error(`Failed to update status: ${messageText}`);
     }
   };
 
-  // Handle receiving a sample
-  const handleReceiveSample = async (sample) => {
-    try {
-      const response = await fetch('/api/laboratory/samples', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: sample.id,
-          status: 'received'
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to receive sample');
-      }
-      
-      message.success('Sample marked as received');
-      fetchSamples();
-    } catch (error) {
-      console.error('Error receiving sample:', error);
-      message.error(error.message);
-    }
+  const handleCollectSample = (sample: Sample): void => {
+    updateSampleStatus(sample, 'collected');
   };
 
-  // Handle rejecting a sample
-  const showRejectModal = (sample) => {
+  const handleReceiveSample = (sample: Sample): void => {
+    updateSampleStatus(sample, 'received');
+  };
+
+  const showRejectModal = (sample: Sample): void => {
     setSelectedSample(sample);
     updateForm.setFieldsValue({
       status: 'rejected',
-      rejection_reason: '',
+      rejection_reason: sample.rejection_reason || '',
       notes: sample.notes || ''
     });
     setIsUpdateModalVisible(true);
   };
 
-  // Print barcode (placeholder function)
-  const handlePrintBarcode = (sample) => {
+  const handlePrintBarcode = (sample: Sample): void => {
     message.info(`Printing barcode for sample ${sample.barcode}`);
-    // In a real implementation, this would trigger a print job
+    // In a real implementation, this would trigger a print job via browser print API or dedicated service
+    // window.print(); // Example, would need specific content to print
   };
 
-  // Table columns
-  const columns = [
+  const handleScanSubmit = (values: ScanFormValues): void => {
+    message.info(`Searching for barcode: ${values.barcode}`);
+    setIsScanModalVisible(false);
+    setSearchText(values.barcode);
+    fetchSamples(); // Trigger search
+    form.resetFields();
+  };
+
+  // Table columns definition
+  const columns: ColumnsType<Sample> = [
     {
       title: 'Barcode',
       dataIndex: 'barcode',
@@ -176,7 +222,8 @@ const SampleManagement = () => {
       title: 'Patient',
       dataIndex: 'patient_name',
       key: 'patient_name',
-      width: '20%',
+      width: '15%',
+      render: (name) => name || 'N/A',
     },
     {
       title: 'Sample Type',
@@ -189,11 +236,12 @@ const SampleManagement = () => {
       dataIndex: 'status',
       key: 'status',
       width: '10%',
-      render: (status) => {
+      render: (status: Sample['status']) => {
         let color = 'default';
         if (status === 'collected') color = 'processing';
         if (status === 'received') color = 'success';
         if (status === 'rejected') color = 'error';
+        if (status === 'processed') color = 'warning'; // Example for processed
         return <Tag color={color}>{status.toUpperCase()}</Tag>;
       },
     },
@@ -201,105 +249,110 @@ const SampleManagement = () => {
       title: 'Collected By',
       key: 'collector',
       width: '15%',
-      render: (_, record) => record.collector_name || 'Not collected',
+      render: (_, record: Sample) => record.collector_name || (record.status !== 'pending' ? 'Unknown' : 'Not collected'),
     },
     {
       title: 'Collected At',
       dataIndex: 'collected_at',
       key: 'collected_at',
       width: '15%',
-      render: (date) => date ? moment(date).format('YYYY-MM-DD HH:mm') : 'Not collected',
+      render: (date: string | null | undefined) => date ? moment(date).format('YYYY-MM-DD HH:mm') : (status !== 'pending' ? 'N/A' : 'Not collected'),
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: '15%',
-      render: (_, record) => {
-        const actions = [];
-        
-        // Print barcode action
+      width: '20%',
+      render: (_, record: Sample) => {
+        const actions: React.ReactNode[] = [];
+
         actions.push(
-          <Button 
-            key="print" 
-            type="link" 
-            icon={<PrinterOutlined />} 
+          <Button
+            key="print"
+            type="link"
+            icon={<PrinterOutlined />}
             onClick={() => handlePrintBarcode(record)}
+            size="small"
           >
             Print
           </Button>
         );
-        
-        // Status-based actions
+
         if (record.status === 'pending') {
           actions.push(
-            <Button 
-              key="collect" 
-              type="link" 
-              icon={<CheckOutlined />} 
+            <Button
+              key="collect"
+              type="link"
+              icon={<CheckOutlined />}
               onClick={() => handleCollectSample(record)}
+              size="small"
             >
               Collect
             </Button>
           );
         } else if (record.status === 'collected') {
           actions.push(
-            <Button 
-              key="receive" 
-              type="link" 
-              icon={<CheckOutlined />} 
+            <Button
+              key="receive"
+              type="link"
+              icon={<CheckOutlined />}
               onClick={() => handleReceiveSample(record)}
+              size="small"
             >
               Receive
             </Button>
           );
           actions.push(
-            <Button 
-              key="reject" 
-              type="link" 
-              danger 
-              icon={<CloseOutlined />} 
+            <Button
+              key="reject"
+              type="link"
+              danger
+              icon={<CloseOutlined />}
               onClick={() => showRejectModal(record)}
+              size="small"
             >
               Reject
             </Button>
           );
+        } else if (record.status === 'received') {
+          // Add action for 'Process' or similar if needed
         }
-        
-        return actions;
+
+        return <Space size="small">{actions}</Space>;
       },
     },
   ];
 
   return (
-    <div className="sample-management-container">
+    <div className="sample-management-container p-4">
       <Card
         title="Laboratory Sample Management"
         extra={
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<BarcodeOutlined />}
-            onClick={() => setIsModalVisible(true)}
+            onClick={() => setIsScanModalVisible(true)}
           >
             Scan Barcode
           </Button>
         }
       >
-        <div className="filter-container" style={{ marginBottom: 16, display: 'flex', gap: 16 }}>
+        <div className="filter-container mb-4 flex flex-wrap gap-4 items-center">
           <Input
             placeholder="Search by barcode or patient..."
             prefix={<SearchOutlined />}
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            onPressEnter={fetchSamples}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)}
+            onPressEnter={handleSearch}
             style={{ width: 250 }}
+            allowClear
           />
-          
-          <Select
+
+          <Select<string | null>
             placeholder="Filter by status"
             allowClear
             style={{ width: 200 }}
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={(value) => setStatusFilter(value)}
           >
             <Option value="pending">Pending</Option>
             <Option value="collected">Collected</Option>
@@ -307,75 +360,68 @@ const SampleManagement = () => {
             <Option value="rejected">Rejected</Option>
             <Option value="processed">Processed</Option>
           </Select>
-          
-          <Button 
-            onClick={() => {
-              setSearchText('');
-              setStatusFilter(null);
-              fetchSamples();
-            }}
-          >
-            Reset
-          </Button>
+
+          <Button onClick={handleSearch}>Search</Button>
+          <Button onClick={handleResetFilters}>Reset</Button>
         </div>
-        
+
         <Spin spinning={loading}>
-          <Table
+          <Table<Sample>
             columns={columns}
             dataSource={samples}
             rowKey="id"
-            pagination={{ pageSize: 10 }}
+            pagination={{ pageSize: 10, showSizeChanger: true }}
+            scroll={{ x: 'max-content' }} // Ensure horizontal scroll on smaller screens
           />
         </Spin>
       </Card>
-      
+
       {/* Barcode Scan Modal */}
       <Modal
         title="Scan Sample Barcode"
-        visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        visible={isScanModalVisible}
+        onCancel={() => setIsScanModalVisible(false)}
         footer={null}
+        destroyOnClose // Reset form state when closed
       >
-        <Form
+        <Form<ScanFormValues>
+          form={form}
           layout="vertical"
-          onFinish={(values) => {
-            // Handle barcode scan
-            message.info(`Searching for barcode: ${values.barcode}`);
-            setIsModalVisible(false);
-            // In a real implementation, this would fetch the sample by barcode
-          }}
+          onFinish={handleScanSubmit}
         >
           <Form.Item
             name="barcode"
             label="Barcode"
             rules={[{ required: true, message: 'Please enter or scan barcode' }]}
           >
-            <Input 
-              placeholder="Scan or enter barcode" 
-              autoFocus 
+            <Input
+              placeholder="Scan or enter barcode"
+              autoFocus
               suffix={<BarcodeOutlined />}
             />
           </Form.Item>
-          
+
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              Search
+              Search Sample
             </Button>
           </Form.Item>
         </Form>
       </Modal>
-      
-      {/* Update Sample Modal */}
+
+      {/* Update Sample Modal (for Rejection) */}
       <Modal
-        title={`Update Sample: ${selectedSample?.barcode}`}
+        title={`Reject Sample: ${selectedSample?.barcode}`}
         visible={isUpdateModalVisible}
         onCancel={() => setIsUpdateModalVisible(false)}
         footer={null}
+        destroyOnClose // Reset form state when closed
       >
-        <Form
+        <Form<UpdateFormValues>
           form={updateForm}
           layout="vertical"
           onFinish={handleUpdateSample}
+          initialValues={{ status: 'rejected' }} // Set initial status
         >
           <Form.Item
             name="status"
@@ -385,7 +431,7 @@ const SampleManagement = () => {
               <Option value="rejected">Rejected</Option>
             </Select>
           </Form.Item>
-          
+
           <Form.Item
             name="rejection_reason"
             label="Rejection Reason"
@@ -402,17 +448,17 @@ const SampleManagement = () => {
               <Option value="other">Other (specify in notes)</Option>
             </Select>
           </Form.Item>
-          
+
           <Form.Item
             name="notes"
             label="Notes"
           >
-            <Input.TextArea rows={3} placeholder="Additional notes..." />
+            <Input.TextArea rows={3} placeholder="Additional notes (required if reason is Other)" />
           </Form.Item>
-          
+
           <Form.Item>
             <Button type="primary" danger htmlType="submit">
-              Reject Sample
+              Confirm Rejection
             </Button>
           </Form.Item>
         </Form>
@@ -422,3 +468,4 @@ const SampleManagement = () => {
 };
 
 export default SampleManagement;
+

@@ -60,7 +60,7 @@ interface LabOrder {
 
 async function getLabOrdersFromDB(filters: any): Promise<LabOrder[]> { // Added return type
   console.warn("Mock getLabOrdersFromDB called with filters:", filters);
-  const db = getDB();
+  const db = await getDB();
   let query = "SELECT * FROM lab_orders";
   const params: any[] = [];
   if (filters.status) {
@@ -74,7 +74,7 @@ async function getLabOrdersFromDB(filters: any): Promise<LabOrder[]> { // Added 
 
 async function createLabOrderInDB(orderData: LabOrderInput): Promise<LabOrder> { // Added return type
   console.warn("Mock createLabOrderInDB called with data:", orderData);
-  const db = getDB();
+  const db = await getDB();
   const newId = Math.floor(Math.random() * 10000) + 1;
   const orderNumber = `LAB-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(newId).padStart(3, "0")}`;
 
@@ -110,7 +110,7 @@ async function createLabOrderInDB(orderData: LabOrderInput): Promise<LabOrder> {
 
 async function getLabOrderByIdFromDB(id: number): Promise<LabOrder | null> { // Added return type
   console.warn(`Mock getLabOrderByIdFromDB called with ID: ${id}`);
-  const db = getDB();
+  const db = await getDB();
   const result = await db.query("SELECT * FROM lab_orders WHERE id = ?", [id]);
   const order = result.rows && result.rows.length > 0 ? result.rows[0] : null;
 
@@ -127,7 +127,7 @@ async function getLabOrderByIdFromDB(id: number): Promise<LabOrder | null> { // 
 
 async function updateLabOrderInDB(id: number, updateData: LabOrderUpdateInput): Promise<LabOrder | null> { // Added return type
   console.warn(`Mock updateLabOrderInDB called for ID ${id} with data:`, updateData);
-  const db = getDB();
+  const db = await getDB();
   await db.query("UPDATE lab_orders SET ... WHERE id = ?", [id]);
 
   // Return mock updated data
