@@ -1,151 +1,188 @@
-/* Shlokam HMS Theme Colors */
-:root {
-  /* Primary Colors */
-  --primary-dark: #1a2342;    /* Dark navy blue (background) */
-  --primary: #2e3b62;         /* Navy blue (hands in logo) */
-  --primary-light: #4a5a8f;   /* Lighter navy blue */
-  
-  /* Secondary Colors */
-  --secondary: #2ec4b6;       /* Teal/turquoise (figure in logo and text) */
-  --secondary-light: #5edfd4; /* Lighter teal */
-  --secondary-dark: #1a9589;  /* Darker teal */
-  
-  /* Accent Colors */
-  --accent: #ff5e8f;          /* Pink (circle in logo) */
-  --accent-light: #ff8fb0;    /* Lighter pink */
-  --accent-dark: #d13e6f;     /* Darker pink */
-  
-  /* Neutral Colors */
-  --background-dark: #1e1e2e; /* Dark background (dark mode) */
-  --background-light: #ffffff; /* Light background (light mode) */
-  --text-dark: #2c2c2c;       /* Dark text */
-  --text-light: #f8f8f8;      /* Light text */
-  
-  /* UI Colors */
-  --success: #22c55e;         /* Green for success messages */
-  --warning: #f59e0b;         /* Amber for warnings */
-  --error: #ef4444;           /* Red for errors */
-  --info: #3b82f6;            /* Blue for information */
-  
-  /* Card and Border Colors */
-  --card-dark: #282838;       /* Dark mode card background */
-  --card-light: #ffffff;      /* Light mode card background */
-  --border-dark: #3f3f5f;     /* Dark mode borders */
-  --border-light: #e2e8f0;    /* Light mode borders */
-  
-  /* Shadow */
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Shlokam HMS Theme Colors & Standard Shadcn UI Variables */
+@layer base {
+  :root {
+    /* Shlokam Primary Colors */
+    --primary-dark: 225 43% 18%;    /* #1a2342; Dark navy blue (background) */
+    --primary: 227 35% 28%;         /* #2e3b62; Navy blue (hands in logo) */
+    --primary-light: 227 30% 42%;   /* #4a5a8f; Lighter navy blue */
+    
+    /* Shlokam Secondary Colors */
+    --secondary: 174 64% 47%;       /* #2ec4b6; Teal/turquoise (figure in logo and text) */
+    --secondary-light: 174 80% 62%; /* #5edfd4; Lighter teal */
+    --secondary-dark: 174 70% 34%;  /* #1a9589; Darker teal */
+    
+    /* Shlokam Accent Colors */
+    --accent: 340 100% 68%;          /* #ff5e8f; Pink (circle in logo) */
+    --accent-light: 340 100% 75%;    /* #ff8fb0; Lighter pink */
+    --accent-dark: 340 60% 53%;     /* #d13e6f; Darker pink */
+    
+    /* Shlokam Neutral Colors */
+    --background-dark: 240 17% 15%; /* #1e1e2e; Dark background (dark mode) */
+    --background-light: 0 0% 100%; /* #ffffff; Light background (light mode) */
+    --text-dark: 0 0% 17%;       /* #2c2c2c; Dark text */
+    --text-light: 0 0% 97%;      /* #f8f8f8; Light text */
+    
+    /* Shlokam UI Colors */
+    --success: 142 71% 45%;         /* #22c55e; Green for success messages */
+    --warning: 38 92% 50%;         /* #f59e0b; Amber for warnings */
+    --error: 0 84% 60%;           /* #ef4444; Red for errors */
+    --info: 217 91% 60%;            /* #3b82f6; Blue for information */
+    
+    /* Shlokam Card and Border Colors */
+    --card-dark: 240 10% 19%;       /* #282838; Dark mode card background */
+    --card-light: 0 0% 100%;      /* #ffffff; Light mode card background */
+    --border-dark: 240 17% 31%;     /* #3f3f5f; Dark mode borders */
+    --border-light: 215 20% 90%;    /* #e2e8f0; Light mode borders */
+
+    /* Standard Shadcn UI Variables (Dark Mode - Default) */
+    --background: 240 17% 15%; /* Using Shlokam's --background-dark */
+    --foreground: 0 0% 97%; /* Using Shlokam's --text-light */
+    --card: 240 10% 19%; /* Using Shlokam's --card-dark */
+    --card-foreground: 0 0% 97%; /* Using Shlokam's --text-light */
+    --popover: 240 10% 19%; /* Using Shlokam's --card-dark */
+    --popover-foreground: 0 0% 97%; /* Using Shlokam's --text-light */
+    --primary-shadcn: 174 64% 47%; /* Using Shlokam's --secondary (Teal) as primary for components */
+    --primary-foreground-shadcn: 0 0% 97%; /* Using Shlokam's --text-light */
+    --secondary-shadcn: 227 35% 28%; /* Using Shlokam's --primary (Navy) as secondary for components */
+    --secondary-foreground-shadcn: 0 0% 97%; /* Using Shlokam's --text-light */
+    --muted: 240 17% 31%; /* Using Shlokam's --border-dark */
+    --muted-foreground: 215 20% 65%; /* Adjusted for dark bg */
+    --accent-shadcn: 340 100% 68%; /* Using Shlokam's --accent (Pink) */
+    --accent-foreground-shadcn: 0 0% 97%; /* Using Shlokam's --text-light */
+    --destructive: 0 84% 60%; /* Using Shlokam's --error */
+    --destructive-foreground: 0 0% 97%; /* Using Shlokam's --text-light */
+    --border: 240 17% 31%; /* Using Shlokam's --border-dark */
+    --input: 240 17% 31%; /* Using Shlokam's --border-dark */
+    --ring: 174 64% 47%; /* Using Shlokam's --secondary (Teal) */
+    --radius: 0.5rem;
+  }
+
+  .light {
+    /* Standard Shadcn UI Variables (Light Mode) */
+    --background: 0 0% 100%; /* Using Shlokam's --background-light */
+    --foreground: 0 0% 17%; /* Using Shlokam's --text-dark */
+    --card: 0 0% 100%; /* Using Shlokam's --card-light */
+    --card-foreground: 0 0% 17%; /* Using Shlokam's --text-dark */
+    --popover: 0 0% 100%; /* Using Shlokam's --card-light */
+    --popover-foreground: 0 0% 17%; /* Using Shlokam's --text-dark */
+    --primary-shadcn: 174 64% 47%; /* Using Shlokam's --secondary (Teal) */
+    --primary-foreground-shadcn: 0 0% 97%; /* Using Shlokam's --text-light */
+    --secondary-shadcn: 227 35% 28%; /* Using Shlokam's --primary (Navy) */
+    --secondary-foreground-shadcn: 0 0% 97%; /* Using Shlokam's --text-light */
+    --muted: 215 20% 90%; /* Using Shlokam's --border-light */
+    --muted-foreground: 215 20% 45%; /* Adjusted for light bg */
+    --accent-shadcn: 340 100% 68%; /* Using Shlokam's --accent (Pink) */
+    --accent-foreground-shadcn: 0 0% 97%; /* Using Shlokam's --text-light */
+    --destructive: 0 84% 60%; /* Using Shlokam's --error */
+    --destructive-foreground: 0 0% 97%; /* Using Shlokam's --text-light */
+    --border: 215 20% 90%; /* Using Shlokam's --border-light */
+    --input: 215 20% 90%; /* Using Shlokam's --border-light */
+    --ring: 174 64% 47%; /* Using Shlokam's --secondary (Teal) */
+    /* --radius: 0.5rem; */ /* Radius is same for both modes */
+  }
 }
 
-/* Dark Mode (Default) */
-.dark {
-  --background: var(--background-dark);
-  --card-background: var(--card-dark);
-  --text-primary: var(--text-light);
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --border-color: var(--border-dark);
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
-/* Light Mode */
-.light {
-  --background: var(--background-light);
-  --card-background: var(--card-light);
-  --text-primary: var(--text-dark);
-  --text-secondary: rgba(0, 0, 0, 0.7);
-  --border-color: var(--border-light);
-}
-
-/* Global Styles */
-body {
-  background-color: var(--background);
-  color: var(--text-primary);
-}
+/* Shlokam Custom Global Styles (Keep these if needed, adjust if they conflict with shadcn) */
 
 /* Button Styles */
 .btn-primary {
-  background-color: var(--secondary);
-  color: var(--text-light);
+  background-color: hsl(var(--secondary)); /* Shlokam Teal */
+  color: hsl(var(--text-light));
 }
 
 .btn-primary:hover {
-  background-color: var(--secondary-dark);
+  background-color: hsl(var(--secondary-dark));
 }
 
 .btn-secondary {
-  background-color: var(--primary);
-  color: var(--text-light);
+  background-color: hsl(var(--primary)); /* Shlokam Navy */
+  color: hsl(var(--text-light));
 }
 
 .btn-secondary:hover {
-  background-color: var(--primary-light);
+  background-color: hsl(var(--primary-light));
 }
 
 .btn-accent {
-  background-color: var(--accent);
-  color: var(--text-light);
+  background-color: hsl(var(--accent)); /* Shlokam Pink */
+  color: hsl(var(--text-light));
 }
 
 .btn-accent:hover {
-  background-color: var(--accent-dark);
+  background-color: hsl(var(--accent-dark));
 }
 
 /* Card Styles */
 .card {
-  background-color: var(--card-background);
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  box-shadow: var(--shadow);
+  /* Note: Shadcn components use their own card styles. This might need removal or adjustment. */
+  /* background-color: hsl(var(--card-background)); */
+  /* border: 1px solid hsl(var(--border-color)); */
+  /* border-radius: 0.5rem; */
+  /* box-shadow: var(--shadow); */
 }
 
 /* Header and Navigation */
 .header {
-  background-color: var(--primary-dark);
+  background-color: hsl(var(--primary-dark));
 }
 
 .nav-item {
-  color: var(--text-light);
+  color: hsl(var(--text-light));
 }
 
 .nav-item:hover {
-  color: var(--secondary);
+  color: hsl(var(--secondary));
 }
 
 .nav-item.active {
-  color: var(--secondary);
-  border-bottom: 2px solid var(--secondary);
+  color: hsl(var(--secondary));
+  border-bottom: 2px solid hsl(var(--secondary));
 }
 
 /* Status Indicators */
 .status-success {
-  color: var(--success);
+  color: hsl(var(--success));
 }
 
 .status-warning {
-  color: var(--warning);
+  color: hsl(var(--warning));
 }
 
 .status-error {
-  color: var(--error);
+  color: hsl(var(--error));
 }
 
 .status-info {
-  color: var(--info);
+  color: hsl(var(--info));
 }
 
 /* Badge Styles */
 .badge-primary {
-  background-color: var(--primary);
-  color: var(--text-light);
+  background-color: hsl(var(--primary));
+  color: hsl(var(--text-light));
 }
 
 .badge-secondary {
-  background-color: var(--secondary);
-  color: var(--text-light);
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--text-light));
 }
 
 .badge-accent {
-  background-color: var(--accent);
-  color: var(--text-light);
+  background-color: hsl(var(--accent));
+  color: hsl(var(--text-light));
 }
 
 /* Table Styles */
@@ -155,42 +192,43 @@ table {
 }
 
 th {
-  background-color: var(--primary-dark);
-  color: var(--text-light);
+  background-color: hsl(var(--primary-dark));
+  color: hsl(var(--text-light));
   text-align: left;
   padding: 0.75rem;
 }
 
 td {
   padding: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid hsl(var(--border)); /* Use shadcn border */
 }
 
 tr:hover {
-  background-color: rgba(46, 196, 182, 0.1); /* Subtle teal highlight */
+  background-color: hsla(var(--secondary), 0.1); /* Subtle teal highlight */
 }
 
 /* Form Elements */
-input, select, textarea {
-  background-color: var(--card-background);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+/* Note: Shadcn components use their own input styles. These might need removal or adjustment. */
+/* input, select, textarea {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
   padding: 0.5rem;
   border-radius: 0.25rem;
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: var(--secondary);
+  border-color: hsl(var(--secondary));
   outline: none;
-  box-shadow: 0 0 0 2px rgba(46, 196, 182, 0.2);
-}
+  box-shadow: 0 0 0 2px hsla(var(--secondary), 0.2);
+} */
 
 /* Dashboard Cards */
 .dashboard-card {
-  background-color: var(--card-background);
+  /* background-color: hsl(var(--card)); */ /* Use shadcn card */
   border-radius: 0.5rem;
   padding: 1.5rem;
-  box-shadow: var(--shadow);
+  /* box-shadow: var(--shadow); */ /* Shadcn card has shadow */
   transition: transform 0.2s ease;
 }
 
@@ -199,13 +237,13 @@ input:focus, select:focus, textarea:focus {
 }
 
 .dashboard-card-icon {
-  color: var(--secondary);
+  color: hsl(var(--secondary));
   font-size: 2rem;
   margin-bottom: 1rem;
 }
 
 .dashboard-card-title {
-  color: var(--text-primary);
+  color: hsl(var(--foreground));
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
@@ -223,14 +261,15 @@ input:focus, select:focus, textarea:focus {
 }
 
 .logo-text {
-  color: var(--secondary);
+  color: hsl(var(--secondary));
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.05em;
 }
 
 .logo-subtext {
-  color: var(--secondary-light);
+  color: hsl(var(--secondary-light));
   font-size: 1rem;
   font-weight: 400;
 }
+

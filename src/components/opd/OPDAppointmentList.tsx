@@ -1,7 +1,8 @@
-'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { 
   Table, 
   TableBody, 
@@ -9,17 +10,17 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/table"; // Assuming these will be created
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge"; // Assuming this exists or will be created
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
   DialogTrigger 
-} from '@/components/ui/dialog';
-import { hasPermission } from '@/lib/session';
+} from "@/components/ui/dialog"; // Assuming this exists or will be created
+// Removed direct import: import { hasPermission } from "@/lib/session";
 
 interface Appointment {
   id: number;
@@ -28,7 +29,7 @@ interface Appointment {
   doctorId: number;
   doctorName: string;
   appointmentTime: string;
-  status: 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled';
+  status: "scheduled" | "checked-in" | "in-progress" | "completed" | "cancelled";
   appointmentType: string;
   reason: string;
 }
@@ -44,125 +45,148 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
   const [error, setError] = useState<string | null>(null);
   const [canCheckIn, setCanCheckIn] = useState(false);
   const [canCancel, setCanCancel] = useState(false);
-  
+  const [loadingPermissions, setLoadingPermissions] = useState(true);
+
   useEffect(() => {
-    // Check permissions
+    // Check permissions via API route
     const checkPermissions = async () => {
-      const checkInPerm = await hasPermission('appointment:check-in');
-      const cancelPerm = await hasPermission('appointment:cancel');
-      
-      setCanCheckIn(checkInPerm);
-      setCanCancel(cancelPerm);
+      setLoadingPermissions(true);
+      try {
+        const [checkInRes, cancelRes] = await Promise.all([
+          fetch("/api/auth/check-permission?permission=appointment:check-in"),
+          fetch("/api/auth/check-permission?permission=appointment:cancel"),
+        ]);
+
+        if (!checkInRes.ok || !cancelRes.ok) {
+          console.error("Failed to fetch permissions");
+          setCanCheckIn(false);
+          setCanCancel(false);
+          return;
+        }
+
+        const checkInData = await checkInRes.json();
+        const cancelData = await cancelRes.json();
+
+        setCanCheckIn(checkInData.hasPermission || false);
+        setCanCancel(cancelData.hasPermission || false);
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+        setCanCheckIn(false);
+        setCanCancel(false);
+      } finally {
+        setLoadingPermissions(false);
+      }
     };
-    
+
     checkPermissions();
   }, []);
-  
+
   useEffect(() => {
     const fetchAppointments = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
-        const formattedDate = date.toISOString().split('T')[0];
+        const formattedDate = date.toISOString().split("T")[0];
         const response = await fetch(`/api/appointments?date=${formattedDate}`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch appointments');
+          throw new Error("Failed to fetch appointments");
         }
-        
+
         const data = await response.json();
         setAppointments(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-        console.error('Error fetching appointments:', err);
+        setError(err instanceof Error ? err.message : "An error occurred");
+        console.error("Error fetching appointments:", err);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchAppointments();
   }, [date]);
-  
+
   const handleCheckIn = async (appointmentId: number) => {
     try {
       const response = await fetch(`/api/appointments/${appointmentId}/check-in`, {
-        method: 'POST',
+        method: "POST",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to check in patient');
+        throw new Error("Failed to check in patient");
       }
-      
+
       // Update the appointment status in the local state
       setAppointments(appointments.map(appointment => 
         appointment.id === appointmentId 
-          ? { ...appointment, status: 'checked-in' } 
+          ? { ...appointment, status: "checked-in" } 
           : appointment
       ));
-      
+
     } catch (err) {
-      console.error('Error checking in patient:', err);
+      console.error("Error checking in patient:", err);
       // Show error notification
     }
   };
-  
+
   const handleCancel = async (appointmentId: number) => {
     try {
       const response = await fetch(`/api/appointments/${appointmentId}/cancel`, {
-        method: 'POST',
+        method: "POST",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to cancel appointment');
+        throw new Error("Failed to cancel appointment");
       }
-      
+
       // Update the appointment status in the local state
       setAppointments(appointments.map(appointment => 
         appointment.id === appointmentId 
-          ? { ...appointment, status: 'cancelled' } 
+          ? { ...appointment, status: "cancelled" } 
           : appointment
       ));
-      
+
     } catch (err) {
-      console.error('Error cancelling appointment:', err);
+      console.error("Error cancelling appointment:", err);
       // Show error notification
     }
   };
-  
+
   const handleViewDetails = (appointmentId: number) => {
     router.push(`/opd/appointments/${appointmentId}`);
   };
-  
-  const getStatusBadge = (status: Appointment['status']) => {
+
+  const getStatusBadge = (status: Appointment["status"]) => {
     switch (status) {
-      case 'scheduled':
+      case "scheduled":
         return <Badge variant="outline">Scheduled</Badge>;
-      case 'checked-in':
+      case "checked-in":
         return <Badge variant="secondary">Checked In</Badge>;
-      case 'in-progress':
+      case "in-progress":
         return <Badge variant="default">In Progress</Badge>;
-      case 'completed':
-        return <Badge variant="success">Completed</Badge>;
-      case 'cancelled':
+      case "completed":
+        // Assuming a 'success' variant exists for Badge
+        return <Badge variant="default" className="bg-green-500 text-white">Completed</Badge>; 
+      case "cancelled":
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-  
-  if (loading) {
-    return <div className="flex justify-center p-4">Loading appointments...</div>;
+
+  if (loading || loadingPermissions) {
+    return <div className="flex justify-center p-4">Loading...</div>;
   }
-  
+
   if (error) {
     return <div className="text-red-500 p-4">Error: {error}</div>;
   }
-  
+
   if (appointments.length === 0) {
     return <div className="text-center p-4">No appointments scheduled for this date.</div>;
   }
-  
+
   return (
     <div>
       <Table>
@@ -179,7 +203,7 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
         <TableBody>
           {appointments.map((appointment) => (
             <TableRow key={appointment.id}>
-              <TableCell>{new Date(appointment.appointmentTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+              <TableCell>{new Date(appointment.appointmentTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</TableCell>
               <TableCell>{appointment.patientName}</TableCell>
               <TableCell>{appointment.doctorName}</TableCell>
               <TableCell>{appointment.appointmentType}</TableCell>
@@ -227,7 +251,7 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
                     </DialogContent>
                   </Dialog>
                   
-                  {canCheckIn && appointment.status === 'scheduled' && (
+                  {canCheckIn && appointment.status === "scheduled" && (
                     <Button 
                       variant="default" 
                       size="sm"
@@ -237,7 +261,7 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
                     </Button>
                   )}
                   
-                  {canCancel && (appointment.status === 'scheduled' || appointment.status === 'checked-in') && (
+                  {canCancel && (appointment.status === "scheduled" || appointment.status === "checked-in") && (
                     <Button 
                       variant="destructive" 
                       size="sm"
@@ -255,3 +279,4 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
     </div>
   );
 }
+

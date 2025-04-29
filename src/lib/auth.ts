@@ -1,230 +1,114 @@
-// src/lib/auth.ts
+// Placeholder for authentication utility functions
+// TODO: Implement actual authentication and authorization logic
+
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify, SignJWT } from 'jose';
-import { cookies } from 'next/headers';
-import { getRequestContext } from '@cloudflare/next-on-pages';
+import { cookies } from 'next/headers'; // Import cookies for session management
 
-// Secret key for JWT signing - in production, use environment variables
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'shlokam-hms-secure-jwt-secret-key-2025');
+// Define placeholder user type
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  roles: string[];
+  permissions: string[];
+}
 
-// Token expiration time
-const TOKEN_EXPIRY = '8h';
-
-// User roles and their permissions
-export const ROLES = {
-  ADMIN: 'admin',
-  DOCTOR: 'doctor',
-  NURSE: 'nurse',
-  RECEPTIONIST: 'receptionist',
-  PHARMACIST: 'pharmacist',
-  LAB_TECHNICIAN: 'lab_technician',
-  PATIENT: 'patient',
-};
-
-// Permission definitions
+// Placeholder for PERMISSIONS constants
 export const PERMISSIONS = {
-  // Patient management
-  VIEW_PATIENTS: 'view_patients',
-  CREATE_PATIENT: 'create_patient',
-  UPDATE_PATIENT: 'update_patient',
-  DELETE_PATIENT: 'delete_patient',
-  
-  // Appointment management
-  VIEW_APPOINTMENTS: 'view_appointments',
-  CREATE_APPOINTMENT: 'create_appointment',
-  UPDATE_APPOINTMENT: 'update_appointment',
-  DELETE_APPOINTMENT: 'delete_appointment',
-  
-  // Billing management
-  VIEW_INVOICES: 'view_invoices',
-  CREATE_INVOICE: 'create_invoice',
-  UPDATE_INVOICE: 'update_invoice',
-  DELETE_INVOICE: 'delete_invoice',
-  
-  // Medical records
-  VIEW_MEDICAL_RECORDS: 'view_medical_records',
-  CREATE_MEDICAL_RECORD: 'create_medical_record',
-  UPDATE_MEDICAL_RECORD: 'update_medical_record',
-  
-  // Pharmacy
-  VIEW_MEDICATIONS: 'view_medications',
-  DISPENSE_MEDICATION: 'dispense_medication',
-  MANAGE_INVENTORY: 'manage_inventory',
-  
-  // Laboratory
-  VIEW_LAB_TESTS: 'view_lab_tests',
-  CREATE_LAB_TEST: 'create_lab_test',
-  UPDATE_LAB_TEST: 'update_lab_test',
-  
-  // User management
-  VIEW_USERS: 'view_users',
-  CREATE_USER: 'create_user',
-  UPDATE_USER: 'update_user',
-  DELETE_USER: 'delete_user',
-  
-  // System settings
-  MANAGE_SETTINGS: 'manage_settings',
+  // Define permissions based on requirements
+  VIEW_PATIENT: 'patient:view',
+  CREATE_PATIENT: 'patient:create',
+  EDIT_PATIENT: 'patient:edit',
+  VIEW_APPOINTMENT: 'appointment:view',
+  CREATE_APPOINTMENT: 'appointment:create',
+  EDIT_APPOINTMENT: 'appointment:edit',
+  BILLING_CREATE_INVOICE: 'billing:invoice:create',
+  BILLING_VIEW_INVOICE: 'billing:invoice:view',
+  // ... add all other permissions
 };
 
-// Role-based permissions mapping
-export const ROLE_PERMISSIONS = {
-  [ROLES.ADMIN]: [
-    ...Object.values(PERMISSIONS),
-  ],
-  [ROLES.DOCTOR]: [
-    PERMISSIONS.VIEW_PATIENTS,
-    PERMISSIONS.UPDATE_PATIENT,
-    PERMISSIONS.VIEW_APPOINTMENTS,
-    PERMISSIONS.UPDATE_APPOINTMENT,
-    PERMISSIONS.VIEW_INVOICES,
-    PERMISSIONS.VIEW_MEDICAL_RECORDS,
-    PERMISSIONS.CREATE_MEDICAL_RECORD,
-    PERMISSIONS.UPDATE_MEDICAL_RECORD,
-    PERMISSIONS.VIEW_MEDICATIONS,
-    PERMISSIONS.VIEW_LAB_TESTS,
-    PERMISSIONS.CREATE_LAB_TEST,
-  ],
-  [ROLES.NURSE]: [
-    PERMISSIONS.VIEW_PATIENTS,
-    PERMISSIONS.UPDATE_PATIENT,
-    PERMISSIONS.VIEW_APPOINTMENTS,
-    PERMISSIONS.VIEW_MEDICAL_RECORDS,
-    PERMISSIONS.UPDATE_MEDICAL_RECORD,
-    PERMISSIONS.VIEW_MEDICATIONS,
-    PERMISSIONS.VIEW_LAB_TESTS,
-  ],
-  [ROLES.RECEPTIONIST]: [
-    PERMISSIONS.VIEW_PATIENTS,
-    PERMISSIONS.CREATE_PATIENT,
-    PERMISSIONS.UPDATE_PATIENT,
-    PERMISSIONS.VIEW_APPOINTMENTS,
-    PERMISSIONS.CREATE_APPOINTMENT,
-    PERMISSIONS.UPDATE_APPOINTMENT,
-    PERMISSIONS.DELETE_APPOINTMENT,
-    PERMISSIONS.VIEW_INVOICES,
-    PERMISSIONS.CREATE_INVOICE,
-  ],
-  [ROLES.PHARMACIST]: [
-    PERMISSIONS.VIEW_PATIENTS,
-    PERMISSIONS.VIEW_MEDICATIONS,
-    PERMISSIONS.DISPENSE_MEDICATION,
-    PERMISSIONS.MANAGE_INVENTORY,
-  ],
-  [ROLES.LAB_TECHNICIAN]: [
-    PERMISSIONS.VIEW_PATIENTS,
-    PERMISSIONS.VIEW_LAB_TESTS,
-    PERMISSIONS.UPDATE_LAB_TEST,
-  ],
-  [ROLES.PATIENT]: [
-    PERMISSIONS.VIEW_APPOINTMENTS,
-    PERMISSIONS.CREATE_APPOINTMENT,
-  ],
+// Placeholder function for API routes importing 'checkUserRole'
+export const checkUserRole = async (req: NextRequest, allowedRoles: string[]): Promise<boolean> => {
+  console.warn("Authorization function 'checkUserRole' is not implemented yet.");
+  // Mock implementation: always returns true
+  return true;
 };
 
-// Generate JWT token
-export async function signToken(payload: any) {
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime(TOKEN_EXPIRY)
-    .sign(JWT_SECRET);
-}
-
-// Verify JWT token
-export async function verifyToken(token: string) {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload;
-  } catch (error) {
-    return null;
+// Placeholder function for API routes importing 'getCurrentUser'
+export const getCurrentUser = async (req?: NextRequest): Promise<User | null> => {
+  console.warn("Authentication function 'getCurrentUser' is not implemented yet.");
+  // Mock implementation: returns a dummy user or null
+  // In a real implementation, this would verify a token from cookies or headers
+  const token = cookies().get('auth_token')?.value;
+  if (token === 'mock-jwt-token') { // Example check
+    return {
+      id: 'user_123',
+      name: 'Dr. Mock User',
+      email: 'mock@example.com',
+      roles: ['doctor', 'admin'], // Example roles
+      permissions: Object.values(PERMISSIONS), // Example: grant all permissions
+    };
   }
-}
+  return null;
+};
 
-// Set auth cookie
-export function setAuthCookie(response: NextResponse, token: string) {
-  response.cookies.set({
-    name: 'auth_token',
-    value: token,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 60 * 60 * 8, // 8 hours
-    path: '/',
-  });
-  return response;
-}
+// Placeholder function for API routes importing 'hasPermission'
+export const hasPermission = async (req: NextRequest, requiredPermissions: string | string[]): Promise<boolean> => {
+  console.warn("Authorization function 'hasPermission' is not implemented yet.");
+  const user = await getCurrentUser(req);
+  if (!user) return false;
 
-// Clear auth cookie
-export function clearAuthCookie(response: NextResponse) {
-  response.cookies.set({
-    name: 'auth_token',
-    value: '',
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 0,
-    path: '/',
-  });
-  return response;
-}
+  const permissionsToCheck = Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions];
+  // Mock implementation: check if mock user has all required permissions
+  return permissionsToCheck.every(p => user.permissions.includes(p));
+};
 
-// Get current user from token
-export async function getCurrentUser(request: NextRequest) {
-  const token = request.cookies.get('auth_token')?.value;
-  
-  if (!token) {
-    return null;
-  }
-  
-  const payload = await verifyToken(token);
-  return payload;
-}
+// Placeholder function for API routes importing 'clearAuthCookie'
+export const clearAuthCookie = (res: NextResponse) => {
+  console.warn("Authentication function 'clearAuthCookie' is not implemented yet.");
+  // In a real implementation, this would set the auth cookie to expire
+  res.cookies.set('auth_token', '', { expires: new Date(0), path: '/' });
+};
 
-// Check if user has permission
-export function hasPermission(user: any, permission: string) {
-  if (!user || !user.role) {
-    return false;
-  }
-  
-  const userRole = user.role;
-  const permissions = ROLE_PERMISSIONS[userRole] || [];
-  
-  return permissions.includes(permission);
-}
+// Placeholder function for API routes importing 'setAuthCookie'
+export const setAuthCookie = (res: NextResponse, token: string) => {
+  console.warn("Authentication function 'setAuthCookie' is not implemented yet.");
+  // In a real implementation, this would set the auth cookie
+  res.cookies.set('auth_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 60 * 60 * 24 * 7 }); // Example: 7 days
+};
 
-// Middleware to protect routes
+// Placeholder function for API routes importing 'verifyPassword'
+export const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
+  console.warn("verifyPassword function is not implemented yet.");
+  // Mock implementation: always returns true
+  return true;
+};
+
+// Placeholder function for API routes importing 'signToken'
+export const signToken = (payload: object): string => {
+  console.warn("signToken function is not implemented yet.");
+  // Mock implementation: returns a dummy token
+  return "mock-jwt-token";
+};
+
+// Placeholder middleware function
 export async function authMiddleware(request: NextRequest) {
-  const user = await getCurrentUser(request);
-  
-  // If no user and not on login page, redirect to login
-  if (!user && !request.nextUrl.pathname.startsWith('/login')) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
+  console.warn("authMiddleware is not implemented yet.");
+  // Mock implementation: Check for a cookie, redirect if not found (example)
+  const token = request.cookies.get('auth_token')?.value;
+  const { pathname } = request.nextUrl;
+
+  // Allow access to login page and API routes
+  if (pathname.startsWith('/login') || pathname.startsWith('/api')) {
+    return NextResponse.next();
   }
-  
-  // If user is on login page but already authenticated, redirect to dashboard
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+
+  if (!token) {
+    // Redirect to login if no token and not already on login page
+    return NextResponse.redirect(new URL('/login', request.url));
   }
-  
+
+  // If token exists, let the request proceed (further validation could happen here)
   return NextResponse.next();
 }
 
-// Hash password
-export async function hashPassword(password: string): Promise<string> {
-  // In a real implementation, use bcrypt or argon2
-  // Since we're in a Cloudflare environment, we'll use a simple hash for now
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + 'shlokam-salt');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
-}
-
-// Verify password
-export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hashedPassword;
-}

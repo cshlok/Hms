@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { 
   Form,
   FormControl,
@@ -9,23 +9,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { hasPermission } from '@/lib/session';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+// Removed direct import: import { hasPermission } from "@/lib/session";
 
 // Define the form schema
 const consultationFormSchema = z.object({
@@ -70,6 +70,7 @@ export default function OPDConsultationForm() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPermissions, setLoadingPermissions] = useState(true);
   const [canPrescribe, setCanPrescribe] = useState(false);
   const [canOrderTests, setCanOrderTests] = useState(false);
   
@@ -99,13 +100,34 @@ export default function OPDConsultationForm() {
   });
   
   useEffect(() => {
-    // Check permissions
+    // Check permissions via API route
     const checkPermissions = async () => {
-      const prescribePerm = await hasPermission('medication:prescribe');
-      const orderTestsPerm = await hasPermission('lab:order');
-      
-      setCanPrescribe(prescribePerm);
-      setCanOrderTests(orderTestsPerm);
+      setLoadingPermissions(true);
+      try {
+        const [prescribeRes, orderRes] = await Promise.all([
+          fetch("/api/auth/check-permission?permission=medication:prescribe"),
+          fetch("/api/auth/check-permission?permission=lab:order"),
+        ]);
+
+        if (!prescribeRes.ok || !orderRes.ok) {
+          console.error("Failed to fetch permissions");
+          setCanPrescribe(false);
+          setCanOrderTests(false);
+          return;
+        }
+
+        const prescribeData = await prescribeRes.json();
+        const orderData = await orderRes.json();
+
+        setCanPrescribe(prescribeData.hasPermission || false);
+        setCanOrderTests(orderData.hasPermission || false);
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+        setCanPrescribe(false);
+        setCanOrderTests(false);
+      } finally {
+        setLoadingPermissions(false);
+      }
     };
     
     checkPermissions();
@@ -113,16 +135,16 @@ export default function OPDConsultationForm() {
     // Fetch patients in queue
     const fetchPatientsInQueue = async () => {
       try {
-        const response = await fetch('/api/opd/queue?status=in-progress');
+        const response = await fetch("/api/opd/queue?status=in-progress");
         
         if (!response.ok) {
-          throw new Error('Failed to fetch patients in queue');
+          throw new Error("Failed to fetch patients in queue");
         }
         
         const data = await response.json();
         setPatients(data);
       } catch (error) {
-        console.error('Error fetching patients:', error);
+        console.error("Error fetching patients:", error);
       }
     };
     
@@ -152,19 +174,19 @@ export default function OPDConsultationForm() {
       const response = await fetch(`/api/patients/${patientId}/history`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch patient history');
+        throw new Error("Failed to fetch patient history");
       }
       
       // Process patient history data if needed
     } catch (error) {
-      console.error('Error fetching patient history:', error);
+      console.error("Error fetching patient history:", error);
     }
   };
   
   // Add medication field
   const addMedication = () => {
     const currentMedications = form.getValues().medications || [];
-    form.setValue('medications', [
+    form.setValue("medications", [
       ...currentMedications,
       { name: '', dosage: '', frequency: '', duration: '', instructions: '' }
     ]);
@@ -173,7 +195,7 @@ export default function OPDConsultationForm() {
   // Remove medication field
   const removeMedication = (index: number) => {
     const currentMedications = form.getValues().medications || [];
-    form.setValue('medications', currentMedications.filter((_, i) => i !== index));
+    form.setValue("medications", currentMedications.filter((_, i) => i !== index));
   };
   
   // Form submission handler
@@ -181,16 +203,16 @@ export default function OPDConsultationForm() {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/opd/consultations', {
-        method: 'POST',
+      const response = await fetch("/api/opd/consultations", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
       
       if (!response.ok) {
-        throw new Error('Failed to save consultation');
+        throw new Error("Failed to save consultation");
       }
       
       const result = await response.json();
@@ -198,12 +220,16 @@ export default function OPDConsultationForm() {
       // Redirect to consultation details or reset form
       router.push(`/opd/consultations/${result.consultationId}`);
     } catch (error) {
-      console.error('Error saving consultation:', error);
+      console.error("Error saving consultation:", error);
     } finally {
       setLoading(false);
     }
   };
   
+  if (loadingPermissions) {
+     return <div className="flex justify-center p-4">Loading...</div>;
+  }
+
   return (
     <div>
       <div className="mb-6">
@@ -408,27 +434,5 @@ export default function OPDConsultationForm() {
                                 <FormLabel>Frequency</FormLabel>
                                 <FormControl>
                                   <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        
-                        <FormField
-                          control={form.control}
-                          name={`medications.${index}.duration`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Duration</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-               
+      
 (Content truncated due to size limit. Use line ranges to read in chunks)

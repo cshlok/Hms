@@ -463,18 +463,41 @@ export const Calendar = ({ mode, selected, onSelect, className = '', ...props })
   );
 };
 
-// Export all components
+// Export block - only include components NOT defined with 'export const' above
 export {
-  Button,
-  Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter,
-  Input,
-  Label,
-  Textarea,
-  Badge,
-  Alert, AlertDescription,
-  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
-  Tabs, TabsList, TabsTrigger, TabsContent,
-  Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle,
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-  Calendar
+  // Button, // Already exported above
+  // Card, // Already exported above
+  // CardHeader, // Already exported above
+  // CardTitle, // Already exported above
+  // CardDescription, // Already exported above
+  // CardContent, // Already exported above
+  // CardFooter, // Already exported above
+  // Input, // Already exported above
+  // Label, // Already exported above
+  // Textarea, // Already exported above
+  // Badge, // Already exported above
+  // Alert, // Already exported above
+  // AlertDescription, // Already exported above
+  // Table, // Already exported above
+  // TableHeader, // Already exported above
+  // TableBody, // Already exported above
+  // TableRow, // Already exported above
+  // TableHead, // Already exported above
+  // TableCell, // Already exported above
+  // Tabs, // Already exported above
+  // TabsList, // Already exported above
+  // TabsTrigger, // Already exported above
+  // TabsContent, // Already exported above
+  // Dialog, // Already exported above
+  // DialogTrigger, // Already exported above
+  // DialogContent, // Already exported above
+  // DialogHeader, // Already exported above
+  // DialogTitle, // Already exported above
+  // Select, // Already exported above
+  // SelectTrigger, // Already exported above
+  // SelectValue, // Already exported above
+  // SelectContent, // Already exported above
+  // SelectItem, // Already exported above
+  // Calendar // Already exported above
 };
+
