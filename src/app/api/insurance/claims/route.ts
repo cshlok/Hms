@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+
+// Define interface for Insurance Claim data
+interface InsuranceClaim {
+  id: number | string;
+  patient_insurance_id: number | string;
+  invoice_id: number | string;
+  claim_number: string;
+  claim_date: string; // ISO string
+  claim_amount: number;
+  approved_amount?: number;
+  status: string; // e.g., "Submitted", "Approved", "Rejected", "Pending Information"
+  notes?: string;
+  created_at?: string; // ISO string
+  updated_at?: string; // ISO string
+}
 
 // Mock data store for insurance claims (replace with actual DB interaction)
-let mockClaims: any[] = [
+const mockClaims: InsuranceClaim[] = [
   {
     id: 1,
     patient_insurance_id: 101,
@@ -65,8 +79,16 @@ interface InsuranceClaimUpdateInput {
   notes?: string;
 }
 
+// Define interface for insurance claim filters
+interface InsuranceClaimFilters {
+  status?: string | null;
+  patient_insurance_id?: string | null;
+  date_from?: string | null;
+  date_to?: string | null;
+}
+
 // Helper function to simulate DB interaction (GET)
-async function getInsuranceClaimsFromDB(filters: any = {}) {
+async function getInsuranceClaimsFromDB(filters: InsuranceClaimFilters = {}) {
   console.log("Simulating DB fetch for insurance claims with filters:", filters);
   // Apply filters if implemented
   let filteredClaims = [...mockClaims];
@@ -82,11 +104,6 @@ async function getInsuranceClaimsFromDB(filters: any = {}) {
   return filteredClaims.sort((a, b) => new Date(b.submission_date).getTime() - new Date(a.submission_date).getTime());
 }
 
-// Helper function to simulate DB interaction (GET by ID)
-async function getInsuranceClaimByIdFromDB(id: number) {
-  console.log("Simulating DB fetch for insurance claim ID:", id);
-  return mockClaims.find((c) => c.id === id);
-}
 
 // Helper function to simulate DB interaction (POST)
 async function createInsuranceClaimInDB(data: InsuranceClaimInput) {
@@ -114,21 +131,6 @@ async function createInsuranceClaimInDB(data: InsuranceClaimInput) {
   return newClaim;
 }
 
-// Helper function to simulate DB interaction (PUT)
-async function updateInsuranceClaimInDB(id: number, data: InsuranceClaimUpdateInput) {
-  console.log(`Simulating DB update for insurance claim ID ${id}:`, data);
-  const claimIndex = mockClaims.findIndex((c) => c.id === id);
-  if (claimIndex === -1) {
-    throw new Error("Insurance claim not found");
-  }
-  const updatedClaim = { 
-    ...mockClaims[claimIndex], 
-    ...data, // Apply updates
-    updated_at: new Date().toISOString(),
-  };
-  mockClaims[claimIndex] = updatedClaim;
-  return updatedClaim;
-}
 
 /**
  * GET /api/insurance/claims

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db';
 import { getSession } from '@/lib/session';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: Request) {
   try {    const session = await getSession();    // Check authentication
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       SELECT COUNT(*) as count FROM admissions WHERE status = 'active'
     `);
     const activeAdmissionsCount = activeAdmissionsResult.rows && activeAdmissionsResult.rows.length > 0 
-      ? (activeAdmissionsResult.rows[0] as any).count || 0 
+      ? (activeAdmissionsResult.rows[0] as { count?: number }).count || 0 
       : 0;
 
     // Get available beds count
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       SELECT COUNT(*) as count FROM beds WHERE status = 'available'
     `);
     const availableBedsCount = availableBedsResult.rows && availableBedsResult.rows.length > 0 
-      ? (availableBedsResult.rows[0] as any).count || 0 
+      ? (availableBedsResult.rows[0] as { count?: number }).count || 0 
       : 0;
     
     // Get bed occupancy rate
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     
     let occupancyRate = 0;
     if (bedOccupancyResult.rows && bedOccupancyResult.rows.length > 0) {
-        const row = bedOccupancyResult.rows[0] as any;
+        const row = bedOccupancyResult.rows[0] as { occupied?: number; total?: number };
         const occupied = row.occupied || 0;
         const total = row.total || 0;
         occupancyRate = total > 0 

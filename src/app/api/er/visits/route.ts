@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+
+
+// Define interface for ER Visit data
+interface ERVisit {
+  id: string | number;
+  patient_id: string | number;
+  patient_name?: string; // Denormalized
+  arrival_timestamp: string; // ISO string
+  chief_complaint: string;
+  assigned_physician_id?: string | number;
+  assigned_nurse_id?: string | number;
+  current_location?: string;
+  current_status?: string;
+  disposition?: string;
+  discharge_timestamp?: string;
+  created_at?: string; // ISO string
+  updated_at?: string; // ISO string
+  // Add other relevant fields based on your schema
+}
 
 // Mock data store for ER visits (replace with actual DB interaction)
-let mockVisits: any[] = [
+const mockVisits: ERVisit[] = [
   {
     id: 1,
     patient_id: 101,
@@ -63,18 +81,20 @@ interface ERVisitUpdateInput {
   // Add other updatable fields as needed
 }
 
+// Define interface for ER Visit filters
+interface ERVisitFilters {
+  status?: string | null;
+  location?: string | null;
+  date?: string | null;
+}
+
 // Helper function to simulate DB interaction (GET)
-async function getERVisitsFromDB(filters: any = {}) {
+async function getERVisitsFromDB(filters: ERVisitFilters = {}) {
   console.log("Simulating DB fetch for ER visits with filters:", filters);
   // Apply filters if implemented
   return mockVisits.sort((a, b) => new Date(b.arrival_timestamp).getTime() - new Date(a.arrival_timestamp).getTime());
 }
 
-// Helper function to simulate DB interaction (GET by ID)
-async function getERVisitByIdFromDB(id: number) {
-  console.log("Simulating DB fetch for ER visit ID:", id);
-  return mockVisits.find((v) => v.id === id);
-}
 
 // Helper function to simulate DB interaction (POST)
 async function createERVisitInDB(data: ERVisitInput) {
@@ -102,21 +122,6 @@ async function createERVisitInDB(data: ERVisitInput) {
   return newVisit;
 }
 
-// Helper function to simulate DB interaction (PUT)
-async function updateERVisitInDB(id: number, data: ERVisitUpdateInput) {
-  console.log(`Simulating DB update for ER visit ID ${id}:`, data);
-  const visitIndex = mockVisits.findIndex((v) => v.id === id);
-  if (visitIndex === -1) {
-    throw new Error("ER visit not found");
-  }
-  const updatedVisit = { 
-    ...mockVisits[visitIndex], 
-    ...data, // Apply updates
-    updated_at: new Date().toISOString(),
-  };
-  mockVisits[visitIndex] = updatedVisit;
-  return updatedVisit;
-}
 
 /**
  * GET /api/er/visits

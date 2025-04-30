@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
     
     // Build query conditions
-    let conditions = [];
-    let params: any[] = [];
+    const conditions: string[] = [];
+    const params: (string | number)[] = [];
     
     if (patientId) {
       conditions.push('a.patient_id = ?');

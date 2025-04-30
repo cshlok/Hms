@@ -2,17 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 // import { getRequestContext } from "@cloudflare/next-on-pages"; // Cloudflare specific
 
-// Mock data store for triage assessments (replace with actual DB interaction)
-let mockTriageAssessments: any[] = [];
-
 // Define interface for triage input data
 interface TriageInput {
   triage_nurse_id: string | number;
   esi_level: number; // Emergency Severity Index (1-5)
-  vital_signs: Record<string, any>; // e.g., { temp: 37.0, hr: 80, rr: 16, bp: "120/80", spo2: 98 }
+  vital_signs: Record<string, unknown>; // e.g., { temp: 37.0, hr: 80, rr: 16, bp: "120/80", spo2: 98 }
   assessment_notes?: string;
   triage_timestamp?: string; // Optional, defaults to now
 }
+
+// Define interface for triage data (including generated fields)
+interface Triage extends TriageInput {
+  id: string;
+  visit_id: string;
+  triage_timestamp: string; // ISO 8601 date string
+}
+
+// Mock data store for triage assessments (replace with actual DB interaction)
+const mockTriageAssessments: Triage[] = [];
 
 // GET /api/er/visits/[id]/triage - Get triage assessment(s) for a specific ER visit
 export async function GET(
@@ -37,10 +44,11 @@ export async function GET(
                                           .sort((a, b) => new Date(b.triage_timestamp).getTime() - new Date(a.triage_timestamp).getTime());
 
     return NextResponse.json(assessments);
-  } catch (e: any) {
-    console.error({ message: "Error fetching triage assessments", error: e.message });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error fetching triage assessments", error: errorMessage });
     return NextResponse.json(
-      { error: "Failed to fetch triage assessments", details: e.message },
+      { error: "Failed to fetch triage assessments", details: errorMessage },
       { status: 500 }
     );
   }
@@ -108,10 +116,11 @@ export async function POST(
     mockTriageAssessments.push(newTriage);
 
     return NextResponse.json(newTriage, { status: 201 });
-  } catch (e: any) {
-    console.error({ message: "Error creating triage assessment", error: e.message });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error creating triage assessment", error: errorMessage });
     return NextResponse.json(
-      { error: "Failed to create triage assessment", details: e.message },
+      { error: "Failed to create triage assessment", details: errorMessage },
       { status: 500 }
     );
   }

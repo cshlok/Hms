@@ -1,15 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+
+// Define interface for Insurance Provider data
+interface InsuranceProvider {
+  id: number | string;
+  name: string;
+  contact_person?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  address?: string;
+  is_active: number; // Assuming 1 for active, 0 for inactive
+}
+
+// Define interface for Patient Insurance Policy data
+interface InsurancePolicy {
+  id: number | string;
+  patient_id: number | string;
+  provider_id: number | string;
+  policy_number: string;
+  group_number?: string | null;
+  subscriber_name?: string | null;
+  subscriber_dob?: string | null; // YYYY-MM-DD
+  relationship_to_patient?: string;
+  effective_date: string; // YYYY-MM-DD
+  expiry_date: string; // YYYY-MM-DD
+  coverage_details?: string | null;
+  is_primary: number; // Assuming 1 for primary, 0 for secondary
+  is_active: number; // Assuming 1 for active, 0 for inactive
+  verification_status?: string | null; // e.g., "Verified", "Pending", "Rejected"
+  verified_by_id?: number | string | null;
+  verified_at?: string | null; // ISO string
+  created_at?: string; // ISO string
+  updated_at?: string; // ISO string
+}
 
 // Mock data store for insurance providers (replace with actual DB interaction)
-let mockProviders: any[] = [
+const mockProviders: InsuranceProvider[] = [
   { id: 1, name: "MediCare Insurance", contact_person: "Alice Brown", contact_email: "alice@medicare.com", contact_phone: "555-1111", address: "123 Insurance St", is_active: 1 },
   { id: 2, name: "HealthGuard Plus", contact_person: "Bob White", contact_email: "bob@healthguard.com", contact_phone: "555-2222", address: "456 Provider Ave", is_active: 1 },
 ];
-let nextProviderId = 3;
+// const nextProviderId = 3; // This seems unused in this file
 
 // Mock data store for patient insurance policies (replace with actual DB interaction)
-let mockPolicies: any[] = [
+const mockPolicies: InsurancePolicy[] = [
   {
     id: 101,
     patient_id: 101,
@@ -87,8 +119,15 @@ interface InsurancePolicyUpdateInput {
   verified_at?: string | null; // ISO string
 }
 
+// Define interface for patient insurance policy filters
+interface InsurancePolicyFilters {
+  patient_id?: string | null;
+  provider_id?: string | null;
+  is_active?: string | null; // Expecting "true" or "false"
+}
+
 // Helper function to simulate DB interaction (GET Policies)
-async function getPatientInsurancePoliciesFromDB(filters: any = {}) {
+async function getPatientInsurancePoliciesFromDB(filters: InsurancePolicyFilters = {}) {
   console.log("Simulating DB fetch for patient insurance policies with filters:", filters);
   let filteredPolicies = [...mockPolicies];
   
@@ -106,11 +145,6 @@ async function getPatientInsurancePoliciesFromDB(filters: any = {}) {
   return filteredPolicies.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }
 
-// Helper function to simulate DB interaction (GET Policy by ID)
-async function getPatientInsurancePolicyByIdFromDB(id: number) {
-  console.log("Simulating DB fetch for patient insurance policy ID:", id);
-  return mockPolicies.find((p) => p.id === id);
-}
 
 // Helper function to simulate DB interaction (POST Policy)
 async function createPatientInsurancePolicyInDB(data: InsurancePolicyInput) {
@@ -140,31 +174,6 @@ async function createPatientInsurancePolicyInDB(data: InsurancePolicyInput) {
   return newPolicy;
 }
 
-// Helper function to simulate DB interaction (PUT Policy)
-async function updatePatientInsurancePolicyInDB(id: number, data: InsurancePolicyUpdateInput) {
-  console.log(`Simulating DB update for patient insurance policy ID ${id}:`, data);
-  const policyIndex = mockPolicies.findIndex((p) => p.id === id);
-  if (policyIndex === -1) {
-    throw new Error("Patient insurance policy not found");
-  }
-  
-  // Handle boolean conversions if necessary
-  const updatePayload: any = { ...data };
-  if (data.is_primary !== undefined) {
-    updatePayload.is_primary = data.is_primary ? 1 : 0;
-  }
-  if (data.is_active !== undefined) {
-    updatePayload.is_active = data.is_active ? 1 : 0;
-  }
-  
-  const updatedPolicy = { 
-    ...mockPolicies[policyIndex], 
-    ...updatePayload, // Apply updates
-    updated_at: new Date().toISOString(),
-  };
-  mockPolicies[policyIndex] = updatedPolicy;
-  return updatedPolicy;
-}
 
 /**
  * GET /api/insurance/policies

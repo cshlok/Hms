@@ -54,10 +54,11 @@ export async function GET(
     ];
 
     return NextResponse.json(results);
-  } catch (e: any) {
-    console.error({ message: "Error fetching status logs", error: e.message });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error fetching status logs", error: errorMessage });
     return NextResponse.json(
-      { error: "Failed to fetch status logs", details: e.message },
+      { error: "Failed to fetch status logs", details: errorMessage },
       { status: 500 }
     );
   }

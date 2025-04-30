@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+
+// Define interface for Pre-Authorization data
+interface PreAuthorization {
+  id: number | string;
+  patient_insurance_id: number | string;
+  requested_procedure: string;
+  estimated_cost?: number | null;
+  request_date: string; // ISO string
+  status: string; // e.g., "Pending", "Approved", "Rejected", "More Info Required"
+  authorization_number?: string | null;
+  approved_amount?: number | null;
+  expiry_date?: string | null; // ISO string
+  notes?: string | null;
+  referring_doctor_id?: number | string | null;
+  diagnosis_code?: string | null;
+  rejection_reason?: string | null;
+  created_at?: string; // ISO string
+  updated_at?: string; // ISO string
+}
 
 // Mock data store for pre-authorizations (replace with actual DB interaction)
-let mockPreAuths: any[] = [
+const mockPreAuths: PreAuthorization[] = [
   {
     id: 1,
     patient_insurance_id: 101,
@@ -55,8 +73,16 @@ interface PreAuthorizationUpdateInput {
   rejection_reason?: string | null;
 }
 
+// Define interface for pre-authorization filters
+interface PreAuthorizationFilters {
+  status?: string | null;
+  patient_insurance_id?: string | null;
+  date_from?: string | null;
+  date_to?: string | null;
+}
+
 // Helper function to simulate DB interaction (GET)
-async function getPreAuthorizationsFromDB(filters: any = {}) {
+async function getPreAuthorizationsFromDB(filters: PreAuthorizationFilters = {}) {
   console.log("Simulating DB fetch for pre-authorizations with filters:", filters);
   // Apply filters if implemented
   let filteredPreAuths = [...mockPreAuths];
@@ -71,11 +97,6 @@ async function getPreAuthorizationsFromDB(filters: any = {}) {
   return filteredPreAuths.sort((a, b) => new Date(b.request_date).getTime() - new Date(a.request_date).getTime());
 }
 
-// Helper function to simulate DB interaction (GET by ID)
-async function getPreAuthorizationByIdFromDB(id: number) {
-  console.log("Simulating DB fetch for pre-authorization ID:", id);
-  return mockPreAuths.find((pa) => pa.id === id);
-}
 
 // Helper function to simulate DB interaction (POST)
 async function createPreAuthorizationInDB(data: PreAuthorizationInput) {
@@ -102,21 +123,6 @@ async function createPreAuthorizationInDB(data: PreAuthorizationInput) {
   return newPreAuth;
 }
 
-// Helper function to simulate DB interaction (PUT)
-async function updatePreAuthorizationInDB(id: number, data: PreAuthorizationUpdateInput) {
-  console.log(`Simulating DB update for pre-authorization ID ${id}:`, data);
-  const preAuthIndex = mockPreAuths.findIndex((pa) => pa.id === id);
-  if (preAuthIndex === -1) {
-    throw new Error("Pre-authorization request not found");
-  }
-  const updatedPreAuth = { 
-    ...mockPreAuths[preAuthIndex], 
-    ...data, // Apply updates
-    updated_at: new Date().toISOString(),
-  };
-  mockPreAuths[preAuthIndex] = updatedPreAuth;
-  return updatedPreAuth;
-}
 
 /**
  * GET /api/insurance/pre-authorizations

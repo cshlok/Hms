@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 // Define the expected structure of the Cloudflare environment bindings
 interface Env {
   // DB: D1Database; // Commented out Cloudflare specific type
-  DB: any; // Using 'any' as a placeholder
+  DB: unknown; // Using 'unknown' as a placeholder
   // Add other bindings like KV namespaces, secrets, etc., here
 }
 
@@ -32,10 +32,10 @@ function getCloudflareBindings(request: NextRequest): Env | undefined {
   return undefined; 
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Attempt to get Cloudflare bindings (replace with actual method)
-    const env = getCloudflareBindings(request);
+    const env = getCloudflareBindings(_request);
 
     if (!env || !env.DB) {
       console.error("Cloudflare DB binding not found. Ensure the project is configured correctly for Cloudflare Pages/Workers.");
