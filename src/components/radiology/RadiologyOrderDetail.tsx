@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Edit, Trash2, FilePlus, Eye } from "lucide-react";
-import CreateRadiologyStudyModal from "./CreateRadiologyStudyModal";
+import CreateRadiologyStudyModal, { StudyPayload } from "./CreateRadiologyStudyModal"; // FIX: Import StudyPayload
 // Import list components if they are to be embedded and filtered
 // import RadiologyStudiesList from "./RadiologyStudiesList"; 
 // import RadiologyReportsList from "./RadiologyReportsList"; 
@@ -24,14 +24,13 @@ interface RadiologyOrder {
   clinical_indication: string;
 }
 
-// Define interface for the data expected by handleCreateStudy
-interface CreateStudyData {
-  orderId: string;
-  // Add other necessary fields for creating a study
-  modality_id: string;
-  scheduled_datetime: string;
-  notes?: string;
-}
+// FIX: Remove unused CreateStudyData interface
+// interface CreateStudyData {
+//   orderId: string;
+//   modality_id: string;
+//   scheduled_datetime: string;
+//   notes?: string;
+// }
 
 export default function RadiologyOrderDetail() {
   const params = useParams();
@@ -59,7 +58,8 @@ export default function RadiologyOrderDetail() {
           setError("Radiology order not found.");
           setOrder(null); // Ensure order is null if not found
         } else {
-          const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" }));
+          // FIX: Type the error data using type assertion
+          const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" })) as { error?: string };
           throw new Error(errorData.error || "Failed to fetch order details");
         }
       } else {
@@ -77,7 +77,8 @@ export default function RadiologyOrderDetail() {
     }
   };
 
-  const handleCreateStudy = async (studyData: CreateStudyData): Promise<void> => {
+  // FIX: Use imported StudyPayload type
+  const handleCreateStudy = async (studyData: StudyPayload): Promise<void> => {
     try {
       const response = await fetch("/api/radiology/studies", {
         method: "POST",
@@ -89,7 +90,8 @@ export default function RadiologyOrderDetail() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" }));
+        // FIX: Type the error data using type assertion
+        const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" })) as { error?: string };
         throw new Error(errorData.error || "Failed to create radiology study");
       }
 
@@ -115,7 +117,8 @@ export default function RadiologyOrderDetail() {
         method: 'DELETE',
       });
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" }));
+        // FIX: Type the error data using type assertion
+        const errorData = await response.json().catch(() => ({ error: "Failed to parse error response" })) as { error?: string };
         throw new Error(errorData.error || 'Failed to cancel order');
       }
       alert("Order cancelled successfully.");

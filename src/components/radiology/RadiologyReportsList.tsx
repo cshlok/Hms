@@ -8,10 +8,22 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+// Define interface for the report data
+interface RadiologyReport {
+  id: string;
+  patient_name?: string;
+  procedure_name?: string;
+  accession_number?: string | null;
+  radiologist_name?: string;
+  report_datetime: string; // Or Date
+  status: string; // Consider using a specific enum/literal type
+  // Add other fields as needed
+}
+
 export default function RadiologyReportsList() {
-  const [reports, setReports] = useState([]);
+  const [reports, setReports] = useState<RadiologyReport[]>([]); // FIX: Type the state
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null); // FIX: Type the state
   const router = useRouter();
 
   useEffect(() => {
@@ -23,9 +35,9 @@ export default function RadiologyReportsList() {
     try {
       const response = await fetch('/api/radiology/reports');
       if (!response.ok) {
-        throw new Error('Failed to fetch radiology reports');
+        throw new Error("Failed to fetch radiology reports");
       }
-      const data = await response.json();
+      const data: RadiologyReport[] = await response.json(); // FIX: Assume API returns RadiologyReport[]
       setReports(data);
       setError(null);
     } catch (err) {
@@ -36,12 +48,14 @@ export default function RadiologyReportsList() {
     }
   };
 
-  const handleViewReport = (reportId) => {
+  // FIX: Type the parameter
+  const handleViewReport = (reportId: string) => {
     router.push(`/dashboard/radiology/reports/${reportId}`);
   };
 
-  const getStatusBadge = (status) => {
-    const statusStyles = {
+  // FIX: Type the parameter
+  const getStatusBadge = (status: string) => {
+    const statusStyles: { [key: string]: string } = { // FIX: Add index signature
       preliminary: "bg-yellow-100 text-yellow-800",
       final: "bg-green-100 text-green-800",
       addendum: "bg-blue-100 text-blue-800"

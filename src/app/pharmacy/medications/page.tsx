@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
@@ -21,7 +20,8 @@ import {
   UseGlobalFiltersState,
   UseSortByColumnProps,
   ColumnInstance,
-  UseSortByState // Import UseSortByState
+  UseSortByState,
+  TableState // Import TableState
 } from "react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +58,7 @@ type MedicationTableInstance = TableInstance<Medication> &
   UsePaginationInstanceProps<Medication> &
   UseSortByInstanceProps<Medication> &
   UseGlobalFiltersInstanceProps<Medication> & {
-    // FIX: Include UseSortByState in the state type
+    // State includes parts from different hooks
     state: UsePaginationState<Medication> & UseGlobalFiltersState<Medication> & UseSortByState<Medication>;
   };
 
@@ -87,7 +87,6 @@ export default function MedicationsListPage() {
           } catch (parseError) { /* Ignore */ }
           throw new Error(errorMsg);
         }
-        // FIX: Use defined response type
         const data: MedicationsApiResponse = await response.json();
         setMedicationsData(data.medications || []);
       } catch (err: unknown) {
@@ -169,7 +168,7 @@ export default function MedicationsListPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/dashboard/pharmacy/medications/${row.original.id}`)} // FIX: Ensure route is correct
+            onClick={() => router.push(`/dashboard/pharmacy/medications/${row.original.id}`)} // Ensure route is correct
             className="text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300"
           >
             View/Edit
@@ -180,23 +179,20 @@ export default function MedicationsListPage() {
     [router]
   );
 
-  // FIX: Define initialState more broadly to match the combined state shape expected by useTable
-  const initialState: Partial<
-    UsePaginationState<Medication> &
-    UseGlobalFiltersState<Medication> &
-    UseSortByState<Medication>
-  > = {
-      pageSize: 10,
+  // FIX: Remove sortBy from initialState as it's not part of TableState
+  const initialState: Partial<TableState<Medication>> = {
+      // sortBy: [], // Removed: sortBy is part of UseSortByState, not TableState
   };
 
   const tableInstance = useTable<Medication>( // Specify the type argument
     {
       columns,
       data: medicationsData,
-      initialState: initialState, // Pass the combined initial state shape
-      autoResetPage: false, // Prevent page reset on data change
-      autoResetFilters: false,
-      autoResetSortBy: false,
+      initialState: initialState,
+      // FIX: Remove autoReset properties as they are not valid TableOptions in v7
+      // autoResetPage: false,
+      // autoResetFilters: false,
+      // autoResetSortBy: false,
     },
     useGlobalFilter,
     useSortBy,
@@ -217,9 +213,15 @@ export default function MedicationsListPage() {
     nextPage,
     previousPage,
     setPageSize,
-    state: { pageIndex, pageSize },
+    state: { pageIndex, pageSize }, // pageSize is correctly accessed from state here
     setGlobalFilter: setTableGlobalFilter,
   } = tableInstance;
+
+  // Set initial page size after instance creation
+  useEffect(() => {
+    setPageSize(10);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setPageSize]); // Dependency array includes setPageSize
 
   const handleGlobalFilterChange = (e: ChangeEvent<HTMLInputElement>) => { // Type the event
     const value = e.target.value || undefined;
@@ -252,7 +254,7 @@ export default function MedicationsListPage() {
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Medications Catalog</h1>
         <Button
           className="bg-teal-600 hover:bg-teal-700 text-white"
-          onClick={() => router.push("/dashboard/pharmacy/medications/add")} // FIX: Ensure route is correct
+          onClick={() => router.push("/dashboard/pharmacy/medications/add")} // Ensure route is correct
         >
           Add New Medication
         </Button>
@@ -273,7 +275,7 @@ export default function MedicationsListPage() {
             <thead className="bg-gray-50 dark:bg-gray-700">
               {headerGroups.map((headerGroup: HeaderGroup<Medication>) => ( // Type headerGroup
                 <tr {...headerGroup.getHeaderGroupProps()}>
-                  {/* FIX: Correctly type and cast column */} 
+                  {/* Correctly type and cast column */} 
                   {headerGroup.headers.map((column: ColumnInstance<Medication>) => {
                     const typedColumn = column as MedicationColumnInstance;
                     return (

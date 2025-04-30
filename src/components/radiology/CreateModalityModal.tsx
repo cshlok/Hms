@@ -8,14 +8,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-// FIX: Define interface for props
+// FIX: Define and export interface for form data
+export interface ModalityFormData {
+  name: string;
+  description?: string | null;
+  location?: string | null;
+}
+
+// FIX: Define interface for props, including isOpen
 interface CreateModalityModalProps {
+  isOpen: boolean; // Add isOpen prop
   onClose: () => void;
-  onSubmit: (data: { name: string; description: string; location: string }) => Promise<void> | void;
+  onSubmit: (data: ModalityFormData) => Promise<void> | void;
 }
 
 // FIX: Apply props interface
-export default function CreateModalityModal({ onClose, onSubmit }: CreateModalityModalProps) {
+export default function CreateModalityModal({ isOpen, onClose, onSubmit }: CreateModalityModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");

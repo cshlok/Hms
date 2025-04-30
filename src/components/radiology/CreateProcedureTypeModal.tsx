@@ -8,29 +8,56 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-export default function CreateProcedureTypeModal({ onClose, onSubmit }) {
+// Define the type for the form data
+export interface ProcedureTypeFormData {
+  name: string;
+  description?: string | null;
+  modality_type?: string | null;
+}
+
+// Define the type for the component props
+interface CreateProcedureTypeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: ProcedureTypeFormData) => Promise<void>;
+}
+
+export default function CreateProcedureTypeModal({ isOpen, onClose, onSubmit }: CreateProcedureTypeModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [modalityType, setModalityType] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name) {
       alert("Please enter a procedure type name.");
       return;
     }
     setIsSubmitting(true);
-    await onSubmit({
-      name,
-      description,
-      modality_type: modalityType
-    });
-    setIsSubmitting(false);
+    try {
+      await onSubmit({
+        name,
+        description,
+        modality_type: modalityType || null // Ensure null if empty
+      });
+      // Reset form on successful submission
+      setName("");
+      setDescription("");
+      setModalityType("");
+      // onClose(); // Keep modal open or close based on parent logic after onSubmit completes
+    } catch (error) {
+      console.error("Failed to submit procedure type:", error);
+      // Optionally show an error message to the user
+      alert("Failed to add procedure type. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  // Use the isOpen prop to control the dialog's open state
   return (
-    <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(openState) => !openState && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Procedure Type</DialogTitle>
@@ -45,6 +72,7 @@ export default function CreateProcedureTypeModal({ onClose, onSubmit }) {
                 onChange={(e) => setName(e.target.value)}
                 className="col-span-3"
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -55,6 +83,7 @@ export default function CreateProcedureTypeModal({ onClose, onSubmit }) {
                 onChange={(e) => setModalityType(e.target.value)}
                 className="col-span-3"
                 placeholder="e.g., XRAY, CT, MRI, ULTRASOUND"
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -64,12 +93,13 @@ export default function CreateProcedureTypeModal({ onClose, onSubmit }) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="col-span-3"
+                disabled={isSubmitting}
               />
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={isSubmitting}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
             </DialogClose>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -81,3 +111,4 @@ export default function CreateProcedureTypeModal({ onClose, onSubmit }) {
     </Dialog>
   );
 }
+

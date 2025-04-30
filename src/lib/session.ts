@@ -80,7 +80,7 @@ export async function getSession(): Promise<Session | null> {
  */
 export async function createSession(userId: number): Promise<Session | null> {
   try {
-    const db = getDB();
+    const db = await getDB();
     
     // Get user data from database including permissions
     // FIX: Use defined QueryResult and UserQueryResultRow types
