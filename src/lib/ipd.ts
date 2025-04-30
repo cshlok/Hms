@@ -13,10 +13,12 @@ interface Admission {
   bed_number?: string | null;
   status: "active" | "discharged" | "cancelled"; // Example statuses
   // Add other relevant fields from your actual schema
-  [key: string]: any; // Allow other properties for flexibility during mock/real transition
+  // FIX: Replace explicit any with unknown for flexibility, but prefer specific types
+  [key: string]: unknown; 
 }
 
 // FIX: Define a type for the expected structure of query results
+// Assuming the mock DB query returns rows as unknown[]
 interface QueryResult<T> {
   rows?: T[];
   // Add other potential properties like rowCount, etc., based on your DB library
@@ -37,20 +39,22 @@ export type AdmissionFilters = {
 };
 
 // FIX: Define a type for the data needed to create an admission (omit generated fields like id, dates)
-type CreateAdmissionData = Omit<Admission, "id" | "admission_date" | "discharge_date" | "status"> & {
+// Ensure patient_id is explicitly required and typed as string
+export type CreateAdmissionData = Omit<Admission, "id" | "admission_date" | "discharge_date" | "status" | "patient_id"> & {
+  patient_id: string; // Explicitly require patient_id
   // Add any fields required for creation but not part of the base Admission type
 };
 
 // FIX: Define a type for the data used to update an admission (make fields optional)
-type UpdateAdmissionData = Partial<Omit<Admission, "id">>;
+export type UpdateAdmissionData = Partial<Omit<Admission, "id">>;
 
 // Mock function to get admissions
 export const getAdmissionsFromDB = async (filters: AdmissionFilters): Promise<Admission[]> => {
   console.warn("Mock getAdmissionsFromDB called with filters:", filters);
   const db = await getDB();
   // Simulate a query - in a real scenario, build WHERE clause based on filters
-  // FIX: Assume db.query returns QueryResult<Admission> or use type assertion
-  const result: QueryResult<Admission> = await db.query("SELECT * FROM admissions LIMIT 10", []); // Mock query
+  // FIX: Use type assertion for the mock query result
+  const result = await db.query("SELECT * FROM admissions LIMIT 10", []) as QueryResult<Admission>; // Mock query
   return result.rows || [];
 };
 
@@ -58,9 +62,9 @@ export const getAdmissionsFromDB = async (filters: AdmissionFilters): Promise<Ad
 export const getAdmissionByIdFromDB = async (id: number): Promise<Admission | null> => {
   console.warn(`Mock getAdmissionByIdFromDB called with ID: ${id}`);
   const db = await getDB();
-  // FIX: Assume db.query returns QueryResult<Admission> or use type assertion
+  // FIX: Use type assertion for the mock query result
   // FIX: Ensure parameter type matches DB expectation (e.g., string if ID is string)
-  const result: QueryResult<Admission> = await db.query("SELECT * FROM admissions WHERE id = ?", [id.toString()]); // Mock query, assuming ID is string in DB
+  const result = await db.query("SELECT * FROM admissions WHERE id = ?", [id.toString()]) as QueryResult<Admission>; // Mock query, assuming ID is string in DB
   return result.rows && result.rows.length > 0 ? result.rows[0] : null;
 };
 
@@ -69,14 +73,14 @@ export const getAdmissionByIdFromDB = async (id: number): Promise<Admission | nu
 export const createAdmissionInDB = async (admissionData: CreateAdmissionData): Promise<Admission> => {
   console.warn("Mock createAdmissionInDB called with data:", admissionData);
   const db = await getDB();
-  // Simulate insert - mock DB doesn't return inserted ID easily
+  // Simulate insert - mock DB doesn\u0027t return inserted ID easily
   // FIX: Build actual INSERT statement with parameters from admissionData
   await db.query("INSERT INTO admissions (...) VALUES (...)", []); // Mock query
   
-  // Return mock data as we can't get the real inserted record from mock DB
+  // Return mock data as we can\u0027t get the real inserted record from mock DB
   const mockCreatedAdmission: Admission = {
     id: Math.floor(Math.random() * 1000) + 1, // Mock ID
-    patient_id: admissionData.patient_id, // Explicitly add patient_id
+
     ...admissionData,
     admission_date: new Date().toISOString(),
     status: "active", // Default status for new admission

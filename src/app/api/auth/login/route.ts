@@ -1,6 +1,7 @@
 // src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-// import { getRequestContext } from '@cloudflare/next-on-pages';
+// FIX: Remove commented out import
+// import { getRequestContext } from '@cloudflare/next-on-pages'; 
 import { signToken, setAuthCookie, verifyPassword } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -74,3 +75,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

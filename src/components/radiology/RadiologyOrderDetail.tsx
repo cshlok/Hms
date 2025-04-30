@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Edit, Trash2, FilePlus, Eye } from "lucide-react";
+import { Loader2, ArrowLeft, Trash2, FilePlus } from "lucide-react";
 import CreateRadiologyStudyModal, { StudyPayload } from "./CreateRadiologyStudyModal"; // FIX: Import StudyPayload
 // Import list components if they are to be embedded and filtered
 // import RadiologyStudiesList from "./RadiologyStudiesList"; 
@@ -42,13 +42,7 @@ export default function RadiologyOrderDetail() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateStudyModal, setShowCreateStudyModal] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (orderId) {
-      fetchOrderDetails();
-    }
-  }, [orderId]);
-
-  const fetchOrderDetails = async (): Promise<void> => {
+  const fetchOrderDetails = React.useCallback(async (): Promise<void> => {
     setLoading(true);
     setError(null); // Reset error state
     try {
@@ -75,7 +69,13 @@ export default function RadiologyOrderDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]); // Added orderId dependency for useCallback
+
+  useEffect(() => {
+    if (orderId) {
+      fetchOrderDetails();
+    }
+  }, [orderId, fetchOrderDetails]); // Added fetchOrderDetails dependency
 
   // FIX: Use imported StudyPayload type
   const handleCreateStudy = async (studyData: StudyPayload): Promise<void> => {

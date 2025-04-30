@@ -83,8 +83,8 @@ export async function createSession(userId: number): Promise<Session | null> {
     const db = await getDB();
     
     // Get user data from database including permissions
-    // FIX: Use defined QueryResult and UserQueryResultRow types
-    const userResult: QueryResult<UserQueryResultRow> = await db.query(`
+    // FIX: Use type assertion for the mock query result
+    const userResult = await db.query(`
       SELECT 
         u.user_id, 
         u.username, 
@@ -103,7 +103,7 @@ export async function createSession(userId: number): Promise<Session | null> {
         u.user_id = ?
       GROUP BY 
         u.user_id, u.username, u.email, r.role_name
-    `, [userId]);
+    `, [userId]) as QueryResult<UserQueryResultRow>;
     
     // FIX: Use the defined type for the row
     const userRow = userResult.rows && userResult.rows.length > 0 ? userResult.rows[0] : null;

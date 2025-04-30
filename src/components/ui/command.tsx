@@ -23,7 +23,8 @@ const Command = React.forwardRef<
 ))
 Command.displayName = CommandPrimitive.displayName
 
-interface CommandDialogProps extends DialogProps {}
+// FIX: Use type alias instead of empty interface extending another type
+type CommandDialogProps = DialogProps
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (
@@ -36,6 +37,8 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
     </Dialog>
   )
 }
+// FIX: Add display name
+CommandDialog.displayName = "CommandDialog";
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,

@@ -6,19 +6,31 @@ import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
+// FIX: Add missing properties 'open' and 'onOpenChange' to the type
 type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  open?: boolean // Added based on usage in dispatch
+  onOpenChange?: (open: boolean) => void // Added based on usage in dispatch
 }
 
-const actionTypes = {
-  ADD_TOAST: "ADD_TOAST",
-  UPDATE_TOAST: "UPDATE_TOAST",
-  DISMISS_TOAST: "DISMISS_TOAST",
-  REMOVE_TOAST: "REMOVE_TOAST",
-} as const
+// FIX: Remove unused variable warning (or use it if intended)
+// const actionTypes = {
+//   ADD_TOAST: "ADD_TOAST",
+//   UPDATE_TOAST: "UPDATE_TOAST",
+//   DISMISS_TOAST: "DISMISS_TOAST",
+//   REMOVE_TOAST: "REMOVE_TOAST",
+// } as const
+
+// FIX: Use action types directly if the constant object is removed
+type ActionType = {
+  ADD_TOAST: "ADD_TOAST";
+  UPDATE_TOAST: "UPDATE_TOAST";
+  DISMISS_TOAST: "DISMISS_TOAST";
+  REMOVE_TOAST: "REMOVE_TOAST";
+}
 
 let count = 0
 
@@ -26,8 +38,6 @@ function genId() {
   count = (count + 1) % Number.MAX_VALUE
   return count.toString()
 }
-
-type ActionType = typeof actionTypes
 
 type Action = 
   | { type: ActionType["ADD_TOAST"]; toast: ToasterToast }
@@ -48,6 +58,7 @@ const addToRemoveQueue = (toastId: string) => {
 
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId)
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     dispatch({ type: "REMOVE_TOAST", toastId: toastId })
   }, TOAST_REMOVE_DELAY)
 
@@ -111,6 +122,11 @@ export const reducer = (state: State, action: Action): State => {
 
 type Toast = Omit<ToasterToast, "id">
 
+// We need a global dispatch function, typically provided by the Toaster component's context
+// This is a placeholder and needs to be connected to the actual reducer instance
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+let dispatch: React.Dispatch<Action> = () => {}; 
+
 function toast(props: Toast) {
   const id = genId()
 
@@ -123,7 +139,7 @@ function toast(props: Toast) {
     toast: {
       ...props,
       id,
-      open: true,
+      open: true, // This should now be valid
       onOpenChange: (open: boolean) => {
         if (!open) dismiss()
       },
@@ -158,9 +174,6 @@ function useToast() {
   return context
 }
 
-// We need a global dispatch function, typically provided by the Toaster component's context
-// This is a placeholder and needs to be connected to the actual reducer instance
-let dispatch: React.Dispatch<Action> = () => {}; 
 
 // Function to set the global dispatch (used by the Toaster component)
 export const setGlobalToastDispatch = (newDispatch: React.Dispatch<Action>) => {

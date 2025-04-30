@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode, useCallback } from 'react'; // FIX: Add useCallback
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Edit, Trash2, FileText } from "lucide-react";
+// FIX: Remove unused Edit, Trash2
+import { Loader2, ArrowLeft, FileText } from "lucide-react"; 
 import CreateRadiologyReportModal, { ReportFormData as ModalReportFormData } from "./CreateRadiologyReportModal"; // Import the form data type
 // import RadiologyReportsList from "./RadiologyReportsList"; // Assuming this exists
 
@@ -27,14 +28,15 @@ interface StudyDetails {
   // Add other relevant fields
 }
 
-interface ReportData {
-  study_id: string;
-  report_text: string;
-  findings?: string;
-  impression: string;
-  radiologist_id: string; // Should come from session
-  // Add other report fields
-}
+// FIX: Remove unused ReportData interface
+// interface ReportData {
+//   study_id: string;
+//   report_text: string;
+//   findings?: string;
+//   impression: string;
+//   radiologist_id: string; // Should come from session
+//   // Add other report fields
+// }
 
 // Define props if needed, though useParams covers the ID
 // interface RadiologyStudyDetailProps {}
@@ -49,13 +51,8 @@ export default function RadiologyStudyDetail() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateReportModal, setShowCreateReportModal] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (studyId) {
-      fetchStudyDetails();
-    }
-  }, [studyId]);
-
-  const fetchStudyDetails = async (): Promise<void> => {
+  // FIX: Wrap fetchStudyDetails in useCallback
+  const fetchStudyDetails = useCallback(async (): Promise<void> => {
     if (!studyId) {
       setError("Study ID is missing.");
       setLoading(false);
@@ -110,7 +107,14 @@ export default function RadiologyStudyDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studyId]); // Add studyId dependency
+
+  useEffect(() => {
+    if (studyId) {
+      fetchStudyDetails();
+    }
+    // FIX: Add fetchStudyDetails to dependency array
+  }, [studyId, fetchStudyDetails]);
 
   // FIX: Adjust function signature to match the onSubmit prop type expected by the modal
   const handleCreateReport = async (formData: ModalReportFormData): Promise<void> => {
@@ -137,7 +141,8 @@ export default function RadiologyStudyDetail() {
         try {
           const errorData: { error?: string } = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) { /* Ignore if response is not JSON */ }
+          // FIX: Prefix unused variable with underscore
+        } catch (_jsonError) { /* Ignore if response is not JSON */ }
         throw new Error(errorMsg);
       }
 
