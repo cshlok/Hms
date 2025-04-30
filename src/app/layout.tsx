@@ -1,22 +1,21 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
+// import Image from "next/image"; // Unused
 import { useRouter } from "next/navigation";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { 
+//   Card, 
+//   CardContent, 
+//   CardHeader, 
+//   CardTitle 
+// } from "@/components/ui/card"; // Unused
+// import { Button } from "@/components/ui/button"; // Unused
+// import { Input } from "@/components/ui/input"; // Unused
+// import { Label } from "@/components/ui/label"; // Unused
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Unused
 // FIX: hasPermission is available, but might not be needed in root layout
 // import { hasPermission } from "@/lib/session"; 
-import Logo from "@/components/ui/logo";
+// import Logo from "@/components/ui/logo"; // Unused
 import "./globals.css"; // Ensure global styles are imported
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster for notifications
 
@@ -46,9 +45,9 @@ export default function RootLayout({
   // implies it wraps everything. Let's keep the fetch logic for now but acknowledge it's unusual.
 
   const router = useRouter();
-  const [userName, setUserName] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState(true); // Track loading state
+  const [_userName, setUserName] = useState<string | null>(null); // Prefixed as unused
+  const [_userRole, setUserRole] = useState<string | null>(null); // Prefixed as unused
+  const [_isLoadingUser, setIsLoadingUser] = useState(true); // Prefixed as unused, Track loading state
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode
 
   useEffect(() => {
@@ -96,7 +95,7 @@ export default function RootLayout({
 
   }, [router]); // Dependency on router
 
-  const toggleDarkMode = () => {
+  const _toggleDarkMode = () => { // Prefixed as unused
     setDarkMode(!darkMode);
     // Add logic to apply dark mode class to HTML element if needed
     // document.documentElement.classList.toggle("dark", !darkMode);
@@ -129,3 +128,4 @@ export default function RootLayout({
 // in a nested layout (e.g., DashboardLayout) rather than the root layout.
 // The original file content seemed to mix RootLayout and DashboardLayout concepts.
 // The `hasPermission` import error was likely from the DashboardLayout, not this file.
+

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+// import { v4 as uuidv4 } from "uuid"; // Unused import
 
 // Define interface for Insurance Provider data
 interface InsuranceProvider {
@@ -12,6 +13,7 @@ interface InsuranceProvider {
 }
 
 // Mock data store for insurance providers (replace with actual DB interaction)
+// FIX: Changed let to const for prefer-const rule
 const mockProviders: InsuranceProvider[] = [
   { id: 1, name: "MediCare Insurance", contact_person: "Alice Brown", contact_email: "alice@medicare.com", contact_phone: "555-1111", address: "123 Insurance St", is_active: 1 },
   { id: 2, name: "HealthGuard Plus", contact_person: "Bob White", contact_email: "bob@healthguard.com", contact_phone: "555-2222", address: "456 Provider Ave", is_active: 1 },
@@ -28,15 +30,15 @@ interface InsuranceProviderInput {
   is_active?: boolean; // Defaults to true
 }
 
-// Define interface for insurance provider update input
-interface InsuranceProviderUpdateInput {
-  name?: string;
-  contact_person?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  address?: string;
-  is_active?: boolean;
-}
+// Define interface for insurance provider update input - Belongs in [id]/route.ts
+// interface InsuranceProviderUpdateInput {
+//   name?: string;
+//   contact_person?: string;
+//   contact_email?: string;
+//   contact_phone?: string;
+//   address?: string;
+//   is_active?: boolean;
+// }
 
 // Define interface for insurance provider filters
 interface InsuranceProviderFilters {
@@ -46,21 +48,31 @@ interface InsuranceProviderFilters {
 // Helper function to simulate DB interaction (GET)
 async function getInsuranceProvidersFromDB(filters: InsuranceProviderFilters = {}) {
   console.log("Simulating DB fetch for insurance providers with filters:", filters);
-  // Apply filters if implemented
   let filteredProviders = [...mockProviders];
-  if (filters.is_active !== undefined) {
+  // FIX: Check filters.is_active before using (TS18049)
+  if (filters.is_active !== null && filters.is_active !== undefined) {
     const activeBool = String(filters.is_active).toLowerCase() === "true";
     filteredProviders = filteredProviders.filter(p => (p.is_active === 1) === activeBool);
   }
   return filteredProviders.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+// Helper function to simulate DB interaction (GET by ID) - Belongs in [id]/route.ts
+// async function getInsuranceProviderByIdFromDB(id: number) { // Unused function
+//   console.log("Simulating DB fetch for insurance provider ID:", id);
+//   const provider = mockProviders.find(p => p.id === id);
+//   if (!provider) {
+//     throw new Error("Insurance provider not found");
+//   }
+//   return provider;
+// }
 
 // Helper function to simulate DB interaction (POST)
-async function createInsuranceProviderInDB(data: InsuranceProviderInput) {
+async function createInsuranceProviderInDB(data: InsuranceProviderInput): Promise<InsuranceProvider> { // Added return type
   console.log("Simulating DB create for insurance provider:", data);
-  // const now = new Date().toISOString(); // Not used in mock, but would be in real DB
-  const newProvider = {
+  // const now = new Date().toISOString(); // Unused variable
+  // FIX: Ensure created object matches InsuranceProvider interface
+  const newProvider: InsuranceProvider = {
     id: nextProviderId++,
     name: data.name,
     contact_person: data.contact_person || null,
@@ -75,28 +87,28 @@ async function createInsuranceProviderInDB(data: InsuranceProviderInput) {
   return newProvider;
 }
 
-// Helper function to simulate DB interaction (PUT)
-async function updateInsuranceProviderInDB(id: number, data: InsuranceProviderUpdateInput) {
-  console.log(`Simulating DB update for insurance provider ID ${id}:`, data);
-  const providerIndex = mockProviders.findIndex((p) => p.id === id);
-  if (providerIndex === -1) {
-    throw new Error("Insurance provider not found");
-  }
+// Helper function to simulate DB interaction (PUT) - Belongs in [id]/route.ts
+// async function updateInsuranceProviderInDB(id: number, data: InsuranceProviderUpdateInput) { // Unused function
+//   console.log(`Simulating DB update for insurance provider ID ${id}:`, data);
+//   const providerIndex = mockProviders.findIndex((p) => p.id === id);
+//   if (providerIndex === -1) {
+//     throw new Error("Insurance provider not found");
+//   }
   
-  // Handle boolean conversion if necessary
-  const updatePayload: Partial<InsuranceProvider> = { ...data };
-  if (data.is_active !== undefined) {
-    updatePayload.is_active = data.is_active ? 1 : 0;
-  }
+//   // Handle boolean conversion if necessary
+//   const updatePayload: Partial<InsuranceProvider> = { ...data };
+//   if (data.is_active !== undefined) {
+//     updatePayload.is_active = data.is_active ? 1 : 0;
+//   }
   
-  const updatedProvider = { 
-    ...mockProviders[providerIndex], 
-    ...updatePayload, // Apply updates
-    // updated_at: new Date().toISOString(), // Add if needed
-  };
-  mockProviders[providerIndex] = updatedProvider;
-  return updatedProvider;
-}
+//   const updatedProvider = { 
+//     ...mockProviders[providerIndex], 
+//     ...updatePayload, // Apply updates
+//     // updated_at: new Date().toISOString(), // Add if needed
+//   };
+//   mockProviders[providerIndex] = updatedProvider;
+//   return updatedProvider;
+// }
 
 /**
  * GET /api/insurance/providers
@@ -105,8 +117,7 @@ async function updateInsuranceProviderInDB(id: number, data: InsuranceProviderUp
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    // Example filters
-    const filters = {
+    const filters: InsuranceProviderFilters = {
       is_active: searchParams.get("is_active"), // "true" or "false"
     };
 
@@ -132,7 +143,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    // Fixed: Apply type assertion
+    // Apply type assertion
     const providerData = body as InsuranceProviderInput;
 
     // Basic validation (add more comprehensive validation)
@@ -161,44 +172,4 @@ export async function POST(request: NextRequest) {
 }
 
 // Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
-// The PUT handler below seems misplaced in this file which handles the collection (/api/insurance/providers).
-// It should likely be moved to /api/insurance/providers/[id]/route.ts.
-
-/**
- * PUT /api/insurance/providers/[id]  <-- This handler likely belongs in [id]/route.ts
- * Updates an existing insurance provider.
- */
-// export async function PUT(request: NextRequest) { // Commenting out as it's likely misplaced
-//   try {
-//     const path = request.nextUrl.pathname;
-//     const idString = path.split("/").pop();
-//     const id = idString ? parseInt(idString) : 0;
-    
-//     if (!id || id <= 0) {
-//       return NextResponse.json({ error: "Invalid or missing insurance provider ID in URL path" }, { status: 400 });
-//     }
-    
-//     const body = await request.json();
-//     // Fixed: Apply type assertion
-//     const updateData = body as InsuranceProviderUpdateInput;
-    
-//     // Simulate updating the insurance provider in the database
-//     const updatedProvider = await updateInsuranceProviderInDB(id, updateData);
-
-//     return NextResponse.json({ provider: updatedProvider });
-//   } catch (error) {
-//     console.error("Error updating insurance provider:", error);
-//     let errorMessage = "An unknown error occurred";
-//     if (error instanceof Error) {
-//       errorMessage = error.message;
-//       if (errorMessage === "Insurance provider not found") {
-//         return NextResponse.json({ error: errorMessage }, { status: 404 });
-//       }
-//     }
-//     return NextResponse.json(
-//       { error: "Failed to update insurance provider", details: errorMessage },
-//       { status: 500 }
-//     );
-//   }
-// }
 

@@ -31,7 +31,7 @@ interface LoginErrorResponse {
 }
 
 // --- COMPONENT ---
-export default function LoginPage() {
+function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState(""); // Assuming username/email is used
   const [password, setPassword] = useState("");
@@ -200,3 +200,9 @@ export default function LoginPage() {
     </div>
   );
 }
+
+// FIX: Add display name
+LoginPage.displayName = "LoginPage";
+
+export default LoginPage;
+

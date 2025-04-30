@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+// import { v4 as uuidv4 } from "uuid"; // Unused import
 
-// Define interface for Insurance Provider data
-interface InsuranceProvider {
-  id: number | string;
-  name: string;
-  contact_person?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  address?: string;
-  is_active: number; // Assuming 1 for active, 0 for inactive
-}
+// Define interface for Insurance Provider data (kept for reference, but not used in this file's logic)
+// interface InsuranceProvider {
+//   id: number | string;
+//   name: string;
+//   contact_person?: string;
+//   contact_email?: string;
+//   contact_phone?: string;
+//   address?: string;
+//   is_active: number; // Assuming 1 for active, 0 for inactive
+// }
 
 // Define interface for Patient Insurance Policy data
 interface InsurancePolicy {
@@ -34,11 +35,11 @@ interface InsurancePolicy {
 }
 
 // Mock data store for insurance providers (replace with actual DB interaction)
-const mockProviders: InsuranceProvider[] = [
-  { id: 1, name: "MediCare Insurance", contact_person: "Alice Brown", contact_email: "alice@medicare.com", contact_phone: "555-1111", address: "123 Insurance St", is_active: 1 },
-  { id: 2, name: "HealthGuard Plus", contact_person: "Bob White", contact_email: "bob@healthguard.com", contact_phone: "555-2222", address: "456 Provider Ave", is_active: 1 },
-];
-// const nextProviderId = 3; // This seems unused in this file
+// const mockProviders: InsuranceProvider[] = [ // Unused variable
+//   { id: 1, name: "MediCare Insurance", contact_person: "Alice Brown", contact_email: "alice@medicare.com", contact_phone: "555-1111", address: "123 Insurance St", is_active: 1 },
+//   { id: 2, name: "HealthGuard Plus", contact_person: "Bob White", contact_email: "bob@healthguard.com", contact_phone: "555-2222", address: "456 Provider Ave", is_active: 1 },
+// ];
+// const nextProviderId = 3; // Unused variable
 
 // Mock data store for patient insurance policies (replace with actual DB interaction)
 const mockPolicies: InsurancePolicy[] = [
@@ -101,23 +102,23 @@ interface InsurancePolicyInput {
   is_active?: boolean; // Defaults to true
 }
 
-// Define interface for patient insurance policy update input
-interface InsurancePolicyUpdateInput {
-  provider_id?: number | string;
-  policy_number?: string;
-  group_number?: string;
-  subscriber_name?: string;
-  subscriber_dob?: string;
-  relationship_to_patient?: string;
-  effective_date?: string;
-  expiry_date?: string;
-  coverage_details?: string;
-  is_primary?: boolean;
-  is_active?: boolean;
-  verification_status?: string; // e.g., "Verified", "Pending", "Rejected"
-  verified_by_id?: number | string | null;
-  verified_at?: string | null; // ISO string
-}
+// Define interface for patient insurance policy update input - Belongs in [id]/route.ts
+// interface InsurancePolicyUpdateInput {
+//   provider_id?: number | string;
+//   policy_number?: string;
+//   group_number?: string;
+//   subscriber_name?: string;
+//   subscriber_dob?: string;
+//   relationship_to_patient?: string;
+//   effective_date?: string;
+//   expiry_date?: string;
+//   coverage_details?: string;
+//   is_primary?: boolean;
+//   is_active?: boolean;
+//   verification_status?: string; // e.g., "Verified", "Pending", "Rejected"
+//   verified_by_id?: number | string | null;
+//   verified_at?: string | null; // ISO string
+// }
 
 // Define interface for patient insurance policy filters
 interface InsurancePolicyFilters {
@@ -131,26 +132,50 @@ async function getPatientInsurancePoliciesFromDB(filters: InsurancePolicyFilters
   console.log("Simulating DB fetch for patient insurance policies with filters:", filters);
   let filteredPolicies = [...mockPolicies];
   
+  // FIX: Check filters.patient_id before parsing (TS2345)
   if (filters.patient_id) {
-    filteredPolicies = filteredPolicies.filter(p => p.patient_id === parseInt(filters.patient_id));
+    const patientId = parseInt(filters.patient_id);
+    if (!isNaN(patientId)) {
+      filteredPolicies = filteredPolicies.filter(p => p.patient_id === patientId);
+    }
   }
+  // FIX: Check filters.provider_id before parsing (TS2345)
   if (filters.provider_id) {
-    filteredPolicies = filteredPolicies.filter(p => p.provider_id === parseInt(filters.provider_id));
+    const providerId = parseInt(filters.provider_id);
+    if (!isNaN(providerId)) {
+      filteredPolicies = filteredPolicies.filter(p => p.provider_id === providerId);
+    }
   }
-  if (filters.is_active !== undefined) {
+  // FIX: Check filters.is_active before using (TS18049)
+  if (filters.is_active !== null && filters.is_active !== undefined) {
     const activeBool = String(filters.is_active).toLowerCase() === "true";
     filteredPolicies = filteredPolicies.filter(p => (p.is_active === 1) === activeBool);
   }
   
-  return filteredPolicies.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  // FIX: Ensure created_at exists before sorting (or handle potential undefined)
+  return filteredPolicies.sort((a, b) => {
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return dateB - dateA;
+  });
 }
 
+// Helper function to simulate DB interaction (GET Policy by ID) - Belongs in [id]/route.ts
+// async function getPatientInsurancePolicyByIdFromDB(id: number) { // Unused function
+//   console.log("Simulating DB fetch for patient insurance policy ID:", id);
+//   const policy = mockPolicies.find(p => p.id === id);
+//   if (!policy) {
+//     throw new Error("Patient insurance policy not found");
+//   }
+//   return policy;
+// }
 
 // Helper function to simulate DB interaction (POST Policy)
-async function createPatientInsurancePolicyInDB(data: InsurancePolicyInput) {
+async function createPatientInsurancePolicyInDB(data: InsurancePolicyInput): Promise<InsurancePolicy> { // Added return type
   console.log("Simulating DB create for patient insurance policy:", data);
   const now = new Date().toISOString();
-  const newPolicy = {
+  // FIX: Ensure created object matches InsurancePolicy interface
+  const newPolicy: InsurancePolicy = {
     id: nextPolicyId++,
     patient_id: data.patient_id,
     provider_id: data.provider_id,
@@ -174,6 +199,26 @@ async function createPatientInsurancePolicyInDB(data: InsurancePolicyInput) {
   return newPolicy;
 }
 
+// Helper function to simulate DB interaction (PUT Policy) - Belongs in [id]/route.ts
+// async function updatePatientInsurancePolicyInDB(id: number, data: InsurancePolicyUpdateInput) { // Unused function
+//   console.log("Simulating DB update for patient insurance policy ID:", id, "with data:", data);
+//   const policyIndex = mockPolicies.findIndex(p => p.id === id);
+//   if (policyIndex === -1) {
+//     throw new Error("Patient insurance policy not found");
+//   }
+//   const now = new Date().toISOString();
+//   // FIX: Ensure updated object matches InsurancePolicy interface
+//   const updatedPolicy = { 
+//     ...mockPolicies[policyIndex], 
+//     ...data, 
+//     is_primary: data.is_primary !== undefined ? (data.is_primary ? 1 : 0) : mockPolicies[policyIndex].is_primary,
+//     is_active: data.is_active !== undefined ? (data.is_active ? 1 : 0) : mockPolicies[policyIndex].is_active,
+//     updated_at: now 
+//   };
+//   mockPolicies[policyIndex] = updatedPolicy;
+//   return updatedPolicy;
+// }
+
 
 /**
  * GET /api/insurance/policies
@@ -182,8 +227,7 @@ async function createPatientInsurancePolicyInDB(data: InsurancePolicyInput) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    // Example filters
-    const filters = {
+    const filters: InsurancePolicyFilters = {
       patient_id: searchParams.get("patient_id"),
       provider_id: searchParams.get("provider_id"),
       is_active: searchParams.get("is_active"), // "true" or "false"
@@ -211,7 +255,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    // Fixed: Apply type assertion
+    // Apply type assertion
     const policyData = body as InsurancePolicyInput;
 
     // Basic validation (add more comprehensive validation)
@@ -240,43 +284,4 @@ export async function POST(request: NextRequest) {
 }
 
 // Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
-// The PUT handler below seems misplaced in this file which handles the collection (/api/insurance/policies).
-// It should likely be moved to /api/insurance/policies/[id]/route.ts.
-
-/**
- * PUT /api/insurance/policies/[id]  <-- This handler likely belongs in [id]/route.ts
- * Updates an existing patient insurance policy.
- */
-// export async function PUT(request: NextRequest) { // Commenting out as it's likely misplaced
-//   try {
-//     const path = request.nextUrl.pathname;
-//     const idString = path.split("/").pop();
-//     const id = idString ? parseInt(idString) : 0;
-    
-//     if (!id || id <= 0) {
-//       return NextResponse.json({ error: "Invalid or missing patient insurance policy ID in URL path" }, { status: 400 });
-//     }
-    
-//     const body = await request.json();
-//     const updateData = body as InsurancePolicyUpdateInput;
-    
-//     // Simulate updating the patient insurance policy in the database
-//     const updatedPolicy = await updatePatientInsurancePolicyInDB(id, updateData);
-
-//     return NextResponse.json({ policy: updatedPolicy });
-//   } catch (error) {
-//     console.error("Error updating patient insurance policy:", error);
-//     let errorMessage = "An unknown error occurred";
-//     if (error instanceof Error) {
-//       errorMessage = error.message;
-//       if (errorMessage === "Patient insurance policy not found") {
-//         return NextResponse.json({ error: errorMessage }, { status: 404 });
-//       }
-//     }
-//     return NextResponse.json(
-//       { error: "Failed to update patient insurance policy", details: errorMessage },
-//       { status: 500 }
-//     );
-//   }
-// }
 

@@ -6,15 +6,18 @@ import { v4 as uuidv4 } from "uuid";
 interface AlertInput {
   alert_type: string; // e.g., "Code Blue", "Stroke Alert", "Sepsis Alert"
   activated_by_id: string | number; // User ID who activated the alert
-  details?: string; // Optional additional details
+  details?: string | null; // FIX: Changed to allow null to match usage
   activation_timestamp?: string; // Optional, defaults to now if not provided
   status?: string; // Optional, defaults to "Active"
 }
 
 // Define interface for alert data (including generated fields)
-interface Alert extends AlertInput {
+interface Alert {
   id: string;
   visit_id: string;
+  alert_type: string;
+  activated_by_id: string | number;
+  details?: string | null; // FIX: Changed to allow null to match usage
   activation_timestamp: string; // ISO 8601 date string
   status: string;
 }
@@ -24,7 +27,7 @@ const mockAlerts: Alert[] = [];
 
 // GET /api/er/visits/[id]/alerts - Get alerts for a specific ER visit
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest, // Prefixed as unused
   { params }: { params: { id: string } }
 ) {
   try {
@@ -64,7 +67,7 @@ export async function POST(
     // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
     const body = await request.json();
-    // Fixed: Apply type assertion
+    // Apply type assertion
     const alertData = body as AlertInput;
     const alertId = uuidv4();
 
@@ -94,18 +97,19 @@ export async function POST(
       .run();
     */
 
-    const newAlert = {
+    // FIX: Explicitly type newAlert to match interface Alert
+    const newAlert: Alert = {
       id: alertId,
       visit_id: visitId,
       alert_type: alertData.alert_type,
       activated_by_id: alertData.activated_by_id,
-      details: alertData.details || null,
+      details: alertData.details ?? null, // Use nullish coalescing
       activation_timestamp: alertData.activation_timestamp || new Date().toISOString(),
       status: alertData.status || "Active",
     };
 
     // Mock implementation
-    mockAlerts.push(newAlert);
+    mockAlerts.push(newAlert); // This should now be type-compatible
 
     // TODO: Trigger notification system based on alert_type
     console.log("Mock Trigger Notification:", newAlert);
