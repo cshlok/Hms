@@ -1,0 +1,36 @@
+name: Code Audit
+
+on: [push, pull_request]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18 # Based on package.json devDependencies
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        # Check all relevant file types used in the project
+        run: npx eslint . --ext .ts,.tsx,.js,.jsx
+
+      - name: Run Prettier check
+        # Check formatting for all relevant files
+        run: npx prettier --check "**/*.{ts,tsx,js,jsx,json,md,css}"
+
+      - name: Run Tests
+        # Execute the test script defined in package.json
+        run: npm test
+
+      - name: Audit vulnerabilities
+        # Check for high severity vulnerabilities in dependencies
+        run: npm audit --audit-level=high
+

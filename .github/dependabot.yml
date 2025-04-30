@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "daily"
+    # Optional: Add reviewers or assignees for Dependabot PRs
+    # reviewers:
+    #   - "github_username"
+    # assignees:
+    #   - "github_username"
+    # Optional: Group updates for specific dependencies
+    # groups:
+    #   react-dependencies:
+    #     patterns:
+    #       - "react"
+    #       - "react-dom"
+

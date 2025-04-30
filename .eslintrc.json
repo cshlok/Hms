@@ -1,0 +1,41 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2021": true,
+    "jest": true
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "react",
+    "react-hooks"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "next/core-web-vitals", // Next.js specific rules
+    "prettier" // Add prettier to disable conflicting rules
+  ],
+  "settings": {
+    "react": {
+      "version": "detect" // Automatically detect React version
+    }
+  },
+  "rules": {
+    // Add or override rules here if needed
+    "react/react-in-jsx-scope": "off", // Not needed with Next.js >= 11 and React >= 17
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }], // Warn about unused vars, ignore if prefixed with _
+    "@typescript-eslint/no-explicit-any": "warn" // Warn about explicit any types
+  }
+}
+
