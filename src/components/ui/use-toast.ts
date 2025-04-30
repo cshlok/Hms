@@ -124,7 +124,7 @@ function toast(props: Toast) {
       ...props,
       id,
       open: true,
-      onOpenChange: (open) => {
+      onOpenChange: (open: boolean) => {
         if (!open) dismiss()
       },
     },
@@ -141,6 +141,7 @@ function toast(props: Toast) {
 interface ToastContextProps {
   toast: typeof toast
   dismiss: (toastId?: string) => void
+  toasts: ToasterToast[] // Add toasts array to the context props
 }
 
 const ToastContext = React.createContext<ToastContextProps | undefined>(

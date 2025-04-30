@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Edit, Trash2, FileText } from "lucide-react";
-import CreateRadiologyReportModal from "./CreateRadiologyReportModal"; // Assuming this exists and accepts props
+import CreateRadiologyReportModal, { ReportFormData as ModalReportFormData } from "./CreateRadiologyReportModal"; // Import the form data type
 // import RadiologyReportsList from "./RadiologyReportsList"; // Assuming this exists
 
 // Define interfaces
@@ -112,30 +112,36 @@ export default function RadiologyStudyDetail() {
     }
   };
 
-  const handleCreateReport = async (formData: Omit<ReportData, 'study_id' | 'radiologist_id'>): Promise<void> => {
+  // FIX: Adjust function signature to match the onSubmit prop type expected by the modal
+  const handleCreateReport = async (formData: ModalReportFormData): Promise<void> => {
     if (!studyId) {
       alert("Study ID is missing.");
       return;
     }
     try {
-      const reportData: ReportData = {
-        ...formData,
-        study_id: studyId,
-        radiologist_id: "rad_current", // Replace with actual ID from session
-      };
+      // formData already contains study_id and radiologist_id from the modal
+      // const reportData: ReportData = {
+      //   ...formData,
+      //   study_id: studyId,
+      //   radiologist_id: "rad_current", // Replace with actual ID from session
+      // };
 
       // Simulate API call
-      // const response = await fetch("/api/radiology/reports", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(reportData),
-      // });
-      // if (!response.ok) {
-      //   const errorData = await response.json().catch(() => ({}));
-      //   throw new Error(errorData.error || "Failed to create radiology report");
-      // }
+      const response = await fetch("/api/radiology/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData), // Use the formData directly
+      });
+      if (!response.ok) {
+        let errorMsg = "Failed to create radiology report";
+        try {
+          const errorData: { error?: string } = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore if response is not JSON */ }
+        throw new Error(errorMsg);
+      }
 
-      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate delay
+      // await new Promise(resolve => setTimeout(resolve, 600)); // Simulate delay
 
       alert("Report created successfully (simulated).");
       setShowCreateReportModal(false);

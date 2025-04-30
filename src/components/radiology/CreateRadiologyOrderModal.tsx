@@ -28,7 +28,8 @@ interface Doctor {
   // Add other relevant doctor fields if needed
 }
 
-interface OrderPayload {
+// FIX: Export the payload type
+export interface OrderPayload {
   patient_id: string;
   procedure_type_id: string;
   clinical_indication: string;
@@ -37,11 +38,12 @@ interface OrderPayload {
 }
 
 interface CreateRadiologyOrderModalProps {
+  isOpen: boolean; // Add isOpen prop to control visibility from parent
   onClose: () => void;
   onSubmit: (payload: OrderPayload) => Promise<void>;
 }
 
-export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateRadiologyOrderModalProps) {
+export default function CreateRadiologyOrderModal({ isOpen, onClose, onSubmit }: CreateRadiologyOrderModalProps) {
   const [patientId, setPatientId] = useState<string>("");
   const [procedureTypeId, setProcedureTypeId] = useState<string>("");
   const [clinicalIndication, setClinicalIndication] = useState<string>("");
@@ -56,6 +58,9 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
+    // Only fetch data if the modal is open
+    if (!isOpen) return;
+
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -71,14 +76,15 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
         if (!proceduresRes.ok) throw new Error(`Failed to fetch procedure types: ${proceduresRes.statusText}`);
         if (!doctorsRes.ok) throw new Error(`Failed to fetch doctors: ${doctorsRes.statusText}`);
 
-        const patientsData = await patientsRes.json();
-        const proceduresData = await proceduresRes.json();
-        const doctorsData = await doctorsRes.json();
+        // Explicitly type the JSON response
+        const patientsData: { results: Patient[] } | Patient[] = await patientsRes.json();
+        const proceduresData: { results: ProcedureType[] } | ProcedureType[] = await proceduresRes.json();
+        const doctorsData: { results: Doctor[] } | Doctor[] = await doctorsRes.json();
 
         // Handle potential API response structures (e.g., { results: [...] })
-        setPatients(patientsData.results || (Array.isArray(patientsData) ? patientsData : []));
-        setProcedureTypes(proceduresData.results || (Array.isArray(proceduresData) ? proceduresData : []));
-        setDoctors(doctorsData.results || (Array.isArray(doctorsData) ? doctorsData : []));
+        setPatients(Array.isArray(patientsData) ? patientsData : patientsData.results || []);
+        setProcedureTypes(Array.isArray(proceduresData) ? proceduresData : proceduresData.results || []);
+        setDoctors(Array.isArray(doctorsData) ? doctorsData : doctorsData.results || []);
 
       } catch (err) {
         const message = err instanceof Error ? err.message : "An unknown error occurred";
@@ -89,7 +95,7 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
       }
     };
     fetchData();
-  }, []);
+  }, [isOpen]); // Re-fetch when modal opens
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -99,6 +105,7 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
       return;
     }
     setIsSubmitting(true);
+    setError(null); // Clear previous errors
     try {
       await onSubmit({
         patient_id: patientId,
@@ -107,7 +114,13 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
         priority: priority,
         referring_doctor_id: referringDoctorId || null, // Convert empty string to null
       });
-      // onClose(); // Optionally close modal on successful submit, handled by parent
+      // Reset form state after successful submission
+      setPatientId("");
+      setProcedureTypeId("");
+      setClinicalIndication("");
+      setPriority("routine");
+      setReferringDoctorId("");
+      // onClose(); // Parent component should handle closing the modal
     } catch (submitError) {
         const message = submitError instanceof Error ? submitError.message : "An unknown error occurred during submission";
         console.error("Error submitting order:", message);
@@ -117,8 +130,9 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
     }
   };
 
+  // Use the isOpen prop passed from the parent to control the dialog
   return (
-    <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(openState) => !openState && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Create New Radiology Order</DialogTitle>
@@ -128,17 +142,21 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : error ? (
-          <div className="text-center text-red-500 p-4">{error}</div>
-        ) : (
+          <div className="text-center text-red-500 p-4 border border-red-200 rounded bg-red-50">{error}</div>
+        ) : null}
+        {/* Render form only when not loading, even if there was an error during fetch */}
+        {!loading && (
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
+              {/* Patient Select */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="patient" className="text-right">Patient *</Label>
-                <Select value={patientId} onValueChange={setPatientId} required>
+                <Select value={patientId} onValueChange={setPatientId} required disabled={isSubmitting}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Patient" />
                   </SelectTrigger>
                   <SelectContent>
+                    {patients.length === 0 && <SelectItem value="" disabled>No patients found</SelectItem>}
                     {patients.map((patient) => (
                       <SelectItem key={patient.id} value={patient.id}>
                         {patient.name} (ID: {patient.id.substring(0, 6)})
@@ -148,13 +166,15 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
                 </Select>
               </div>
 
+              {/* Procedure Type Select */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="procedureType" className="text-right">Procedure Type *</Label>
-                <Select value={procedureTypeId} onValueChange={setProcedureTypeId} required>
+                <Select value={procedureTypeId} onValueChange={setProcedureTypeId} required disabled={isSubmitting}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Procedure Type" />
                   </SelectTrigger>
                   <SelectContent>
+                     {procedureTypes.length === 0 && <SelectItem value="" disabled>No procedure types found</SelectItem>}
                     {procedureTypes.map((type) => (
                       <SelectItem key={type.id} value={type.id}>
                         {type.name}
@@ -164,6 +184,7 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
                 </Select>
               </div>
 
+              {/* Clinical Indication Textarea */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="clinicalIndication" className="text-right">Clinical Indication *</Label>
                 <Textarea
@@ -173,12 +194,14 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
                   className="col-span-3"
                   required
                   placeholder="Enter reason for the study..."
+                  disabled={isSubmitting}
                 />
               </div>
 
+              {/* Priority Select */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="priority" className="text-right">Priority</Label>
-                <Select value={priority} onValueChange={(value: "routine" | "stat") => setPriority(value)}>
+                <Select value={priority} onValueChange={(value: "routine" | "stat") => setPriority(value)} disabled={isSubmitting}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Priority" />
                   </SelectTrigger>
@@ -189,14 +212,16 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
                 </Select>
               </div>
 
+              {/* Referring Doctor Select */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="referringDoctor" className="text-right">Referring Doctor</Label>
-                <Select value={referringDoctorId} onValueChange={setReferringDoctorId}>
+                <Select value={referringDoctorId} onValueChange={setReferringDoctorId} disabled={isSubmitting}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Referring Doctor (Optional)" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">None</SelectItem> {/* Use empty string for no selection */}
+                    {doctors.length === 0 && <SelectItem value="" disabled>No doctors found</SelectItem>}
                     {doctors.map((doctor) => (
                       <SelectItem key={doctor.id} value={doctor.id}>
                         {doctor.name}
@@ -208,7 +233,8 @@ export default function CreateRadiologyOrderModal({ onClose, onSubmit }: CreateR
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline" disabled={isSubmitting}>Cancel</Button>
+                {/* Ensure Cancel button calls onClose */}
+                <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
               </DialogClose>
               <Button type="submit" disabled={isSubmitting || loading}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

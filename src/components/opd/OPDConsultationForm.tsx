@@ -95,24 +95,24 @@ export default function OPDConsultationForm() {
   const form = useForm<ConsultationFormValues>({
     resolver: zodResolver(consultationFormSchema),
     defaultValues: {
-      patientId: ",
-      chiefComplaint: ",
-      presentIllness: ",
+      patientId: "",
+      chiefComplaint: "",
+      presentIllness: "",
       vitalSigns: {
-        temperature: ",
-        pulse: ",
-        respiratoryRate: ",
-        bloodPressure: ",
-        oxygenSaturation: ",
-        weight: ",
-        height: ",
+        temperature: "",
+        pulse: "",
+        respiratoryRate: "",
+        bloodPressure: "",
+        oxygenSaturation: "",
+        weight: "",
+        height: "",
       },
-      diagnosis: ",
-      treatmentPlan: ",
-      medications: [{ name: ", dosage: ", frequency: ", duration: ", instructions: " }],
+      diagnosis: "",
+      treatmentPlan: "",
+      medications: [{ name: "", dosage: "", frequency: "", duration: "", instructions: "" }],
       labTests: [],
-      followUpDate: ",
-      notes: ",
+      followUpDate: "",
+      notes: "",
     },
   });
   
@@ -229,7 +229,7 @@ export default function OPDConsultationForm() {
     const currentMedications = form.getValues().medications || [];
     form.setValue("medications", [
       ...currentMedications,
-      { name: ", dosage: ", frequency: ", duration: ", instructions: " }
+      { name: "", dosage: "", frequency: "", duration: "", instructions: "" }
     ]);
   };
   

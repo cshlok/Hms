@@ -1,25 +1,27 @@
-
 "use client";
 
-import React, { useState, ChangeEvent, FormEvent } from "react"; // FIX: Import necessary event types
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
-  Button,
-  Input,
-  Label,
-  Textarea,
+} from "@/components/ui/card"; // Corrected import path
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui";
-import { useToast } from "@/components/ui/use-toast"; // FIX: Import useToast
+} from "@/components/ui/select"; // Corrected import path
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react"; // Import Loader2 for loading state
 
-// FIX: Define type for form data
+// Define type for form data
 interface AdmissionFormData {
   patient_id: string;
   admission_date: string;
@@ -27,24 +29,41 @@ interface AdmissionFormData {
   primary_doctor_id: string;
   bed_id: string;
   diagnosis: string;
-  estimated_stay: string;
+  estimated_stay: string; // Keep as string for input, parse if needed
 }
 
-// FIX: Define type for API error response
+// Define type for API error response
 interface ApiErrorResponse {
   error?: string;
+  message?: string; // Include message as potential error key
 }
 
-// FIX: Define type for API success response
+// Define type for API success response
 interface AdmissionResponse {
   id: string; // Assuming admission ID is returned
-  // Add other relevant fields
+  // Add other relevant fields returned by the API
+}
+
+// Mock data types (replace with actual types if fetched from API)
+interface MockPatient {
+  id: string;
+  name: string;
+}
+interface MockDoctor {
+  id: string;
+  name: string;
+}
+interface MockBed {
+  id: string;
+  number: string;
+  room: string;
+  ward: string;
 }
 
 const AdmissionForm = () => {
   const [formData, setFormData] = useState<AdmissionFormData>({
     patient_id: "",
-    admission_date: new Date().toISOString().split("T")[0],
+    admission_date: new Date().toISOString().split("T")[0], // Default to today
     admission_type: "planned",
     primary_doctor_id: "",
     bed_id: "",
@@ -52,42 +71,59 @@ const AdmissionForm = () => {
     estimated_stay: "",
   });
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast(); // FIX: Initialize toast
+  const { toast } = useToast();
 
-  // Mock data for dropdowns - in a real app, these would be fetched from the API
-  const patients = [
-    { id: "1", name: "Rahul Sharma" }, // FIX: Use string IDs if form state uses string
-    { id: "2", name: "Priya Patel" },
-    { id: "3", name: "Amit Singh" },
+  // Mock data for dropdowns - replace with API calls in a real app
+  // Ensure IDs are strings to match form state
+  const patients: MockPatient[] = [
+    { id: "pat1", name: "Rahul Sharma" },
+    { id: "pat2", name: "Priya Patel" },
+    { id: "pat3", name: "Amit Singh" },
   ];
 
-  const doctors = [
-    { id: "2", name: "Dr. John Smith" }, // FIX: Use string IDs
+  const doctors: MockDoctor[] = [
+    { id: "doc1", name: "Dr. Evelyn Reed" },
+    { id: "doc2", name: "Dr. Kenji Tanaka" },
   ];
 
-  const beds = [
-    { id: "1", number: "101-A", room: "101", ward: "General Ward" }, // FIX: Use string IDs
-    { id: "2", number: "101-B", room: "101", ward: "General Ward" },
-    { id: "3", number: "102-A", room: "102", ward: "General Ward" },
-    { id: "4", number: "201-A", room: "201", ward: "Semi-Private" },
-    { id: "5", number: "301-A", room: "301", ward: "Private" },
+  const beds: MockBed[] = [
+    { id: "bed1", number: "101-A", room: "101", ward: "General Ward" },
+    { id: "bed2", number: "101-B", room: "101", ward: "General Ward" },
+    { id: "bed3", number: "201-A", room: "201", ward: "Semi-Private" },
+    { id: "bed4", number: "301", room: "301", ward: "Private" },
   ];
 
-  // FIX: Add types for event and element
+  // Handler for standard input/textarea changes
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // FIX: Add types for name and value (assuming value is string from Select)
+  // Handler for Select component changes
   const handleSelectChange = (name: keyof AdmissionFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Special handling for admission_type to ensure type safety
+    if (name === "admission_type") {
+      setFormData((prev) => ({ ...prev, [name]: value as AdmissionFormData["admission_type"] }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  // FIX: Add type for event
+  // Handler for form submission
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
+    // Basic validation (consider more robust validation)
+    if (!formData.patient_id || !formData.primary_doctor_id || !formData.bed_id || !formData.diagnosis) {
+        toast({
+            title: "Missing Information",
+            description: "Please fill in all required fields (Patient, Doctor, Bed, Diagnosis).",
+            variant: "destructive",
+        });
+        setLoading(false);
+        return;
+    }
 
     try {
       const response = await fetch("/api/ipd/admissions", {
@@ -101,24 +137,22 @@ const AdmissionForm = () => {
       if (!response.ok) {
         let errorMsg = "Failed to create admission";
         try {
-          // FIX: Add type for errorData
           const errorData: ApiErrorResponse = await response.json();
-          errorMsg = errorData.error || errorMsg;
+          errorMsg = errorData.error || errorData.message || errorMsg;
         } catch (jsonError) {
-          // Ignore if response is not JSON
+          errorMsg = `${errorMsg}: ${response.statusText}`;
         }
         throw new Error(errorMsg);
       }
 
-      // FIX: Type the success response
       const newAdmission: AdmissionResponse = await response.json();
 
-      toast({ // FIX: Use toast for success
+      toast({
         title: "Admission Successful",
-        description: `Patient admitted successfully with Admission ID: ${newAdmission.id}`,
+        description: `Patient admitted successfully. Admission ID: ${newAdmission.id}`,
       });
 
-      // Reset form
+      // Reset form to initial state
       setFormData({
         patient_id: "",
         admission_date: new Date().toISOString().split("T")[0],
@@ -128,11 +162,10 @@ const AdmissionForm = () => {
         diagnosis: "",
         estimated_stay: "",
       });
-    } catch (err: unknown) { // FIX: Use unknown for catch block
+    } catch (err: unknown) {
       console.error("Error creating admission:", err);
-      // FIX: Type check error before accessing message
       const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      toast({ // FIX: Use toast for error
+      toast({
         title: "Admission Failed",
         description: message,
         variant: "destructive",
@@ -148,22 +181,22 @@ const AdmissionForm = () => {
         <CardTitle>New Patient Admission</CardTitle>
       </CardHeader>
       <CardContent>
-        {/* FIX: Removed manual success/error messages, relying on toast */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Patient Select */}
             <div className="space-y-2">
-              <Label htmlFor="patient_id">Patient</Label>
-              {/* FIX: Use shadcn Select component for consistency */}
+              <Label htmlFor="patient_id">Patient *</Label>
               <Select
-                name="patient_id"
                 value={formData.patient_id}
                 onValueChange={(value) => handleSelectChange("patient_id", value)}
                 required
+                disabled={loading}
               >
                 <SelectTrigger id="patient_id">
                   <SelectValue placeholder="Select Patient" />
                 </SelectTrigger>
                 <SelectContent>
+                  {patients.length === 0 && <SelectItem value="" disabled>No patients available</SelectItem>}
                   {patients.map((patient) => (
                     <SelectItem key={patient.id} value={patient.id}>
                       {patient.name}
@@ -173,8 +206,9 @@ const AdmissionForm = () => {
               </Select>
             </div>
 
+            {/* Admission Date */}
             <div className="space-y-2">
-              <Label htmlFor="admission_date">Admission Date</Label>
+              <Label htmlFor="admission_date">Admission Date *</Label>
               <Input
                 id="admission_date"
                 name="admission_date"
@@ -182,18 +216,18 @@ const AdmissionForm = () => {
                 value={formData.admission_date}
                 onChange={handleChange}
                 required
+                disabled={loading}
               />
             </div>
 
+            {/* Admission Type Select */}
             <div className="space-y-2">
-              <Label htmlFor="admission_type">Admission Type</Label>
-              {/* FIX: Use shadcn Select component */}
+              <Label htmlFor="admission_type">Admission Type *</Label>
               <Select
-                name="admission_type"
                 value={formData.admission_type}
-                // FIX: Ensure value type matches expected enum
-                onValueChange={(value: string) => handleSelectChange("admission_type", value as AdmissionFormData["admission_type"])}
+                onValueChange={(value) => handleSelectChange("admission_type", value)}
                 required
+                disabled={loading}
               >
                 <SelectTrigger id="admission_type">
                   <SelectValue placeholder="Select Admission Type" />
@@ -206,19 +240,20 @@ const AdmissionForm = () => {
               </Select>
             </div>
 
+            {/* Primary Doctor Select */}
             <div className="space-y-2">
-              <Label htmlFor="primary_doctor_id">Primary Doctor</Label>
-              {/* FIX: Use shadcn Select component */}
+              <Label htmlFor="primary_doctor_id">Primary Doctor *</Label>
               <Select
-                name="primary_doctor_id"
                 value={formData.primary_doctor_id}
                 onValueChange={(value) => handleSelectChange("primary_doctor_id", value)}
                 required
+                disabled={loading}
               >
                 <SelectTrigger id="primary_doctor_id">
                   <SelectValue placeholder="Select Doctor" />
                 </SelectTrigger>
                 <SelectContent>
+                  {doctors.length === 0 && <SelectItem value="" disabled>No doctors available</SelectItem>}
                   {doctors.map((doctor) => (
                     <SelectItem key={doctor.id} value={doctor.id}>
                       {doctor.name}
@@ -228,19 +263,20 @@ const AdmissionForm = () => {
               </Select>
             </div>
 
+            {/* Bed Select */}
             <div className="space-y-2">
-              <Label htmlFor="bed_id">Bed</Label>
-              {/* FIX: Use shadcn Select component */}
+              <Label htmlFor="bed_id">Assign Bed *</Label>
               <Select
-                name="bed_id"
                 value={formData.bed_id}
                 onValueChange={(value) => handleSelectChange("bed_id", value)}
                 required
+                disabled={loading}
               >
                 <SelectTrigger id="bed_id">
                   <SelectValue placeholder="Select Bed" />
                 </SelectTrigger>
                 <SelectContent>
+                  {beds.length === 0 && <SelectItem value="" disabled>No beds available</SelectItem>}
                   {beds.map((bed) => (
                     <SelectItem key={bed.id} value={bed.id}>
                       {bed.number} - {bed.room} ({bed.ward})
@@ -250,6 +286,7 @@ const AdmissionForm = () => {
               </Select>
             </div>
 
+            {/* Estimated Stay */}
             <div className="space-y-2">
               <Label htmlFor="estimated_stay">Estimated Stay (days)</Label>
               <Input
@@ -259,23 +296,31 @@ const AdmissionForm = () => {
                 min="1"
                 value={formData.estimated_stay}
                 onChange={handleChange}
+                disabled={loading}
+                placeholder="e.g., 5"
               />
             </div>
           </div>
 
+          {/* Diagnosis Textarea */}
           <div className="space-y-2">
-            <Label htmlFor="diagnosis">Diagnosis</Label>
+            <Label htmlFor="diagnosis">Diagnosis *</Label>
             <Textarea
               id="diagnosis"
               name="diagnosis"
               value={formData.diagnosis}
               onChange={handleChange}
               required
+              disabled={loading}
+              placeholder="Enter primary diagnosis..."
+              rows={4}
             />
           </div>
 
-          <div className="flex justify-end">
+          {/* Submit Button */}
+          <div className="flex justify-end pt-4">
             <Button type="submit" disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {loading ? "Processing..." : "Admit Patient"}
             </Button>
           </div>

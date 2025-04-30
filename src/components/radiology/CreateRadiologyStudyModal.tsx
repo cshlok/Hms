@@ -9,7 +9,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 
-export default function CreateRadiologyStudyModal({ onClose, onSubmit, orderId }) {
+// Define interfaces
+interface Modality {
+  id: string;
+  name: string;
+}
+
+interface Technician {
+  id: string;
+  name: string;
+}
+
+// FIX: Export StudyPayload interface
+export interface StudyPayload {
+  order_id: string;
+  accession_number: string | null;
+  study_datetime: string;
+  modality_id: string | null;
+  technician_id: string;
+  protocol: string | null;
+  series_description: string | null;
+  number_of_images: number | null;
+  status: string; // e.g., "acquired"
+}
+
+interface CreateRadiologyStudyModalProps {
+  onClose: () => void;
+  onSubmit: (payload: StudyPayload) => Promise<void>;
+  orderId: string;
+}
+
+export default function CreateRadiologyStudyModal({ onClose, onSubmit, orderId }: CreateRadiologyStudyModalProps) { // FIX: Type props
   const [accessionNumber, setAccessionNumber] = useState("");
   const [studyDatetime, setStudyDatetime] = useState("");
   const [modalityId, setModalityId] = useState("");
@@ -18,10 +48,10 @@ export default function CreateRadiologyStudyModal({ onClose, onSubmit, orderId }
   const [seriesDescription, setSeriesDescription] = useState("");
   const [numberOfImages, setNumberOfImages] = useState("");
   
-  const [modalities, setModalities] = useState([]);
-  const [technicians, setTechnicians] = useState([]);
+  const [modalities, setModalities] = useState<Modality[]>([]); // FIX: Type state
+  const [technicians, setTechnicians] = useState<Technician[]>([]); // FIX: Type state
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null); // FIX: Type state
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -37,9 +67,11 @@ export default function CreateRadiologyStudyModal({ onClose, onSubmit, orderId }
         if (!modalitiesRes.ok) throw new Error("Failed to fetch modalities");
         if (!techniciansRes.ok) throw new Error("Failed to fetch technicians");
 
-        const modalitiesData = await modalitiesRes.json();
-        const techniciansData = await techniciansRes.json();
+        // FIX: Type the fetched data before setting state
+        const modalitiesData: Modality[] = await modalitiesRes.json();
+        const techniciansData: Technician[] = await techniciansRes.json();
 
+        // Assuming API returns array directly, adjust if it returns { results: [...] }
         setModalities(modalitiesData);
         setTechnicians(techniciansData);
 
@@ -56,7 +88,8 @@ export default function CreateRadiologyStudyModal({ onClose, onSubmit, orderId }
     fetchData();
   }, []);
 
-  const handleSubmit = async (e) => {
+  // FIX: Type the event parameter
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!studyDatetime || !technicianId) {
       alert("Please fill in all required fields (Study Date/Time, Technician).");

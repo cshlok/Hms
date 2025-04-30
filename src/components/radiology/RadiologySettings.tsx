@@ -47,8 +47,12 @@ export default function RadiologySettings() {
     try {
       const response = await fetch('/api/radiology/procedure-types');
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to fetch procedure types (status: ${response.status})`);
+        let errorMsg = `Failed to fetch procedure types (status: ${response.status})`;
+        try {
+          const errorData: { error?: string } = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore if response is not JSON */ }
+        throw new Error(errorMsg);
       }
       const data: ProcedureType[] = await response.json();
       setProcedureTypes(data || []); // Ensure it's always an array
@@ -68,8 +72,12 @@ export default function RadiologySettings() {
     try {
       const response = await fetch('/api/radiology/modalities');
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to fetch modalities (status: ${response.status})`);
+        let errorMsg = `Failed to fetch modalities (status: ${response.status})`;
+        try {
+          const errorData: { error?: string } = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore if response is not JSON */ }
+        throw new Error(errorMsg);
       }
       const data: Modality[] = await response.json();
       setModalities(data || []); // Ensure it's always an array
@@ -94,8 +102,12 @@ export default function RadiologySettings() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to create procedure type (status: ${response.status})`);
+        let errorMsg = `Failed to create procedure type (status: ${response.status})`;
+        try {
+          const errorData: { error?: string } = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore if response is not JSON */ }
+        throw new Error(errorMsg);
       }
 
       setShowCreateProcedureModal(false);
@@ -119,8 +131,12 @@ export default function RadiologySettings() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to create modality (status: ${response.status})`);
+        let errorMsg = `Failed to create modality (status: ${response.status})`;
+        try {
+          const errorData: { error?: string } = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore if response is not JSON */ }
+        throw new Error(errorMsg);
       }
 
       setShowCreateModalityModal(false);

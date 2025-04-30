@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdmissionsFromDB, getAdmissionByIdFromDB, createAdmissionInDB, updateAdmissionInDB } from "@/lib/ipd"; // Assuming these functions exist and handle DB interaction
+import { 
+  getAdmissionsFromDB, 
+  getAdmissionByIdFromDB, 
+  createAdmissionInDB, 
+  updateAdmissionInDB, 
+  AdmissionFilters // Import AdmissionFilters from lib
+} from "@/lib/ipd"; // Assuming these functions exist and handle DB interaction
 
-// Define a type for filters for better type safety
-type AdmissionFilters = {
-  patient_id?: string;
-  status?: string;
-  ward?: string;
-  bed_number?: string;
-  admission_date_from?: string;
-  admission_date_to?: string;
-  discharge_date_from?: string;
-  discharge_date_to?: string;
-  attending_doctor_id?: string;
-  // Add other potential filter fields
-};
+// Remove local definition of AdmissionFilters
 
 // Define interface for POST request body
 interface AdmissionInput {
@@ -64,7 +58,17 @@ export async function GET(request: NextRequest) {
         "discharge_date_from", "discharge_date_to", 
         "attending_doctor_id"
       ].includes(key)) {
-        filters[key as keyof AdmissionFilters] = value;
+        const filterKey = key as keyof AdmissionFilters;
+        if (filterKey === "status") {
+          if (value === "active" || value === "discharged" || value === "cancelled") {
+            filters[filterKey] = value;
+          } else {
+            // Optionally handle invalid status value, e.g., ignore or return error
+            console.warn(`Invalid status filter value received: ${value}`);
+          }
+        } else {
+          filters[filterKey] = value;
+        }
       }
     });
 

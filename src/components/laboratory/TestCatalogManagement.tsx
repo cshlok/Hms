@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Input, Select, Spin, message, Modal, Form, Switch } from 'antd'; // Added Switch
-import { PlusOutlined, SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons'; // Added EyeOutlined
-import type { TableColumnsType, TableProps, FormProps } from 'antd';
+import { Card, Table, Button, Input, Select, Spin, message, Modal, Form, Switch } from 'antd';
+import { PlusOutlined, SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
+import type { TableColumnsType, TableProps, FormProps, TablePaginationConfig } from 'antd';
 import type { FilterValue, SorterResult, SortOrder } from 'antd/es/table/interface';
 
 const { Option } = Select;
@@ -26,7 +26,7 @@ interface Test {
   is_active: boolean;
 }
 
-// FIX: Define API response types
+// Define API response types
 interface CategoriesApiResponse {
   results?: TestCategory[];
 }
@@ -38,6 +38,7 @@ interface TestsApiResponse {
 
 interface ApiErrorResponse {
   error?: string;
+  message?: string; // Add message for flexibility
 }
 
 interface AddTestFormValues {
@@ -54,8 +55,8 @@ interface AddTestFormValues {
 
 // Define Table parameters type
 interface TableParams {
-  pagination?: TableProps<Test>['pagination'];
-  sorter?: SorterResult<Test>; // FIX: SorterResult should be single object based on antd docs for controlled mode
+  pagination?: TablePaginationConfig; // Use imported type
+  sorter?: SorterResult<Test> | SorterResult<Test>[]; // Sorter can be single or array
   filters?: Record<string, FilterValue | null>;
 }
 
@@ -87,14 +88,13 @@ const TestCatalogManagement: React.FC = () => {
         let errorMsg = 'Failed to fetch categories';
         try {
           const errorData: ApiErrorResponse = await response.json();
-          errorMsg = errorData.error || errorMsg;
+          errorMsg = errorData.error || errorData.message || errorMsg;
         } catch (jsonError) { /* Ignore */ }
         throw new Error(errorMsg);
       }
-      // FIX: Type the response data
       const data: CategoriesApiResponse = await response.json();
       setCategories(data.results || []);
-    } catch (err: unknown) { // FIX: Use unknown
+    } catch (err: unknown) {
       const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
       console.error('Error fetching categories:', err);
       message.error(`Failed to load test categories: ${messageText}`);
@@ -116,12 +116,13 @@ const TestCatalogManagement: React.FC = () => {
       // Add pagination, sort, filter params from table state if needed by API
       queryParams.append('page', `${params.pagination?.current ?? 1}`);
       queryParams.append('limit', `${params.pagination?.pageSize ?? 10}`);
-      if (params.sorter?.field && params.sorter.order) {
-        queryParams.append('sortField', String(params.sorter.field));
-        queryParams.append('sortOrder', params.sorter.order === 'ascend' ? 'asc' : 'desc');
+
+      // Handle sorter (single or array)
+      const currentSorter = Array.isArray(params.sorter) ? params.sorter[0] : params.sorter;
+      if (currentSorter?.field && currentSorter.order) {
+        queryParams.append('sortField', String(currentSorter.field));
+        queryParams.append('sortOrder', currentSorter.order === 'ascend' ? 'asc' : 'desc');
       }
-      // Add filter params if API supports them
-      // if (params.filters) { ... }
 
       if (queryParams.toString()) {
         url += `?${queryParams.toString()}`;
@@ -132,11 +133,10 @@ const TestCatalogManagement: React.FC = () => {
         let errorMsg = 'Failed to fetch tests';
         try {
           const errorData: ApiErrorResponse = await response.json();
-          errorMsg = errorData.error || errorMsg;
+          errorMsg = errorData.error || errorData.message || errorMsg;
         } catch (jsonError) { /* Ignore */ }
         throw new Error(errorMsg);
       }
-      // FIX: Type the response data
       const data: TestsApiResponse = await response.json();
 
       let fetchedData: Test[] = data.results || [];
@@ -152,16 +152,22 @@ const TestCatalogManagement: React.FC = () => {
       }
 
       setTests(fetchedData);
-      // Update table pagination total from API response
-      setTableParams(prev => ({
-        ...prev,
-        pagination: {
-          ...prev.pagination,
-          total: data.totalCount || fetchedData.length, // Use total from API or fallback
-        },
-      }));
+      // FIX: Update table pagination correctly, avoid assigning boolean
+      setTableParams(prev => {
+        const newPagination: TablePaginationConfig | undefined = prev.pagination ? {
+            ...prev.pagination,
+            current: params.pagination?.current ?? 1,
+            pageSize: params.pagination?.pageSize ?? 10,
+            total: data.totalCount ?? fetchedData.length,
+        } : undefined; // Keep pagination undefined if it was initially undefined
 
-    } catch (err: unknown) { // FIX: Use unknown
+        return {
+          ...prev,
+          pagination: newPagination,
+        };
+      });
+
+    } catch (err: unknown) {
       const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
       console.error('Error fetching tests:', err);
       message.error(`Failed to load laboratory tests: ${messageText}`);
@@ -179,13 +185,10 @@ const TestCatalogManagement: React.FC = () => {
 
   // Handle table changes (pagination, filters, sorter)
   const handleTableChange: TableProps<Test>['onChange'] = (pagination, filters, sorter) => {
-    // FIX: Sorter can be an array, handle it correctly
-    const currentSorter = Array.isArray(sorter) ? sorter[0] : sorter;
     const newTableParams: TableParams = {
         pagination,
         filters,
-        // Ensure sorter is SorterResult<Test> or undefined
-        sorter: currentSorter?.field && currentSorter?.order ? currentSorter : undefined,
+        sorter, // Pass the sorter directly as received (can be single or array)
       };
     setTableParams(newTableParams);
     // Fetch data with new params if API handles server-side processing
@@ -194,9 +197,14 @@ const TestCatalogManagement: React.FC = () => {
 
   // Reload tests when external filters change (category or search)
   useEffect(() => {
-    // Reset pagination to first page when filters change
-    const newParams = { ...tableParams, pagination: { ...tableParams.pagination, current: 1 } };
-    // Don't reset sorter/filters here, let handleTableChange manage them
+    // FIX: Reset pagination correctly, avoid assigning boolean
+    const newParams: TableParams = {
+      ...tableParams,
+      pagination: tableParams.pagination ? { // Check if pagination exists before spreading
+        ...tableParams.pagination,
+        current: 1,
+      } : undefined, // Keep pagination undefined if it doesn't exist
+    };
     setTableParams(newParams);
     fetchTests(newParams);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -209,9 +217,9 @@ const TestCatalogManagement: React.FC = () => {
       const processingTimeNum = values.processing_time ? parseInt(values.processing_time, 10) : null;
 
       if (isNaN(priceNum)) {
-        throw new Error("Invalid price entered.");
+        throw new Error("Invalid price entered. Must be a number.");
       }
-      if (values.processing_time && (processingTimeNum === null || isNaN(processingTimeNum))) { // Check if parsing failed
+      if (values.processing_time && (processingTimeNum === null || isNaN(processingTimeNum))) {
          throw new Error("Invalid processing time entered. Must be a number.");
       }
 
@@ -231,11 +239,10 @@ const TestCatalogManagement: React.FC = () => {
       });
 
       if (!response.ok) {
-        // FIX: Type the error response
         let errorMsg = `Failed to add test (status: ${response.status})`;
         try {
           const errorData: ApiErrorResponse = await response.json();
-          errorMsg = errorData.error || errorMsg;
+          errorMsg = errorData.error || errorData.message || errorMsg;
         } catch (jsonError) { /* Ignore */ }
         throw new Error(errorMsg);
       }
@@ -244,11 +251,17 @@ const TestCatalogManagement: React.FC = () => {
       setIsModalVisible(false);
       form.resetFields();
       fetchTests(tableParams); // Refresh the list with current params
-    } catch (err: unknown) { // FIX: Use unknown
+    } catch (err: unknown) {
       const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
       console.error('Error adding test:', err);
       message.error(`Error adding test: ${messageText}`);
     }
+  };
+
+  // Get current sorter (handle array case)
+  const getCurrentSorter = (): SorterResult<Test> | undefined => {
+    const sorter = tableParams.sorter;
+    return Array.isArray(sorter) ? sorter[0] : sorter;
   };
 
   // Table columns definition with types
@@ -259,8 +272,7 @@ const TestCatalogManagement: React.FC = () => {
       key: 'code',
       width: '10%',
       sorter: true, // Enable server-side sorting
-      // FIX: Access sorter field/order correctly
-      sortOrder: tableParams.sorter?.field === 'code' ? tableParams.sorter.order : undefined,
+      sortOrder: getCurrentSorter()?.field === 'code' ? getCurrentSorter()?.order : undefined,
     },
     {
       title: 'Name',
@@ -268,8 +280,7 @@ const TestCatalogManagement: React.FC = () => {
       key: 'name',
       width: '20%',
       sorter: true,
-      // FIX: Access sorter field/order correctly
-      sortOrder: tableParams.sorter?.field === 'name' ? tableParams.sorter.order : undefined,
+      sortOrder: getCurrentSorter()?.field === 'name' ? getCurrentSorter()?.order : undefined,
     },
     {
       title: 'Category',
@@ -278,8 +289,7 @@ const TestCatalogManagement: React.FC = () => {
       width: '15%',
       render: (categoryName: string | undefined) => categoryName || 'N/A',
       sorter: true,
-      // FIX: Access sorter field/order correctly
-      sortOrder: tableParams.sorter?.field === 'category_name' ? tableParams.sorter.order : undefined,
+      sortOrder: getCurrentSorter()?.field === 'category_name' ? getCurrentSorter()?.order : undefined,
     },
     {
       title: 'Sample Type',
@@ -287,8 +297,7 @@ const TestCatalogManagement: React.FC = () => {
       key: 'sample_type',
       width: '15%',
       sorter: true,
-      // FIX: Access sorter field/order correctly
-      sortOrder: tableParams.sorter?.field === 'sample_type' ? tableParams.sorter.order : undefined,
+      sortOrder: getCurrentSorter()?.field === 'sample_type' ? getCurrentSorter()?.order : undefined,
     },
     {
       title: 'Processing Time',
@@ -297,8 +306,7 @@ const TestCatalogManagement: React.FC = () => {
       width: '15%',
       render: (time: number | null | undefined) => time != null ? `${time} minutes` : 'N/A',
       sorter: true,
-      // FIX: Access sorter field/order correctly
-      sortOrder: tableParams.sorter?.field === 'processing_time' ? tableParams.sorter.order : undefined,
+      sortOrder: getCurrentSorter()?.field === 'processing_time' ? getCurrentSorter()?.order : undefined,
     },
     {
       title: 'Price',
@@ -307,8 +315,7 @@ const TestCatalogManagement: React.FC = () => {
       width: '10%',
       render: (price: number | undefined) => price != null ? `$${price.toFixed(2)}` : 'N/A',
       sorter: true,
-      // FIX: Access sorter field/order correctly
-      sortOrder: tableParams.sorter?.field === 'price' ? tableParams.sorter.order : undefined,
+      sortOrder: getCurrentSorter()?.field === 'price' ? getCurrentSorter()?.order : undefined,
     },
     {
       title: 'Status',
@@ -407,8 +414,15 @@ const TestCatalogManagement: React.FC = () => {
             onClick={() => {
               setSearchText('');
               setCategoryFilter(undefined);
-              // Reset table params and fetch
-              const resetParams: TableParams = { pagination: { ...tableParams.pagination, current: 1 }, sorter: undefined, filters: {} };
+              // FIX: Reset table params correctly, avoid assigning boolean
+              const resetParams: TableParams = {
+                pagination: tableParams.pagination ? { // Check if pagination exists
+                  ...tableParams.pagination,
+                  current: 1,
+                } : undefined,
+                sorter: undefined,
+                filters: {},
+              };
               setTableParams(resetParams);
               fetchTests(resetParams);
             }}
@@ -446,83 +460,67 @@ const TestCatalogManagement: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={handleAddTest}
-          initialValues={{ is_active: true }} // Set default values
+          initialValues={{ is_active: true }} // Default is_active to true
         >
-          <Form.Item<AddTestFormValues>
+          <Form.Item
             name="code"
             label="Test Code"
-            rules={[{ required: true, message: 'Please enter test code' }, { pattern: /^[a-zA-Z0-9-_]+$/, message: 'Code can only contain letters, numbers, hyphens, underscores' }]}
+            rules={[{ required: true, message: 'Please input the test code!' }]}
           >
-            <Input placeholder="e.g., CBC001" />
+            <Input />
           </Form.Item>
-
-          <Form.Item<AddTestFormValues>
+          <Form.Item
             name="name"
             label="Test Name"
-            rules={[{ required: true, message: 'Please enter test name' }]}
+            rules={[{ required: true, message: 'Please input the test name!' }]}
           >
-            <Input placeholder="e.g., Complete Blood Count" />
+            <Input />
           </Form.Item>
-
-          <Form.Item<AddTestFormValues>
+          <Form.Item
             name="category_id"
             label="Category"
-            rules={[{ required: true, message: 'Please select a category' }]}
+            rules={[{ required: true, message: 'Please select a category!' }]}
           >
-            <Select placeholder="Select category" loading={!categories.length} showSearch optionFilterProp="children" filterOption={(input, option) => (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase())}>
+            <Select placeholder="Select Category" loading={!categories.length}>
               {categories.map(category => (
                 <Option key={category.id} value={category.id}>{category.name}</Option>
               ))}
             </Select>
           </Form.Item>
-
-          <Form.Item<AddTestFormValues>
-            name="description"
-            label="Description"
-          >
-            <Input.TextArea rows={3} placeholder="Optional description of the test" />
-          </Form.Item>
-
-          <Form.Item<AddTestFormValues>
+          <Form.Item
             name="sample_type"
             label="Sample Type"
-            rules={[{ required: true, message: 'Please enter sample type' }]}
+            rules={[{ required: true, message: 'Please input the sample type!' }]}
           >
-            <Input placeholder="e.g., Blood (EDTA), Serum, Urine" />
+            <Input placeholder="e.g., Blood, Urine, Serum" />
           </Form.Item>
-
-          <Form.Item<AddTestFormValues>
-            name="sample_volume"
-            label="Sample Volume"
-          >
-            <Input placeholder="e.g., 5 mL" />
-          </Form.Item>
-
-          <Form.Item<AddTestFormValues>
-            name="processing_time"
-            label="Processing Time (minutes)"
-            rules={[{ pattern: /^[0-9]*$/, message: 'Processing time must be a number' }]}
-          >
-            <Input type="number" placeholder="e.g., 60" />
-          </Form.Item>
-
-          <Form.Item<AddTestFormValues>
+          <Form.Item
             name="price"
             label="Price"
-            rules={[{ required: true, message: 'Please enter price' }, { pattern: /^[0-9]*\.?[0-9]*$/, message: 'Price must be a valid number' }]}
+            rules={[{ required: true, message: 'Please input the price!' }, { pattern: /^\d+(\.\d{1,2})?$/, message: 'Please enter a valid price (e.g., 10.50)' }]}
           >
-            <Input type="number" step="0.01" placeholder="e.g., 150.00" />
+            <Input prefix="$" />
           </Form.Item>
-
-          <Form.Item<AddTestFormValues>
-            name="is_active"
-            label="Status"
-            valuePropName="checked"
+          <Form.Item name="description" label="Description">
+            <Input.TextArea rows={3} />
+          </Form.Item>
+          <Form.Item name="sample_volume" label="Sample Volume">
+            <Input placeholder="e.g., 5 mL" />
+          </Form.Item>
+          <Form.Item
+            name="processing_time"
+            label="Processing Time (minutes)"
+            rules={[{ pattern: /^\d+$/, message: 'Please enter a valid number of minutes' }]}
           >
-            <Switch checkedChildren="Active" unCheckedChildren="Inactive" defaultChecked />
+            <Input type="number" min={1} />
           </Form.Item>
-
-          <Form.Item>
+          <Form.Item name="is_active" label="Active Status" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+          <Form.Item className="text-right">
+            <Button onClick={() => { setIsModalVisible(false); form.resetFields(); }} style={{ marginRight: 8 }}>
+              Cancel
+            </Button>
             <Button type="primary" htmlType="submit">
               Add Test
             </Button>

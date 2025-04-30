@@ -23,7 +23,7 @@ interface QueryResult<T> {
 }
 
 // Define a type for filters for better type safety
-type AdmissionFilters = {
+export type AdmissionFilters = {
   patient_id?: string;
   status?: Admission["status"]; // Use defined status types
   ward?: string;
@@ -47,7 +47,7 @@ type UpdateAdmissionData = Partial<Omit<Admission, "id">>;
 // Mock function to get admissions
 export const getAdmissionsFromDB = async (filters: AdmissionFilters): Promise<Admission[]> => {
   console.warn("Mock getAdmissionsFromDB called with filters:", filters);
-  const db = getDB();
+  const db = await getDB();
   // Simulate a query - in a real scenario, build WHERE clause based on filters
   // FIX: Assume db.query returns QueryResult<Admission> or use type assertion
   const result: QueryResult<Admission> = await db.query("SELECT * FROM admissions LIMIT 10", []); // Mock query
@@ -57,7 +57,7 @@ export const getAdmissionsFromDB = async (filters: AdmissionFilters): Promise<Ad
 // Mock function to get a single admission by ID
 export const getAdmissionByIdFromDB = async (id: number): Promise<Admission | null> => {
   console.warn(`Mock getAdmissionByIdFromDB called with ID: ${id}`);
-  const db = getDB();
+  const db = await getDB();
   // FIX: Assume db.query returns QueryResult<Admission> or use type assertion
   // FIX: Ensure parameter type matches DB expectation (e.g., string if ID is string)
   const result: QueryResult<Admission> = await db.query("SELECT * FROM admissions WHERE id = ?", [id.toString()]); // Mock query, assuming ID is string in DB
@@ -68,7 +68,7 @@ export const getAdmissionByIdFromDB = async (id: number): Promise<Admission | nu
 // FIX: Use the defined type for admissionData
 export const createAdmissionInDB = async (admissionData: CreateAdmissionData): Promise<Admission> => {
   console.warn("Mock createAdmissionInDB called with data:", admissionData);
-  const db = getDB();
+  const db = await getDB();
   // Simulate insert - mock DB doesn't return inserted ID easily
   // FIX: Build actual INSERT statement with parameters from admissionData
   await db.query("INSERT INTO admissions (...) VALUES (...)", []); // Mock query
@@ -76,6 +76,7 @@ export const createAdmissionInDB = async (admissionData: CreateAdmissionData): P
   // Return mock data as we can't get the real inserted record from mock DB
   const mockCreatedAdmission: Admission = {
     id: Math.floor(Math.random() * 1000) + 1, // Mock ID
+    patient_id: admissionData.patient_id, // Explicitly add patient_id
     ...admissionData,
     admission_date: new Date().toISOString(),
     status: "active", // Default status for new admission
@@ -87,7 +88,7 @@ export const createAdmissionInDB = async (admissionData: CreateAdmissionData): P
 // FIX: Use the defined type for updateData
 export const updateAdmissionInDB = async (id: number, updateData: UpdateAdmissionData): Promise<Admission | null> => {
   console.warn(`Mock updateAdmissionInDB called for ID ${id} with data:`, updateData);
-  const db = getDB();
+  const db = await getDB();
   // Simulate update
   // FIX: Build actual UPDATE statement with parameters from updateData
   // FIX: Ensure parameter type matches DB expectation (e.g., string if ID is string)
