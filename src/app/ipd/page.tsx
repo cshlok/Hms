@@ -1,102 +1,172 @@
-'use client';
 
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
-import BedManagementDashboard from '@/components/ipd/BedManagementDashboard';
-import IPDPatientList from '@/components/ipd/IPDPatientList';
-import AdmissionForm from '@/components/ipd/AdmissionForm';
-import PatientProgressNotes from '@/components/ipd/PatientProgressNotes';
-import NursingNotes from '@/components/ipd/NursingNotes';
-import VitalSigns from '@/components/ipd/VitalSigns';
-import MedicationAdministration from '@/components/ipd/MedicationAdministration';
-import DischargeSummary from '@/components/ipd/DischargeSummary';
+"use client";
 
-const IPDPatientDetails = ({ patientId, admissionId }) => {
+import React, { useState } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui"; // Assuming all these are from @/components/ui
+import { Button } from "@/components/ui/button"; // FIX: Add missing Button import
+import BedManagementDashboard from "@/components/ipd/BedManagementDashboard";
+import IPDPatientList from "@/components/ipd/IPDPatientList";
+import AdmissionForm from "@/components/ipd/AdmissionForm";
+import PatientProgressNotes from "@/components/ipd/PatientProgressNotes";
+import NursingNotes from "@/components/ipd/NursingNotes";
+import VitalSigns from "@/components/ipd/VitalSigns";
+import MedicationAdministration from "@/components/ipd/MedicationAdministration";
+import DischargeSummary from "@/components/ipd/DischargeSummary";
+
+// --- INTERFACES ---
+
+// FIX: Define props type for IPDPatientDetails
+interface IPDPatientDetailsProps {
+  patientId: number; // Assuming ID is a number
+  admissionId: number; // Assuming ID is a number
+}
+
+// FIX: Define type for selected admission state
+interface SelectedAdmission {
+  admissionId: number;
+  patientId: number;
+}
+
+// --- COMPONENTS ---
+
+// FIX: Add explicit types for props and manage internal tab state
+const IPDPatientDetails: React.FC<IPDPatientDetailsProps> = ({ patientId, admissionId }) => {
+  // FIX: Add state to control the inner Tabs component
+  const [activeDetailTab, setActiveDetailTab] = useState("progress-notes");
+
+  // FIX: Convert number IDs to strings for child components if they expect strings
+  const admissionIdStr = admissionId.toString();
+  // const patientIdStr = patientId.toString(); // If needed by children
+
   return (
-    <Tabs defaultValue="progress-notes" className="w-full">
-      <TabsList className="mb-4">
+    // FIX: Provide value and onValueChange to control the Tabs component
+    <Tabs value={activeDetailTab} onValueChange={setActiveDetailTab} className="w-full">
+      <TabsList className="mb-4 grid w-full grid-cols-3 sm:grid-cols-5"> {/* Responsive grid */}
         <TabsTrigger value="progress-notes">Progress Notes</TabsTrigger>
         <TabsTrigger value="nursing-notes">Nursing Notes</TabsTrigger>
         <TabsTrigger value="vital-signs">Vital Signs</TabsTrigger>
         <TabsTrigger value="medications">Medications</TabsTrigger>
         <TabsTrigger value="discharge">Discharge</TabsTrigger>
       </TabsList>
-      
+
       <TabsContent value="progress-notes">
-        <PatientProgressNotes admissionId={admissionId} />
+        {/* FIX: Pass admissionId as string */}
+        <PatientProgressNotes admissionId={admissionIdStr} />
       </TabsContent>
-      
+
       <TabsContent value="nursing-notes">
-        <NursingNotes admissionId={admissionId} />
+        {/* FIX: Pass admissionId as string */}
+        <NursingNotes admissionId={admissionIdStr} />
       </TabsContent>
-      
+
       <TabsContent value="vital-signs">
-        <VitalSigns admissionId={admissionId} />
+        {/* FIX: Pass admissionId as string */}
+        <VitalSigns admissionId={admissionIdStr} />
       </TabsContent>
-      
+
       <TabsContent value="medications">
-        <MedicationAdministration admissionId={admissionId} />
+        {/* FIX: Pass admissionId as string */}
+        <MedicationAdministration admissionId={admissionIdStr} />
       </TabsContent>
-      
+
       <TabsContent value="discharge">
-        <DischargeSummary admissionId={admissionId} />
+        {/* FIX: Pass admissionId as string */}
+        <DischargeSummary admissionId={admissionIdStr} />
       </TabsContent>
     </Tabs>
   );
 };
 
 const IPDPage = () => {
-  const [selectedAdmission, setSelectedAdmission] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
-  
-  const handleViewPatient = (admissionId, patientId) => {
+  // FIX: Use the defined type for state, initialize to null
+  const [selectedAdmission, setSelectedAdmission] = useState<SelectedAdmission | null>(null);
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+  // FIX: Add explicit types for parameters
+  const handleViewPatient = (admissionId: number, patientId: number) => {
+    // FIX: Correct state update logic
     setSelectedAdmission({ admissionId, patientId });
-    setActiveTab('patient-details');
+    setActiveTab("patient-details"); // Switch to the patient details tab
   };
-  
+
+  const handleClosePatientDetails = () => {
+    setSelectedAdmission(null);
+    setActiveTab("dashboard"); // Go back to dashboard when closing details
+  };
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Inpatient Department (IPD)</h1>
-      
+      {/* Title might be provided by layout, remove if redundant */}
+      {/* <h1 className="text-2xl font-bold">Inpatient Department (IPD)</h1> */}
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 grid w-full grid-cols-2 sm:grid-cols-3"> {/* Responsive grid */}
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="new-admission">New Admission</TabsTrigger>
+          {/* Only show Patient Details tab when an admission is selected */}
           {selectedAdmission && (
             <TabsTrigger value="patient-details">Patient Details</TabsTrigger>
           )}
         </TabsList>
-        
+
+        {/* Dashboard Tab */} 
         <TabsContent value="dashboard" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Bed Management</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Assuming BedManagementDashboard doesn't need props */}
               <BedManagementDashboard />
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Current Inpatients</CardTitle>
             </CardHeader>
             <CardContent>
+              {/* FIX: Pass onViewPatient prop */}
               <IPDPatientList onViewPatient={handleViewPatient} />
             </CardContent>
           </Card>
         </TabsContent>
-        
+
+        {/* New Admission Tab */} 
         <TabsContent value="new-admission">
+          {/* Assuming AdmissionForm doesn't need props or handles its own state */}
           <AdmissionForm />
         </TabsContent>
-        
+
+        {/* Patient Details Tab - Conditionally Rendered */} 
         {selectedAdmission && (
           <TabsContent value="patient-details">
-            <IPDPatientDetails 
-              patientId={selectedAdmission.patientId} 
-              admissionId={selectedAdmission.admissionId} 
-            />
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                {/* FIX: Add check for selectedAdmission before accessing properties */}
+                <CardTitle>Details for Admission ID: {selectedAdmission.admissionId}</CardTitle>
+                {/* FIX: Use imported Button component */}
+                <Button variant="outline" size="sm" onClick={handleClosePatientDetails}>
+                  Back to List
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <IPDPatientDetails
+                  // FIX: Add check for selectedAdmission before accessing properties
+                  patientId={selectedAdmission.patientId}
+                  admissionId={selectedAdmission.admissionId}
+                />
+              </CardContent>
+            </Card>
           </TabsContent>
         )}
       </Tabs>
@@ -105,3 +175,4 @@ const IPDPage = () => {
 };
 
 export default IPDPage;
+

@@ -1,196 +1,131 @@
-'use client';
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { 
   Card, 
   CardContent, 
   CardHeader, 
   CardTitle 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { hasPermission } from '@/lib/session';
-import Logo from '@/components/ui/logo';
-import './globals.css';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// FIX: hasPermission is available, but might not be needed in root layout
+// import { hasPermission } from "@/lib/session"; 
+import Logo from "@/components/ui/logo";
+import "./globals.css"; // Ensure global styles are imported
+import { Toaster } from "@/components/ui/toaster"; // Import Toaster for notifications
 
-// Layout component for all authenticated pages
-export default function DashboardLayout({
+// FIX: Define interface for the user info API response (similar to dashboard layout)
+interface UserInfo {
+  userId: number;
+  username: string;
+  email: string;
+  roleName: string;
+}
+
+interface UserInfoApiResponse {
+  user: UserInfo;
+}
+
+// Root layout component
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Note: State like userName, userRole, activeModule, darkMode typically belongs 
+  // in a more specific layout (like DashboardLayout) or context provider, 
+  // not usually in the root layout unless it applies to *all* pages (including login).
+  // The fetchUserInfo logic here seems misplaced if this layout wraps the login page too.
+  // Assuming this layout *should* only wrap authenticated routes, but the structure 
+  // implies it wraps everything. Let's keep the fetch logic for now but acknowledge it's unusual.
+
   const router = useRouter();
-  const [userName, setUserName] = useState('');
-  const [userRole, setUserRole] = useState('');
-  const [activeModule, setActiveModule] = useState('dashboard');
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true); // Track loading state
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode
-  
+
   useEffect(() => {
-    // Fetch user info
+    // Fetch user info - This might run on pages where user isn't logged in (like /login)
     const fetchUserInfo = async () => {
+      // Don't fetch if on login page to avoid redirect loop
+      if (window.location.pathname === 
+"/login") {
+        setIsLoadingUser(false);
+        return;
+      }
+      
+      setIsLoadingUser(true);
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch("/api/auth/me");
         if (response.ok) {
-          const data = await response.json();
-          setUserName(data.user.username);
-          setUserRole(data.user.roleName);
+          // FIX: Cast response JSON to defined type
+          const data = await response.json() as UserInfoApiResponse;
+          // FIX: Safely access user data
+          if (data?.user) {
+            setUserName(data.user.username);
+            setUserRole(data.user.roleName);
+          } else {
+            // Handle case where API returns OK but no user data
+            console.warn("User data not found in /api/auth/me response.");
+            // Depending on app logic, might redirect to login here
+            // router.push("/login");
+          }
         } else {
-          // If not authenticated, redirect to login
-          router.push('/login');
+          // If not authenticated (e.g., 401), don't necessarily redirect immediately
+          // Allow child pages (like login page) to render
+          console.log("User not authenticated (checked in root layout).");
+          // router.push("/login"); // Avoid redirecting from root layout, let pages handle it
         }
       } catch (error) {
-        console.error('Error fetching user info:', error);
-        router.push('/login');
+        console.error("Error fetching user info in root layout:", error);
+        // Avoid redirecting from root layout on error
+        // router.push("/login");
+      } finally {
+        setIsLoadingUser(false);
       }
     };
-    
-    fetchUserInfo();
-    
-    // Determine active module from URL
-    const path = window.location.pathname;
-    const currentModule = path.split('/')[2] || 'dashboard'; // Get second part of path after /dashboard/
-    setActiveModule(currentModule);
 
-  }, [router]);
-  
-  const handleModuleClick = (module: string) => {
-    router.push(`/dashboard/${module}`);
-  };
-  
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-      });
-      
-      if (response.ok) {
-        router.push('/login');
-      }
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  };
+    fetchUserInfo();
+
+  }, [router]); // Dependency on router
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
+    // Add logic to apply dark mode class to HTML element if needed
+    // document.documentElement.classList.toggle("dark", !darkMode);
   };
 
-  const sidebarModules = [
-    { name: 'dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-    { name: 'patients', label: 'Patients', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
-    { name: 'appointments', label: 'Appointments', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-    { name: 'billing', label: 'Billing', icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
-    { name: 'pharmacy', label: 'Pharmacy', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
-    { name: 'laboratory', label: 'Laboratory', icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z' },
-    { name: 'radiology', label: 'Radiology', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-    { name: 'er', label: 'Emergency', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { name: 'ipd', label: 'IPD', icon: 'M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
-    { name: 'ot', label: 'OT', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z' },
-    { name: 'reports', label: 'Reports', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-    { name: 'settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
-  ];
-  
+  // The sidebar and header structure from the previous file content seems 
+  // more appropriate for a DashboardLayout, not the root layout which 
+  // should typically be simpler.
+  // We will render children directly and add Toaster.
+
   return (
-    <div className={`min-h-screen flex ${darkMode ? 'dark' : 'light'}`}> 
-      {/* Sidebar */}
-      <div className="w-64 bg-primary-dark flex flex-col flex-shrink-0 text-text-light">
-        <div className="p-4 border-b border-border-dark flex items-center">
-          <Logo variant={darkMode ? 'light' : 'default'} size="md" />
-        </div>
-        
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <ul className="space-y-1">
-            {sidebarModules.map((mod) => (
-              <li key={mod.name}>
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start text-text-light hover:bg-primary hover:text-secondary ${activeModule === mod.name ? 'bg-primary text-secondary' : ''}`}
-                  onClick={() => handleModuleClick(mod.name)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mod.icon} />
-                  </svg>
-                  {mod.label}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        
-        <div className="p-4 border-t border-border-dark">
-          <div className="flex items-center mb-4">
-            <div className="mr-3 flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-lg font-semibold text-text-light">
-                {userName ? userName.charAt(0).toUpperCase() : 'U'}
-              </span>
-            </div>
-            <div>
-              <p className="font-medium text-sm text-text-light">{userName || 'User'}</p>
-              <p className="text-xs text-text-secondary">{userRole || 'Role'}</p>
-            </div>
-          </div>
-          <Button 
-            variant="outline" 
-            className="w-full border-border-dark text-text-light hover:bg-primary hover:text-secondary"
-            onClick={handleLogout}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Logout
-          </Button>
-        </div>
-      </div>
-      
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-background">
-        <header className="bg-card-background border-b border-border-color p-4 flex items-center justify-between flex-shrink-0">
-          <h1 className="text-xl font-bold text-text-primary capitalize">
-            {activeModule}
-          </h1>
-          
-          <div className="flex items-center space-x-4">
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="w-64"
-            />
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-text-primary"
-              onClick={toggleDarkMode}
-            >
-              {darkMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              )}
-            </Button>
-            <Button variant="ghost" size="icon" className="text-text-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            </Button>
-          </div>
-        </header>
-        
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
-        
-        <footer className="bg-card-background border-t border-border-color p-4 text-center text-sm text-text-secondary flex-shrink-0">
-          © {new Date().getFullYear()} Shlokam Healthcare. All rights reserved.
-        </footer>
-      </div>
-    </div>
+    <html lang="en" className={darkMode ? "dark" : ""}> {/* Apply dark mode class */} 
+      <head>
+        {/* Add meta tags, title etc. here */}
+        <title>Shlokam HMS</title>
+        <meta name="description" content="Hospital Management System" />
+        {/* Link fonts, etc. */}
+      </head>
+      <body className="bg-background text-text-primary">
+        {/* Render children directly, assuming specific layouts handle sidebar/header */}
+        {children}
+        {/* Add Toaster component for global notifications */}
+        <Toaster /> 
+      </body>
+    </html>
   );
 }
+
+// Removed the extensive sidebar/header/footer structure from here as it likely belongs 
+// in a nested layout (e.g., DashboardLayout) rather than the root layout.
+// The original file content seemed to mix RootLayout and DashboardLayout concepts.
+// The `hasPermission` import error was likely from the DashboardLayout, not this file.

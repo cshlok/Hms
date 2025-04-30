@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,25 +8,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-export default function CreateModalityModal({ onClose, onSubmit }) {
+// FIX: Define interface for props
+interface CreateModalityModalProps {
+  onClose: () => void;
+  onSubmit: (data: { name: string; description: string; location: string }) => Promise<void> | void;
+}
+
+// FIX: Apply props interface
+export default function CreateModalityModal({ onClose, onSubmit }: CreateModalityModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
+  // FIX: Type event parameter
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name) {
       alert("Please enter a modality name.");
       return;
     }
     setIsSubmitting(true);
-    await onSubmit({
-      name,
-      description,
-      location
-    });
-    setIsSubmitting(false);
+    try {
+      await onSubmit({
+        name,
+        description,
+        location
+      });
+      // Assuming onSubmit handles success/error reporting
+      // onClose(); // Optionally close on successful submit
+    } catch (error) {
+      console.error("Failed to submit modality:", error);
+      // Optionally show an error message to the user
+      alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -82,3 +99,4 @@ export default function CreateModalityModal({ onClose, onSubmit }) {
     </Dialog>
   );
 }
+

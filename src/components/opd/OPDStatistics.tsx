@@ -1,8 +1,9 @@
-'use client';
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface OPDStatisticsProps {
   date: Date;
@@ -21,6 +22,14 @@ interface StatisticsData {
   }[];
 }
 
+// FIX: Define API response types
+// Assuming the API returns the StatisticsData object directly
+type StatisticsApiResponse = StatisticsData;
+
+interface ApiErrorResponse {
+  error?: string;
+}
+
 export default function OPDStatistics({ date }: OPDStatisticsProps) {
   const [statistics, setStatistics] = useState<StatisticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,18 +41,31 @@ export default function OPDStatistics({ date }: OPDStatisticsProps) {
       setError(null);
       
       try {
-        const formattedDate = date.toISOString().split('T')[0];
+        const formattedDate = date.toISOString().split("T")[0];
         const response = await fetch(`/api/opd/statistics?date=${formattedDate}`);
         
         if (!response.ok) {
-          throw new Error('Failed to fetch statistics');
+          let errorMsg = "Failed to fetch statistics";
+          try {
+            const errorData: ApiErrorResponse = await response.json();
+            errorMsg = errorData.error || errorMsg;
+          } catch (jsonError) { /* Ignore */ }
+          throw new Error(errorMsg);
         }
         
-        const data = await response.json();
-        setStatistics(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-        console.error('Error fetching statistics:', err);
+        // FIX: Type the response data
+        const data: StatisticsApiResponse = await response.json();
+        // Validate the structure if necessary before setting state
+        if (data && typeof data === "object" && "totalAppointments" in data) {
+          setStatistics(data);
+        } else {
+          console.warn("Unexpected API response format for statistics:", data);
+          setStatistics(null); // Set to null or handle appropriately
+        }
+      } catch (err: unknown) { // FIX: Use unknown
+        const messageText = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(messageText);
+        console.error("Error fetching statistics:", err);
       } finally {
         setLoading(false);
       }
@@ -111,10 +133,10 @@ export default function OPDStatistics({ date }: OPDStatisticsProps) {
             <div 
               className={`h-2 rounded-full ${
                 statistics.averageWaitTime < 15 
-                  ? 'bg-green-500' 
+                  ? "bg-green-500" 
                   : statistics.averageWaitTime < 30 
-                    ? 'bg-yellow-500' 
-                    : 'bg-red-500'
+                    ? "bg-yellow-500" 
+                    : "bg-red-500"
               }`}
               style={{ width: `${Math.min(100, (statistics.averageWaitTime / 60) * 100)}%` }}
             ></div>
@@ -136,7 +158,8 @@ export default function OPDStatistics({ date }: OPDStatisticsProps) {
             <div className="h-1.5 bg-gray-200 rounded-full">
               <div 
                 className="h-1.5 bg-blue-500 rounded-full"
-                style={{ width: `${Math.min(100, (doctor.patientsServed / Math.max(...statistics.doctorPerformance.map(d => d.patientsServed))) * 100)}%` }}
+                // FIX: Ensure divisor is not zero if doctorPerformance can be empty
+                style={{ width: `${Math.min(100, (doctor.patientsServed / (Math.max(...statistics.doctorPerformance.map(d => d.patientsServed), 1))) * 100)}%` }}
               ></div>
             </div>
           </div>
@@ -145,3 +168,4 @@ export default function OPDStatistics({ date }: OPDStatisticsProps) {
     </div>
   );
 }
+

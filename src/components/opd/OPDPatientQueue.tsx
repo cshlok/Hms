@@ -25,6 +25,19 @@ interface Patient {
   doctorName: string;
 }
 
+// FIX: Define API response types
+interface PermissionApiResponse {
+  hasPermission?: boolean;
+  error?: string;
+}
+
+// Assuming the API returns an array directly, adjust if it returns { results: Patient[] }
+type PatientQueueApiResponse = Patient[];
+
+interface ApiErrorResponse {
+  error?: string;
+}
+
 interface OPDPatientQueueProps {
   date: Date;
 }
@@ -54,8 +67,9 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
           return;
         }
 
-        const callData = await callRes.json();
-        const completeData = await completeRes.json();
+        // FIX: Type the response data
+        const callData: PermissionApiResponse = await callRes.json();
+        const completeData: PermissionApiResponse = await completeRes.json();
 
         setCanCallPatient(callData.hasPermission || false);
         setCanMarkComplete(completeData.hasPermission || false);
@@ -82,13 +96,25 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
         const response = await fetch(`/api/opd/queue?date=${formattedDate}`);
 
         if (!response.ok) {
-          throw new Error("Failed to fetch patient queue");
+          let errorMsg = "Failed to fetch patient queue";
+          try {
+            const errorData: ApiErrorResponse = await response.json();
+            errorMsg = errorData.error || errorMsg;
+          } catch (jsonError) { /* Ignore */ }
+          throw new Error(errorMsg);
         }
 
-        const data = await response.json();
-        setPatients(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        // FIX: Type the response data and ensure it's an array
+        const data: PatientQueueApiResponse = await response.json();
+        if (Array.isArray(data)) {
+          setPatients(data);
+        } else {
+          console.warn("Unexpected API response format for patient queue:", data);
+          setPatients([]);
+        }
+      } catch (err: unknown) { // FIX: Use unknown
+        const messageText = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(messageText);
         console.error("Error fetching patient queue:", err);
       } finally {
         // Only set loading false on initial fetch
@@ -111,7 +137,12 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to call patient");
+        let errorMsg = "Failed to call patient";
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
 
       // Update the patient status in the local state
@@ -121,9 +152,11 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
           : patient
       ));
 
-    } catch (err) {
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : "An unknown error occurred";
       console.error("Error calling patient:", err);
-      // Show error notification
+      // TODO: Show error notification
+      alert(`Error: ${messageText}`); // Placeholder alert
     }
   };
 
@@ -134,7 +167,12 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to complete consultation");
+        let errorMsg = "Failed to complete consultation";
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
 
       // Update the patient status in the local state
@@ -144,9 +182,11 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
           : patient
       ));
 
-    } catch (err) {
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : "An unknown error occurred";
       console.error("Error completing consultation:", err);
-      // Show error notification
+      // TODO: Show error notification
+      alert(`Error: ${messageText}`); // Placeholder alert
     }
   };
 
@@ -158,7 +198,7 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
         return <Badge variant="default">In Progress</Badge>;
       case "completed":
         // Assuming a 'success' variant exists or is styled globally
-        return <Badge variant="default" className="bg-green-500 text-white">Completed</Badge>; 
+        return <Badge variant="default" className="bg-green-500 text-white hover:bg-green-600">Completed</Badge>; 
       case "cancelled":
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
@@ -249,4 +289,5 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProps) {
     </div>
   );
 }
+
 

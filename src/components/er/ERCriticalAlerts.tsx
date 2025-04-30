@@ -44,11 +44,12 @@ const mockAlerts: CriticalAlert[] = [
   },
 ];
 
-const getAlertBadgeVariant = (status: string): "destructive" | "warning" | "default" => {
+// FIX: Adjust return type to match allowed Badge variants
+const getAlertBadgeVariant = (status: string): "destructive" | "secondary" | "default" => {
   switch (status) {
     case "Active": return "destructive";
-    case "Acknowledged": return "warning";
-    default: return "default";
+    case "Acknowledged": return "secondary"; // Changed "warning" to "secondary"
+    default: return "default"; // For "Resolved" or other statuses
   }
 };
 
@@ -108,37 +109,38 @@ export default function ERCriticalAlerts() {
 
   return (
     <div className="space-y-4">
-       <div className="rounded-md border">
+       <div className="rounded-md border dark:border-gray-700">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Patient (MRN)</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Alert Type</TableHead>
-              <TableHead>Activated</TableHead>
-              <TableHead>Details</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+            <TableRow className="border-b dark:border-gray-700">
+              <TableHead className="text-gray-700 dark:text-gray-300">Patient (MRN)</TableHead>
+              <TableHead className="text-gray-700 dark:text-gray-300">Location</TableHead>
+              <TableHead className="text-gray-700 dark:text-gray-300">Alert Type</TableHead>
+              <TableHead className="text-gray-700 dark:text-gray-300">Activated</TableHead>
+              <TableHead className="text-gray-700 dark:text-gray-300">Details</TableHead>
+              <TableHead className="text-gray-700 dark:text-gray-300">Status</TableHead>
+              <TableHead className="text-gray-700 dark:text-gray-300">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {activeAlerts.length > 0 ? (
               activeAlerts.map((alert) => (
-                <TableRow key={alert.id}>
+                <TableRow key={alert.id} className="border-b dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <TableCell>
-                    <div className="font-medium">{alert.patient_name}</div>
-                    <div className="text-sm text-muted-foreground">{alert.mrn}</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{alert.patient_name}</div>
+                    <div className="text-sm text-muted-foreground dark:text-gray-400">{alert.mrn}</div>
                   </TableCell>
-                  <TableCell>{alert.location}</TableCell>
+                  <TableCell className="text-gray-700 dark:text-gray-300">{alert.location}</TableCell>
                   <TableCell>
-                    <div className="flex items-center">
-                      <AlertTriangle className="h-4 w-4 mr-1 text-red-600" />
+                    <div className="flex items-center text-gray-700 dark:text-gray-300">
+                      <AlertTriangle className="h-4 w-4 mr-1 text-red-600 dark:text-red-400" />
                       {alert.alert_type}
                     </div>
                   </TableCell>
-                  <TableCell>{new Date(alert.activation_timestamp).toLocaleTimeString()}</TableCell>
-                  <TableCell className="max-w-[250px] truncate">{alert.details || "N/A"}</TableCell>
+                  <TableCell className="text-gray-700 dark:text-gray-300">{new Date(alert.activation_timestamp).toLocaleTimeString()}</TableCell>
+                  <TableCell className="max-w-[250px] truncate text-gray-700 dark:text-gray-300">{alert.details || "N/A"}</TableCell>
                   <TableCell>
+                    {/* FIX: Ensure the variant returned by getAlertBadgeVariant is valid */}
                     <Badge variant={getAlertBadgeVariant(alert.status)}>{alert.status}</Badge>
                   </TableCell>
                   <TableCell>
@@ -167,7 +169,7 @@ export default function ERCriticalAlerts() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center text-gray-500 dark:text-gray-400">
                   No active critical alerts.
                 </TableCell>
               </TableRow>
@@ -178,4 +180,3 @@ export default function ERCriticalAlerts() {
     </div>
   );
 }
-

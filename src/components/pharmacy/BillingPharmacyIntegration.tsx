@@ -20,6 +20,19 @@ interface DispensingRecord {
   billed_at?: string; // ISO date string
 }
 
+// FIX: Define expected API response structure for dispensing records
+interface DispensingApiResponse {
+  dispensing_records?: DispensingRecord[];
+  error?: string;
+}
+
+// FIX: Define expected API response structure for bill generation
+interface BillGenerationResponse {
+  invoiceId?: string; // Example property
+  message?: string;
+  error?: string;
+}
+
 interface UnbilledItem extends DispensingRecord {
   subtotal: number;
 }
@@ -67,8 +80,8 @@ const BillingPharmacyIntegration: React.FC<BillingPharmacyIntegrationProps> = ({
           throw new Error(`Failed to fetch dispensing records: ${response.status}`);
         }
         
-        const data = await response.json();
-        // Assuming API returns { dispensing_records: DispensingRecord[] }
+        // FIX: Use defined type for API response
+        const data: DispensingApiResponse = await response.json();
         const records: DispensingRecord[] = data.dispensing_records || [];
         
         setDispensingRecords(records); // Store all records (for recently billed display)
@@ -81,7 +94,7 @@ const BillingPharmacyIntegration: React.FC<BillingPharmacyIntegrationProps> = ({
           }));
         setUnbilledItems(calculatedUnbilledItems);
 
-      } catch (err) {
+      } catch (err: unknown) { // FIX: Use unknown for catch block
         console.error("Error fetching unbilled dispensing records:", err);
         const message = err instanceof Error ? err.message : "An unknown error occurred";
         setError(`Failed to load pharmacy items: ${message}. Please try again.`);
@@ -140,12 +153,20 @@ const BillingPharmacyIntegration: React.FC<BillingPharmacyIntegrationProps> = ({
         }),
       });
       
+      // FIX: Use defined type for error response
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to generate bill: ${response.status}`);
+        let errorMsg = `Failed to generate bill: ${response.status}`;
+        try {
+            const errorData: { error?: string } = await response.json();
+            errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) {
+            // Ignore if response is not JSON
+        }
+        throw new Error(errorMsg);
       }
       
-      const result = await response.json(); // Assuming API returns some confirmation
+      // FIX: Use defined type for success response
+      const result: BillGenerationResponse = await response.json(); 
       
       // Update UI state after successful billing
       const billedIds = new Set(selectedItems.map(item => item.id));
@@ -166,10 +187,11 @@ const BillingPharmacyIntegration: React.FC<BillingPharmacyIntegrationProps> = ({
       setSelectedItems([]);
       setBillTotal(0);
       
-      alert("Pharmacy bill generated successfully!");
-      // Optionally navigate or show bill details: router.push(`/billing/invoices/${result.invoiceId}`);
+      alert(result.message || "Pharmacy bill generated successfully!");
+      // Optionally navigate or show bill details: 
+      // if (result.invoiceId) router.push(`/billing/invoices/${result.invoiceId}`);
       
-    } catch (err) {
+    } catch (err: unknown) { // FIX: Use unknown for catch block
       console.error("Error generating pharmacy bill:", err);
       const message = err instanceof Error ? err.message : "An unknown error occurred";
       alert(`Failed to generate pharmacy bill: ${message}. Please try again.`);

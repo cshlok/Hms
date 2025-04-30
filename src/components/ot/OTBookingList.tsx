@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card"; // FIX: Add missing imports
 import { Eye, Edit, Trash2, Filter } from "lucide-react";
 import { format } from 'date-fns';
 
@@ -60,6 +61,7 @@ export default function OTBookingList() {
         // setBookings(data);
 
         // Mock data for demonstration
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
         const mockData: Booking[] = [
           {
             id: "booking-1",
@@ -223,3 +225,4 @@ export default function OTBookingList() {
     </Card>
   );
 }
+
