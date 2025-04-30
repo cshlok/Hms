@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 // import { getRequestContext } from "@cloudflare/next-on-pages"; // Cloudflare specific
 
 // Mock data store for alerts (replace with actual DB interaction)
-let mockAlerts: any[] = [];
+const mockAlerts: any[] = [];
 
 // Define interface for alert input data
 interface AlertInput {

@@ -1,0 +1,32 @@
+
+> shlokam-hms@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.28
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./src/components/ui/use-toast.ts
+Error: 
+  [31mx[0m Expected '>', got 'value'
+     ,-[[36;1;4m/home/ubuntu/hms_repo/src/components/ui/use-toast.ts[0m:158:1]
+ [2m158[0m |   }, [state.toasts]);
+ [2m159[0m | 
+ [2m160[0m |   return (
+ [2m161[0m |     <ToastContext.Provider value={{ toasts: state.toasts, toast, dismiss }}>
+     : [31;1m                           ^^^^^[0m
+ [2m162[0m |       {children}
+ [2m163[0m |     </ToastContext.Provider>
+ [2m164[0m |   );
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/ui/use-toast.ts
+./src/app/layout.tsx
+
+
+> Build failed because of webpack errors

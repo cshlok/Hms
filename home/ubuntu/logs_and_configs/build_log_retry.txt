@@ -1,0 +1,523 @@
+
+> shlokam-hms@0.1.0 build
+> next build
+
+   ▲ Next.js 14.0.4
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+ ⨯ ESLint: Cannot use 'in' operator to search for 'type' in undefined Occurred while linting /home/ubuntu/hms_repo/src/components/radiology/RadiologyOrderDetail.tsx:1 Rule: "@typescript-eslint/no-unused-vars"
+   Collecting page data ...
+ ⚠ Using edge runtime on a page currently disables static generation for that page
+   Generating static pages (0/55) ...
+Authentication function 'getCurrentUser' is not implemented yet.
+Error fetching user info: o [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at i (/home/ubuntu/hms_repo/.next/server/chunks/2455.js:1:3719)
+    at Object.c (/home/ubuntu/hms_repo/.next/server/chunks/2455.js:1:1462)
+    at a (/home/ubuntu/hms_repo/.next/server/app/api/auth/me/route.js:1:2481)
+    at c (/home/ubuntu/hms_repo/.next/server/app/api/auth/me/route.js:1:787)
+    at /home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:41966
+    at /home/ubuntu/hms_repo/node_modules/next/dist/server/lib/trace/tracer.js:133:36
+    at NoopContextManager.with (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error fetching IPD stats: o [Error]: Dynamic server usage: Page couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at i (/home/ubuntu/hms_repo/.next/server/chunks/2455.js:1:3719)
+    at c (/home/ubuntu/hms_repo/.next/server/chunks/2455.js:1:1462)
+    at a (/home/ubuntu/hms_repo/.next/server/app/api/ipd/admissions/[id]/progress-notes/route.js:16:2861)
+    at l (/home/ubuntu/hms_repo/.next/server/app/api/dashboard/ipd-stats/route.js:1:909)
+    at /home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:41966
+    at /home/ubuntu/hms_repo/node_modules/next/dist/server/lib/trace/tracer.js:133:36
+    at NoopContextManager.with (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854) {
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Accessing Cloudflare bindings in Next.js API routes on Cloudflare Pages requires specific setup. This is a placeholder.
+Cloudflare DB binding not found. Ensure the project is configured correctly for Cloudflare Pages/Workers.
+   Generating static pages (13/55) 
+   Generating static pages (27/55) 
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/dashboard/billing/invoices". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/dashboard/billing". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/dashboard/billing/service-items". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/dashboard/ot". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/dashboard/billing/create-invoice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+   Generating static pages (41/55) 
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/dashboard". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/dashboard/er". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/dashboard/radiology". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/laboratory". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+ReferenceError: React is not defined
+    at f (/home/ubuntu/hms_repo/.next/server/app/ipd/page.js:1:68161)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nE (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:44877)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45472)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nE (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:44877)
+
+Error occurred prerendering page "/ipd". Read more: https://nextjs.org/docs/messages/prerender-error
+ReferenceError: React is not defined
+    at f (/home/ubuntu/hms_repo/.next/server/app/ipd/page.js:1:68161)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nE (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:44877)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45472)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nE (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:44877)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/pharmacy/inventory/add". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/pharmacy/inventory". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/pharmacy/medications/add". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/pharmacy". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at a (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:7076)
+    at g (/home/ubuntu/hms_repo/.next/server/app/_not-found.js:1:5502)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/pharmacy/medications". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at s (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:72821)
+    at y (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/page.js:1:62504)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+
+Error occurred prerendering page "/opd". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: useToast must be used within a Toaster component or a custom ToastProvider
+    at o (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:16325)
+    at b (/home/ubuntu/hms_repo/.next/server/app/pharmacy/medications/add/page.js:1:5768)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:45321)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nO (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64035)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:62224)
+    at nj (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:64628)
+    at nP (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:56390)
+    at n$ (/home/ubuntu/hms_repo/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:61978)
+ ✓ Generating static pages (55/55) 
+
+> Export encountered errors on following paths:
+	/_not-found
+	/dashboard/billing/create-invoice/page: /dashboard/billing/create-invoice
+	/dashboard/billing/invoices/page: /dashboard/billing/invoices
+	/dashboard/billing/page: /dashboard/billing
+	/dashboard/billing/service-items/page: /dashboard/billing/service-items
+	/dashboard/er/page: /dashboard/er
+	/dashboard/ot/page: /dashboard/ot
+	/dashboard/page: /dashboard
+	/dashboard/radiology/page: /dashboard/radiology
+	/ipd/page: /ipd
+	/laboratory/page: /laboratory
+	/login/page: /login
+	/opd/page: /opd
+	/page: /
+	/pharmacy/inventory/add/page: /pharmacy/inventory/add
+	/pharmacy/inventory/page: /pharmacy/inventory
+	/pharmacy/medications/add/page: /pharmacy/medications/add
+	/pharmacy/medications/page: /pharmacy/medications
+	/pharmacy/page: /pharmacy
