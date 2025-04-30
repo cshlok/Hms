@@ -1,7 +1,7 @@
 // lib/session.ts
 import { cookies } from 'next/headers';
 import { jwtVerify, SignJWT } from 'jose';
-import { getDb } from './db';
+import { getDB } from './db'; // FIX: Corrected import path
 
 // Secret key for JWT signing - in production, this should be an environment variable
 const JWT_SECRET = new TextEncoder().encode(
@@ -9,15 +9,32 @@ const JWT_SECRET = new TextEncoder().encode(
 );
 
 // Session interface
+export interface SessionUser {
+  userId: number;
+  username: string;
+  email: string;
+  roleName: string;
+  permissions: string[];
+}
+
 export interface Session {
-  user?: {
-    userId: number;
-    username: string;
-    email: string;
-    roleName: string;
-    permissions: string[];
-  };
+  user?: SessionUser;
   expires: Date;
+}
+
+// FIX: Define type for the expected structure of the user query result row
+interface UserQueryResultRow {
+  user_id: number;
+  username: string;
+  email: string;
+  role_name: string;
+  permissions: string | null; // GROUP_CONCAT returns a string or null
+}
+
+// FIX: Define a type for the expected structure of query results (generic)
+interface QueryResult<T> {
+  rows?: T[];
+  // Add other potential properties like rowCount, etc., based on your DB library
 }
 
 /**
@@ -38,17 +55,22 @@ export async function getSession(): Promise<Session | null> {
     });
     
     // Check if token is expired
-    const expires = new Date(payload.exp as number * 1000);
-    if (expires < new Date()) {
+    const expiresTimestamp = payload.exp as number | undefined;
+    if (!expiresTimestamp || expiresTimestamp * 1000 < Date.now()) {
+      console.log('Session token expired');
+      deleteSession(); // Clean up expired cookie
       return null;
     }
     
+    const expires = new Date(expiresTimestamp * 1000);
+    
     return {
-      user: payload.user as Session['user'],
+      user: payload.user as SessionUser | undefined, // Ensure type safety
       expires,
     };
   } catch (error) {
     console.error('Error verifying session token:', error);
+    deleteSession(); // Clean up invalid cookie
     return null;
   }
 }
@@ -58,16 +80,17 @@ export async function getSession(): Promise<Session | null> {
  */
 export async function createSession(userId: number): Promise<Session | null> {
   try {
-    const db = getDb();
+    const db = getDB();
     
-    // Get user data from database
-    const userResult = await db.query(`
+    // Get user data from database including permissions
+    // FIX: Use defined QueryResult and UserQueryResultRow types
+    const userResult: QueryResult<UserQueryResultRow> = await db.query(`
       SELECT 
         u.user_id, 
         u.username, 
         u.email, 
         r.role_name,
-        GROUP_CONCAT(p.permission_name) as permissions
+        GROUP_CONCAT(DISTINCT p.permission_name) as permissions
       FROM 
         Users u
       JOIN 
@@ -79,12 +102,14 @@ export async function createSession(userId: number): Promise<Session | null> {
       WHERE 
         u.user_id = ?
       GROUP BY 
-        u.user_id
+        u.user_id, u.username, u.email, r.role_name
     `, [userId]);
     
-    const user = userResult.rows && userResult.rows.length > 0 ? userResult.rows[0] : null;
+    // FIX: Use the defined type for the row
+    const userRow = userResult.rows && userResult.rows.length > 0 ? userResult.rows[0] : null;
     
-    if (!user) {
+    if (!userRow) {
+      console.error(`User not found for ID: ${userId}`);
       return null;
     }
     
@@ -92,21 +117,23 @@ export async function createSession(userId: number): Promise<Session | null> {
     const expires = new Date();
     expires.setHours(expires.getHours() + 24); // 24-hour session
     
+    const sessionUser: SessionUser = {
+      userId: userRow.user_id,
+      username: userRow.username,
+      email: userRow.email,
+      roleName: userRow.role_name,
+      permissions: userRow.permissions ? userRow.permissions.split(',') : [],
+    };
+
     const session: Session = {
-      user: {
-        userId: user.user_id,
-        username: user.username,
-        email: user.email,
-        roleName: user.role_name,
-        permissions: user.permissions ? user.permissions.split(',') : [],
-      },
+      user: sessionUser,
       expires,
     };
     
     // Create JWT token
     const token = await new SignJWT({ user: session.user })
       .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime(expires.getTime() / 1000)
+      .setExpirationTime(Math.floor(expires.getTime() / 1000)) // Use Math.floor for Unix timestamp
       .setIssuedAt()
       .sign(JWT_SECRET);
     
@@ -119,6 +146,7 @@ export async function createSession(userId: number): Promise<Session | null> {
       sameSite: 'strict',
     });
     
+    console.log(`Session created for user: ${sessionUser.username}`);
     return session;
   } catch (error) {
     console.error('Error creating session:', error);
@@ -130,5 +158,42 @@ export async function createSession(userId: number): Promise<Session | null> {
  * Delete the current session
  */
 export function deleteSession(): void {
-  cookies().delete('session');
+  console.log('Deleting session cookie');
+  cookies().set('session', '', { expires: new Date(0), path: '/' }); // More robust deletion
 }
+
+/**
+ * Check if the current user has a specific permission
+ */
+export async function hasPermission(permission: string): Promise<boolean> {
+  const session = await getSession();
+  if (!session?.user?.permissions) {
+    return false;
+  }
+  return session.user.permissions.includes(permission);
+}
+
+/**
+ * Check if the current user has ANY of the specified permissions
+ */
+export async function hasAnyPermission(permissions: string[]): Promise<boolean> {
+  const session = await getSession();
+  if (!session?.user?.permissions) {
+    return false;
+  }
+  // FIX: Use non-null assertion safely after check
+  return permissions.some(p => session.user!.permissions.includes(p));
+}
+
+/**
+ * Check if the current user has ALL of the specified permissions
+ */
+export async function hasAllPermissions(permissions: string[]): Promise<boolean> {
+  const session = await getSession();
+  if (!session?.user?.permissions) {
+    return false;
+  }
+  // FIX: Use non-null assertion safely after check
+  return permissions.every(p => session.user!.permissions.includes(p));
+}
+

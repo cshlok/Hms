@@ -1,8 +1,11 @@
 // Inspired by react-hot-toast library
 import * as React from "react"
-import { ToastAction } from "@/components/ui/toast" // Import the actual component
 
-// Define the shape of a toast object managed by the toaster
+import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
+
+const TOAST_LIMIT = 1
+const TOAST_REMOVE_DELAY = 1000000
+
 type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
@@ -10,51 +13,159 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
-const TOAST_LIMIT = 1 // Example limit
-const TOAST_REMOVE_DELAY = 5000 // Example delay in ms
+const actionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+} as const
 
-// Define props for the Toast component itself (subset of ToasterToast)
-type ToastProps = {
-  className?: string
-  variant?: "default" | "destructive"
-  duration?: number
+let count = 0
+
+function genId() {
+  count = (count + 1) % Number.MAX_VALUE
+  return count.toString()
 }
 
-// Define the type for the action element passed to a toast
-type ToastActionElement = React.ReactElement<typeof ToastAction>
+type ActionType = typeof actionTypes
 
-// Define the shape of the context provided by the ToastProvider
-interface ToastContextProps {
-  toasts: ToasterToast[] // Add toasts array to the context
-  toast: (props: Omit<ToasterToast, "id">) => { // Function to add a toast
-    id: string
-    dismiss: () => void
-    update: (props: Partial<ToasterToast>) => void
+type Action = 
+  | { type: ActionType["ADD_TOAST"]; toast: ToasterToast }
+  | { type: ActionType["UPDATE_TOAST"]; toast: Partial<ToasterToast> }
+  | { type: ActionType["DISMISS_TOAST"]; toastId?: ToasterToast["id"] }
+  | { type: ActionType["REMOVE_TOAST"]; toastId?: ToasterToast["id"] }
+
+interface State {
+  toasts: ToasterToast[]
+}
+
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+
+const addToRemoveQueue = (toastId: string) => {
+  if (toastTimeouts.has(toastId)) {
+    return
   }
-  dismiss: (toastId?: string) => void // Function to dismiss a toast
+
+  const timeout = setTimeout(() => {
+    toastTimeouts.delete(toastId)
+    dispatch({ type: "REMOVE_TOAST", toastId: toastId })
+  }, TOAST_REMOVE_DELAY)
+
+  toastTimeouts.set(toastId, timeout)
 }
 
-// Create the context
+export const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case "ADD_TOAST":
+      return {
+        ...state,
+        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+      }
+
+    case "UPDATE_TOAST":
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
+      }
+
+    case "DISMISS_TOAST": {
+      const { toastId } = action
+
+      // ! Side effects ! - This could be extracted into a dismissToast() action, 
+      // but I'll keep it here for simplicity
+      if (toastId) {
+        addToRemoveQueue(toastId)
+      } else {
+        state.toasts.forEach((toast) => {
+          addToRemoveQueue(toast.id)
+        })
+      }
+
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === toastId || toastId === undefined
+            ? {
+                ...t,
+                open: false,
+              }
+            : t
+        ),
+      }
+    }
+    case "REMOVE_TOAST":
+      if (action.toastId === undefined) {
+        return {
+          ...state,
+          toasts: [],
+        }
+      }
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+      }
+  }
+}
+
+type Toast = Omit<ToasterToast, "id">
+
+function toast(props: Toast) {
+  const id = genId()
+
+  const update = (props: ToasterToast) =>
+    dispatch({ type: "UPDATE_TOAST", toast: { ...props, id } })
+  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+
+  dispatch({
+    type: "ADD_TOAST",
+    toast: {
+      ...props,
+      id,
+      open: true,
+      onOpenChange: (open) => {
+        if (!open) dismiss()
+      },
+    },
+  })
+
+  return {
+    id: id,
+    dismiss,
+    update,
+  }
+}
+
+// Keep the context and hook definition, but remove the incomplete parts
+interface ToastContextProps {
+  toast: typeof toast
+  dismiss: (toastId?: string) => void
+}
+
 const ToastContext = React.createContext<ToastContextProps | undefined>(
   undefined
 )
 
-// Custom hook to consume the Toast context
 function useToast() {
   const context = React.useContext(ToastContext)
 
   if (context === undefined) {
-    throw new Error("useToast must be used within a ToastProvider component")
+    throw new Error("useToast must be used within a Toaster component or a custom ToastProvider")
   }
 
   return context
 }
 
-// Note: The actual state management (reducer, provider component)
-// which would manage the `toasts` array and implement the `toast` and `dismiss`
-// functions is still missing from this file and needs to be implemented
-// likely in a separate provider component that uses this context.
+// We need a global dispatch function, typically provided by the Toaster component's context
+// This is a placeholder and needs to be connected to the actual reducer instance
+let dispatch: React.Dispatch<Action> = () => {}; 
 
-export { useToast, ToastContext } // Export context for provider usage
-export type { ToasterToast, ToastProps, ToastActionElement, ToastContextProps } // Export types
+// Function to set the global dispatch (used by the Toaster component)
+export const setGlobalToastDispatch = (newDispatch: React.Dispatch<Action>) => {
+  dispatch = newDispatch;
+};
+
+export { useToast, toast, ToastContext } // Export context for provider usage
+export type { ToasterToast, ToastProps, ToastActionElement, ToastContextProps, Toast } // Export types
 

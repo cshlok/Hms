@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Input, Select, Spin, message, Modal, Form, Tabs, Tag } from 'antd';
+import { Card, Table, Button, Input, Select, Spin, message, Modal, Form, Tabs, Tag, Checkbox } from 'antd'; // FIX: Import Checkbox
 import { PlusOutlined, SearchOutlined, CheckOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons';
-import moment from 'moment';
+import dayjs from 'dayjs'; // FIX: Use dayjs instead of moment
+import type { Dayjs } from 'dayjs';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -47,6 +48,27 @@ interface LabParameter {
   // Add other relevant parameter fields if needed
 }
 
+// FIX: Define API response types
+interface ResultsApiResponse {
+  results?: LabResult[];
+}
+
+interface OrdersApiResponse {
+  results?: LabOrder[];
+}
+
+interface OrderItemsApiResponse {
+  results?: LabOrderItem[];
+}
+
+interface ParametersApiResponse {
+  results?: LabParameter[];
+}
+
+interface ApiErrorResponse {
+  error?: string;
+}
+
 interface UpdateResultValues {
   result_value: string;
   is_abnormal: boolean;
@@ -81,37 +103,44 @@ const ResultManagement: React.FC = () => {
     try {
       let url = '/api/laboratory/results';
       const params = new URLSearchParams();
-      
+
       if (orderFilter) {
         params.append('orderId', orderFilter);
       }
-      
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
-      
+
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch results');
-      const data = await response.json();
-      
-      // Assuming API returns { results: LabResult[] }
-      let fetchedResults: LabResult[] = data.results || (Array.isArray(data) ? data : []);
-      
+      if (!response.ok) {
+        let errorMsg = 'Failed to fetch results';
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
+      }
+      // FIX: Type the response data
+      const data: ResultsApiResponse = await response.json();
+
+      let fetchedResults: LabResult[] = data.results || [];
+
       // Filter by search text if provided
       if (searchText) {
         const searchLower = searchText.toLowerCase();
-        fetchedResults = fetchedResults.filter(result => 
-          result.test_name?.toLowerCase().includes(searchLower) || 
+        fetchedResults = fetchedResults.filter(result =>
+          result.test_name?.toLowerCase().includes(searchLower) ||
           result.parameter_name?.toLowerCase().includes(searchLower) ||
           result.result_value?.toLowerCase().includes(searchLower)
         );
       }
-      
+
       setResults(fetchedResults);
-    } catch (error) {
-      console.error('Error fetching results:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      message.error(`Failed to load laboratory results: ${errorMessage}`);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error fetching results:', err);
+      message.error(`Failed to load laboratory results: ${messageText}`);
     } finally {
       setLoading(false);
     }
@@ -121,13 +150,21 @@ const ResultManagement: React.FC = () => {
   const fetchOrders = async (): Promise<void> => {
     try {
       const response = await fetch('/api/laboratory/orders');
-      if (!response.ok) throw new Error('Failed to fetch orders');
-      const data = await response.json();
-      setOrders(data.results || (Array.isArray(data) ? data : []));
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      message.error(`Failed to load laboratory orders: ${errorMessage}`);
+      if (!response.ok) {
+        let errorMsg = 'Failed to fetch orders';
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
+      }
+      // FIX: Type the response data
+      const data: OrdersApiResponse = await response.json();
+      setOrders(data.results || []);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error fetching orders:', err);
+      message.error(`Failed to load laboratory orders: ${messageText}`);
     }
   };
 
@@ -135,13 +172,21 @@ const ResultManagement: React.FC = () => {
   const fetchOrderItems = async (orderId: string): Promise<void> => {
     try {
       const response = await fetch(`/api/laboratory/orders/${orderId}/items`);
-      if (!response.ok) throw new Error('Failed to fetch order items');
-      const data = await response.json();
-      setOrderItems(data.results || (Array.isArray(data) ? data : []));
-    } catch (error) {
-      console.error('Error fetching order items:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      message.error(`Failed to load order items: ${errorMessage}`);
+      if (!response.ok) {
+        let errorMsg = 'Failed to fetch order items';
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
+      }
+      // FIX: Type the response data
+      const data: OrderItemsApiResponse = await response.json();
+      setOrderItems(data.results || []);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error fetching order items:', err);
+      message.error(`Failed to load order items: ${messageText}`);
     }
   };
 
@@ -149,13 +194,21 @@ const ResultManagement: React.FC = () => {
   const fetchParameters = async (testId: string): Promise<void> => {
     try {
       const response = await fetch(`/api/laboratory/tests/${testId}/parameters`);
-      if (!response.ok) throw new Error('Failed to fetch test parameters');
-      const data = await response.json();
-      setParameters(data.results || (Array.isArray(data) ? data : []));
-    } catch (error) {
-      console.error('Error fetching test parameters:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      message.error(`Failed to load test parameters: ${errorMessage}`);
+      if (!response.ok) {
+        let errorMsg = 'Failed to fetch test parameters';
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
+      }
+      // FIX: Type the response data
+      const data: ParametersApiResponse = await response.json();
+      setParameters(data.results || []);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error fetching test parameters:', err);
+      message.error(`Failed to load test parameters: ${messageText}`);
     }
   };
 
@@ -184,20 +237,25 @@ const ResultManagement: React.FC = () => {
           ...values
         }),
       });
-      
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-        throw new Error(errorData.error || 'Failed to update result');
+        // FIX: Type the error response
+        let errorMsg = 'Failed to update result';
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
-      
+
       message.success('Result updated successfully');
       setIsModalVisible(false);
       form.resetFields();
       fetchResults();
-    } catch (error) {
-      console.error('Error updating result:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      message.error(errorMessage);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error updating result:', err);
+      message.error(messageText);
     }
   };
 
@@ -215,20 +273,25 @@ const ResultManagement: React.FC = () => {
           ...values
         }),
       });
-      
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-        throw new Error(errorData.error || 'Failed to create result');
+        // FIX: Type the error response
+        let errorMsg = 'Failed to create result';
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
-      
+
       message.success('Result created successfully');
       setIsEntryModalVisible(false);
       entryForm.resetFields();
       fetchResults();
-    } catch (error) {
-      console.error('Error creating result:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      message.error(errorMessage);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error creating result:', err);
+      message.error(messageText);
     }
   };
 
@@ -245,18 +308,23 @@ const ResultManagement: React.FC = () => {
           verify: true
         }),
       });
-      
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-        throw new Error(errorData.error || 'Failed to verify result');
+        // FIX: Type the error response
+        let errorMsg = 'Failed to verify result';
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
-      
+
       message.success('Result verified successfully');
       fetchResults();
-    } catch (error) {
-      console.error('Error verifying result:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      message.error(errorMessage);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error verifying result:', err);
+      message.error(messageText);
     }
   };
 
@@ -265,12 +333,12 @@ const ResultManagement: React.FC = () => {
     setSelectedOrderItem(orderItem);
     entryForm.resetFields();
     setParameters([]); // Reset parameters
-    
+
     // If the test has parameters, fetch them
     if (orderItem.test_id) {
       fetchParameters(orderItem.test_id);
     }
-    
+
     setIsEntryModalVisible(true);
   };
 
@@ -349,35 +417,35 @@ const ResultManagement: React.FC = () => {
       width: '15%',
       render: (_: any, record: LabResult) => {
         const actions = [];
-        
+
         // Edit action (only if not verified)
         if (!record.verified_by) {
           actions.push(
-            <Button 
-              key="edit" 
-              type="link" 
-              icon={<EditOutlined />} 
+            <Button
+              key="edit"
+              type="link"
+              icon={<EditOutlined />}
               onClick={() => showResultUpdateModal(record)}
             >
               Edit
             </Button>
           );
         }
-        
+
         // Verify action (only if not verified and user has permission - permission check omitted for brevity)
         if (!record.verified_by) {
           actions.push(
-            <Button 
-              key="verify" 
-              type="link" 
-              icon={<CheckOutlined />} 
+            <Button
+              key="verify"
+              type="link"
+              icon={<CheckOutlined />}
               onClick={() => handleVerifyResult(record)}
             >
               Verify
             </Button>
           );
         }
-        
+
         return actions.length > 0 ? <>{actions}</> : 'N/A';
       },
     },
@@ -388,8 +456,8 @@ const ResultManagement: React.FC = () => {
       <Card
         title="Laboratory Result Management"
         extra={
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => {
               // TODO: Implement proper order/item selection for result entry
@@ -409,7 +477,7 @@ const ResultManagement: React.FC = () => {
             // onPressEnter={fetchResults} // fetchResults is called via useEffect
             style={{ width: 250 }}
           />
-          
+
           <Select
             placeholder="Filter by Order"
             allowClear
@@ -418,7 +486,7 @@ const ResultManagement: React.FC = () => {
             style={{ width: 250 }}
             value={orderFilter}
             onChange={(value: string | null) => setOrderFilter(value)}
-            filterOption={(input, option) => 
+            filterOption={(input, option) =>
               (option?.children as unknown as string)?.toLowerCase().includes(input.toLowerCase()) ?? false
             }
           >
@@ -428,8 +496,8 @@ const ResultManagement: React.FC = () => {
               </Option>
             ))}
           </Select>
-          
-          <Button 
+
+          <Button
             onClick={() => {
               setSearchText('');
               setOrderFilter(null);
@@ -439,7 +507,7 @@ const ResultManagement: React.FC = () => {
             Reset
           </Button>
         </div>
-        
+
         <Spin spinning={loading}>
           <Table
             columns={columns}
@@ -450,7 +518,7 @@ const ResultManagement: React.FC = () => {
           />
         </Spin>
       </Card>
-      
+
       {/* Update Result Modal */}
       <Modal
         title={`Update Result: ${selectedResult?.test_name} ${selectedResult?.parameter_name ? `- ${selectedResult.parameter_name}` : ''}`}
@@ -476,26 +544,24 @@ const ResultManagement: React.FC = () => {
             >
               <Input />
             </Form.Item>
-            
+
+            {/* FIX: Use Checkbox for boolean value */}
             <Form.Item
               name="is_abnormal"
+              valuePropName="checked"
               label="Abnormal"
-              valuePropName="checked" // Use checked for Checkbox, not Select
             >
-              {/* Using Select for Yes/No boolean */}
-              <Select>
-                <Option value={true}>Yes</Option>
-                <Option value={false}>No</Option>
-              </Select>
+              <Checkbox />
             </Form.Item>
-            
+
             <Form.Item
               name="notes"
               label="Notes"
             >
-              <Input.TextArea rows={3} placeholder="Additional notes..." />
+              {/* FIX: Correct typo Input.TextArea */}
+              <Input.TextArea rows={3} />
             </Form.Item>
-            
+
             <Form.Item>
               <Button type="primary" htmlType="submit">
                 Update Result
@@ -504,38 +570,36 @@ const ResultManagement: React.FC = () => {
           </Form>
         )}
       </Modal>
-      
-      {/* Result Entry Modal */}
+
+      {/* Enter Result Modal */}
       <Modal
-        title={`Enter Result: ${selectedOrderItem?.test_name || 'Test'}`}
+        title={`Enter Result for: ${selectedOrderItem?.test_name}`}
         visible={isEntryModalVisible}
         onCancel={() => setIsEntryModalVisible(false)}
         footer={null}
-        width={700}
       >
         {selectedOrderItem && (
           <Form<CreateResultValues>
             form={entryForm}
             layout="vertical"
             onFinish={handleCreateResult}
-            initialValues={{ is_abnormal: false }} // Set default for abnormal
+            initialValues={{ is_abnormal: false }} // Default abnormal to false
           >
-            {parameters.length > 0 ? (
+            {/* Only show parameter selection if parameters exist for the test */}
+            {parameters.length > 0 && (
               <Form.Item
                 name="parameter_id"
                 label="Parameter"
-                rules={[{ required: true, message: 'Please select parameter' }]}
+                rules={[{ required: true, message: 'Please select a parameter' }]}
               >
-                <Select placeholder="Select parameter">
+                <Select placeholder="Select Parameter">
                   {parameters.map(param => (
-                    <Option key={param.id} value={param.id}>
-                      {param.name} ({param.unit || 'No unit'})
-                    </Option>
+                    <Option key={param.id} value={param.id}>{param.name} {param.unit ? `(${param.unit})` : ''}</Option>
                   ))}
                 </Select>
               </Form.Item>
-            ) : null}
-            
+            )}
+
             <Form.Item
               name="result_value"
               label="Result Value"
@@ -543,24 +607,24 @@ const ResultManagement: React.FC = () => {
             >
               <Input />
             </Form.Item>
-            
+
+            {/* FIX: Use Checkbox for boolean value */}
             <Form.Item
               name="is_abnormal"
+              valuePropName="checked"
               label="Abnormal"
             >
-              <Select>
-                <Option value={true}>Yes</Option>
-                <Option value={false}>No</Option>
-              </Select>
+              <Checkbox />
             </Form.Item>
-            
+
             <Form.Item
               name="notes"
               label="Notes"
             >
-              <Input.TextArea rows={3} placeholder="Additional notes..." />
+              {/* FIX: Correct typo Input.TextArea */}
+              <Input.TextArea rows={3} />
             </Form.Item>
-            
+
             <Form.Item>
               <Button type="primary" htmlType="submit">
                 Save Result

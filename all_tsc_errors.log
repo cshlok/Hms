@@ -1,0 +1,213 @@
+src/app/ipd/page.tsx(58,31): error TS2322: Type 'number' is not assignable to type 'string'.
+src/app/ipd/page.tsx(63,23): error TS2322: Type 'number' is not assignable to type 'string'.
+src/app/ipd/page.tsx(68,21): error TS2322: Type 'number' is not assignable to type 'string'.
+src/app/ipd/page.tsx(73,35): error TS2322: Type 'number' is not assignable to type 'string'.
+src/app/ipd/page.tsx(78,27): error TS2322: Type 'number' is not assignable to type 'string'.
+src/app/ipd/page.tsx(135,31): error TS2322: Type '{ onViewPatient: (admissionId: number, patientId: number) => void; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'onViewPatient' does not exist on type 'IntrinsicAttributes'.
+src/app/ipd/page.tsx(153,18): error TS2304: Cannot find name 'Button'.
+src/app/ipd/page.tsx(155,19): error TS2304: Cannot find name 'Button'.
+src/app/pharmacy/medications/page.tsx(184,7): error TS2559: Type 'Partial<UsePaginationState<Medication>>' has no properties in common with type 'Partial<TableState<Medication>>'.
+src/components/er/ERPatientTrackingBoard.tsx(26,74): error TS2307: Cannot find module '@/components/ui/tooltip' or its corresponding type declarations.
+src/components/er/ERRadiologyOrderModal.tsx(27,10): error TS2305: Module '"@/components/ui/use-toast"' has no exported member 'toast'.
+src/components/er/ERRadiologyOrderModal.tsx(113,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/er/ERRadiologyOrderModal.tsx(123,36): error TS18046: 'newOrder' is of type 'unknown'.
+src/components/er/ERRegistrationModal.tsx(149,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/er/ERRegistrationModal.tsx(155,31): error TS18046: 'newVisit' is of type 'unknown'.
+src/components/er/ERTriageForm.tsx(88,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/er/ERTriageForm.tsx(94,35): error TS18046: 'result' is of type 'unknown'.
+src/components/er/ERTriageForm.tsx(94,74): error TS18046: 'result' is of type 'unknown'.
+src/components/ipd/AdmissionForm.tsx(39,25): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/ipd/AdmissionForm.tsx(44,31): error TS7006: Parameter 'name' implicitly has an 'any' type.
+src/components/ipd/AdmissionForm.tsx(44,37): error TS7006: Parameter 'value' implicitly has an 'any' type.
+src/components/ipd/AdmissionForm.tsx(48,31): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/ipd/AdmissionForm.tsx(65,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/ipd/AdmissionForm.tsx(81,16): error TS18046: 'err' is of type 'unknown'.
+src/components/ipd/BedManagementDashboard.tsx(62,31): error TS2367: This comparison appears to be unintentional because the types '"general" | "semi-private" | "private" | "icu"' and '"All"' have no overlap.
+src/components/ipd/BedManagementDashboard.tsx(63,29): error TS2367: This comparison appears to be unintentional because the types '"available" | "occupied" | "maintenance" | "reserved"' and '"All"' have no overlap.
+src/components/ipd/BedManagementDashboard.tsx(69,27): error TS18046: 'errorData' is of type 'unknown'.
+src/components/ipd/BedManagementDashboard.tsx(230,32): error TS2322: Type '"secondary" | "destructive" | "default" | "outline" | "success"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+  Type '"success"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+src/components/ipd/IPDPatientList.tsx(22,21): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<never[]>'.
+src/components/ipd/IPDPatientList.tsx(26,18): error TS2345: Argument of type '"Failed to load inpatient list. Please try again later."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/components/ipd/IPDPatientList.tsx(63,40): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/ipd/IPDPatientList.tsx(64,39): error TS2339: Property 'patient_first_name' does not exist on type 'never'.
+src/components/ipd/IPDPatientList.tsx(64,68): error TS2339: Property 'patient_last_name' does not exist on type 'never'.
+src/components/ipd/IPDPatientList.tsx(65,39): error TS2339: Property 'admission_number' does not exist on type 'never'.
+src/components/ipd/IPDPatientList.tsx(66,39): error TS2339: Property 'bed_number' does not exist on type 'never'.
+src/components/ipd/IPDPatientList.tsx(66,61): error TS2339: Property 'room_number' does not exist on type 'never'.
+src/components/ipd/IPDPatientList.tsx(67,39): error TS2339: Property 'ward' does not exist on type 'never'.
+src/components/ipd/IPDPatientList.tsx(68,43): error TS2339: Property 'doctor_first_name' does not exist on type 'never'.
+src/components/ipd/IPDPatientList.tsx(68,71): error TS2339: Property 'doctor_last_name' does not exist on type 'never'.
+src/components/ipd/IPDPatientList.tsx(69,48): error TS2339: Property 'admission_date' does not exist on type 'never'.
+src/components/ipd/PatientProgressNotes.tsx(355,20): error TS2739: Type '{ children: Element[]; defaultValue: string; className: string; }' is missing the following properties from type '{ [x: string]: any; children: any; value: any; onValueChange: any; className?: string | undefined; }': value, onValueChange
+src/components/ipd/VitalSigns.tsx(169,50): error TS18048: 'submissionData.pain_level' is possibly 'undefined'.
+src/components/ipd/VitalSigns.tsx(169,50): error TS2365: Operator '<' cannot be applied to types 'string | number' and 'number'.
+src/components/ipd/VitalSigns.tsx(169,83): error TS18048: 'submissionData.pain_level' is possibly 'undefined'.
+src/components/ipd/VitalSigns.tsx(169,83): error TS2365: Operator '>' cannot be applied to types 'string | number' and 'number'.
+src/components/laboratory/OrderManagement.tsx(71,19): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/OrderManagement.tsx(89,16): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/OrderManagement.tsx(129,17): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/OrderManagement.tsx(146,21): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/OrderManagement.tsx(339,13): error TS2322: Type '[Moment, Moment] | null' is not assignable to type 'RangeValueType<Dayjs> | null | undefined'.
+  Type '[Moment, Moment]' is not assignable to type '[start: Dayjs | null | undefined, end: Dayjs | null | undefined]'.
+    Type at position 0 in source is not compatible with type at position 0 in target.
+      The types of 'day' are incompatible between these types.
+        Type '{ (d: string | number): Moment; (): number; }' is not assignable to type '{ (): 0 | 2 | 1 | 3 | 5 | 4 | 6; (value: number): Dayjs; }'.
+          Target signature provides too few arguments. Expected 1 or more, but got 0.
+src/components/laboratory/ResultManagement.tsx(98,41): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/ResultManagement.tsx(126,17): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/ResultManagement.tsx(140,21): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/ResultManagement.tsx(154,21): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/ResultManagement.tsx(190,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/laboratory/ResultManagement.tsx(221,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/laboratory/ResultManagement.tsx(251,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/laboratory/TestCatalogManagement.tsx(75,33): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/TestCatalogManagement.tsx(111,33): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/TestCatalogManagement.tsx(129,18): error TS18046: 'data' is of type 'unknown'.
+src/components/laboratory/TestCatalogManagement.tsx(202,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/laboratory/TestCatalogManagement.tsx(224,38): error TS2339: Property 'field' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'field' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(224,76): error TS2339: Property 'order' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'order' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(232,38): error TS2339: Property 'field' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'field' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(232,76): error TS2339: Property 'order' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'order' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(241,38): error TS2339: Property 'field' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'field' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(241,85): error TS2339: Property 'order' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'order' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(249,38): error TS2339: Property 'field' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'field' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(249,83): error TS2339: Property 'order' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'order' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(258,38): error TS2339: Property 'field' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'field' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(258,87): error TS2339: Property 'order' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'order' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(267,38): error TS2339: Property 'field' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'field' does not exist on type 'SorterResult<Test>[]'.
+src/components/laboratory/TestCatalogManagement.tsx(267,77): error TS2339: Property 'order' does not exist on type 'SorterResult<Test> | SorterResult<Test>[]'.
+  Property 'order' does not exist on type 'SorterResult<Test>[]'.
+src/components/opd/OPDAppointmentList.tsx(70,23): error TS18046: 'checkInData' is of type 'unknown'.
+src/components/opd/OPDAppointmentList.tsx(71,22): error TS18046: 'cancelData' is of type 'unknown'.
+src/components/opd/OPDAppointmentList.tsx(98,25): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<Appointment[]>'.
+src/components/opd/OPDConsultationForm.tsx(121,25): error TS18046: 'prescribeData' is of type 'unknown'.
+src/components/opd/OPDConsultationForm.tsx(122,26): error TS18046: 'orderData' is of type 'unknown'.
+src/components/opd/OPDConsultationForm.tsx(144,21): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<Patient[]>'.
+src/components/opd/OPDConsultationForm.tsx(220,41): error TS18046: 'result' is of type 'unknown'.
+src/components/opd/OPDPatientQueue.tsx(60,27): error TS18046: 'callData' is of type 'unknown'.
+src/components/opd/OPDPatientQueue.tsx(61,28): error TS18046: 'completeData' is of type 'unknown'.
+src/components/opd/OPDPatientQueue.tsx(89,21): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<Patient[]>'.
+src/components/opd/OPDStatistics.tsx(43,23): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<StatisticsData | null>'.
+src/components/ot/OTBillingItems.tsx(81,25): error TS2345: Argument of type '({ id: string; date: string; description: string; category: string; amount: number; status: string; surgery_id: string; invoice_id?: undefined; } | { id: string; date: string; description: string; category: string; amount: number; status: string; surgery_id: string; invoice_id: string; })[]' is not assignable to parameter of type 'SetStateAction<never[]>'.
+  Type '({ id: string; date: string; description: string; category: string; amount: number; status: string; surgery_id: string; invoice_id?: undefined; } | { id: string; date: string; description: string; category: string; amount: number; status: string; surgery_id: string; invoice_id: string; })[]' is not assignable to type 'never[]'.
+    Type '{ id: string; date: string; description: string; category: string; amount: number; status: string; surgery_id: string; invoice_id?: undefined; } | { id: string; date: string; description: string; category: string; amount: number; status: string; surgery_id: string; invoice_id: string; }' is not assignable to type 'never'.
+      Type '{ id: string; date: string; description: string; category: string; amount: number; status: string; surgery_id: string; invoice_id?: undefined; }' is not assignable to type 'never'.
+src/components/ot/OTBookingList.tsx(134,6): error TS2304: Cannot find name 'Card'.
+src/components/ot/OTBookingList.tsx(135,8): error TS2304: Cannot find name 'CardContent'.
+src/components/ot/OTBookingList.tsx(222,9): error TS2304: Cannot find name 'CardContent'.
+src/components/ot/OTBookingList.tsx(223,7): error TS2304: Cannot find name 'Card'.
+src/components/ot/OTChecklistTemplateList.tsx(105,6): error TS2304: Cannot find name 'Card'.
+src/components/ot/OTChecklistTemplateList.tsx(106,8): error TS2304: Cannot find name 'CardContent'.
+src/components/ot/OTChecklistTemplateList.tsx(146,9): error TS2304: Cannot find name 'CardContent'.
+src/components/ot/OTChecklistTemplateList.tsx(147,7): error TS2304: Cannot find name 'Card'.
+src/components/ot/OTPatientSurgeries.tsx(59,22): error TS2345: Argument of type '{ id: string; scheduled_start_time: string; scheduled_end_time: string; status: string; surgery_name: string; theatre_name: string; surgeon_name: string; }[]' is not assignable to parameter of type 'SetStateAction<never[]>'.
+  Type '{ id: string; scheduled_start_time: string; scheduled_end_time: string; status: string; surgery_name: string; theatre_name: string; surgeon_name: string; }[]' is not assignable to type 'never[]'.
+    Type '{ id: string; scheduled_start_time: string; scheduled_end_time: string; status: string; surgery_name: string; theatre_name: string; surgeon_name: string; }' is not assignable to type 'never'.
+src/components/ot/OTSurgeryTypeList.tsx(85,6): error TS2304: Cannot find name 'Card'.
+src/components/ot/OTSurgeryTypeList.tsx(86,8): error TS2304: Cannot find name 'CardContent'.
+src/components/ot/OTSurgeryTypeList.tsx(128,9): error TS2304: Cannot find name 'CardContent'.
+src/components/ot/OTSurgeryTypeList.tsx(129,7): error TS2304: Cannot find name 'Card'.
+src/components/ot/OTTheatreList.tsx(95,6): error TS2304: Cannot find name 'Card'.
+src/components/ot/OTTheatreList.tsx(96,8): error TS2304: Cannot find name 'CardContent'.
+src/components/ot/OTTheatreList.tsx(143,9): error TS2304: Cannot find name 'CardContent'.
+src/components/ot/OTTheatreList.tsx(144,7): error TS2304: Cannot find name 'Card'.
+src/components/pharmacy/BillingPharmacyIntegration.tsx(72,45): error TS18046: 'data' is of type 'unknown'.
+src/components/pharmacy/BillingPharmacyIntegration.tsx(145,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/pharmacy/OPDPharmacyIntegration.tsx(220,9): error TS2353: Object literal may only specify known properties, and 'source' does not exist in type 'FormData'.
+src/components/radiology/CreateModalityModal.tsx(11,47): error TS7031: Binding element 'onClose' implicitly has an 'any' type.
+src/components/radiology/CreateModalityModal.tsx(11,56): error TS7031: Binding element 'onSubmit' implicitly has an 'any' type.
+src/components/radiology/CreateModalityModal.tsx(17,31): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/radiology/CreateProcedureTypeModal.tsx(11,52): error TS7031: Binding element 'onClose' implicitly has an 'any' type.
+src/components/radiology/CreateProcedureTypeModal.tsx(11,61): error TS7031: Binding element 'onSubmit' implicitly has an 'any' type.
+src/components/radiology/CreateProcedureTypeModal.tsx(17,31): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/radiology/CreateRadiologyOrderModal.tsx(79,21): error TS18046: 'patientsData' is of type 'unknown'.
+src/components/radiology/CreateRadiologyOrderModal.tsx(80,27): error TS18046: 'proceduresData' is of type 'unknown'.
+src/components/radiology/CreateRadiologyOrderModal.tsx(81,20): error TS18046: 'doctorsData' is of type 'unknown'.
+src/components/radiology/CreateRadiologyReportModal.tsx(12,54): error TS7031: Binding element 'onClose' implicitly has an 'any' type.
+src/components/radiology/CreateRadiologyReportModal.tsx(12,63): error TS7031: Binding element 'onSubmit' implicitly has an 'any' type.
+src/components/radiology/CreateRadiologyReportModal.tsx(12,73): error TS7031: Binding element 'studyId' implicitly has an 'any' type.
+src/components/radiology/CreateRadiologyReportModal.tsx(33,25): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<never[]>'.
+src/components/radiology/CreateRadiologyReportModal.tsx(36,28): error TS2339: Property 'role' does not exist on type '{ name?: string | null | undefined; email?: string | null | undefined; image?: string | null | undefined; }'.
+src/components/radiology/CreateRadiologyReportModal.tsx(37,41): error TS2339: Property 'id' does not exist on type '{ name?: string | null | undefined; email?: string | null | undefined; image?: string | null | undefined; }'.
+src/components/radiology/CreateRadiologyReportModal.tsx(42,18): error TS2345: Argument of type '"Failed to load radiologists. Please try again."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/components/radiology/CreateRadiologyReportModal.tsx(50,31): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/radiology/CreateRadiologyReportModal.tsx(85,114): error TS2339: Property 'role' does not exist on type '{ name?: string | null | undefined; email?: string | null | undefined; image?: string | null | undefined; }'.
+src/components/radiology/CreateRadiologyReportModal.tsx(91,44): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/CreateRadiologyReportModal.tsx(91,59): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/CreateRadiologyReportModal.tsx(92,30): error TS2339: Property 'name' does not exist on type 'never'.
+src/components/radiology/CreateRadiologyStudyModal.tsx(12,53): error TS7031: Binding element 'onClose' implicitly has an 'any' type.
+src/components/radiology/CreateRadiologyStudyModal.tsx(12,62): error TS7031: Binding element 'onSubmit' implicitly has an 'any' type.
+src/components/radiology/CreateRadiologyStudyModal.tsx(12,72): error TS7031: Binding element 'orderId' implicitly has an 'any' type.
+src/components/radiology/CreateRadiologyStudyModal.tsx(43,23): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<never[]>'.
+src/components/radiology/CreateRadiologyStudyModal.tsx(44,24): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<never[]>'.
+src/components/radiology/CreateRadiologyStudyModal.tsx(51,18): error TS2345: Argument of type '"Failed to load necessary data. Please try again."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/components/radiology/CreateRadiologyStudyModal.tsx(59,31): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/radiology/CreateRadiologyStudyModal.tsx(127,49): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/CreateRadiologyStudyModal.tsx(127,69): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/CreateRadiologyStudyModal.tsx(128,35): error TS2339: Property 'name' does not exist on type 'never'.
+src/components/radiology/CreateRadiologyStudyModal.tsx(143,45): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/CreateRadiologyStudyModal.tsx(143,61): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/CreateRadiologyStudyModal.tsx(144,31): error TS2339: Property 'name' does not exist on type 'never'.
+src/components/radiology/RadiologyOrderDetail.tsx(63,27): error TS18046: 'errorData' is of type 'unknown'.
+src/components/radiology/RadiologyOrderDetail.tsx(93,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/radiology/RadiologyOrderDetail.tsx(119,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/radiology/RadiologyOrderList.tsx(31,17): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<never[]>'.
+src/components/radiology/RadiologyOrderList.tsx(35,16): error TS2345: Argument of type '"Failed to load radiology orders. Please try again later."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/components/radiology/RadiologyOrderList.tsx(41,28): error TS7006: Parameter 'orderId' implicitly has an 'any' type.
+src/components/radiology/RadiologyOrderList.tsx(45,36): error TS7006: Parameter 'orderData' implicitly has an 'any' type.
+src/components/radiology/RadiologyOrderList.tsx(57,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/radiology/RadiologyOrderList.tsx(64,13): error TS18046: 'err' is of type 'unknown'.
+src/components/radiology/RadiologyOrderList.tsx(68,27): error TS7006: Parameter 'status' implicitly has an 'any' type.
+src/components/radiology/RadiologyOrderList.tsx(78,25): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ pending: string; scheduled: string; in_progress: string; completed: string; cancelled: string; }'.
+src/components/radiology/RadiologyOrderList.tsx(117,40): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/RadiologyOrderList.tsx(118,39): error TS2339: Property 'patient_name' does not exist on type 'never'.
+src/components/radiology/RadiologyOrderList.tsx(119,39): error TS2339: Property 'procedure_name' does not exist on type 'never'.
+src/components/radiology/RadiologyOrderList.tsx(120,48): error TS2339: Property 'order_datetime' does not exist on type 'never'.
+src/components/radiology/RadiologyOrderList.tsx(122,45): error TS2339: Property 'priority' does not exist on type 'never'.
+src/components/radiology/RadiologyOrderList.tsx(123,32): error TS2339: Property 'priority' does not exist on type 'never'.
+src/components/radiology/RadiologyOrderList.tsx(126,54): error TS2339: Property 'status' does not exist on type 'never'.
+src/components/radiology/RadiologyOrderList.tsx(128,96): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/RadiologyReportsList.tsx(29,18): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'SetStateAction<never[]>'.
+src/components/radiology/RadiologyReportsList.tsx(33,16): error TS2345: Argument of type '"Failed to load radiology reports. Please try again later."' is not assignable to parameter of type 'SetStateAction<null>'.
+src/components/radiology/RadiologyReportsList.tsx(39,29): error TS7006: Parameter 'reportId' implicitly has an 'any' type.
+src/components/radiology/RadiologyReportsList.tsx(43,27): error TS7006: Parameter 'status' implicitly has an 'any' type.
+src/components/radiology/RadiologyReportsList.tsx(51,25): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ preliminary: string; final: string; addendum: string; }'.
+src/components/radiology/RadiologyReportsList.tsx(88,41): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/RadiologyReportsList.tsx(89,40): error TS2339: Property 'patient_name' does not exist on type 'never'.
+src/components/radiology/RadiologyReportsList.tsx(90,40): error TS2339: Property 'procedure_name' does not exist on type 'never'.
+src/components/radiology/RadiologyReportsList.tsx(91,40): error TS2339: Property 'accession_number' does not exist on type 'never'.
+src/components/radiology/RadiologyReportsList.tsx(92,40): error TS2339: Property 'radiologist_name' does not exist on type 'never'.
+src/components/radiology/RadiologyReportsList.tsx(93,49): error TS2339: Property 'report_datetime' does not exist on type 'never'.
+src/components/radiology/RadiologyReportsList.tsx(94,55): error TS2339: Property 'status' does not exist on type 'never'.
+src/components/radiology/RadiologyReportsList.tsx(96,98): error TS2339: Property 'id' does not exist on type 'never'.
+src/components/radiology/RadiologySettings.tsx(9,36): error TS2614: Module '"./CreateProcedureTypeModal"' has no exported member 'ProcedureTypeFormData'. Did you mean to use 'import ProcedureTypeFormData from "./CreateProcedureTypeModal"' instead?
+src/components/radiology/RadiologySettings.tsx(10,31): error TS2614: Module '"./CreateModalityModal"' has no exported member 'ModalityFormData'. Did you mean to use 'import ModalityFormData from "./CreateModalityModal"' instead?
+src/components/radiology/RadiologySettings.tsx(51,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/radiology/RadiologySettings.tsx(72,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/radiology/RadiologySettings.tsx(98,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/radiology/RadiologySettings.tsx(123,25): error TS18046: 'errorData' is of type 'unknown'.
+src/components/radiology/RadiologySettings.tsx(237,11): error TS2322: Type '{ isOpen: true; onClose: () => void; onSubmit: (procedureData: ProcedureTypeFormData) => Promise<void>; }' is not assignable to type 'IntrinsicAttributes & { onClose: any; onSubmit: any; }'.
+  Property 'isOpen' does not exist on type 'IntrinsicAttributes & { onClose: any; onSubmit: any; }'.
+src/components/radiology/RadiologySettings.tsx(245,11): error TS2322: Type '{ isOpen: true; onClose: () => void; onSubmit: (modalityData: ModalityFormData) => Promise<void>; }' is not assignable to type 'IntrinsicAttributes & { onClose: any; onSubmit: any; }'.
+  Property 'isOpen' does not exist on type 'IntrinsicAttributes & { onClose: any; onSubmit: any; }'.
+src/components/radiology/RadiologyStudyDetail.tsx(254,11): error TS2322: Type '{ isOpen: true; onClose: () => void; onSubmit: (formData: Omit<ReportData, "study_id" | "radiologist_id">) => Promise<void>; studyId: string; patientName: string; procedureName: string; }' is not assignable to type 'IntrinsicAttributes & { onClose: any; onSubmit: any; studyId: any; }'.
+  Property 'isOpen' does not exist on type 'IntrinsicAttributes & { onClose: any; onSubmit: any; studyId: any; }'.
+src/components/ui/calendar.tsx(47,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+src/lib/ipd.ts(23,27): error TS2339: Property 'query' does not exist on type 'Promise<{ query: (sql: string, params?: any[] | undefined) => Promise<{ rows: never[]; }>; prepare: (sql: string) => { bind: (...params: any[]) => { run: () => Promise<{ success: boolean; meta: { duration: number; }; }>; all: () => Promise<...>; first: (colName?: string | undefined) => Promise<...>; }; run: () => Pr...'.
+src/lib/ipd.ts(31,27): error TS2339: Property 'query' does not exist on type 'Promise<{ query: (sql: string, params?: any[] | undefined) => Promise<{ rows: never[]; }>; prepare: (sql: string) => { bind: (...params: any[]) => { run: () => Promise<{ success: boolean; meta: { duration: number; }; }>; all: () => Promise<...>; first: (colName?: string | undefined) => Promise<...>; }; run: () => Pr...'.
+src/lib/ipd.ts(40,12): error TS2339: Property 'query' does not exist on type 'Promise<{ query: (sql: string, params?: any[] | undefined) => Promise<{ rows: never[]; }>; prepare: (sql: string) => { bind: (...params: any[]) => { run: () => Promise<{ success: boolean; meta: { duration: number; }; }>; all: () => Promise<...>; first: (colName?: string | undefined) => Promise<...>; }; run: () => Pr...'.
+src/lib/ipd.ts(55,12): error TS2339: Property 'query' does not exist on type 'Promise<{ query: (sql: string, params?: any[] | undefined) => Promise<{ rows: never[]; }>; prepare: (sql: string) => { bind: (...params: any[]) => { run: () => Promise<{ success: boolean; meta: { duration: number; }; }>; all: () => Promise<...>; first: (colName?: string | undefined) => Promise<...>; }; run: () => Pr...'.
+src/lib/session.ts(71,33): error TS2339: Property 'query' does not exist on type 'Promise<{ query: (sql: string, params?: any[] | undefined) => Promise<{ rows: never[]; }>; prepare: (sql: string) => { bind: (...params: any[]) => { run: () => Promise<{ success: boolean; meta: { duration: number; }; }>; all: () => Promise<...>; first: (colName?: string | undefined) => Promise<...>; }; run: () => Pr...'.

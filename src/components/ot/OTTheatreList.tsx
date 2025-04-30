@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card"; // FIX: Add missing imports
 import { Edit, Trash2, Activity, WifiOff } from "lucide-react";
 
 // Mock data structure - replace with actual API response type
@@ -36,6 +37,7 @@ export default function OTTheatreList() {
         // setTheatres(data);
 
         // Mock data for demonstration
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
         const mockData: Theatre[] = [
           {
             id: "theatre-1",
@@ -144,3 +146,4 @@ export default function OTTheatreList() {
     </Card>
   );
 }
+

@@ -16,6 +16,7 @@ import {
   Label, // Assuming Label is imported from ui
 } from "@/components/ui";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast"; // FIX: Import useToast
 
 // Define interfaces for data structures
 interface ProgressNote {
@@ -48,9 +49,67 @@ interface FormData {
   plan: string;
 }
 
+// FIX: Define type for API error response
+interface ApiErrorResponse {
+  error?: string;
+}
+
+// FIX: Define type for API success response (new note)
+interface NewNoteResponse extends ProgressNote {}
+
 interface PatientProgressNotesProps {
   admissionId: string | null;
 }
+
+// FIX: Create a sub-component to manage individual note tabs state
+interface NoteDisplayProps {
+  note: ProgressNote;
+  formatDateTime: (dateString: string | undefined) => string;
+}
+
+const NoteDisplay: React.FC<NoteDisplayProps> = ({ note, formatDateTime }) => {
+  // FIX: Add state for the inner Tabs component
+  const [activeNoteTab, setActiveNoteTab] = useState("subjective");
+
+  return (
+    <div key={note.id} className="border rounded-md p-4 bg-white shadow-sm">
+      <div className="flex justify-between items-center mb-3 border-b pb-2">
+        <h3 className="font-semibold text-base">
+          Dr. {note.doctor_first_name || "N/A"} {note.doctor_last_name || "N/A"}
+        </h3>
+        <span className="text-sm text-gray-500">
+          {formatDateTime(note.note_date)}
+        </span>
+      </div>
+
+      {/* FIX: Add value and onValueChange to Tabs */}
+      <Tabs value={activeNoteTab} onValueChange={setActiveNoteTab} className="w-full">
+        <TabsList className="mb-2 grid w-full grid-cols-4">
+          <TabsTrigger value="subjective">Subjective</TabsTrigger>
+          <TabsTrigger value="objective">Objective</TabsTrigger>
+          <TabsTrigger value="assessment">Assessment</TabsTrigger>
+          <TabsTrigger value="plan">Plan</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="subjective" className="mt-2 p-3 bg-gray-50 rounded border text-sm">
+          <p className="whitespace-pre-wrap">{note.subjective || "-"}</p>
+        </TabsContent>
+
+        <TabsContent value="objective" className="mt-2 p-3 bg-gray-50 rounded border text-sm">
+          <p className="whitespace-pre-wrap">{note.objective || "-"}</p>
+        </TabsContent>
+
+        <TabsContent value="assessment" className="mt-2 p-3 bg-gray-50 rounded border text-sm">
+          <p className="whitespace-pre-wrap">{note.assessment || "-"}</p>
+        </TabsContent>
+
+        <TabsContent value="plan" className="mt-2 p-3 bg-gray-50 rounded border text-sm">
+          <p className="whitespace-pre-wrap">{note.plan || "-"}</p>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
 
 const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId }) => {
   const [progressNotes, setProgressNotes] = useState<ProgressNote[]>([]);
@@ -63,9 +122,8 @@ const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId
     plan: "",
   });
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
   const [patientInfo, setPatientInfo] = useState<AdmissionInfo | null>(null);
+  const { toast } = useToast(); // FIX: Use toast for notifications
 
   // Fetch progress notes and admission info
   useEffect(() => {
@@ -82,10 +140,14 @@ const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId
         // Simulate API call
         // const response = await fetch(`/api/ipd/admissions/${admissionId}/progress-notes`);
         // if (!response.ok) {
-        //   const errorData = await response.json().catch(() => ({}));
-        //   throw new Error(errorData.error || "Failed to fetch progress notes");
+        //   let errorMsg = "Failed to fetch progress notes";
+        //   try {
+        //       const errorData: ApiErrorResponse = await response.json();
+        //       errorMsg = errorData.error || errorMsg;
+        //   } catch (jsonError) { /* Ignore */ }
+        //   throw new Error(errorMsg);
         // }
-        // const data = await response.json();
+        // const data = await response.json(); // Assuming { admission: AdmissionInfo, progress_notes: ProgressNote[] }
         // setProgressNotes(data.progress_notes?.sort((a, b) => new Date(b.note_date).getTime() - new Date(a.note_date).getTime()) || []);
         // setPatientInfo(data.admission || null);
 
@@ -120,7 +182,7 @@ const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId
         setPatientInfo(mockPatientInfo);
         setProgressNotes(mockProgressNotes.sort((a, b) => new Date(b.note_date).getTime() - new Date(a.note_date).getTime()));
 
-      } catch (err) {
+      } catch (err: unknown) { // FIX: Use unknown
         const message = err instanceof Error ? err.message : "An unknown error occurred.";
         console.error("Error fetching progress notes data:", err);
         setError(`Failed to load progress notes: ${message}`);
@@ -140,12 +202,10 @@ const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (!admissionId) {
-      setSubmitError("Admission ID is missing.");
+      toast({ title: "Error", description: "Admission ID is missing.", variant: "destructive" });
       return;
     }
     setSubmitting(true);
-    setSubmitError(null);
-    setSubmitSuccess(false);
 
     try {
       // Basic validation
@@ -166,14 +226,18 @@ const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId
       //   body: JSON.stringify(submissionData),
       // });
       // if (!response.ok) {
-      //   const errorData = await response.json().catch(() => ({}));
-      //   throw new Error(errorData.error || "Failed to create progress note");
+      //   let errorMsg = "Failed to create progress note";
+      //   try {
+      //       const errorData: ApiErrorResponse = await response.json();
+      //       errorMsg = errorData.error || errorMsg;
+      //   } catch (jsonError) { /* Ignore */ }
+      //   throw new Error(errorMsg);
       // }
-      // const newNote: ProgressNote = await response.json();
+      // const newNote: NewNoteResponse = await response.json();
 
       // Mock response
       await new Promise(resolve => setTimeout(resolve, 800));
-      const newNote: ProgressNote = {
+      const newNote: NewNoteResponse = {
         id: `pn_${Date.now()}`,
         admission_id: admissionId,
         doctor_id: "doc_current", // Replace with actual user ID
@@ -194,17 +258,12 @@ const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId
         plan: "",
       });
 
-      setSubmitSuccess(true);
+      toast({ title: "Success", description: "Progress note added successfully!" });
 
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 3000);
-
-    } catch (err) {
+    } catch (err: unknown) { // FIX: Use unknown
       const message = err instanceof Error ? err.message : "An unknown error occurred.";
       console.error("Error creating progress note:", err);
-      setSubmitError(message);
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -247,18 +306,7 @@ const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId
           <CardTitle>Add Progress Note (SOAP)</CardTitle>
         </CardHeader>
         <CardContent>
-          {submitSuccess && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
-              Progress note added successfully!
-            </div>
-          )}
-
-          {submitError && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
-              Error: {submitError}
-            </div>
-          )}
-
+          {/* FIX: Removed manual success/error messages, relying on toast */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="subjective" className="font-medium">Subjective (Patient reported)</Label>
@@ -341,42 +389,9 @@ const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId
             <div className="text-gray-500 p-4 text-center">No progress notes found for this admission.</div>
           ) : (
             <div className="space-y-6">
+              {/* FIX: Use the NoteDisplay sub-component */}
               {progressNotes.map((note) => (
-                <div key={note.id} className="border rounded-md p-4 bg-white shadow-sm">
-                  <div className="flex justify-between items-center mb-3 border-b pb-2">
-                    <h3 className="font-semibold text-base">
-                      Dr. {note.doctor_first_name || "N/A"} {note.doctor_last_name || "N/A"}
-                    </h3>
-                    <span className="text-sm text-gray-500">
-                      {formatDateTime(note.note_date)}
-                    </span>
-                  </div>
-
-                  <Tabs defaultValue="subjective" className="w-full">
-                    <TabsList className="mb-2 grid w-full grid-cols-4">
-                      <TabsTrigger value="subjective">Subjective</TabsTrigger>
-                      <TabsTrigger value="objective">Objective</TabsTrigger>
-                      <TabsTrigger value="assessment">Assessment</TabsTrigger>
-                      <TabsTrigger value="plan">Plan</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="subjective" className="mt-2 p-3 bg-gray-50 rounded border text-sm">
-                      <p className="whitespace-pre-wrap">{note.subjective || "-"}</p>
-                    </TabsContent>
-
-                    <TabsContent value="objective" className="mt-2 p-3 bg-gray-50 rounded border text-sm">
-                      <p className="whitespace-pre-wrap">{note.objective || "-"}</p>
-                    </TabsContent>
-
-                    <TabsContent value="assessment" className="mt-2 p-3 bg-gray-50 rounded border text-sm">
-                      <p className="whitespace-pre-wrap">{note.assessment || "-"}</p>
-                    </TabsContent>
-
-                    <TabsContent value="plan" className="mt-2 p-3 bg-gray-50 rounded border text-sm">
-                      <p className="whitespace-pre-wrap">{note.plan || "-"}</p>
-                    </TabsContent>
-                  </Tabs>
-                </div>
+                <NoteDisplay key={note.id} note={note} formatDateTime={formatDateTime} />
               ))}
             </div>
           )}

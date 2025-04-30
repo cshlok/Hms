@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast"; // Changed import
+import { useToast } from "@/components/ui/use-toast";
 
 // Define the schema for the triage form using Zod
 const triageFormSchema = z.object({
@@ -36,12 +36,24 @@ const triageFormSchema = z.object({
 
 type TriageFormValues = z.infer<typeof triageFormSchema>;
 
+// FIX: Define type for API error response
+interface ApiErrorResponse {
+  error?: string;
+}
+
+// FIX: Define type for the Triage API success response
+interface TriageResponse {
+  visit_id: string;
+  esi_level: number;
+  // Add other relevant fields returned by the API
+}
+
 // Mock user ID - replace with actual logged-in user context
 const MOCK_NURSE_ID = "nurse_456";
 
 export default function ERTriageForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast(); // Added hook call
+  const { toast } = useToast();
 
   const form = useForm<TriageFormValues>({
     resolver: zodResolver(triageFormSchema),
@@ -49,6 +61,12 @@ export default function ERTriageForm() {
       visitId: "", // Needs a mechanism to set this (e.g., from tracking board selection)
       triageNurseId: MOCK_NURSE_ID,
       esiLevel: undefined,
+      hr: undefined,
+      bpSystolic: undefined,
+      bpDiastolic: undefined,
+      rr: undefined,
+      temp: undefined,
+      spo2: undefined,
       assessmentNotes: "",
     },
   });
@@ -67,7 +85,7 @@ export default function ERTriageForm() {
 
     // Filter out undefined vital signs
     const filteredVitalSigns = Object.entries(vitalSigns)
-        .filter(([_, value]) => value !== undefined)
+        .filter(([_, value]) => value !== undefined && value !== null && value !== "")
         .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
 
     try {
@@ -84,11 +102,19 @@ export default function ERTriageForm() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to submit triage assessment");
+        let errorMsg = "Failed to submit triage assessment";
+        try {
+            // FIX: Use defined type for errorData
+            const errorData: ApiErrorResponse = await response.json();
+            errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) {
+            // Ignore if response is not JSON
+        }
+        throw new Error(errorMsg);
       }
 
-      const result = await response.json();
+      // FIX: Use defined type for result
+      const result: TriageResponse = await response.json();
       toast({
         title: "Triage Assessment Submitted",
         description: `ESI Level ${result.esi_level} assigned for visit ${result.visit_id}.`,
@@ -96,11 +122,12 @@ export default function ERTriageForm() {
       form.reset(); // Reset form after successful submission
       // TODO: Potentially trigger a refresh of the tracking board
 
-    } catch (error: any) {
+    } catch (error: unknown) { // FIX: Use unknown for catch block
       console.error("Triage submission error:", error);
+      const message = error instanceof Error ? error.message : "An unexpected error occurred.";
       toast({
         title: "Submission Failed",
-        description: error.message || "An unexpected error occurred.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -135,7 +162,8 @@ export default function ERTriageForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>ESI Level</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value?.toString()}>
+              {/* FIX: Ensure value passed to Select is string or undefined */}
+              <Select onValueChange={field.onChange} value={field.value?.toString()}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select ESI Level (1-5)" />
@@ -160,7 +188,8 @@ export default function ERTriageForm() {
               <FormItem>
                 <FormLabel>Heart Rate (bpm)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 72" {...field} />
+                  {/* FIX: Pass value as string or number, ensure onChange handles conversion if needed */}
+                  <Input type="number" placeholder="e.g., 72" {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -173,7 +202,7 @@ export default function ERTriageForm() {
               <FormItem>
                 <FormLabel>BP Systolic (mmHg)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 120" {...field} />
+                  <Input type="number" placeholder="e.g., 120" {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -186,7 +215,7 @@ export default function ERTriageForm() {
               <FormItem>
                 <FormLabel>BP Diastolic (mmHg)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 80" {...field} />
+                  <Input type="number" placeholder="e.g., 80" {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -199,7 +228,7 @@ export default function ERTriageForm() {
               <FormItem>
                 <FormLabel>Resp Rate (br/min)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 16" {...field} />
+                  <Input type="number" placeholder="e.g., 16" {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -212,7 +241,7 @@ export default function ERTriageForm() {
               <FormItem>
                 <FormLabel>Temperature (°C)</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.1" placeholder="e.g., 36.6" {...field} />
+                  <Input type="number" step="0.1" placeholder="e.g., 36.6" {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -225,7 +254,7 @@ export default function ERTriageForm() {
               <FormItem>
                 <FormLabel>SpO2 (%)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 98" {...field} />
+                  <Input type="number" placeholder="e.g., 98" {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -244,6 +273,7 @@ export default function ERTriageForm() {
                   placeholder="Enter triage assessment notes..."
                   className="resize-none"
                   {...field}
+                  value={field.value ?? ''} // Ensure value is not undefined
                 />
               </FormControl>
               <FormMessage />

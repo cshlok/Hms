@@ -34,6 +34,19 @@ interface Appointment {
   reason: string;
 }
 
+// FIX: Define API response types
+interface PermissionApiResponse {
+  hasPermission?: boolean;
+  error?: string;
+}
+
+// Assuming the API returns an array directly, adjust if it returns { results: Appointment[] }
+type AppointmentsApiResponse = Appointment[];
+
+interface ApiErrorResponse {
+  error?: string;
+}
+
 interface OPDAppointmentListProps {
   date: Date;
 }
@@ -64,8 +77,9 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
           return;
         }
 
-        const checkInData = await checkInRes.json();
-        const cancelData = await cancelRes.json();
+        // FIX: Type the response data
+        const checkInData: PermissionApiResponse = await checkInRes.json();
+        const cancelData: PermissionApiResponse = await cancelRes.json();
 
         setCanCheckIn(checkInData.hasPermission || false);
         setCanCancel(cancelData.hasPermission || false);
@@ -91,13 +105,28 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
         const response = await fetch(`/api/appointments?date=${formattedDate}`);
 
         if (!response.ok) {
-          throw new Error("Failed to fetch appointments");
+          let errorMsg = "Failed to fetch appointments";
+          try {
+            const errorData: ApiErrorResponse = await response.json();
+            errorMsg = errorData.error || errorMsg;
+          } catch (jsonError) { /* Ignore */ }
+          throw new Error(errorMsg);
         }
 
-        const data = await response.json();
-        setAppointments(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        // FIX: Type the response data
+        const data: AppointmentsApiResponse = await response.json();
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setAppointments(data);
+        } else {
+          // Handle cases where API might return { results: [...] } or other formats
+          console.warn("Unexpected API response format for appointments:", data);
+          setAppointments([]); // Default to empty array on unexpected format
+        }
+
+      } catch (err: unknown) { // FIX: Use unknown
+        const messageText = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(messageText);
         console.error("Error fetching appointments:", err);
       } finally {
         setLoading(false);
@@ -114,7 +143,12 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to check in patient");
+        let errorMsg = "Failed to check in patient";
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
 
       // Update the appointment status in the local state
@@ -124,9 +158,11 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
           : appointment
       ));
 
-    } catch (err) {
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : "An unknown error occurred";
       console.error("Error checking in patient:", err);
-      // Show error notification
+      // TODO: Show error notification to user (e.g., using toast)
+      alert(`Error: ${messageText}`); // Placeholder alert
     }
   };
 
@@ -137,7 +173,12 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to cancel appointment");
+        let errorMsg = "Failed to cancel appointment";
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
 
       // Update the appointment status in the local state
@@ -147,9 +188,11 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
           : appointment
       ));
 
-    } catch (err) {
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : "An unknown error occurred";
       console.error("Error cancelling appointment:", err);
-      // Show error notification
+      // TODO: Show error notification to user
+      alert(`Error: ${messageText}`); // Placeholder alert
     }
   };
 
@@ -167,7 +210,7 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
         return <Badge variant="default">In Progress</Badge>;
       case "completed":
         // Assuming a 'success' variant exists for Badge
-        return <Badge variant="default" className="bg-green-500 text-white">Completed</Badge>; 
+        return <Badge variant="default" className="bg-green-500 text-white hover:bg-green-600">Completed</Badge>; 
       case "cancelled":
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
@@ -279,4 +322,5 @@ export default function OPDAppointmentList({ date }: OPDAppointmentListProps) {
     </div>
   );
 }
+
 

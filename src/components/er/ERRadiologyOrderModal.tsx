@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast"; // FIX: Import useToast hook
 
 // Define the schema for the radiology order form using Zod
 const radiologyOrderFormSchema = z.object({
@@ -66,6 +66,7 @@ export default function ERRadiologyOrderModal({
   onSuccess 
 }: ERRadiologyOrderModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast(); // FIX: Get toast function from hook
 
   const form = useForm<RadiologyOrderFormValues>({
     resolver: zodResolver(radiologyOrderFormSchema),
@@ -109,11 +110,17 @@ export default function ERRadiologyOrderModal({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create radiology order");
+        let errorMsg = "Failed to create radiology order";
+        try {
+          const errorData: { error?: string } = await response.json(); // FIX: Add type for errorData
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) {
+          // Ignore if response is not JSON
+        }
+        throw new Error(errorMsg);
       }
 
-      const newOrder = await response.json();
+      const newOrder: { id: string } = await response.json(); // FIX: Add basic type for newOrder
 
       // TODO: Update ER visit status/indicators (e.g., radPending = true)
       // This might require another API call or be handled by backend logic
@@ -233,3 +240,4 @@ export default function ERRadiologyOrderModal({
     </Dialog>
   );
 }
+

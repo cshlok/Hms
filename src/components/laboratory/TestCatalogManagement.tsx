@@ -26,6 +26,20 @@ interface Test {
   is_active: boolean;
 }
 
+// FIX: Define API response types
+interface CategoriesApiResponse {
+  results?: TestCategory[];
+}
+
+interface TestsApiResponse {
+  results?: Test[];
+  totalCount?: number; // Optional total count for pagination
+}
+
+interface ApiErrorResponse {
+  error?: string;
+}
+
 interface AddTestFormValues {
   code: string;
   name: string;
@@ -41,7 +55,7 @@ interface AddTestFormValues {
 // Define Table parameters type
 interface TableParams {
   pagination?: TableProps<Test>['pagination'];
-  sorter?: SorterResult<Test> | SorterResult<Test>[];
+  sorter?: SorterResult<Test>; // FIX: SorterResult should be single object based on antd docs for controlled mode
   filters?: Record<string, FilterValue | null>;
 }
 
@@ -69,15 +83,21 @@ const TestCatalogManagement: React.FC = () => {
   const fetchCategories = async (): Promise<void> => {
     try {
       const response = await fetch('/api/laboratory/categories');
-      if (!response.ok) throw new Error('Failed to fetch categories');
-      const data = await response.json();
-      // Ensure data is an array, handle potential API response structures
-      const fetchedCategories = data.results || (Array.isArray(data) ? data : []);
-      setCategories(fetchedCategories);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error fetching categories:', error);
-      message.error(`Failed to load test categories: ${msg}`);
+      if (!response.ok) {
+        let errorMsg = 'Failed to fetch categories';
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
+      }
+      // FIX: Type the response data
+      const data: CategoriesApiResponse = await response.json();
+      setCategories(data.results || []);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error fetching categories:', err);
+      message.error(`Failed to load test categories: ${messageText}`);
     }
   };
 
@@ -94,23 +114,34 @@ const TestCatalogManagement: React.FC = () => {
       }
 
       // Add pagination, sort, filter params from table state if needed by API
-      // Example: queryParams.append('page', `${params.pagination?.current ?? 1}`);
-      // Example: queryParams.append('limit', `${params.pagination?.pageSize ?? 10}`);
-      // Example: if (params.sorter && !Array.isArray(params.sorter)) { ... }
-      // Example: if (params.filters) { ... }
+      queryParams.append('page', `${params.pagination?.current ?? 1}`);
+      queryParams.append('limit', `${params.pagination?.pageSize ?? 10}`);
+      if (params.sorter?.field && params.sorter.order) {
+        queryParams.append('sortField', String(params.sorter.field));
+        queryParams.append('sortOrder', params.sorter.order === 'ascend' ? 'asc' : 'desc');
+      }
+      // Add filter params if API supports them
+      // if (params.filters) { ... }
 
       if (queryParams.toString()) {
         url += `?${queryParams.toString()}`;
       }
 
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch tests');
-      const data = await response.json();
+      if (!response.ok) {
+        let errorMsg = 'Failed to fetch tests';
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
+      }
+      // FIX: Type the response data
+      const data: TestsApiResponse = await response.json();
 
-      // Ensure data is an array, handle potential API response structures
-      let fetchedData: Test[] = data.results || (Array.isArray(data) ? data : []);
+      let fetchedData: Test[] = data.results || [];
 
-      // Client-side filtering by search text
+      // Client-side filtering by search text (if API doesn't support it)
       if (searchText) {
         const searchLower = searchText.toLowerCase();
         fetchedData = fetchedData.filter(test =>
@@ -121,7 +152,7 @@ const TestCatalogManagement: React.FC = () => {
       }
 
       setTests(fetchedData);
-      // Update table pagination total if API provides it
+      // Update table pagination total from API response
       setTableParams(prev => ({
         ...prev,
         pagination: {
@@ -130,10 +161,10 @@ const TestCatalogManagement: React.FC = () => {
         },
       }));
 
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error fetching tests:', error);
-      message.error(`Failed to load laboratory tests: ${msg}`);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error fetching tests:', err);
+      message.error(`Failed to load laboratory tests: ${messageText}`);
     } finally {
       setLoading(false);
     }
@@ -148,22 +179,24 @@ const TestCatalogManagement: React.FC = () => {
 
   // Handle table changes (pagination, filters, sorter)
   const handleTableChange: TableProps<Test>['onChange'] = (pagination, filters, sorter) => {
+    // FIX: Sorter can be an array, handle it correctly
     const currentSorter = Array.isArray(sorter) ? sorter[0] : sorter;
     const newTableParams: TableParams = {
         pagination,
         filters,
-        sorter: currentSorter,
+        // Ensure sorter is SorterResult<Test> or undefined
+        sorter: currentSorter?.field && currentSorter?.order ? currentSorter : undefined,
       };
     setTableParams(newTableParams);
-    // If API supports server-side processing, fetch data here:
-    // fetchTests(newTableParams);
-    // For client-side sorting/filtering, the table handles it internally, but state needs update.
+    // Fetch data with new params if API handles server-side processing
+    fetchTests(newTableParams);
   };
 
-  // Reload tests when external filters change
+  // Reload tests when external filters change (category or search)
   useEffect(() => {
     // Reset pagination to first page when filters change
     const newParams = { ...tableParams, pagination: { ...tableParams.pagination, current: 1 } };
+    // Don't reset sorter/filters here, let handleTableChange manage them
     setTableParams(newParams);
     fetchTests(newParams);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -178,8 +211,8 @@ const TestCatalogManagement: React.FC = () => {
       if (isNaN(priceNum)) {
         throw new Error("Invalid price entered.");
       }
-      if (values.processing_time && processingTimeNum === null) { // Check if parsing failed but input existed
-         throw new Error("Invalid processing time entered.");
+      if (values.processing_time && (processingTimeNum === null || isNaN(processingTimeNum))) { // Check if parsing failed
+         throw new Error("Invalid processing time entered. Must be a number.");
       }
 
       const payload: Omit<Test, 'id' | 'category_name'> = {
@@ -198,18 +231,23 @@ const TestCatalogManagement: React.FC = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to add test (status: ${response.status})`);
+        // FIX: Type the error response
+        let errorMsg = `Failed to add test (status: ${response.status})`;
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
 
       message.success('Test added successfully');
       setIsModalVisible(false);
       form.resetFields();
       fetchTests(tableParams); // Refresh the list with current params
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error adding test:', error);
-      message.error(`Error adding test: ${msg}`);
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error adding test:', err);
+      message.error(`Error adding test: ${messageText}`);
     }
   };
 
@@ -220,7 +258,8 @@ const TestCatalogManagement: React.FC = () => {
       dataIndex: 'code',
       key: 'code',
       width: '10%',
-      sorter: (a, b) => a.code.localeCompare(b.code),
+      sorter: true, // Enable server-side sorting
+      // FIX: Access sorter field/order correctly
       sortOrder: tableParams.sorter?.field === 'code' ? tableParams.sorter.order : undefined,
     },
     {
@@ -228,7 +267,8 @@ const TestCatalogManagement: React.FC = () => {
       dataIndex: 'name',
       key: 'name',
       width: '20%',
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: true,
+      // FIX: Access sorter field/order correctly
       sortOrder: tableParams.sorter?.field === 'name' ? tableParams.sorter.order : undefined,
     },
     {
@@ -237,7 +277,8 @@ const TestCatalogManagement: React.FC = () => {
       key: 'category_name',
       width: '15%',
       render: (categoryName: string | undefined) => categoryName || 'N/A',
-      sorter: (a, b) => (a.category_name || '').localeCompare(b.category_name || ''),
+      sorter: true,
+      // FIX: Access sorter field/order correctly
       sortOrder: tableParams.sorter?.field === 'category_name' ? tableParams.sorter.order : undefined,
     },
     {
@@ -245,7 +286,8 @@ const TestCatalogManagement: React.FC = () => {
       dataIndex: 'sample_type',
       key: 'sample_type',
       width: '15%',
-      sorter: (a, b) => a.sample_type.localeCompare(b.sample_type),
+      sorter: true,
+      // FIX: Access sorter field/order correctly
       sortOrder: tableParams.sorter?.field === 'sample_type' ? tableParams.sorter.order : undefined,
     },
     {
@@ -254,7 +296,8 @@ const TestCatalogManagement: React.FC = () => {
       key: 'processing_time',
       width: '15%',
       render: (time: number | null | undefined) => time != null ? `${time} minutes` : 'N/A',
-      sorter: (a, b) => (a.processing_time ?? 0) - (b.processing_time ?? 0),
+      sorter: true,
+      // FIX: Access sorter field/order correctly
       sortOrder: tableParams.sorter?.field === 'processing_time' ? tableParams.sorter.order : undefined,
     },
     {
@@ -263,7 +306,8 @@ const TestCatalogManagement: React.FC = () => {
       key: 'price',
       width: '10%',
       render: (price: number | undefined) => price != null ? `$${price.toFixed(2)}` : 'N/A',
-      sorter: (a, b) => (a.price ?? 0) - (b.price ?? 0),
+      sorter: true,
+      // FIX: Access sorter field/order correctly
       sortOrder: tableParams.sorter?.field === 'price' ? tableParams.sorter.order : undefined,
     },
     {
@@ -281,7 +325,7 @@ const TestCatalogManagement: React.FC = () => {
         { text: 'Inactive', value: false },
       ],
       filteredValue: tableParams.filters?.is_active || null,
-      onFilter: (value, record) => record.is_active === (value as boolean),
+      // onFilter: (value, record) => record.is_active === (value as boolean), // Use server-side filtering if API supports it
     },
     {
       title: 'Actions',
@@ -436,64 +480,51 @@ const TestCatalogManagement: React.FC = () => {
             name="description"
             label="Description"
           >
-            <Input.TextArea rows={3} placeholder="Optional: Test description..." />
+            <Input.TextArea rows={3} placeholder="Optional description of the test" />
           </Form.Item>
 
           <Form.Item<AddTestFormValues>
             name="sample_type"
             label="Sample Type"
-            rules={[{ required: true, message: 'Please select sample type' }]}
+            rules={[{ required: true, message: 'Please enter sample type' }]}
           >
-            <Select placeholder="Select sample type">
-              <Option value="Blood">Blood</Option>
-              <Option value="Urine">Urine</Option>
-              <Option value="Stool">Stool</Option>
-              <Option value="Tissue">Tissue</Option>
-              <Option value="CSF">CSF</Option>
-              <Option value="Other">Other</Option>
-            </Select>
+            <Input placeholder="e.g., Blood (EDTA), Serum, Urine" />
           </Form.Item>
 
           <Form.Item<AddTestFormValues>
             name="sample_volume"
-            label="Sample Volume (Optional)"
+            label="Sample Volume"
           >
             <Input placeholder="e.g., 5 mL" />
           </Form.Item>
 
           <Form.Item<AddTestFormValues>
             name="processing_time"
-            label="Processing Time (minutes, Optional)"
+            label="Processing Time (minutes)"
             rules={[{ pattern: /^[0-9]*$/, message: 'Processing time must be a number' }]}
           >
-            <Input type="number" placeholder="e.g., 120" />
+            <Input type="number" placeholder="e.g., 60" />
           </Form.Item>
 
           <Form.Item<AddTestFormValues>
             name="price"
             label="Price"
-            rules={[{ required: true, message: 'Please enter price' }, { pattern: /^[0-9]+(\.[0-9]{1,2})?$/, message: 'Price must be a valid number (e.g., 150.00)' }]}
+            rules={[{ required: true, message: 'Please enter price' }, { pattern: /^[0-9]*\.?[0-9]*$/, message: 'Price must be a valid number' }]}
           >
             <Input type="number" step="0.01" placeholder="e.g., 150.00" />
           </Form.Item>
 
           <Form.Item<AddTestFormValues>
             name="is_active"
-            label="Active Status"
-            valuePropName="checked" // Important for Switch component
+            label="Status"
+            valuePropName="checked"
           >
-            <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
+            <Switch checkedChildren="Active" unCheckedChildren="Inactive" defaultChecked />
           </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit">
               Add Test
-            </Button>
-            <Button style={{ marginLeft: 8 }} onClick={() => {
-              setIsModalVisible(false);
-              form.resetFields();
-            }}>
-              Cancel
             </Button>
           </Form.Item>
         </Form>

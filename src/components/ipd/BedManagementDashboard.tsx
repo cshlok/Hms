@@ -14,7 +14,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"; // Assuming Table components are correctly imported
-import { Badge } from "@/components/ui/badge"; // Assuming Badge is correctly imported
+import { Badge, BadgeProps } from "@/components/ui/badge"; // FIX: Import BadgeProps
 import { Button } from "@/components/ui/button"; // Assuming Button is correctly imported
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Assuming Select components are correctly imported
 
@@ -30,6 +30,14 @@ interface Bed {
   features?: string | null; // Comma-separated string
   // Add other bed properties if any
 }
+
+// FIX: Define type for API error response
+interface ApiErrorResponse {
+  error?: string;
+}
+
+// FIX: Define type for API success response (assuming it returns an array of beds)
+type BedsApiResponse = Bed[];
 
 type BedStatus = Bed["status"];
 type BedCategory = Bed["category"];
@@ -58,20 +66,29 @@ const BedManagementDashboard: React.FC = () => {
         setError(null);
 
         const params = new URLSearchParams();
-        if (filterWard && filterWard !== "All") params.append("ward", filterWard);
-        if (filterCategory && filterCategory !== "All") params.append("category", filterCategory);
-        if (filterStatus && filterStatus !== "All") params.append("status", filterStatus);
+        // FIX: Rely on falsiness of "" for "All" filter
+        if (filterWard) params.append("ward", filterWard);
+        if (filterCategory) params.append("category", filterCategory);
+        if (filterStatus) params.append("status", filterStatus);
 
         const response = await fetch(`/api/ipd/beds?${params.toString()}`);
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `Failed to fetch beds (status: ${response.status})`);
+          let errorMsg = `Failed to fetch beds (status: ${response.status})`;
+          try {
+            // FIX: Add type for errorData
+            const errorData: ApiErrorResponse = await response.json();
+            errorMsg = errorData.error || errorMsg;
+          } catch (jsonError) {
+            // Ignore if response is not JSON
+          }
+          throw new Error(errorMsg);
         }
 
-        const data: Bed[] = await response.json();
-        setBeds(data || []); // Ensure beds is always an array
-      } catch (err) {
+        // FIX: Use defined type for success response
+        const data: BedsApiResponse = await response.json();
+        setBeds(Array.isArray(data) ? data : []); // Ensure beds is always an array
+      } catch (err: unknown) { // FIX: Use unknown for catch block
         const message = err instanceof Error ? err.message : "An unknown error occurred";
         console.error("Error fetching beds:", err);
         setError(`Failed to load beds: ${message}`);
@@ -85,10 +102,12 @@ const BedManagementDashboard: React.FC = () => {
   }, [filterWard, filterCategory, filterStatus]);
 
   // Get bed status color variant for Badge
-  const getBedStatusVariant = (status: BedStatus): "default" | "destructive" | "secondary" | "outline" | "success" => {
+  // FIX: Ensure return type matches BadgeProps["variant"]
+  const getBedStatusVariant = (status: BedStatus): BadgeProps["variant"] => {
     switch (status) {
       case "available":
-        return "success"; // Assuming you have a success variant
+        // return "success"; // Assuming you have a success variant
+        return "default"; // FIX: Map to an existing variant, maybe style differently via className
       case "occupied":
         return "destructive";
       case "reserved":
@@ -227,7 +246,8 @@ const BedManagementDashboard: React.FC = () => {
                       <TableCell>{bed.ward}</TableCell>
                       <TableCell className="capitalize">{bed.category}</TableCell>
                       <TableCell>
-                        <Badge variant={getBedStatusVariant(bed.status)} className="capitalize">
+                        {/* FIX: Add className for potential custom styling of 'available' status */}
+                        <Badge variant={getBedStatusVariant(bed.status)} className={`capitalize ${bed.status === 'available' ? 'text-green-800 bg-green-100 dark:text-green-300 dark:bg-green-900/50' : ''}`}>
                           {bed.status}
                         </Badge>
                       </TableCell>

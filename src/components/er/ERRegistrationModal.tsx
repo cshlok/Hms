@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast"; // Changed import
+import { useToast } from "@/components/ui/use-toast";
 
 // Define the schema for the registration form using Zod
 const registrationFormSchema = z.object({
@@ -45,18 +45,47 @@ const registrationFormSchema = z.object({
 
 type RegistrationFormValues = z.infer<typeof registrationFormSchema>;
 
+// FIX: Define type for API error response
+interface ApiErrorResponse {
+  error?: string;
+}
+
+// FIX: Define type for the ER Visit API response
+interface ERVisitResponse {
+  id: string; // Assuming visit ID is a string
+  patient_id: string;
+  visit_number: string;
+  // Add other relevant fields returned by the API
+}
+
+// FIX: Define type for the Patient API response (if creating new)
+interface PatientResponse {
+  id: string; // Assuming patient ID is a string
+  // Add other relevant fields
+}
+
+// FIX: Define type for the found patient data
+interface FoundPatient {
+  id: string;
+  firstName: string;
+  lastName: string;
+  dob: string;
+  sex: "Male" | "Female" | "Other";
+}
+
 interface ERRegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // Optional: Callback after successful registration
-  onSuccess?: (newVisit: any) => void; 
+  // FIX: Use defined type for onSuccess callback
+  onSuccess?: (newVisit: ERVisitResponse) => void; 
 }
 
 export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRegistrationModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [foundPatient, setFoundPatient] = useState<any>(null); // Store found patient data
-  const { toast } = useToast(); // Added hook call
+  // FIX: Use defined type for foundPatient state
+  const [foundPatient, setFoundPatient] = useState<FoundPatient | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationFormSchema),
@@ -86,12 +115,13 @@ export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRe
         await new Promise(resolve => setTimeout(resolve, 700));
         // Mock finding a patient
         if (mrn === "MRN001") { 
-            const patientData = { id: "patient_123", firstName: "John", lastName: "Doe", dob: "1959-01-15", sex: "Male" };
+            // FIX: Use defined type for patientData
+            const patientData: FoundPatient = { id: "patient_123", firstName: "John", lastName: "Doe", dob: "1959-01-15", sex: "Male" };
             setFoundPatient(patientData);
             form.setValue("firstName", patientData.firstName);
             form.setValue("lastName", patientData.lastName);
             form.setValue("dob", patientData.dob);
-            form.setValue("sex", patientData.sex as any);
+            form.setValue("sex", patientData.sex);
             toast({ title: "Patient Found", description: `Found ${patientData.firstName} ${patientData.lastName}.` });
         } else {
             toast({ title: "Patient Not Found", description: `No patient found with MRN ${mrn}. Please enter details manually.`, variant: "destructive" });
@@ -117,7 +147,8 @@ export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRe
           console.log("Creating new patient...");
           // TODO: Implement API call: POST /api/patients
           // const patientResponse = await fetch("/api/patients", { ... });
-          // const newPatient = await patientResponse.json();
+          // if (!patientResponse.ok) { ... handle error ... }
+          // const newPatient: PatientResponse = await patientResponse.json();
           // patientId = newPatient.id;
           
           // Mock new patient creation
@@ -125,6 +156,7 @@ export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRe
           patientId = `new_patient_${Date.now()}`;
           console.log(`Mock patient created with ID: ${patientId}`);
         } else {
+          // This case should ideally be prevented by the form validation (refine)
           throw new Error("Patient details incomplete for new registration.");
         }
       }
@@ -145,14 +177,22 @@ export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRe
       });
 
       if (!visitResponse.ok) {
-        const errorData = await visitResponse.json();
-        throw new Error(errorData.error || "Failed to create ER visit");
+        let errorMsg = "Failed to create ER visit";
+        try {
+            // FIX: Use defined type for errorData
+            const errorData: ApiErrorResponse = await visitResponse.json();
+            errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) {
+            // Ignore if response is not JSON
+        }
+        throw new Error(errorMsg);
       }
 
-      const newVisit = await visitResponse.json();
+      // FIX: Use defined type for newVisit
+      const newVisit: ERVisitResponse = await visitResponse.json();
       toast({
         title: "ER Visit Registered",
-        description: `Visit ${newVisit.id} created for patient ${patientId}.`,
+        description: `Visit ${newVisit.visit_number || newVisit.id} created for patient ${patientId}.`,
       });
       
       if (onSuccess) {
@@ -162,11 +202,12 @@ export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRe
       setFoundPatient(null);
       onClose(); // Close modal on success
 
-    } catch (error: any) {
+    } catch (error: unknown) { // FIX: Use unknown for catch block
       console.error("Registration submission error:", error);
+      const message = error instanceof Error ? error.message : "An unexpected error occurred.";
       toast({
         title: "Registration Failed",
-        description: error.message || "An unexpected error occurred.",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -256,7 +297,7 @@ export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRe
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Sex</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!foundPatient}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!!foundPatient}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select Sex" />
@@ -294,7 +335,7 @@ export default function ERRegistrationModal({ isOpen, onClose, onSuccess }: ERRe
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Arrival Mode</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select Arrival Mode" />

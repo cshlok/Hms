@@ -1,7 +1,7 @@
 // src/components/er/ERPatientAdmitModal.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // FIX: Added useEffect
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -25,7 +25,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
+// FIX: Remove direct import of toast
+// import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast"; // FIX: Use the hook
+
+// --- INTERFACES ---
 
 // Define the schema for the admission form using Zod
 const admitFormSchema = z.object({
@@ -51,6 +55,17 @@ interface ERPatientAdmitModalProps {
   onSuccess?: () => void;
 }
 
+// FIX: Define interface for expected API error response
+interface ApiErrorResponse {
+  error: string;
+}
+
+// FIX: Define interface for expected admission success response
+interface AdmissionSuccessResponse {
+  id: string; // Assuming the API returns the new admission ID
+  // Add other properties returned by the API on success
+}
+
 export default function ERPatientAdmitModal({ 
   isOpen, 
   onClose, 
@@ -58,6 +73,7 @@ export default function ERPatientAdmitModal({
   onSuccess 
 }: ERPatientAdmitModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast(); // FIX: Use the hook
 
   const form = useForm<AdmitFormValues>({
     resolver: zodResolver(admitFormSchema),
@@ -73,13 +89,19 @@ export default function ERPatientAdmitModal({
   });
 
   // Update form when visitData changes
-  useState(() => {
+  useEffect(() => { // FIX: Changed useState to useEffect
     if (visitData) {
-      form.setValue("visitId", visitData.id);
-      form.setValue("patientName", visitData.patientName);
-      form.setValue("admissionReason", visitData.chiefComplaint);
+      form.reset({
+        visitId: visitData.id,
+        patientName: visitData.patientName,
+        admittingDoctorId: "", // Keep doctor selection empty
+        admissionNotes: "",
+        wardType: "",
+        bedPreference: "",
+        admissionReason: visitData.chiefComplaint || "",
+      });
     }
-  });
+  }, [visitData, form]); // FIX: Added dependencies
 
   async function onSubmit(data: AdmitFormValues) {
     setIsLoading(true);
@@ -102,12 +124,26 @@ export default function ERPatientAdmitModal({
         }),
       });
 
-      if (!admissionResponse.ok) {
-        const errorData = await admissionResponse.json();
-        throw new Error(errorData.error || "Failed to create admission");
+      // Try parsing JSON regardless of status for error messages
+      let admissionResponseData: any;
+      try {
+        admissionResponseData = await admissionResponse.json();
+      } catch (jsonError) {
+        if (!admissionResponse.ok) {
+          throw new Error(`HTTP error ${admissionResponse.status}: Failed to create admission. Invalid response from server.`);
+        }
+        admissionResponseData = {}; // OK but no JSON body
       }
 
-      const newAdmission = await admissionResponse.json();
+      if (!admissionResponse.ok) {
+        // FIX: Cast errorData and access error message safely
+        const errorData = admissionResponseData as ApiErrorResponse;
+        throw new Error(errorData?.error || `HTTP error ${admissionResponse.status}: Failed to create admission`);
+      }
+
+      // FIX: Cast newAdmission to the success response type
+      const newAdmission = admissionResponseData as AdmissionSuccessResponse;
+      console.log("Admission created:", newAdmission);
 
       // Step 2: Update ER visit status
       // TODO: Implement API call: PUT /api/er/visits/[id]
@@ -117,17 +153,32 @@ export default function ERPatientAdmitModal({
         body: JSON.stringify({
           current_status: "Admitted",
           disposition: "Admitted to IPD",
+          // Optionally link admission_id if backend supports it
+          // admission_id: newAdmission?.id 
         }),
       });
 
-      if (!visitResponse.ok) {
-        const errorData = await visitResponse.json();
-        throw new Error(errorData.error || "Failed to update ER visit status");
+      let visitResponseData: any;
+      try {
+        visitResponseData = await visitResponse.json();
+      } catch (jsonError) {
+        if (!visitResponse.ok) {
+          throw new Error(`HTTP error ${visitResponse.status}: Failed to update ER visit status. Invalid response from server.`);
+        }
+        visitResponseData = {}; // OK but no JSON body
       }
+
+      if (!visitResponse.ok) {
+        // FIX: Cast errorData and access error message safely
+        const errorData = visitResponseData as ApiErrorResponse;
+        throw new Error(errorData?.error || `HTTP error ${visitResponse.status}: Failed to update ER visit status`);
+      }
+
+      console.log("ER Visit status updated");
 
       toast({
         title: "Patient Admitted",
-        description: `Admission created successfully. Awaiting bed assignment.`,
+        description: `Admission ${newAdmission?.id || "(ID not returned)"} created. Awaiting bed assignment.`,
       });
       
       if (onSuccess) {
@@ -136,11 +187,11 @@ export default function ERPatientAdmitModal({
       form.reset();
       onClose();
 
-    } catch (error: any) {
+    } catch (error: unknown) { // FIX: Use unknown for catch block error
       console.error("Admission error:", error);
       toast({
         title: "Admission Failed",
-        description: error.message || "An unexpected error occurred.",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
@@ -148,7 +199,7 @@ export default function ERPatientAdmitModal({
     }
   }
 
-  // Mock data for doctors and ward types
+  // Mock data for doctors and ward types - Replace with API fetches
   const doctors = [
     { id: "doctor_1", name: "Dr. Smith" },
     { id: "doctor_2", name: "Dr. Jones" },
@@ -165,17 +216,17 @@ export default function ERPatientAdmitModal({
   ];
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}> {/* Ensure close on overlay click */}
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Admit Patient to IPD</DialogTitle>
           <DialogDescription>
-            Create an inpatient admission for this ER patient.
+            Create an inpatient admission for ER patient: {visitData?.patientName || "N/A"}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="patientName"
@@ -183,7 +234,7 @@ export default function ERPatientAdmitModal({
                   <FormItem>
                     <FormLabel>Patient Name</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled />
+                      <Input {...field} disabled className="bg-gray-100 dark:bg-gray-700" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -196,7 +247,7 @@ export default function ERPatientAdmitModal({
                   <FormItem>
                     <FormLabel>ER Visit ID</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled />
+                      <Input {...field} disabled className="bg-gray-100 dark:bg-gray-700" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -210,6 +261,7 @@ export default function ERPatientAdmitModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Admitting Doctor</FormLabel>
+                  {/* TODO: Replace mock data with API fetch for doctors */}
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -232,7 +284,8 @@ export default function ERPatientAdmitModal({
               name="wardType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ward Type</FormLabel>
+                  <FormLabel>Requested Ward Type</FormLabel>
+                   {/* TODO: Replace mock data with API fetch for ward types */}
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -257,7 +310,7 @@ export default function ERPatientAdmitModal({
                 <FormItem>
                   <FormLabel>Bed Preference (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Near window, ground floor" {...field} />
+                    <Input placeholder="e.g., Near window, ground floor" {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -269,12 +322,13 @@ export default function ERPatientAdmitModal({
               name="admissionReason"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Admission Reason</FormLabel>
+                  <FormLabel>Admission Reason / Diagnosis</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Reason for admission..."
+                      placeholder="Primary reason for admission..."
                       className="resize-none"
                       {...field}
+                      rows={3}
                     />
                   </FormControl>
                   <FormMessage />
@@ -290,9 +344,11 @@ export default function ERPatientAdmitModal({
                   <FormLabel>Additional Notes (Optional)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Any additional notes for the admission..."
+                      placeholder="Any additional notes for the admission team..."
                       className="resize-none"
                       {...field}
+                      value={field.value ?? ""}
+                      rows={3}
                     />
                   </FormControl>
                   <FormMessage />
@@ -300,12 +356,12 @@ export default function ERPatientAdmitModal({
               )}
             />
 
-            <DialogFooter>
+            <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Processing..." : "Admit Patient"}
+              <Button type="submit" disabled={isLoading || !form.formState.isValid}>
+                {isLoading ? "Processing Admission..." : "Admit Patient"}
               </Button>
             </DialogFooter>
           </form>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card"; // FIX: Add missing imports
 import { Edit, Trash2, ListChecks } from "lucide-react";
 
 // Mock data structure - replace with actual API response type
@@ -40,6 +41,7 @@ export default function OTChecklistTemplateList() {
         // setTemplates(data);
 
         // Mock data for demonstration
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
         const mockData: ChecklistTemplate[] = [
           {
             id: "clt-1",
@@ -147,3 +149,4 @@ export default function OTChecklistTemplateList() {
     </Card>
   );
 }
+

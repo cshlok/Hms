@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card"; // FIX: Add missing imports
 import { Edit, Trash2 } from "lucide-react";
 
 // Mock data structure - replace with actual API response type
@@ -35,6 +36,7 @@ export default function OTSurgeryTypeList() {
         // setSurgeryTypes(data);
 
         // Mock data for demonstration
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
         const mockData: SurgeryType[] = [
           {
             id: "st-1",
@@ -129,3 +131,4 @@ export default function OTSurgeryTypeList() {
     </Card>
   );
 }
+

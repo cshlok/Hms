@@ -1,4 +1,3 @@
-// src/app/dashboard/billing/create-invoice/page.tsx
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -45,12 +44,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { X, Plus, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils"; // Assuming you have this utility
 
+// --- INTERFACES ---
 interface Patient {
   id: number;
-  name: string;
+  name: string; // Combined first/last or display name
   mrn: string;
-  first_name: string;
-  last_name: string;
+  first_name?: string; // Optional if 'name' is primary display
+  last_name?: string;  // Optional if 'name' is primary display
 }
 
 interface ServiceItem {
@@ -66,6 +66,24 @@ interface InvoiceItem extends ServiceItem {
   subtotal: number;
 }
 
+// --- API Response Interfaces ---
+interface PatientsApiResponse {
+  patients: Patient[];
+  // Add other potential properties if known
+}
+
+interface ServiceItemsApiResponse {
+  serviceItems: ServiceItem[];
+  // Add other potential properties if known
+}
+
+interface ErrorResponse {
+  error?: string;
+  message?: string; // Common alternative
+  // Add other potential properties
+}
+
+// --- COMPONENT ---
 export default function CreateInvoicePage() {
   const router = useRouter();
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -88,14 +106,18 @@ export default function CreateInvoicePage() {
   // Fetch Patients from real API
   const fetchPatients = useCallback(async (search: string) => {
     setLoadingPatients(true);
+    setError(null); // Clear previous errors
     try {
       const response = await fetch(`/api/patients?search=${encodeURIComponent(search)}`);
       if (!response.ok) throw new Error("Failed to fetch patients");
-      const data = await response.json();
-      setPatients(data.patients || []);
+      // FIX: Cast response JSON to defined type
+      const data = await response.json() as PatientsApiResponse;
+      // Ensure data.patients is an array before setting state
+      setPatients(Array.isArray(data?.patients) ? data.patients : []);
     } catch (err) {
       console.error("Failed to fetch patients:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch patients");
+      setPatients([]); // Clear patients on error
     } finally {
       setLoadingPatients(false);
     }
@@ -104,41 +126,54 @@ export default function CreateInvoicePage() {
   // Fetch Service Items
   const fetchServiceItems = useCallback(async (search: string) => {
     setLoadingServices(true);
+    setError(null); // Clear previous errors
     try {
       const response = await fetch(`/api/billing/service-items?search=${encodeURIComponent(search)}`);
       if (!response.ok) throw new Error("Failed to fetch service items");
-      const data = await response.json();
-      setServiceItems(data.serviceItems || []);
+      // FIX: Cast response JSON to defined type
+      const data = await response.json() as ServiceItemsApiResponse;
+       // Ensure data.serviceItems is an array before setting state
+      setServiceItems(Array.isArray(data?.serviceItems) ? data.serviceItems : []);
     } catch (err) {
       console.error("Failed to fetch service items:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch service items");
+      setServiceItems([]); // Clear service items on error
     } finally {
       setLoadingServices(false);
     }
   }, []);
 
-  // Debounce search
+  // Debounce search for patients
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (patientSearchTerm) fetchPatients(patientSearchTerm);
-      else setPatients([]); // Clear if search is empty
+      if (patientSearchTerm.trim()) { // Only search if term is not empty
+          fetchPatients(patientSearchTerm);
+      } else {
+          setPatients([]); // Clear if search is empty or just whitespace
+      }
     }, 300); // Debounce time
     return () => clearTimeout(handler);
   }, [patientSearchTerm, fetchPatients]);
 
+  // Debounce search for service items
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (serviceSearchTerm) fetchServiceItems(serviceSearchTerm);
-      else setServiceItems([]); // Clear if search is empty
+      if (serviceSearchTerm.trim()) { // Only search if term is not empty
+          fetchServiceItems(serviceSearchTerm);
+      } else {
+          setServiceItems([]); // Clear if search is empty or just whitespace
+      }
     }, 300); // Debounce time
     return () => clearTimeout(handler);
   }, [serviceSearchTerm, fetchServiceItems]);
 
+
   // Add item to invoice
   const addInvoiceItem = (item: ServiceItem) => {
+    // The check `if (!item) return;` was already here, handling the null case.
     if (!item) return;
     const existingItemIndex = invoiceItems.findIndex(invItem => invItem.id === item.id);
-    
+
     if (existingItemIndex > -1) {
       // Increment quantity if item already exists
       const updatedItems = [...invoiceItems];
@@ -183,40 +218,49 @@ export default function CreateInvoicePage() {
       setError("Please select a patient and add at least one item.");
       return;
     }
-    
+
     setIsSubmitting(true);
     setError(null);
-    
+
     try {
       const invoiceData = {
         patient_id: selectedPatient.id,
         items: invoiceItems.map(item => ({
           service_item_id: item.id,
-          item_name: item.item_name,
-          description: item.item_name,
+          item_name: item.item_name, // Consider if description should be different
+          description: item.item_name, // Using item_name as description for now
           quantity: item.quantity,
           unit_price: item.unit_price,
           subtotal: item.subtotal,
         })),
         total_amount: invoiceTotal,
+        status: "pending", // Assuming a default status
       };
-      
+
       const response = await fetch("/api/billing/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(invoiceData),
       });
-      
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create invoice");
+        let errorMessage = "Failed to create invoice";
+        try {
+            // FIX: Cast error response JSON to defined type
+            const errorData = await response.json() as ErrorResponse;
+            errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${response.status}`;
+        } catch (jsonError) {
+            // Handle cases where response is not JSON or empty
+            errorMessage = `HTTP error! status: ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
-      
-      const result = await response.json();
+
+      const result = await response.json(); // Assuming success response has data, define interface if needed
       console.log("Invoice created:", result);
-      // Redirect to the billing dashboard
-      router.push("/dashboard/billing");
-      
+      // Consider showing a success toast message here
+      router.push("/dashboard/billing/invoices"); // Redirect to invoices list
+
     } catch (err) {
       console.error("Error creating invoice:", err);
       setError(err instanceof Error ? err.message : "An unknown error occurred during submission.");
@@ -225,16 +269,22 @@ export default function CreateInvoicePage() {
     }
   };
 
+  // --- JSX ---
   return (
-    <div className="container mx-auto py-8 px-4 md:px-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Create New Invoice</h1>
+    <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8 space-y-6"> {/* Added lg:px-8 */}
+      <div className="flex justify-between items-center mb-4"> {/* Added mb-4 */}
+        <h1 className="text-2xl font-semibold">Create New Invoice</h1>
+        <Button variant="outline" onClick={() => router.back()}>Back to Billing</Button> {/* Changed Cancel text */}
+      </div>
+
 
       {error && (
-        <div className="mb-4 text-red-600 border border-red-600 p-3 rounded-md">
+        <div className="mb-4 text-red-600 border border-red-600 bg-red-50 p-3 rounded-md"> {/* Added bg-red-50 */}
           Error: {error}
         </div>
       )}
 
+      {/* Patient Selection Card */}
       <Card>
         <CardHeader>
           <CardTitle>Patient Information</CardTitle>
@@ -251,45 +301,50 @@ export default function CreateInvoicePage() {
                 disabled={!!selectedPatient} // Disable if patient already selected
               >
                 {selectedPatient
-                  ? `${selectedPatient.name} (${selectedPatient.mrn})`
+                  ? `${selectedPatient.name} (MRN: ${selectedPatient.mrn})` // Added MRN label
                   : "Select patient..."}
                 {selectedPatient ? (
-                  <X className="ml-2 h-4 w-4 shrink-0 opacity-50" onClick={(e) => { e.stopPropagation(); setSelectedPatient(null); }} />
+                  <X className="ml-2 h-4 w-4 shrink-0 opacity-50 cursor-pointer" onClick={(e) => { e.stopPropagation(); setSelectedPatient(null); setPatientSearchTerm(''); }} /> // Added cursor-pointer and clear search term
                 ) : (
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-              <Command shouldFilter={false}> {/* Disable default filtering */}
-                <CommandInput 
-                  placeholder="Search patient by name or MRN..." 
+              <Command shouldFilter={false}> {/* Disable default filtering, handled by API */}
+                <CommandInput
+                  placeholder="Search patient by name or MRN..."
                   value={patientSearchTerm}
-                  onValueChange={setPatientSearchTerm}
+                  onValueChange={setPatientSearchTerm} // Let useEffect handle debounced fetching
                 />
                 <CommandList>
-                  {loadingPatients && <div className="p-2 text-center text-sm">Loading...</div>}
-                  <CommandEmpty>{!loadingPatients && "No patient found."}</CommandEmpty>
-                  <CommandGroup>
-                    {patients.map((patient) => (
-                      <CommandItem
-                        key={patient.id}
-                        value={`${patient.name} ${patient.mrn}`}
-                        onSelect={() => {
-                          setSelectedPatient(patient);
-                          setIsPatientPopoverOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {patient.name} ({patient.mrn})
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
+                  {loadingPatients && <div className="p-4 text-center text-sm text-muted-foreground">Loading patients...</div>} {/* Improved loading state */}
+                  {!loadingPatients && patients.length === 0 && patientSearchTerm && <CommandEmpty>No patient found matching "{patientSearchTerm}".</CommandEmpty>}
+                  {!loadingPatients && patients.length === 0 && !patientSearchTerm && <CommandEmpty>Type to search for patients.</CommandEmpty>}
+                  {!loadingPatients && patients.length > 0 && (
+                    <CommandGroup heading="Search Results"> {/* Added heading */}
+                      {patients.map((patient) => (
+                        <CommandItem
+                          key={patient.id}
+                          value={`${patient.name} ${patient.mrn}`} // Value used for potential filtering if enabled later
+                          onSelect={() => {
+                            setSelectedPatient(patient);
+                            setIsPatientPopoverOpen(false);
+                            setPatientSearchTerm(''); // Clear search after selection
+                          }}
+                          className="cursor-pointer" // Added cursor
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {patient.name} (MRN: {patient.mrn})
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
                 </CommandList>
               </Command>
             </PopoverContent>
@@ -297,14 +352,15 @@ export default function CreateInvoicePage() {
         </CardContent>
       </Card>
 
+      {/* Invoice Items Card */}
       <Card>
         <CardHeader>
           <CardTitle>Invoice Items</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Add Service Item */}
-          <div className="flex gap-2 items-end">
-            <div className="flex-grow">
+          <div className="flex flex-col sm:flex-row gap-2 items-end"> {/* Responsive layout */}
+            <div className="flex-grow w-full sm:w-auto"> {/* Full width on small screens */}
               <Label htmlFor="service-search">Add Service/Item</Label>
               <Popover open={isServicePopoverOpen} onOpenChange={setIsServicePopoverOpen}>
                 <PopoverTrigger asChild>
@@ -322,76 +378,90 @@ export default function CreateInvoicePage() {
                 </PopoverTrigger>
                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                   <Command shouldFilter={false}>
-                    <CommandInput 
-                      placeholder="Search by name or code..." 
+                    <CommandInput
+                      placeholder="Search by name or code..."
                       value={serviceSearchTerm}
                       onValueChange={setServiceSearchTerm}
                     />
                     <CommandList>
-                      {loadingServices && <div className="p-2 text-center text-sm">Loading...</div>}
-                      <CommandEmpty>{!loadingServices && "No service/item found."}</CommandEmpty>
-                      <CommandGroup>
-                        {serviceItems.map((item) => (
-                          <CommandItem
-                            key={item.id}
-                            value={`${item.item_name} ${item.item_code}`}
-                            onSelect={() => {
-                              setSelectedServiceItem(item);
-                              setIsServicePopoverOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedServiceItem?.id === item.id ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {item.item_name} ({item.item_code}) - ₹{item.unit_price.toFixed(2)}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
+                       {loadingServices && <div className="p-4 text-center text-sm text-muted-foreground">Loading services...</div>}
+                       {!loadingServices && serviceItems.length === 0 && serviceSearchTerm && <CommandEmpty>No service/item found matching "{serviceSearchTerm}".</CommandEmpty>}
+                       {!loadingServices && serviceItems.length === 0 && !serviceSearchTerm && <CommandEmpty>Type to search for services/items.</CommandEmpty>}
+                       {!loadingServices && serviceItems.length > 0 && (
+                        <CommandGroup heading="Search Results">
+                          {serviceItems.map((item) => (
+                            <CommandItem
+                              key={item.id}
+                              value={`${item.item_name} ${item.item_code}`}
+                              onSelect={() => {
+                                setSelectedServiceItem(item);
+                                setIsServicePopoverOpen(false);
+                                setServiceSearchTerm(''); // Clear search after selection
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedServiceItem?.id === item.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.item_name} ({item.item_code}) - ₹{item.unit_price.toFixed(2)}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                       )}
                     </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
             </div>
-            <Button onClick={() => addInvoiceItem(selectedServiceItem)} disabled={!selectedServiceItem}>
-              <Plus className="h-4 w-4 mr-1" /> Add
+            {/* FIX: Add explicit check for selectedServiceItem before calling addInvoiceItem */}
+            <Button
+              onClick={() => {
+                if (selectedServiceItem) {
+                  addInvoiceItem(selectedServiceItem);
+                }
+              }}
+              disabled={!selectedServiceItem}
+              className="w-full sm:w-auto" // Full width on small screens
+            >
+              <Plus className="h-4 w-4 mr-1" /> Add Item
             </Button>
           </div>
 
           {/* Items Table */}
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-md border overflow-x-auto"> {/* Added overflow-x-auto */}
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%]">Item</TableHead>
-                  <TableHead className="w-[15%]">Category</TableHead>
-                  <TableHead className="w-[15%] text-right">Unit Price (₹)</TableHead>
-                  <TableHead className="w-[15%] text-center">Quantity</TableHead>
-                  <TableHead className="w-[15%] text-right">Subtotal (₹)</TableHead>
-                  <TableHead className="w-[5%]"></TableHead>
+                  <TableHead className="min-w-[200px]">Item</TableHead> {/* Added min-width */}
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Unit Price (₹)</TableHead>
+                  <TableHead className="text-center">Quantity</TableHead>
+                  <TableHead className="text-right">Subtotal (₹)</TableHead>
+                  <TableHead className="text-right">Actions</TableHead> {/* Changed alignment */}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {invoiceItems.length > 0 ? (
                   invoiceItems.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.item_name} ({item.item_code})</TableCell>
+                      <TableCell className="font-medium">{item.item_name} <span className="text-xs text-muted-foreground">({item.item_code})</span></TableCell> {/* Improved display */}
                       <TableCell>{item.category}</TableCell>
                       <TableCell className="text-right">{item.unit_price.toFixed(2)}</TableCell>
                       <TableCell className="text-center">
-                        <Input 
-                          type="number" 
-                          min="1" 
+                        <Input
+                          type="number"
+                          min="1"
                           value={item.quantity}
                           onChange={(e) => updateItemQuantity(item.id, parseInt(e.target.value) || 1)}
-                          className="w-16 h-8 text-center"
+                          className="w-16 h-8 text-center mx-auto" // Centered input
                         />
                       </TableCell>
                       <TableCell className="text-right font-medium">{item.subtotal.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => removeInvoiceItem(item.id)}>
+                      <TableCell className="text-right"> {/* Changed alignment */}
+                        <Button variant="ghost" size="icon" onClick={() => removeInvoiceItem(item.id)} aria-label="Remove item"> {/* Added aria-label */}
                           <X className="h-4 w-4 text-red-500" />
                         </Button>
                       </TableCell>
@@ -399,8 +469,8 @@ export default function CreateInvoicePage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                      No items added to the invoice yet.
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground"> {/* Added text-muted-foreground */}
+                      No items added to the invoice yet. Use the search above to add items.
                     </TableCell>
                   </TableRow>
                 )}
@@ -408,17 +478,18 @@ export default function CreateInvoicePage() {
             </Table>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between items-center">
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4"> {/* Responsive layout and gap */}
           <div className="text-lg font-semibold">
-            Total: ₹{invoiceTotal.toFixed(2)}
+            Total Amount: ₹{invoiceTotal.toFixed(2)}
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
-            <Button 
-              onClick={handleCreateInvoice} 
+          <div className="flex gap-2 w-full sm:w-auto"> {/* Full width buttons on small screens */}
+            <Button variant="outline" onClick={() => router.back()} className="flex-1 sm:flex-none">Cancel</Button>
+            <Button
+              onClick={handleCreateInvoice}
               disabled={isSubmitting || !selectedPatient || invoiceItems.length === 0}
+              className="flex-1 sm:flex-none" // Make button grow on small screens
             >
-              {isSubmitting ? "Creating..." : "Create Invoice"}
+              {isSubmitting ? "Creating Invoice..." : "Create Invoice"}
             </Button>
           </div>
         </CardFooter>

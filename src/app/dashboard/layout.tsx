@@ -1,19 +1,36 @@
-'use client';
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { 
   Card, 
   CardContent, 
   CardHeader, 
   CardTitle 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { hasPermission } from '@/lib/session';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// FIX: hasPermission is now available
+import { hasPermission, deleteSession } from "@/lib/session"; 
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
+
+// FIX: Define interface for the user info API response
+interface UserInfo {
+  userId: number;
+  username: string;
+  email: string;
+  roleName: string;
+  // Add other fields if available
+}
+
+interface UserInfoApiResponse {
+  user: UserInfo;
+  // Add other potential top-level properties if needed
+}
 
 // Layout component for all authenticated pages
 export default function DashboardLayout({
@@ -22,250 +39,183 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [userName, setUserName] = useState('');
-  const [userRole, setUserRole] = useState('');
-  const [activeModule, setActiveModule] = useState('dashboard');
-  
+  const [userName, setUserName] = useState<string | null>(null); // Allow null for loading state
+  const [userRole, setUserRole] = useState<string | null>(null); // Allow null for loading state
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [activeModule, setActiveModule] = useState("dashboard");
+
   useEffect(() => {
     // Fetch user info
     const fetchUserInfo = async () => {
+      setIsLoadingUser(true);
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch("/api/auth/me");
         if (response.ok) {
-          const data = await response.json();
-          setUserName(data.user.username);
-          setUserRole(data.user.roleName);
+          // FIX: Cast response JSON to defined type
+          const data = await response.json() as UserInfoApiResponse;
+          // FIX: Safely access user data
+          if (data?.user) {
+            setUserName(data.user.username);
+            setUserRole(data.user.roleName);
+          } else {
+            console.error("User data not found in response, logging out.");
+            await handleLogout(); // Logout if user data is missing
+          }
         } else {
-          // If not authenticated, redirect to login
-          router.push('/login');
+          // If not authenticated (e.g., 401 Unauthorized), redirect to login
+          console.log("User not authenticated, redirecting to login.");
+          router.push("/login");
         }
       } catch (error) {
-        console.error('Error fetching user info:', error);
-        router.push('/login');
+        console.error("Error fetching user info:", error);
+        router.push("/login"); // Redirect on any fetch error
+      } finally {
+        setIsLoadingUser(false);
       }
     };
-    
+
     fetchUserInfo();
-    
-    // Determine active module from URL
-    const path = window.location.pathname;
-    if (path.includes('/opd')) {
-      setActiveModule('opd');
-    } else if (path.includes('/ipd')) {
-      setActiveModule('ipd');
-    } else if (path.includes('/patients')) {
-      setActiveModule('patients');
-    } else if (path.includes('/billing')) {
-      setActiveModule('billing');
-    } else if (path.includes('/pharmacy')) {
-      setActiveModule('pharmacy');
-    } else if (path.includes('/laboratory')) {
-      setActiveModule('laboratory');
-    } else if (path.includes('/reports')) {
-      setActiveModule('reports');
-    } else if (path.includes('/settings')) {
-      setActiveModule('settings');
-    } else {
-      setActiveModule('dashboard');
-    }
-  }, [router]);
-  
+
+    // Determine active module from URL on initial load and route changes
+    const updateActiveModule = () => {
+      const path = window.location.pathname;
+      if (path.startsWith("/dashboard/opd")) {
+        setActiveModule("opd");
+      } else if (path.startsWith("/dashboard/ipd")) {
+        setActiveModule("ipd");
+      } else if (path.startsWith("/dashboard/patients")) {
+        setActiveModule("patients");
+      } else if (path.startsWith("/dashboard/billing")) {
+        setActiveModule("billing");
+      } else if (path.startsWith("/dashboard/pharmacy")) {
+        setActiveModule("pharmacy");
+      } else if (path.startsWith("/dashboard/laboratory")) {
+        setActiveModule("laboratory");
+      } else if (path.startsWith("/dashboard/radiology")) { // Added Radiology
+        setActiveModule("radiology");
+      } else if (path.startsWith("/dashboard/ot")) { // Added OT
+        setActiveModule("ot");
+      } else if (path.startsWith("/dashboard/er")) { // Added ER
+        setActiveModule("er");
+      } else if (path.startsWith("/dashboard/reports")) {
+        setActiveModule("reports");
+      } else if (path.startsWith("/dashboard/settings")) {
+        setActiveModule("settings");
+      } else {
+        setActiveModule("dashboard");
+      }
+    };
+
+    updateActiveModule(); // Initial check
+    // Consider using Next.js router events for more robust updates if needed
+
+  }, [router]); // Only run on initial mount and if router changes
+
   const handleModuleClick = (module: string) => {
-    switch (module) {
-      case 'dashboard':
-        router.push('/dashboard');
-        break;
-      case 'opd':
-        router.push('/opd');
-        break;
-      case 'ipd':
-        router.push('/ipd');
-        break;
-      case 'patients':
-        router.push('/patients');
-        break;
-      case 'billing':
-        router.push('/billing');
-        break;
-      case 'pharmacy':
-        router.push('/pharmacy');
-        break;
-      case 'laboratory':
-        router.push('/laboratory');
-        break;
-      case 'reports':
-        router.push('/reports');
-        break;
-      case 'settings':
-        router.push('/settings');
-        break;
-      default:
-        router.push('/dashboard');
-        break;
-    }
+    // Navigate to the corresponding dashboard sub-route
+    router.push(`/dashboard/${module}`);
+    setActiveModule(module); // Update state immediately for responsiveness
   };
-  
+
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
+      // Call the API endpoint to clear the server-side session/cookie
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
       });
       
-      if (response.ok) {
-        router.push('/login');
-      }
+      // Regardless of API response, clear client-side indicators and redirect
+      deleteSession(); // Use the imported function if it handles client-side cleanup
+      setUserName(null);
+      setUserRole(null);
+      router.push("/login");
+
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error("Error logging out:", error);
+      // Force redirect even if API call fails
+      router.push("/login"); 
     }
   };
-  
+
+  // Render skeleton or loading state while fetching user info
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p>Loading dashboard...</p> {/* Or a more sophisticated loader */}
+      </div>
+    );
+  }
+
+  // If user info failed to load (e.g., not authenticated), this component might unmount 
+  // due to redirection, but this check adds robustness.
+  if (!userName) {
+    return null; // Or a message indicating redirection
+  }
+
+  // --- Sidebar Navigation Items --- 
+  // Define navigation items based on potential roles/permissions if needed
+  const navItems = [
+    { id: "dashboard", label: "Dashboard", icon: <HomeIcon className="h-5 w-5 mr-2" /> },
+    { id: "opd", label: "OPD", icon: <CalendarIcon className="h-5 w-5 mr-2" /> },
+    { id: "ipd", label: "IPD", icon: <BedIcon className="h-5 w-5 mr-2" /> },
+    { id: "er", label: "ER", icon: <AlertTriangleIcon className="h-5 w-5 mr-2" /> }, // Added ER
+    { id: "ot", label: "OT", icon: <ScissorsIcon className="h-5 w-5 mr-2" /> }, // Added OT
+    { id: "patients", label: "Patients", icon: <UsersIcon className="h-5 w-5 mr-2" /> },
+    { id: "billing", label: "Billing", icon: <CreditCardIcon className="h-5 w-5 mr-2" /> },
+    { id: "pharmacy", label: "Pharmacy", icon: <PillIcon className="h-5 w-5 mr-2" /> },
+    { id: "laboratory", label: "Laboratory", icon: <FlaskConicalIcon className="h-5 w-5 mr-2" /> },
+    { id: "radiology", label: "Radiology", icon: <RadioIcon className="h-5 w-5 mr-2" /> }, // Added Radiology
+    { id: "reports", label: "Reports", icon: <BarChartIcon className="h-5 w-5 mr-2" /> },
+    { id: "settings", label: "Settings", icon: <SettingsIcon className="h-5 w-5 mr-2" /> },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row"> {/* Responsive layout */}
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-full md:w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0"> {/* Fixed width on larger screens */}
+        {/* Logo and Hospital Name */}
         <div className="p-4 border-b border-gray-200 flex items-center">
-          <div className="mr-3">
-            <Image 
-              src="/logo.png" 
-              alt="Shlokam Logo" 
-              width={40} 
-              height={40} 
-            />
+          {/* Replace with actual logo if available */}
+          <div className="mr-3 bg-teal-600 p-2 rounded">
+            <HospitalIcon className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-teal-600">SHLOKAM</h1>
-            <p className="text-xs text-gray-500">HEALTHCARE</p>
+            <h1 className="text-lg font-bold text-teal-700">HMS</h1>
+            <p className="text-xs text-gray-500">Hospital Management</p>
           </div>
         </div>
-        
-        <nav className="flex-1 p-4">
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-1">
-            <li>
-              <Button
-                variant={activeModule === 'dashboard' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => handleModuleClick('dashboard')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Dashboard
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant={activeModule === 'opd' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => handleModuleClick('opd')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                OPD
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant={activeModule === 'ipd' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => handleModuleClick('ipd')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                IPD
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant={activeModule === 'patients' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => handleModuleClick('patients')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Patients
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant={activeModule === 'billing' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => handleModuleClick('billing')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Billing
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant={activeModule === 'pharmacy' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => handleModuleClick('pharmacy')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                Pharmacy
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant={activeModule === 'laboratory' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => handleModuleClick('laboratory')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                </svg>
-                Laboratory
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant={activeModule === 'reports' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => handleModuleClick('reports')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Reports
-              </Button>
-            </li>
-            <li>
-              <Button
-                variant={activeModule === 'settings' ? 'default' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => handleModuleClick('settings')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Settings
-              </Button>
-            </li>
+            {navItems.map((item) => (
+              // TODO: Add permission checks here if needed using hasPermission(item.permissionRequired)
+              <li key={item.id}>
+                <Button
+                  variant={activeModule === item.id ? "secondary" : "ghost"} // Use secondary for active
+                  className="w-full justify-start"
+                  onClick={() => handleModuleClick(item.id)}
+                >
+                  {item.icon}
+                  {item.label}
+                </Button>
+              </li>
+            ))}
           </ul>
         </nav>
-        
+
+        {/* User Info and Logout */}
         <div className="p-4 border-t border-gray-200">
           <div className="flex items-center mb-4">
             <div className="mr-3">
-              <Image 
-                src="/user-avatar.png" 
-                alt="User Avatar" 
-                width={40} 
-                height={40} 
-                className="rounded-full"
-              />
+              {/* Placeholder Avatar */} 
+              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-medium">
+                {userName ? userName.charAt(0).toUpperCase() : "?"}
+              </div>
             </div>
-            <div>
-              <p className="font-medium text-sm">{userName}</p>
-              <p className="text-xs text-gray-500">{userRole}</p>
+            <div className="overflow-hidden"> {/* Prevent long names/roles from breaking layout */}
+              <p className="font-medium text-sm truncate">{userName}</p>
+              <p className="text-xs text-gray-500 truncate">{userRole}</p>
             </div>
           </div>
           <Button 
@@ -273,43 +223,180 @@ export default function DashboardLayout({
             className="w-full"
             onClick={handleLogout}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <LogOutIcon className="h-5 w-5 mr-2" />
             Logout
           </Button>
         </div>
       </div>
-      
-      {/* Main content */}
+
+      {/* Main content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">
-            {activeModule.charAt(0).toUpperCase() + activeModule.slice(1)}
+        {/* Header Bar (Optional) */}
+        <header className="bg-white border-b border-gray-200 p-4 flex items-center justify-between flex-shrink-0">
+          {/* Can add breadcrumbs or module-specific actions here */}
+          <h1 className="text-xl font-semibold">
+            {/* Find the label corresponding to the active module */}
+            {navItems.find(item => item.id === activeModule)?.label || "Dashboard"}
           </h1>
           
+          {/* Global Search / Notifications (Optional) */}
           <div className="flex items-center">
-            <Input
+            {/* <Input
               type="search"
-              placeholder="Search..."
-              className="w-64 mr-4"
-            />
+              placeholder="Global Search..."
+              className="w-64 mr-4 hidden sm:block" // Hide on small screens
+            /> */}
             <Button variant="ghost" size="icon">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
+              <BellIcon className="h-5 w-5" />
             </Button>
           </div>
         </header>
-        
-        <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-100">
           {children}
         </main>
-        
-        <footer className="bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} Shlokam Healthcare. All rights reserved.
-        </footer>
+
+        {/* Footer (Optional) */}
+        {/* <footer className="bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-500 flex-shrink-0">
+          © {new Date().getFullYear()} Your Hospital Name. All rights reserved.
+        </footer> */}
       </div>
     </div>
   );
 }
+
+// --- Icon Components (Placeholder - use lucide-react or similar) ---
+const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+
+const CalendarIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+    <line x1="16" x2="16" y1="2" y2="6" />
+    <line x1="8" x2="8" y1="2" y2="6" />
+    <line x1="3" x2="21" y1="10" y2="10" />
+  </svg>
+);
+
+const BedIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 4v16" />
+    <path d="M7 21v-2" />
+    <path d="M17 21v-2" />
+    <path d="M22 8v8" />
+    <path d="M7 16h10" />
+    <path d="M7 8h10" />
+    <path d="M17 16h5" />
+    <path d="M17 8h5" />
+    <path d="M7 12h10" />
+  </svg>
+);
+
+const UsersIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+);
+
+const CreditCardIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="20" height="14" x="2" y="5" rx="2" />
+    <line x1="2" x2="22" y1="10" y2="10" />
+  </svg>
+);
+
+const PillIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
+    <path d="m8.5 8.5 7 7" />
+  </svg>
+);
+
+const FlaskConicalIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8.5 2h7" />
+    <path d="M14 9h-4" />
+    <path d="M16.5 16.5 22 22" />
+    <path d="M10 14 5 22" />
+    <path d="M17 14 19 9l-1-7H6l-1 7 2 5" />
+  </svg>
+);
+
+const BarChartIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" x2="12" y1="20" y2="10" />
+    <line x1="18" x2="18" y1="20" y2="4" />
+    <line x1="6" x2="6" y1="20" y2="16" />
+  </svg>
+);
+
+const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const LogOutIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" x2="9" y1="12" y2="12" />
+  </svg>
+);
+
+const BellIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </svg>
+);
+
+const HospitalIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 6v4" />
+    <path d="M14 14h-4" />
+    <path d="M14 18h-4" />
+    <path d="M14 8h-4" />
+    <path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2" />
+    <path d="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18" />
+  </svg>
+);
+
+// Added missing icons used in navItems
+const AlertTriangleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+    <path d="M12 9v4"/>
+    <path d="M12 17h.01"/>
+  </svg>
+);
+
+const ScissorsIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="6" cy="6" r="3"/>
+    <path d="M8.12 8.12 12 12"/>
+    <path d="M20 4 8.12 15.88"/>
+    <circle cx="6" cy="18" r="3"/>
+    <path d="M14.88 14.88 20 20"/>
+  </svg>
+);
+
+const RadioIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/>
+    <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/>
+    <circle cx="12" cy="12" r="2"/>
+    <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/>
+    <path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/>
+  </svg>
+);
+

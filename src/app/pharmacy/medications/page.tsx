@@ -1,8 +1,8 @@
 
-'use client';
+"use client";
 
-import React, { useState, useEffect, useMemo, ChangeEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useMemo, ChangeEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   useTable,
   useSortBy,
@@ -20,9 +20,13 @@ import {
   UsePaginationState,
   UseGlobalFiltersState,
   UseSortByColumnProps,
-  // TableState, // Removed, use specific plugin states for initialState
-  ColumnInstance
-} from 'react-table';
+  ColumnInstance,
+  UseSortByState // Import UseSortByState
+} from "react-table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowUpDown } from "lucide-react"; // Icon for sorting
 
 // Define the interface for a single medication object
 interface Medication {
@@ -39,12 +43,23 @@ interface Medication {
   prescription_required: boolean;
 }
 
+// Define API response types
+interface MedicationsApiResponse {
+    medications?: Medication[];
+    error?: string;
+}
+
+interface ApiErrorResponse {
+    error?: string;
+}
+
 // Extend the react-table types for pagination, sorting, and global filter
 type MedicationTableInstance = TableInstance<Medication> &
   UsePaginationInstanceProps<Medication> &
   UseSortByInstanceProps<Medication> &
   UseGlobalFiltersInstanceProps<Medication> & {
-    state: UsePaginationState<Medication> & UseGlobalFiltersState<Medication>;
+    // FIX: Include UseSortByState in the state type
+    state: UsePaginationState<Medication> & UseGlobalFiltersState<Medication> & UseSortByState<Medication>;
   };
 
 // Extend ColumnInstance type to include sorting props for type safety in headers
@@ -56,35 +71,27 @@ export default function MedicationsListPage() {
   const [medicationsData, setMedicationsData] = useState<Medication[]>([]); // Type the state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null); // Type the error state
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [globalFilter, setGlobalFilter] = useState("");
 
   useEffect(() => {
     const fetchMedications = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/pharmacy/medications');
+        const response = await fetch("/api/pharmacy/medications");
         if (!response.ok) {
-          // Try to parse error response, default to generic message
-          let errorMsg = 'Failed to fetch medications';
+          let errorMsg = "Failed to fetch medications";
           try {
-            // Define a type for expected error response
-            const errorData: { error?: string } = await response.json();
+            const errorData: ApiErrorResponse = await response.json();
             errorMsg = errorData.error || errorMsg;
-          } catch (parseError) {
-            // Ignore if response is not JSON or doesn't match expected structure
-          }
+          } catch (parseError) { /* Ignore */ }
           throw new Error(errorMsg);
         }
-        // Assuming the API returns { medications: Medication[] }
-        const data: { medications?: Medication[] } = await response.json();
+        // FIX: Use defined response type
+        const data: MedicationsApiResponse = await response.json();
         setMedicationsData(data.medications || []);
-      } catch (err: unknown) { // Type the error
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('An unknown error occurred');
-        }
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
       } finally {
         setLoading(false);
       }
@@ -96,90 +103,100 @@ export default function MedicationsListPage() {
   const columns = useMemo<Column<Medication>[]>( // Type the columns
     () => [
       {
-        Header: 'Item Code',
-        accessor: 'item_code',
+        Header: "Item Code",
+        accessor: "item_code",
       },
       {
-        Header: 'Medication',
-        accessor: 'generic_name',
+        Header: "Medication",
+        accessor: "generic_name",
         Cell: ({ row }: CellProps<Medication>) => ( // Type the row
           <div>
-            <div className="font-medium text-gray-900">{row.original.generic_name}</div>
+            <div className="font-medium text-gray-900 dark:text-gray-100">{row.original.generic_name}</div>
             {row.original.brand_name && (
-              <div className="text-sm text-gray-500">{row.original.brand_name}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{row.original.brand_name}</div>
             )}
           </div>
         ),
       },
       {
-        Header: 'Form & Strength',
-        accessor: 'dosage_form',
+        Header: "Form & Strength",
+        accessor: "dosage_form",
         Cell: ({ row }: CellProps<Medication>) => ( // Type the row
           <div>
             <div>{row.original.dosage_form}</div>
-            <div className="text-sm text-gray-500">{row.original.strength}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">{row.original.strength}</div>
           </div>
         ),
       },
       {
-        Header: 'Category',
-        accessor: 'category_name',
-        Cell: ({ value }: CellProps<Medication>) => value || '-', // Type the value
+        Header: "Category",
+        accessor: "category_name",
+        Cell: ({ value }: CellProps<Medication, string | null | undefined>) => value || "-", // Type the value
       },
       {
-        Header: 'Manufacturer',
-        accessor: 'manufacturer_name',
-        Cell: ({ value }: CellProps<Medication>) => value || '-', // Type the value
+        Header: "Manufacturer",
+        accessor: "manufacturer_name",
+        Cell: ({ value }: CellProps<Medication, string | null | undefined>) => value || "-", // Type the value
       },
       {
-        Header: 'Stock',
-        accessor: 'total_stock',
-        Cell: ({ value, row }: CellProps<Medication>) => { // Type value and row
-          const stockValue = value || 0;
+        Header: "Stock",
+        accessor: "total_stock",
+        Cell: ({ value, row }: CellProps<Medication, number | null | undefined>) => { // Type value and row
+          const stockValue = value ?? 0; // Use nullish coalescing
+          const lowStockThreshold = 10; // Example threshold
+          const isLowStock = stockValue <= lowStockThreshold;
           return (
-            <span className={`${stockValue === 0 ? 'text-red-600' : 'text-gray-900'}`}>
-              {stockValue} {row.original.unit_of_measure || ''}
+            <span className={`${isLowStock ? "text-red-600 dark:text-red-400 font-semibold" : "text-gray-900 dark:text-gray-100"}`}>
+              {stockValue} {row.original.unit_of_measure || ""}
             </span>
           );
         },
       },
       {
-        Header: 'Prescription',
-        accessor: 'prescription_required',
-        Cell: ({ value }: CellProps<Medication>) => ( // Type the value
-          <span className={`px-2 py-1 text-xs rounded-full ${value ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-            {value ? 'Required' : 'OTC'}
+        Header: "Prescription",
+        accessor: "prescription_required",
+        Cell: ({ value }: CellProps<Medication, boolean>) => ( // Type the value
+          <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${value ? "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300" : "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"}`}>
+            {value ? "Required" : "OTC"}
           </span>
         ),
       },
       {
-        Header: 'Actions',
-        id: 'actions',
+        Header: "Actions",
+        id: "actions",
+        disableSortBy: true, // Actions column usually not sortable
         Cell: ({ row }: CellProps<Medication>) => ( // Type the row
-          <button
-            onClick={() => router.push(`/pharmacy/medications/${row.original.id}`)}
-            className="text-blue-600 hover:text-blue-800 text-sm"
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push(`/dashboard/pharmacy/medications/${row.original.id}`)} // FIX: Ensure route is correct
+            className="text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300"
           >
             View/Edit
-          </button>
+          </Button>
         ),
       },
     ],
     [router]
   );
 
-  // Define initialState with pagination settings using Partial<UsePaginationState>
-  const initialState: Partial<UsePaginationState<Medication>> = {
+  // FIX: Define initialState more broadly to match the combined state shape expected by useTable
+  const initialState: Partial<
+    UsePaginationState<Medication> &
+    UseGlobalFiltersState<Medication> &
+    UseSortByState<Medication>
+  > = {
       pageSize: 10,
-      // pageIndex defaults to 0 in usePagination
   };
 
   const tableInstance = useTable<Medication>( // Specify the type argument
     {
       columns,
       data: medicationsData,
-      // Pass the correctly typed initialState for pagination
-      initialState: initialState,
+      initialState: initialState, // Pass the combined initial state shape
+      autoResetPage: false, // Prevent page reset on data change
+      autoResetFilters: false,
+      autoResetSortBy: false,
     },
     useGlobalFilter,
     useSortBy,
@@ -201,131 +218,152 @@ export default function MedicationsListPage() {
     previousPage,
     setPageSize,
     state: { pageIndex, pageSize },
-    setGlobalFilter: setTableGlobalFilter
+    setGlobalFilter: setTableGlobalFilter,
   } = tableInstance;
 
   const handleGlobalFilterChange = (e: ChangeEvent<HTMLInputElement>) => { // Type the event
     const value = e.target.value || undefined;
-    setGlobalFilter(value || ''); // Update local state
+    setGlobalFilter(value || ""); // Update local state
     setTableGlobalFilter(value); // Update table state
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading medications...</div>;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <Skeleton className="h-8 w-1/4" />
+          <Skeleton className="h-10 w-36" />
+        </div>
+        <Skeleton className="h-10 w-full mb-4" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-red-600 p-4">Error: {error}</div>;
+    return <div className="container mx-auto px-4 py-8 text-red-600 dark:text-red-400 p-4 bg-red-50 dark:bg-red-900/30 rounded-md">Error: {error}</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Medications Catalog</h1>
-        <button
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-          onClick={() => router.push('/pharmacy/medications/add')}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Medications Catalog</h1>
+        <Button
+          className="bg-teal-600 hover:bg-teal-700 text-white"
+          onClick={() => router.push("/dashboard/pharmacy/medications/add")} // FIX: Ensure route is correct
         >
           Add New Medication
-        </button>
+        </Button>
       </div>
 
       <div className="mb-4">
-        <input
-          value={globalFilter || ''}
+        <Input
+          value={globalFilter || ""}
           onChange={handleGlobalFilterChange}
           placeholder="Search medications (Generic name, Brand name, Item code...)"
-          className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         />
       </div>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
-          <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              {headerGroups.map((headerGroup) => (
+          <table {...getTableProps()} className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              {headerGroups.map((headerGroup: HeaderGroup<Medication>) => ( // Type headerGroup
                 <tr {...headerGroup.getHeaderGroupProps()}>
-                  {/* Let TypeScript infer the column type (HeaderGroup<Medication>) in map */} 
-                  {headerGroup.headers.map((column) => (
-                    <th
-                      // Cast column to MedicationColumnInstance to access sorting props safely
-                      {...(column as MedicationColumnInstance).getHeaderProps((column as MedicationColumnInstance).getSortByToggleProps())}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    >
-                      {column.render('Header')}
-                      {/* Add sorting indicator */}
-                      <span>
-                        {(column as MedicationColumnInstance).isSorted
-                          ? (column as MedicationColumnInstance).isSortedDesc
-                            ? ' 🔽'
-                            : ' 🔼'
-                          : ''}
-                      </span>
-                    </th>
-                  ))}
+                  {/* FIX: Correctly type and cast column */} 
+                  {headerGroup.headers.map((column: ColumnInstance<Medication>) => {
+                    const typedColumn = column as MedicationColumnInstance;
+                    return (
+                      <th
+                        {...typedColumn.getHeaderProps(typedColumn.getSortByToggleProps())}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer select-none"
+                      >
+                        <div className="flex items-center">
+                          {column.render("Header")}
+                          {/* Add sorting indicator */}
+                          {typedColumn.canSort && (
+                            <ArrowUpDown className={`ml-2 h-4 w-4 ${typedColumn.isSorted ? "text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-500"}`} />
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                 </tr>
               ))}
             </thead>
-            <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
-              {page.map((row: Row<Medication>) => { // Type row
-                prepareRow(row);
-                return (
-                  <tr {...row.getRowProps()} className="hover:bg-gray-50">
-                    {row.cells.map((cell: Cell<Medication>) => { // Type cell
-                      return (
-                        <td
-                          {...cell.getCellProps()}
-                          className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
-                        >
-                          {cell.render('Cell')}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                );
-              })}
+            <tbody {...getTableBodyProps()} className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {page.length > 0 ? (
+                page.map((row: Row<Medication>) => { // Type row
+                  prepareRow(row);
+                  return (
+                    <tr {...row.getRowProps()} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      {row.cells.map((cell: Cell<Medication>) => { // Type cell
+                        return (
+                          <td
+                            {...cell.getCellProps()}
+                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300"
+                          >
+                            {cell.render("Cell")}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={columns.length} className="text-center py-10 text-gray-500 dark:text-gray-400">
+                    No medications found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination Controls */}
-        <div className="px-6 py-3 bg-gray-50 flex items-center justify-between border-t border-gray-200">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-700">
-              Page{' '}
-              <strong>
-                {pageIndex + 1} of {pageOptions.length}
-              </strong>
-            </span>
-            <select
-              value={pageSize}
-              onChange={e => {
-                setPageSize(Number(e.target.value));
-              }}
-              className="p-1 border border-gray-300 rounded-md text-sm"
-            >
-              {[10, 20, 30, 40, 50].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
+        {pageOptions.length > 1 && (
+          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 dark:border-gray-600">
+            <div className="flex items-center space-x-2 mb-2 sm:mb-0">
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                Page{" "}
+                <strong>
+                  {pageIndex + 1} of {pageOptions.length}
+                </strong>
+              </span>
+              <select
+                value={pageSize}
+                onChange={e => {
+                  setPageSize(Number(e.target.value));
+                }}
+                className="p-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              >
+                {[10, 20, 30, 40, 50].map(size => (
+                  <option key={size} value={size}>
+                    Show {size}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Button onClick={() => gotoPage(0)} disabled={!canPreviousPage} variant="outline" size="sm">
+                {"<<"}
+              </Button>
+              <Button onClick={() => previousPage()} disabled={!canPreviousPage} variant="outline" size="sm">
+                {"<"}
+              </Button>
+              <Button onClick={() => nextPage()} disabled={!canNextPage} variant="outline" size="sm">
+                {">"}
+              </Button>
+              <Button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage} variant="outline" size="sm">
+                {">>"}
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center space-x-1">
-            <button onClick={() => gotoPage(0)} disabled={!canPreviousPage} className="p-1 border rounded-md disabled:opacity-50">
-              {'<<'}
-            </button>
-            <button onClick={() => previousPage()} disabled={!canPreviousPage} className="p-1 border rounded-md disabled:opacity-50">
-              {'<'}
-            </button>
-            <button onClick={() => nextPage()} disabled={!canNextPage} className="p-1 border rounded-md disabled:opacity-50">
-              {'>'}
-            </button>
-            <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage} className="p-1 border rounded-md disabled:opacity-50">
-              {'>>'}
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

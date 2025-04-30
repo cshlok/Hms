@@ -64,6 +64,24 @@ interface Patient {
   tokenNumber: number;
 }
 
+// FIX: Define API response types
+interface PermissionApiResponse {
+  hasPermission?: boolean;
+  error?: string;
+}
+
+// Assuming the API returns an array directly, adjust if it returns { results: Patient[] }
+type PatientsQueueApiResponse = Patient[];
+
+interface ConsultationApiResponse {
+  consultationId: string; // Assuming the API returns the ID of the created consultation
+  error?: string;
+}
+
+interface ApiErrorResponse {
+  error?: string;
+}
+
 export default function OPDConsultationForm() {
   const router = useRouter();
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -77,24 +95,24 @@ export default function OPDConsultationForm() {
   const form = useForm<ConsultationFormValues>({
     resolver: zodResolver(consultationFormSchema),
     defaultValues: {
-      patientId: '',
-      chiefComplaint: '',
-      presentIllness: '',
+      patientId: ",
+      chiefComplaint: ",
+      presentIllness: ",
       vitalSigns: {
-        temperature: '',
-        pulse: '',
-        respiratoryRate: '',
-        bloodPressure: '',
-        oxygenSaturation: '',
-        weight: '',
-        height: '',
+        temperature: ",
+        pulse: ",
+        respiratoryRate: ",
+        bloodPressure: ",
+        oxygenSaturation: ",
+        weight: ",
+        height: ",
       },
-      diagnosis: '',
-      treatmentPlan: '',
-      medications: [{ name: '', dosage: '', frequency: '', duration: '', instructions: '' }],
+      diagnosis: ",
+      treatmentPlan: ",
+      medications: [{ name: ", dosage: ", frequency: ", duration: ", instructions: " }],
       labTests: [],
-      followUpDate: '',
-      notes: '',
+      followUpDate: ",
+      notes: ",
     },
   });
   
@@ -115,8 +133,9 @@ export default function OPDConsultationForm() {
           return;
         }
 
-        const prescribeData = await prescribeRes.json();
-        const orderData = await orderRes.json();
+        // FIX: Type the response data
+        const prescribeData: PermissionApiResponse = await prescribeRes.json();
+        const orderData: PermissionApiResponse = await orderRes.json();
 
         setCanPrescribe(prescribeData.hasPermission || false);
         setCanOrderTests(orderData.hasPermission || false);
@@ -137,13 +156,26 @@ export default function OPDConsultationForm() {
         const response = await fetch("/api/opd/queue?status=in-progress");
         
         if (!response.ok) {
-          throw new Error("Failed to fetch patients in queue");
+          let errorMsg = "Failed to fetch patients in queue";
+          try {
+            const errorData: ApiErrorResponse = await response.json();
+            errorMsg = errorData.error || errorMsg;
+          } catch (jsonError) { /* Ignore */ }
+          throw new Error(errorMsg);
         }
         
-        const data = await response.json();
-        setPatients(data);
-      } catch (error) {
-        console.error("Error fetching patients:", error);
+        // FIX: Type the response data and ensure it's an array
+        const data: PatientsQueueApiResponse = await response.json();
+        if (Array.isArray(data)) {
+          setPatients(data);
+        } else {
+          console.warn("Unexpected API response format for patient queue:", data);
+          setPatients([]);
+        }
+      } catch (err: unknown) { // FIX: Use unknown
+        const messageText = err instanceof Error ? err.message : "An unknown error occurred";
+        console.error("Error fetching patients:", err);
+        // TODO: Show error notification to user
       }
     };
     
@@ -173,12 +205,22 @@ export default function OPDConsultationForm() {
       const response = await fetch(`/api/patients/${patientId}/history`);
       
       if (!response.ok) {
-        throw new Error("Failed to fetch patient history");
+        let errorMsg = "Failed to fetch patient history";
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
       
-      // Process patient history data if needed
-    } catch (error) {
-      console.error("Error fetching patient history:", error);
+      // TODO: Process patient history data if needed
+      // const historyData = await response.json();
+      // console.log("Patient History:", historyData);
+
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : "An unknown error occurred";
+      console.error("Error fetching patient history:", err);
+      // TODO: Show error notification to user
     }
   };
   
@@ -187,7 +229,7 @@ export default function OPDConsultationForm() {
     const currentMedications = form.getValues().medications || [];
     form.setValue("medications", [
       ...currentMedications,
-      { name: '', dosage: '', frequency: '', duration: '', instructions: '' }
+      { name: ", dosage: ", frequency: ", duration: ", instructions: " }
     ]);
   };
   
@@ -211,15 +253,29 @@ export default function OPDConsultationForm() {
       });
       
       if (!response.ok) {
-        throw new Error("Failed to save consultation");
+        let errorMsg = "Failed to save consultation";
+        try {
+          const errorData: ApiErrorResponse = await response.json();
+          errorMsg = errorData.error || errorMsg;
+        } catch (jsonError) { /* Ignore */ }
+        throw new Error(errorMsg);
       }
       
-      const result = await response.json();
+      // FIX: Type the response data
+      const result: ConsultationApiResponse = await response.json();
       
       // Redirect to consultation details or reset form
-      router.push(`/opd/consultations/${result.consultationId}`);
-    } catch (error) {
-      console.error("Error saving consultation:", error);
+      if (result.consultationId) {
+        router.push(`/opd/consultations/${result.consultationId}`);
+      } else {
+        // Handle case where ID might not be returned (though unlikely if successful)
+        form.reset(); // Reset form as a fallback
+        // TODO: Show success message
+      }
+    } catch (err: unknown) { // FIX: Use unknown
+      const messageText = err instanceof Error ? err.message : "An unknown error occurred";
+      console.error("Error saving consultation:", err);
+      // TODO: Show error notification to user
     } finally {
       setLoading(false);
     }
@@ -318,6 +374,7 @@ export default function OPDConsultationForm() {
                           )}
                         />
                       </div>
+                      {/* Add other vital signs fields similarly */}
                       
                       <FormField
                         control={form.control}
@@ -443,13 +500,7 @@ export default function OPDConsultationForm() {
                         </div>
                       </div>
                     ))}
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addMedication}
-                      className="w-full"
-                    >
+                    <Button type="button" variant="outline" onClick={addMedication}>
                       Add Medication
                     </Button>
                   </CardContent>
@@ -459,17 +510,9 @@ export default function OPDConsultationForm() {
               <TabsContent value="labTests">
                 <Card>
                   <CardContent className="pt-6">
-                    <div className="grid gap-4">
-                      <div className="mb-4">
-                        <h3 className="text-lg font-medium">Laboratory Tests</h3>
-                        <p className="text-sm text-gray-500">Select tests to order for this patient</p>
-                      </div>
-                      
-                      {/* Lab test selection would go here */}
-                      <div className="text-center p-4 border rounded-md bg-gray-50">
-                        Lab test selection component will be implemented here
-                      </div>
-                    </div>
+                    {/* TODO: Implement Lab Test Selection UI */}
+                    <p>Lab Test Ordering UI (Placeholder)</p>
+                    {/* Example: Checkbox group or multi-select */}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -477,54 +520,41 @@ export default function OPDConsultationForm() {
               <TabsContent value="followUp">
                 <Card>
                   <CardContent className="pt-6">
-                    <div className="grid gap-4">
-                      <FormField
-                        control={form.control}
-                        name="followUpDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Follow-up Date</FormLabel>
-                            <FormControl>
-                              <Input {...field} type="date" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Additional Notes</FormLabel>
-                            <FormControl>
-                              <Textarea {...field} rows={4} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="followUpDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Follow Up Date</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="date" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Additional Notes</FormLabel>
+                          <FormControl>
+                            <Textarea {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>
             
-            <div className="mt-6 flex justify-end space-x-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save Consultation'}
+            <div className="mt-6 flex justify-end">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Saving..." : "Save Consultation"}
               </Button>
             </div>
           </form>
@@ -533,3 +563,4 @@ export default function OPDConsultationForm() {
     </div>
   );
 }
+

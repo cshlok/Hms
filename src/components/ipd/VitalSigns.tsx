@@ -18,6 +18,7 @@ import {
   Label,
 } from "@/components/ui";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast"; // FIX: Import useToast
 
 // Define interfaces for data structures
 interface VitalSignRecord {
@@ -55,6 +56,27 @@ interface FormData {
   notes: string;
 }
 
+// FIX: Define type for API error response
+interface ApiErrorResponse {
+  error?: string;
+}
+
+// FIX: Define type for API success response (new record)
+interface NewVitalSignResponse extends VitalSignRecord {}
+
+// FIX: Define type for submission data
+interface VitalSignSubmissionData {
+  record_time: string;
+  temperature: number | null;
+  pulse: number | null;
+  respiratory_rate: number | null;
+  blood_pressure: string | null;
+  oxygen_saturation: number | null;
+  pain_level: number | null;
+  notes: string | null;
+  // recorded_by_user_id will be added on the server or from session
+}
+
 interface VitalSignsProps {
   admissionId: string | null;
 }
@@ -73,9 +95,8 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
     notes: "",
   });
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
   const [patientInfo, setPatientInfo] = useState<AdmissionInfo | null>(null);
+  const { toast } = useToast(); // FIX: Initialize toast
 
   // Fetch vital signs and admission info
   useEffect(() => {
@@ -92,10 +113,14 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
         // Simulate API call
         // const response = await fetch(`/api/ipd/admissions/${admissionId}/vital-signs`);
         // if (!response.ok) {
-        //   const errorData = await response.json().catch(() => ({}));
-        //   throw new Error(errorData.error || "Failed to fetch vital signs");
+        //   let errorMsg = "Failed to fetch vital signs";
+        //   try {
+        //       const errorData: ApiErrorResponse = await response.json();
+        //       errorMsg = errorData.error || errorMsg;
+        //   } catch (jsonError) { /* Ignore */ }
+        //   throw new Error(errorMsg);
         // }
-        // const data = await response.json();
+        // const data = await response.json(); // Assuming { admission: AdmissionInfo, vital_signs: VitalSignRecord[] }
         // setVitalSigns(data.vital_signs?.sort((a, b) => new Date(b.record_time).getTime() - new Date(a.record_time).getTime()) || []);
         // setPatientInfo(data.admission || null);
 
@@ -124,7 +149,7 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
         setPatientInfo(mockPatientInfo);
         setVitalSigns(mockVitalSigns.sort((a, b) => new Date(b.record_time).getTime() - new Date(a.record_time).getTime()));
 
-      } catch (err) {
+      } catch (err: unknown) { // FIX: Use unknown
         const message = err instanceof Error ? err.message : "An unknown error occurred.";
         console.error("Error fetching vital signs data:", err);
         setError(`Failed to load vital signs: ${message}`);
@@ -144,16 +169,15 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (!admissionId) {
-      setSubmitError("Admission ID is missing.");
+      toast({ title: "Error", description: "Admission ID is missing.", variant: "destructive" });
       return;
     }
     setSubmitting(true);
-    setSubmitError(null);
-    setSubmitSuccess(false);
 
     try {
       // Prepare data, converting empty strings to null and numbers where appropriate
-      const submissionData: Partial<VitalSignRecord> = {
+      // FIX: Use the defined submission data type
+      const submissionData: VitalSignSubmissionData = {
         record_time: new Date().toISOString(),
         temperature: formData.temperature ? parseFloat(formData.temperature) : null,
         pulse: formData.pulse ? parseInt(formData.pulse, 10) : null,
@@ -162,13 +186,14 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
         oxygen_saturation: formData.oxygen_saturation ? parseFloat(formData.oxygen_saturation) : null,
         pain_level: formData.pain_level ? parseInt(formData.pain_level, 10) : null,
         notes: formData.notes || null,
-        // recorded_by_user_id: session?.user?.id // Get from session
       };
 
-      // Basic validation (optional, can be done on server)
-      if (submissionData.pain_level !== null && (submissionData.pain_level < 0 || submissionData.pain_level > 10)) {
-        throw new Error("Pain level must be between 0 and 10.");
+      // Basic validation
+      // FIX: Check for NaN and range for pain_level (now correctly typed as number | null)
+      if (submissionData.pain_level !== null && (isNaN(submissionData.pain_level) || submissionData.pain_level < 0 || submissionData.pain_level > 10)) {
+        throw new Error("Pain level must be a number between 0 and 10.");
       }
+      // Add other validations as needed (e.g., for temperature, pulse ranges)
 
       // Simulate API call
       // const response = await fetch(`/api/ipd/admissions/${admissionId}/vital-signs`, {
@@ -177,21 +202,25 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
       //   body: JSON.stringify(submissionData),
       // });
       // if (!response.ok) {
-      //   const errorData = await response.json().catch(() => ({}));
-      //   throw new Error(errorData.error || "Failed to record vital signs");
+      //   let errorMsg = "Failed to record vital signs";
+      //   try {
+      //       const errorData: ApiErrorResponse = await response.json();
+      //       errorMsg = errorData.error || errorMsg;
+      //   } catch (jsonError) { /* Ignore */ }
+      //   throw new Error(errorMsg);
       // }
-      // const newRecord: VitalSignRecord = await response.json();
+      // const newRecord: NewVitalSignResponse = await response.json();
 
       // Mock response
       await new Promise(resolve => setTimeout(resolve, 800));
-      const newRecord: VitalSignRecord = {
+      const newRecord: NewVitalSignResponse = {
         id: `vs_${Date.now()}`,
         admission_id: admissionId,
         recorded_by_user_id: "nurse_current", // Replace with actual user ID
         recorded_by_first_name: "Current", // Replace with actual user data
         recorded_by_last_name: "Nurse",
         ...submissionData,
-      } as VitalSignRecord; // Assert type after merging
+      } as NewVitalSignResponse; // Assert type after merging
 
       // Update the vital signs list (prepend new record)
       setVitalSigns((prev) => [newRecord, ...prev]);
@@ -207,17 +236,12 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
         notes: "",
       });
 
-      setSubmitSuccess(true);
+      toast({ title: "Success", description: "Vital signs recorded successfully!" });
 
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 3000);
-
-    } catch (err) {
+    } catch (err: unknown) { // FIX: Use unknown
       const message = err instanceof Error ? err.message : "An unknown error occurred.";
       console.error("Error recording vital signs:", err);
-      setSubmitError(message);
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -260,18 +284,7 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
           <CardTitle>Record Vital Signs</CardTitle>
         </CardHeader>
         <CardContent>
-          {submitSuccess && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
-              Vital signs recorded successfully!
-            </div>
-          )}
-
-          {submitError && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
-              Error: {submitError}
-            </div>
-          )}
-
+          {/* FIX: Removed manual success/error messages, relying on toast */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-2">
@@ -421,7 +434,7 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
                       <TableCell className="text-center">{record.blood_pressure ?? "-"}</TableCell>
                       <TableCell className="text-center">{record.oxygen_saturation ?? "-"}</TableCell>
                       <TableCell className="text-center">{record.pain_level ?? "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">{record.recorded_by_first_name} {record.recorded_by_last_name}</TableCell>
+                      <TableCell>{record.recorded_by_first_name} {record.recorded_by_last_name}</TableCell>
                       <TableCell>{record.notes ?? "-"}</TableCell>
                     </TableRow>
                   ))}
