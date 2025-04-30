@@ -1,0 +1,38 @@
+# npm audit report
+
+esbuild  <=0.24.2
+Severity: moderate
+esbuild enables any website to send any requests to the development server and read the response - https://github.com/advisories/GHSA-67mh-4wv8-2f99
+fix available via `npm audit fix --force`
+Will install wrangler@4.14.0, which is a breaking change
+node_modules/esbuild
+  wrangler  <=4.10.0
+  Depends on vulnerable versions of esbuild
+  node_modules/wrangler
+
+got  <11.8.5
+Severity: moderate
+Got allows a redirect to a UNIX socket - https://github.com/advisories/GHSA-pfrx-2q88-qq97
+fix available via `npm audit fix --force`
+Will install cloudflare@4.2.0, which is a breaking change
+node_modules/got
+  cloudflare  1.0.0 - 2.9.1
+  Depends on vulnerable versions of got
+  node_modules/cloudflare
+
+next  9.5.5 - 14.2.24
+Severity: critical
+Next.js Server-Side Request Forgery in Server Actions - https://github.com/advisories/GHSA-fr5h-rqp8-mj6g
+Next.js Cache Poisoning - https://github.com/advisories/GHSA-gp8f-8m3g-qvj9
+Denial of Service condition in Next.js image optimization - https://github.com/advisories/GHSA-g77x-44xx-532m
+Next.js authorization bypass vulnerability - https://github.com/advisories/GHSA-7gfc-8cq8-jh5f
+Next.js Allows a Denial of Service (DoS) with Server Actions - https://github.com/advisories/GHSA-7m27-7ghc-44w9
+Authorization Bypass in Next.js Middleware - https://github.com/advisories/GHSA-f82v-jwr5-mffw
+fix available via `npm audit fix --force`
+Will install next@14.2.28, which is outside the stated dependency range
+node_modules/next
+
+5 vulnerabilities (4 moderate, 1 critical)
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force

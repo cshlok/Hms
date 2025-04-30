@@ -3,7 +3,7 @@ import { hasPermission, getCurrentUser } from "@/lib/auth"; // Assuming auth hel
 // import { getRequestContext } from "@cloudflare/next-on-pages"; // Cloudflare specific
 
 // Mock data store for service items (replace with actual DB interaction)
-let mockServiceItems = [
+const mockServiceItems = [
   { id: "si_001", item_code: "CONSULT", item_name: "Doctor Consultation", description: "Standard consultation fee", category: "Consultation", unit_price: 500, is_taxable: 0, is_discountable: 1, is_active: 1 },
   { id: "si_002", item_code: "XRAY_CHEST", item_name: "X-Ray Chest PA View", description: "", category: "Radiology", unit_price: 800, is_taxable: 1, is_discountable: 0, is_active: 1 },
   { id: "si_003", item_code: "CBC", item_name: "Complete Blood Count", description: "", category: "Laboratory", unit_price: 350, is_taxable: 1, is_discountable: 0, is_active: 1 },

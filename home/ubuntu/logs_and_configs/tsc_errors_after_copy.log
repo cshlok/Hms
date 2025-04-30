@@ -1,0 +1,10 @@
+src/components/opd/OPDConsultationForm.tsx(289,6): error TS17008: JSX element 'div' has no corresponding closing tag.
+src/components/opd/OPDConsultationForm.tsx(306,10): error TS17008: JSX element 'Form' has no corresponding closing tag.
+src/components/opd/OPDConsultationForm.tsx(307,12): error TS17008: JSX element 'form' has no corresponding closing tag.
+src/components/opd/OPDConsultationForm.tsx(308,14): error TS17008: JSX element 'Tabs' has no corresponding closing tag.
+src/components/opd/OPDConsultationForm.tsx(411,16): error TS17008: JSX element 'TabsContent' has no corresponding closing tag.
+src/components/opd/OPDConsultationForm.tsx(412,18): error TS17008: JSX element 'Card' has no corresponding closing tag.
+src/components/opd/OPDConsultationForm.tsx(413,20): error TS17008: JSX element 'CardContent' has no corresponding closing tag.
+src/components/opd/OPDConsultationForm.tsx(415,24): error TS17008: JSX element 'div' has no corresponding closing tag.
+src/components/opd/OPDConsultationForm.tsx(443,73): error TS1002: Unterminated string literal.
+src/components/opd/OPDConsultationForm.tsx(443,73): error TS1005: '</' expected.

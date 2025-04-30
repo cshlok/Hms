@@ -4,13 +4,15 @@
 interface D1Database {
   prepare(query: string): D1PreparedStatement;
   dump(): Promise<ArrayBuffer>;
-  batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
-  exec<T = unknown>(query: string): Promise<D1ExecResult>;
+  // FIX: Remove unused generic T, default to unknown in D1Result
+  batch(statements: D1PreparedStatement[]): Promise<D1Result<unknown>[]>;
+  exec(query: string): Promise<D1ExecResult>;
 }
 
 // Define the type for D1 prepared statements
 interface D1PreparedStatement {
-  bind(...values: any[]): D1PreparedStatement;
+  // FIX: Use unknown[] instead of any[] for better type safety
+  bind(...values: unknown[]): D1PreparedStatement;
   first<T = unknown>(colName?: string): Promise<T | null>;
   run<T = unknown>(): Promise<D1Result<T>>;
   all<T = unknown>(): Promise<D1Result<T[]>>;
@@ -21,7 +23,8 @@ interface D1PreparedStatement {
 interface D1Result<T = unknown> {
   results?: T[];
   success: boolean;
-  meta?: any;
+  // FIX: Use unknown instead of any for better type safety
+  meta?: unknown;
   error?: string;
 }
 
