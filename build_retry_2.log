@@ -1,0 +1,29 @@
+
+> shlokam-hms@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.28
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./src/lib/session.ts
+Error: 
+  [31mx[0m You're importing a component that needs next/headers. That only works in a Server Component which is not supported in the pages/ directory. Read more: https://nextjs.org/docs/getting-started/
+  [31m|[0m react-essentials#server-components
+  [31m|[0m 
+  [31m|[0m 
+   ,-[[36;1;4m/home/ubuntu/Hms/src/lib/session.ts[0m:1:1]
+ [2m1[0m | // lib/session.ts
+ [2m2[0m | import { cookies } from 'next/headers';
+   : [31;1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+ [2m3[0m | import { jwtVerify, SignJWT } from 'jose';
+ [2m4[0m | import { getDB } from './db'; // FIX: Corrected import path
+   `----
+
+Import trace for requested module:
+./src/lib/session.ts
+./src/app/dashboard/layout.tsx
+
+
+> Build failed because of webpack errors

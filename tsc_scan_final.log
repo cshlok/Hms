@@ -1,0 +1,53 @@
+home/ubuntu/hms_repo/src/app/layout.tsx(20,10): error TS2305: Module '"@/components/ui/use-toast"' has no exported member 'ToastStateProvider'.
+src/app/api/cloudflare-fix/route.ts(51,38): error TS2339: Property 'prepare' does not exist on type '{}'.
+src/app/api/er/visits/[id]/alerts/route.ts(108,21): error TS2345: Argument of type '{ id: string; visit_id: string; alert_type: string; activated_by_id: string | number; details: string | null; activation_timestamp: string; status: string; }' is not assignable to parameter of type 'Alert'.
+  Types of property 'details' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/app/api/er/visits/[id]/triage/route.ts(116,32): error TS2345: Argument of type '{ id: string; visit_id: string; triage_nurse_id: string | number; esi_level: number; vital_signs: string; assessment_notes: string | null; triage_timestamp: string; }' is not assignable to parameter of type 'Triage'.
+  Types of property 'vital_signs' are incompatible.
+    Type 'string' is not assignable to type 'Record<string, unknown>'.
+src/app/api/er/visits/route.ts(35,5): error TS2322: Type 'null' is not assignable to type 'string | number | undefined'.
+src/app/api/er/visits/route.ts(36,5): error TS2322: Type 'null' is not assignable to type 'string | number | undefined'.
+src/app/api/er/visits/route.ts(37,5): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+src/app/api/er/visits/route.ts(38,5): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+src/app/api/er/visits/route.ts(55,5): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+src/app/api/er/visits/route.ts(56,5): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
+src/app/api/er/visits/route.ts(121,19): error TS2345: Argument of type '{ id: number; patient_id: string | number; patient_name: string; mrn: string; arrival_timestamp: string; chief_complaint: string; mode_of_arrival: string; triage_level: null; current_status: string; ... 6 more ...; updated_at: string; }' is not assignable to parameter of type 'ERVisit'.
+  Types of property 'assigned_physician_id' are incompatible.
+    Type 'null' is not assignable to type 'string | number | undefined'.
+src/app/api/insurance/claims/route.ts(31,5): error TS2322: Type 'null' is not assignable to type 'number | undefined'.
+src/app/api/insurance/claims/route.ts(43,5): error TS2353: Object literal may only specify known properties, and 'claim_status' does not exist in type 'InsuranceClaim'.
+src/app/api/insurance/claims/route.ts(97,51): error TS2339: Property 'claim_status' does not exist on type 'InsuranceClaim'.
+src/app/api/insurance/claims/route.ts(97,82): error TS18049: 'filters.status' is possibly 'null' or 'undefined'.
+src/app/api/insurance/claims/route.ts(101,85): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/api/insurance/claims/route.ts(104,51): error TS2339: Property 'submission_date' does not exist on type 'InsuranceClaim'.
+src/app/api/insurance/claims/route.ts(104,91): error TS2339: Property 'submission_date' does not exist on type 'InsuranceClaim'.
+src/app/api/insurance/claims/route.ts(130,19): error TS2345: Argument of type '{ id: number; patient_insurance_id: string | number; invoice_id: string | number; claim_amount: number; claim_status: string; claim_number: string; submission_date: string; approval_date: null; ... 7 more ...; updated_at: string; }' is not assignable to parameter of type 'InsuranceClaim'.
+  Type '{ id: number; patient_insurance_id: string | number; invoice_id: string | number; claim_amount: number; claim_status: string; claim_number: string; submission_date: string; approval_date: null; ... 7 more ...; updated_at: string; }' is missing the following properties from type 'InsuranceClaim': claim_date, status
+src/app/api/insurance/policies/route.ts(135,79): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/api/insurance/policies/route.ts(138,80): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/api/insurance/policies/route.ts(145,51): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | Date'.
+      Type 'undefined' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number'.
+      Type 'undefined' is not assignable to type 'string | number'.
+src/app/api/insurance/policies/route.ts(145,86): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | Date'.
+      Type 'undefined' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number'.
+      Type 'undefined' is not assignable to type 'string | number'.
+src/app/api/insurance/pre-authorizations/route.ts(91,82): error TS18049: 'filters.status' is possibly 'null' or 'undefined'.
+src/app/api/insurance/pre-authorizations/route.ts(94,91): error TS2345: Argument of type 'string | null | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/app/api/insurance/providers/route.ts(87,9): error TS2322: Type '{ name?: string; contact_person?: string; contact_email?: string; contact_phone?: string; address?: string; is_active?: boolean; }' is not assignable to type 'Partial<InsuranceProvider>'.
+  Types of property 'is_active' are incompatible.
+    Type 'boolean | undefined' is not assignable to type 'number | undefined'.
+      Type 'boolean' is not assignable to type 'number'.
