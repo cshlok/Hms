@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: { admissio
       JOIN Users u ON pn.created_by = u.userId -- Assuming Users table and userId
       WHERE pn.admission_id = ?
     `;
-    const queryParams: (string | number)[] = [admissionId];];
+    const queryParams: (string | number)[] = [admissionId];
     
     // Add filters based on searchParams if needed
     // Example: 

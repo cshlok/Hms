@@ -14,8 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// FIX: hasPermission is now available
-import { hasPermission, deleteSession } from "@/lib/session"; 
+// import { hasPermission, deleteSession } from "@/lib/session"; 
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 
 // FIX: Define interface for the user info API response
@@ -125,7 +124,7 @@ export default function DashboardLayout({
       });
       
       // Regardless of API response, clear client-side indicators and redirect
-      deleteSession(); // Use the imported function if it handles client-side cleanup
+      // deleteSession(); // Removed: API call handles cookie invalidation
       setUserName(null);
       setUserRole(null);
       router.push("/login");
