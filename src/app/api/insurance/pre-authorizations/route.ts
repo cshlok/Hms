@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+// import { v4 as uuidv4 } from "uuid"; // Unused import
 
 // Define interface for Pre-Authorization data
 interface PreAuthorization {
@@ -20,6 +21,7 @@ interface PreAuthorization {
 }
 
 // Mock data store for pre-authorizations (replace with actual DB interaction)
+// FIX: Changed let to const for prefer-const rule
 const mockPreAuths: PreAuthorization[] = [
   {
     id: 1,
@@ -63,15 +65,15 @@ interface PreAuthorizationInput {
   notes?: string;
 }
 
-// Define interface for pre-authorization update input
-interface PreAuthorizationUpdateInput {
-  status?: string;
-  authorization_number?: string | null;
-  approved_amount?: number | null;
-  expiry_date?: string | null;
-  notes?: string;
-  rejection_reason?: string | null;
-}
+// Define interface for pre-authorization update input - Belongs in [id]/route.ts
+// interface PreAuthorizationUpdateInput {
+//   status?: string;
+//   authorization_number?: string | null;
+//   approved_amount?: number | null;
+//   expiry_date?: string | null;
+//   notes?: string;
+//   rejection_reason?: string | null;
+// }
 
 // Define interface for pre-authorization filters
 interface PreAuthorizationFilters {
@@ -84,35 +86,57 @@ interface PreAuthorizationFilters {
 // Helper function to simulate DB interaction (GET)
 async function getPreAuthorizationsFromDB(filters: PreAuthorizationFilters = {}) {
   console.log("Simulating DB fetch for pre-authorizations with filters:", filters);
-  // Apply filters if implemented
   let filteredPreAuths = [...mockPreAuths];
   
+  // FIX: Check filters.status before using (TS18049)
   if (filters.status) {
-    filteredPreAuths = filteredPreAuths.filter(pa => pa.status.toLowerCase() === filters.status.toLowerCase());
+    filteredPreAuths = filteredPreAuths.filter(pa => pa.status.toLowerCase() === filters.status!.toLowerCase());
   }
+  // FIX: Check filters.patient_insurance_id before parsing (TS2345)
   if (filters.patient_insurance_id) {
-    filteredPreAuths = filteredPreAuths.filter(pa => pa.patient_insurance_id === parseInt(filters.patient_insurance_id));
+    const patientInsuranceId = parseInt(filters.patient_insurance_id);
+    if (!isNaN(patientInsuranceId)) {
+      filteredPreAuths = filteredPreAuths.filter(pa => pa.patient_insurance_id === patientInsuranceId);
+    }
+  }
+
+  // Add date filtering if needed
+  if (filters.date_from) {
+    filteredPreAuths = filteredPreAuths.filter(pa => new Date(pa.request_date) >= new Date(filters.date_from!));
+  }
+  if (filters.date_to) {
+    filteredPreAuths = filteredPreAuths.filter(pa => new Date(pa.request_date) <= new Date(filters.date_to!));
   }
   
   return filteredPreAuths.sort((a, b) => new Date(b.request_date).getTime() - new Date(a.request_date).getTime());
 }
 
+// Helper function to simulate DB interaction (GET by ID) - Belongs in [id]/route.ts
+// async function getPreAuthorizationByIdFromDB(id: number) { // Unused function
+//   console.log("Simulating DB fetch for pre-authorization ID:", id);
+//   const preAuth = mockPreAuths.find(pa => pa.id === id);
+//   if (!preAuth) {
+//     throw new Error("Pre-authorization request not found");
+//   }
+//   return preAuth;
+// }
 
 // Helper function to simulate DB interaction (POST)
-async function createPreAuthorizationInDB(data: PreAuthorizationInput) {
+async function createPreAuthorizationInDB(data: PreAuthorizationInput): Promise<PreAuthorization> { // Added return type
   console.log("Simulating DB create for pre-authorization:", data);
   const now = new Date().toISOString();
-  const newPreAuth = {
+  // FIX: Ensure created object matches PreAuthorization interface
+  const newPreAuth: PreAuthorization = {
     id: nextPreAuthId++,
     patient_insurance_id: data.patient_insurance_id,
     requested_procedure: data.requested_procedure,
-    estimated_cost: data.estimated_cost || null,
+    estimated_cost: data.estimated_cost ?? null, // Use nullish coalescing for optional number
     request_date: data.request_date || now,
     status: "Pending",
     authorization_number: null,
     approved_amount: null,
     expiry_date: null,
-    notes: data.notes || "",
+    notes: data.notes || null, // Use null for optional string
     referring_doctor_id: data.referring_doctor_id || null,
     diagnosis_code: data.diagnosis_code || null,
     rejection_reason: null,
@@ -123,6 +147,25 @@ async function createPreAuthorizationInDB(data: PreAuthorizationInput) {
   return newPreAuth;
 }
 
+// Helper function to simulate DB interaction (PUT) - Belongs in [id]/route.ts
+// async function updatePreAuthorizationInDB(id: number, data: PreAuthorizationUpdateInput) { // Unused function
+//   console.log("Simulating DB update for pre-authorization ID:", id, "with data:", data);
+//   const preAuthIndex = mockPreAuths.findIndex(pa => pa.id === id);
+//   if (preAuthIndex === -1) {
+//     throw new Error("Pre-authorization request not found");
+//   }
+//   const now = new Date().toISOString();
+//   // FIX: Ensure updated object matches PreAuthorization interface
+//   const updatedPreAuth = { 
+//     ...mockPreAuths[preAuthIndex], 
+//     ...data, 
+//     approved_amount: data.approved_amount === null ? null : data.approved_amount, // Allow null
+//     updated_at: now 
+//   };
+//   mockPreAuths[preAuthIndex] = updatedPreAuth;
+//   return updatedPreAuth;
+// }
+
 
 /**
  * GET /api/insurance/pre-authorizations
@@ -131,8 +174,7 @@ async function createPreAuthorizationInDB(data: PreAuthorizationInput) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    // Example filters
-    const filters = {
+    const filters: PreAuthorizationFilters = {
       status: searchParams.get("status"),
       patient_insurance_id: searchParams.get("patient_insurance_id"),
       date_from: searchParams.get("date_from"),
@@ -161,7 +203,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    // Fixed: Apply type assertion
+    // Apply type assertion
     const preAuthData = body as PreAuthorizationInput;
 
     // Basic validation (add more comprehensive validation)
@@ -190,43 +232,4 @@ export async function POST(request: NextRequest) {
 }
 
 // Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
-// The PUT handler below seems misplaced in this file which handles the collection (/api/insurance/pre-authorizations).
-// It should likely be moved to /api/insurance/pre-authorizations/[id]/route.ts.
-
-/**
- * PUT /api/insurance/pre-authorizations/[id]  <-- This handler likely belongs in [id]/route.ts
- * Updates an existing pre-authorization request.
- */
-// export async function PUT(request: NextRequest) { // Commenting out as it's likely misplaced
-//   try {
-//     const path = request.nextUrl.pathname;
-//     const idString = path.split("/").pop();
-//     const id = idString ? parseInt(idString) : 0;
-    
-//     if (!id || id <= 0) {
-//       return NextResponse.json({ error: "Invalid or missing pre-authorization request ID in URL path" }, { status: 400 });
-//     }
-    
-//     const body = await request.json();
-//     const updateData = body as PreAuthorizationUpdateInput;
-    
-//     // Simulate updating the pre-authorization request in the database
-//     const updatedPreAuth = await updatePreAuthorizationInDB(id, updateData);
-
-//     return NextResponse.json({ preAuthorization: updatedPreAuth });
-//   } catch (error) {
-//     console.error("Error updating pre-authorization request:", error);
-//     let errorMessage = "An unknown error occurred";
-//     if (error instanceof Error) {
-//       errorMessage = error.message;
-//       if (errorMessage === "Pre-authorization request not found") {
-//         return NextResponse.json({ error: errorMessage }, { status: 404 });
-//       }
-//     }
-//     return NextResponse.json(
-//       { error: "Failed to update pre-authorization request", details: errorMessage },
-//       { status: 500 }
-//     );
-//   }
-// }
 

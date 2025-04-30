@@ -7,14 +7,18 @@ interface TriageInput {
   triage_nurse_id: string | number;
   esi_level: number; // Emergency Severity Index (1-5)
   vital_signs: Record<string, unknown>; // e.g., { temp: 37.0, hr: 80, rr: 16, bp: "120/80", spo2: 98 }
-  assessment_notes?: string;
+  assessment_notes?: string | null; // FIX: Allow null
   triage_timestamp?: string; // Optional, defaults to now
 }
 
 // Define interface for triage data (including generated fields)
-interface Triage extends TriageInput {
+interface Triage {
   id: string;
   visit_id: string;
+  triage_nurse_id: string | number;
+  esi_level: number;
+  vital_signs: Record<string, unknown>; // Should be an object
+  assessment_notes?: string | null; // FIX: Allow null
   triage_timestamp: string; // ISO 8601 date string
 }
 
@@ -23,7 +27,7 @@ const mockTriageAssessments: Triage[] = [];
 
 // GET /api/er/visits/[id]/triage - Get triage assessment(s) for a specific ER visit
 export async function GET(
-  request: Request,
+  _request: NextRequest, // FIX: Prefixed as unused, changed Request to NextRequest
   { params }: { params: { id: string } }
 ) {
   try {
@@ -36,7 +40,7 @@ export async function GET(
     const { results } = await db
       .prepare("SELECT * FROM er_triage_assessments WHERE visit_id = ? ORDER BY triage_timestamp DESC")
       .bind(visitId)
-      .all();
+      .all<Triage>(); // Specify type if possible
     */
 
     // Mock implementation
@@ -64,7 +68,7 @@ export async function POST(
     // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
     const body = await request.json();
-    // Fixed: Apply type assertion
+    // Apply type assertion
     const triageData = body as TriageInput;
     const triageId = uuidv4();
 
@@ -92,7 +96,7 @@ export async function POST(
         visitId,
         triageData.triage_nurse_id,
         triageData.esi_level,
-        JSON.stringify(triageData.vital_signs), // Ensure vital_signs is stored as JSON string
+        JSON.stringify(triageData.vital_signs), // Ensure vital_signs is stored as JSON string in DB
         triageData.assessment_notes || null,
         triageData.triage_timestamp || new Date().toISOString() // Use provided or default to now
       )
@@ -102,18 +106,19 @@ export async function POST(
     // Optionally update the visit status if it was just triaged
     console.log(`Mock Update Visit Status for ${visitId} to Assessment`);
 
-    const newTriage = {
+    // FIX: Ensure newTriage matches the Triage interface (vital_signs should be object)
+    const newTriage: Triage = {
       id: triageId,
       visit_id: visitId,
       triage_nurse_id: triageData.triage_nurse_id,
       esi_level: triageData.esi_level,
-      vital_signs: JSON.stringify(triageData.vital_signs), // Store as JSON string
-      assessment_notes: triageData.assessment_notes || null,
+      vital_signs: triageData.vital_signs, // Assign the object directly
+      assessment_notes: triageData.assessment_notes ?? null, // Use nullish coalescing
       triage_timestamp: triageData.triage_timestamp || new Date().toISOString(),
     };
 
     // Mock implementation
-    mockTriageAssessments.push(newTriage);
+    mockTriageAssessments.push(newTriage); // Should now be type-compatible
 
     return NextResponse.json(newTriage, { status: 201 });
   } catch (e: unknown) {

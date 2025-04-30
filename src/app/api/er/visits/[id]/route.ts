@@ -8,12 +8,13 @@ interface ERVisit {
   patient_id: string | number;
   arrival_timestamp: string; // ISO string
   chief_complaint: string;
-  assigned_physician_id?: string | number;
-  assigned_nurse_id?: string | number;
-  current_location?: string;
-  current_status?: string;
-  disposition?: string;
-  discharge_timestamp?: string;
+  // FIX: Allow null for optional fields based on TS errors in related files
+  assigned_physician_id?: string | number | null;
+  assigned_nurse_id?: string | number | null;
+  current_location?: string | null;
+  current_status?: string | null;
+  disposition?: string | null;
+  discharge_timestamp?: string | null;
   created_at: string; // ISO string
   updated_at: string; // ISO string
   // Add other relevant fields based on your schema
@@ -24,12 +25,12 @@ let mockVisits: ERVisit[] = [];
 
 // Define interface for ER visit update data
 interface ERVisitUpdateInput {
-  assigned_physician_id?: string | number;
-  assigned_nurse_id?: string | number;
-  current_location?: string; // e.g., "Waiting Room", "Triage", "Resuscitation Bay", "Observation"
-  current_status?: string; // e.g., "Pending Triage", "Under Assessment", "Awaiting Admission", "Discharged", "Admitted"
-  disposition?: string; // e.g., "Admitted", "Discharged Home", "Transferred", "Left Against Medical Advice"
-  discharge_timestamp?: string; // ISO string
+  assigned_physician_id?: string | number | null; // Allow null
+  assigned_nurse_id?: string | number | null; // Allow null
+  current_location?: string | null; // Allow null
+  current_status?: string | null; // Allow null
+  disposition?: string | null; // Allow null
+  discharge_timestamp?: string | null; // Allow null
   updated_by_id?: string | number; // User ID performing the update
 }
 
@@ -40,7 +41,7 @@ interface ERVisitUpdateInput {
 
 // GET /api/er/visits/[id] - Get details of a specific ER visit
 export async function GET(
-  request: Request,
+  _request: NextRequest, // FIX: Prefixed as unused, changed Request to NextRequest
   { params }: { params: { id: string } }
 ) {
   try {
@@ -53,9 +54,9 @@ export async function GET(
     const { results } = await db
       .prepare("SELECT * FROM er_visits WHERE id = ?")
       .bind(visitId)
-      .all();
+      .all<ERVisit>(); // Specify type if possible
 
-    if (results.length === 0) {
+    if (!results || results.length === 0) {
       return NextResponse.json(
         { error: "ER visit not found" },
         { status: 404 }
@@ -72,6 +73,7 @@ export async function GET(
         { status: 404 }
       );
     }
+    // FIX: Return type matches ERVisit, no 'any' needed
     return NextResponse.json(visit);
   } catch (e: unknown) {
     const errorMessage = e instanceof Error ? e.message : String(e);
@@ -93,11 +95,11 @@ export async function PUT(
     // const db = env.DB; // Cloudflare specific
     const visitId = params.id;
     const body = await request.json();
-    // Fixed: Apply type assertion
+    // Apply type assertion
     const updateData = body as ERVisitUpdateInput;
 
     // Prepare update fields and values
-    const allowedFields = [
+    const allowedFields: (keyof ERVisitUpdateInput)[] = [
       "assigned_physician_id",
       "assigned_nurse_id",
       "current_location",
@@ -106,10 +108,9 @@ export async function PUT(
       "discharge_timestamp",
     ];
     
-    // Fixed: Object.keys works correctly now with typed updateData
-    const updateFields = Object.keys(updateData).filter(field => 
-      allowedFields.includes(field)
-    );
+    // FIX: Use keyof ERVisitUpdateInput for better type safety
+    const updateFields = (Object.keys(updateData) as (keyof ERVisitUpdateInput)[])
+      .filter(field => allowedFields.includes(field) && updateData[field] !== undefined);
     
     if (updateFields.length === 0) {
       return NextResponse.json(
@@ -121,8 +122,7 @@ export async function PUT(
     // Placeholder for database update
     /*
     const setClause = updateFields.map(field => `${field} = ?`).join(", ");
-    // Need to cast updateData[field] to the correct type if using strict checks
-    const values = updateFields.map(field => (updateData as any)[field]); 
+    const values = updateFields.map(field => updateData[field]); 
     
     await db
       .prepare(`UPDATE er_visits SET ${setClause}, updated_at = ? WHERE id = ?`)
@@ -135,24 +135,36 @@ export async function PUT(
     if (visitIndex === -1) {
       return NextResponse.json({ error: "ER visit not found" }, { status: 404 });
     }
-    const updatedVisit = { ...mockVisits[visitIndex] };
+    
+    // FIX: Update mock data with better type safety
+    const updatedVisit: ERVisit = { ...mockVisits[visitIndex] };
     updateFields.forEach(field => {
-      // Type assertion needed here as field is a string key
-      (updatedVisit as Record<string, unknown>)[field] = (updateData as Record<string, unknown>)[field];
+      // Use type assertion for dynamic assignment, but types are checked by filter
+      (updatedVisit as any)[field] = updateData[field];
     });
     updatedVisit.updated_at = new Date().toISOString();
     mockVisits[visitIndex] = updatedVisit;
 
     // If status or location changed, log the change (mock)
     if (updateData.current_status || updateData.current_location) {
-      console.log("Mock Status Log:", {
+      // FIX: Define type for log entry
+      interface StatusLogEntry {
+        id: string;
+        visit_id: string;
+        status: string | null | undefined;
+        location: string | null | undefined;
+        updated_by_id: string | number | undefined;
+        timestamp: string;
+      }
+      const logEntry: StatusLogEntry = {
         id: uuidv4(),
         visit_id: visitId,
-        status: updateData.current_status || null,
-        location: updateData.current_location || null,
-        updated_by_id: updateData.updated_by_id, // Assuming updated_by_id is passed in request
+        status: updateData.current_status,
+        location: updateData.current_location,
+        updated_by_id: updateData.updated_by_id, // Assuming updated_by_id is passed
         timestamp: new Date().toISOString()
-      });
+      };
+      console.log("Mock Status Log:", logEntry);
     }
 
     // Return the updated visit
@@ -169,7 +181,7 @@ export async function PUT(
 
 // DELETE /api/er/visits/[id] - Delete a specific ER visit (rarely used in production)
 export async function DELETE(
-  request: Request,
+  _request: NextRequest, // FIX: Prefixed as unused, changed Request to NextRequest
   { params }: { params: { id: string } }
 ) {
   try {
@@ -184,7 +196,7 @@ export async function DELETE(
       .bind(visitId)
       .all();
 
-    if (results.length === 0) {
+    if (!results || results.length === 0) {
       return NextResponse.json(
         { error: "ER visit not found" },
         { status: 404 }

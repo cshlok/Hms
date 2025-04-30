@@ -35,7 +35,7 @@ interface DashboardStats {
   lowStockItems: number;
 }
 
-const Dashboard = () => {
+function Dashboard() {
   // FIX: Initialize stats with default values matching the interface
   const [stats, setStats] = useState<DashboardStats>({
     totalPatients: 0,
@@ -118,7 +118,12 @@ const Dashboard = () => {
     colorClass?: string; // e.g., "blue", "green"
   }
 
+  // FIX: Add display name
   const StatCard: React.FC<StatCardProps> = ({ title, value, icon, link, linkText, colorClass = "gray" }) => {
+    // FIX: Use template literals for dynamic class names (ensure Tailwind recognizes these)
+    // Note: Tailwind CSS needs to be configured to scan for these dynamic classes, 
+    // or you need to ensure the full class names exist elsewhere or are safelisted.
+    // Example: bg-blue-100, text-blue-600, bg-green-100, text-green-600 etc.
     const bgClass = `bg-${colorClass}-100`;
     const textClass = `text-${colorClass}-600`;
 
@@ -130,6 +135,7 @@ const Dashboard = () => {
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
               <h3 className="text-2xl font-bold">{value}</h3>
             </div>
+            {/* FIX: Apply dynamic classes */}
             <div className={`p-3 ${bgClass} rounded-full`}>
               {React.cloneElement(icon as React.ReactElement, { className: `h-6 w-6 ${textClass}` })}
             </div>
@@ -145,6 +151,8 @@ const Dashboard = () => {
       </Card>
     );
   };
+  // FIX: Add display name
+  StatCard.displayName = "StatCard";
 
   // --- JSX --- 
   return (
@@ -282,6 +290,9 @@ const Dashboard = () => {
   );
 };
 
+// FIX: Add display name
+Dashboard.displayName = "Dashboard";
+
 // --- Helper Component for Activity Lists ---
 interface ActivityItemProps {
   name: string;
@@ -302,6 +313,9 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ name, detail, time, doctor 
     </div>
   </div>
 );
+
+// FIX: Add display name
+ActivityItem.displayName = "ActivityItem";
 
 // --- Icon Components (Placeholder - use lucide-react or similar) ---
 // Assuming these are imported or defined elsewhere as in layout.tsx
@@ -343,3 +357,4 @@ const PillIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default Dashboard;
+

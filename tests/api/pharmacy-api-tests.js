@@ -1,6 +1,7 @@
 // Automated API tests for Pharmacy module
 
-const fetch = require('node-fetch');
+import fetch from 'node-fetch'; // FIX: Use ES module import
+
 const baseUrl = 'http://localhost:8787'; // Local development server URL
 
 describe('Pharmacy API Tests', () => {
@@ -244,3 +245,4 @@ describe('Pharmacy API Tests', () => {
     });
   });
 });
+

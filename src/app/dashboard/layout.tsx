@@ -32,7 +32,7 @@ interface UserInfoApiResponse {
 }
 
 // Layout component for all authenticated pages
-export default function DashboardLayout({
+function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -42,6 +42,26 @@ export default function DashboardLayout({
   const [userRole, setUserRole] = useState<string | null>(null); // Allow null for loading state
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [activeModule, setActiveModule] = useState("dashboard");
+
+  // FIX: Wrap async function for useEffect
+  const handleLogout = React.useCallback(async () => {
+    try {
+      // Call the API endpoint to clear the server-side session/cookie
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+      
+      // Regardless of API response, clear client-side indicators and redirect
+      setUserName(null);
+      setUserRole(null);
+      router.push("/login");
+
+    } catch (error) {
+      console.error("Error logging out:", error);
+      // Force redirect even if API call fails
+      router.push("/login"); 
+    }
+  }, [router]);
 
   useEffect(() => {
     // Fetch user info
@@ -108,7 +128,8 @@ export default function DashboardLayout({
     updateActiveModule(); // Initial check
     // Consider using Next.js router events for more robust updates if needed
 
-  }, [router]); // Only run on initial mount and if router changes
+  // FIX: Add handleLogout to dependency array
+  }, [router, handleLogout]); 
 
   const handleModuleClick = (module: string) => {
     // Navigate to the corresponding dashboard sub-route
@@ -116,31 +137,45 @@ export default function DashboardLayout({
     setActiveModule(module); // Update state immediately for responsiveness
   };
 
-  const handleLogout = async () => {
-    try {
-      // Call the API endpoint to clear the server-side session/cookie
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-      });
-      
-      // Regardless of API response, clear client-side indicators and redirect
-      // deleteSession(); // Removed: API call handles cookie invalidation
-      setUserName(null);
-      setUserRole(null);
-      router.push("/login");
-
-    } catch (error) {
-      console.error("Error logging out:", error);
-      // Force redirect even if API call fails
-      router.push("/login"); 
-    }
-  };
-
   // Render skeleton or loading state while fetching user info
   if (isLoadingUser) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p>Loading dashboard...</p> {/* Or a more sophisticated loader */}
+        {/* FIX: Use Skeleton components for better loading state */}
+        <div className="flex flex-col md:flex-row w-full h-screen">
+          {/* Skeleton Sidebar */}
+          <div className="w-full md:w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 p-4 space-y-4">
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-10 w-10 rounded-md bg-gray-200" />
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-20 bg-gray-200" />
+                <Skeleton className="h-3 w-32 bg-gray-200" />
+              </div>
+            </div>
+            <div className="flex-1 space-y-2">
+              {[...Array(10)].map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full bg-gray-200" />
+              ))}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-3">
+                 <Skeleton className="h-10 w-10 rounded-full bg-gray-200" />
+                 <div className="space-y-1">
+                   <Skeleton className="h-4 w-24 bg-gray-200" />
+                   <Skeleton className="h-3 w-16 bg-gray-200" />
+                 </div>
+              </div>
+              <Skeleton className="h-10 w-full bg-gray-200" />
+            </div>
+          </div>
+          {/* Skeleton Main Content */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <Skeleton className="h-16 w-full border-b border-gray-200 bg-white" />
+            <div className="flex-1 p-6 bg-gray-100">
+              <Skeleton className="h-full w-full bg-gray-200" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -265,7 +300,40 @@ export default function DashboardLayout({
   );
 }
 
+// FIX: Add display name
+DashboardLayout.displayName = "DashboardLayout";
+
 // --- Icon Components (Placeholder - use lucide-react or similar) ---
+// FIX: Add missing icon definitions
+const AlertTriangleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+    <path d="M12 9v4"/>
+    <path d="M12 17h.01"/>
+  </svg>
+);
+
+const ScissorsIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="6" cy="6" r="3"/>
+    <path d="M8.12 8.12 12 12"/>
+    <path d="M20 4 8.12 15.88"/>
+    <circle cx="6" cy="18" r="3"/>
+    <path d="M14.8 14.8 20 20"/>
+    <path d="M8.12 8.12 12 12"/>
+  </svg>
+);
+
+const RadioIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/>
+    <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/>
+    <circle cx="12" cy="12" r="2"/>
+    <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/>
+    <path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/>
+  </svg>
+);
+
 const HomeIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -366,36 +434,8 @@ const HospitalIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M14 18h-4" />
     <path d="M14 8h-4" />
     <path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2" />
-    <path d="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18" />
-  </svg>
-);
-
-// Added missing icons used in navItems
-const AlertTriangleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-    <path d="M12 9v4"/>
-    <path d="M12 17h.01"/>
-  </svg>
-);
-
-const ScissorsIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="6" cy="6" r="3"/>
-    <path d="M8.12 8.12 12 12"/>
-    <path d="M20 4 8.12 15.88"/>
-    <circle cx="6" cy="18" r="3"/>
-    <path d="M14.88 14.88 20 20"/>
-  </svg>
-);
-
-const RadioIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/>
-    <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/>
-    <circle cx="12" cy="12" r="2"/>
-    <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/>
-    <path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/>
+    <path d="M12 14v4" />
+    <path d="M10 12h4" />
   </svg>
 );
 

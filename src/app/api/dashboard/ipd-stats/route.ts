@@ -3,32 +3,61 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db';
 import { getSession } from '@/lib/session';
 
-export async function GET(_request: Request) {
-  try {    const session = await getSession();    // Check authentication
+// Define expected structure for query results where needed
+interface CountResult {
+  count?: number | string; // DB might return count as string
+}
+
+interface OccupancyResult {
+  occupied?: number | string; // DB might return numbers as strings
+  total?: number | string;
+}
+
+// Define structure for recent admissions row
+interface RecentAdmission {
+  id: number | string;
+  admission_number: string;
+  admission_date: string; // Assuming ISO string or similar
+  status: string;
+  patient_first_name: string;
+  patient_last_name: string;
+  bed_number: string;
+  room_number: string;
+  ward: string;
+  doctor_first_name: string;
+  doctor_last_name: string;
+}
+
+// FIX: Renamed request to _request as it's unused
+export async function GET(_request: NextRequest) { 
+  try {    
+    const session = await getSession();
+    // Check authentication
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Assuming getDB returns an object with a query method
     const db = await getDB(); 
     
-    // Get active admissions count - using type assertion to handle the 'never' type issue
+    // Get active admissions count
+    // FIX: Removed generic type argument from db.query
+    // FIX: Use type assertion on the result rows
     const activeAdmissionsResult = await db.query(`
       SELECT COUNT(*) as count FROM admissions WHERE status = 'active'
     `);
-    const activeAdmissionsCount = activeAdmissionsResult.rows && activeAdmissionsResult.rows.length > 0 
-      ? (activeAdmissionsResult.rows[0] as { count?: number }).count || 0 
-      : 0;
+    const activeAdmissionsCount = parseInt(String((activeAdmissionsResult.rows?.[0] as CountResult | undefined)?.count ?? 0), 10);
 
     // Get available beds count
+    // FIX: Removed generic type argument from db.query
+    // FIX: Use type assertion on the result rows
     const availableBedsResult = await db.query(`
       SELECT COUNT(*) as count FROM beds WHERE status = 'available'
     `);
-    const availableBedsCount = availableBedsResult.rows && availableBedsResult.rows.length > 0 
-      ? (availableBedsResult.rows[0] as { count?: number }).count || 0 
-      : 0;
+    const availableBedsCount = parseInt(String((availableBedsResult.rows?.[0] as CountResult | undefined)?.count ?? 0), 10);
     
     // Get bed occupancy rate
+    // FIX: Removed generic type argument from db.query
+    // FIX: Use type assertion on the result rows
     const bedOccupancyResult = await db.query(`
       SELECT 
         (SELECT COUNT(*) FROM beds WHERE status = 'occupied') as occupied,
@@ -36,16 +65,18 @@ export async function GET(_request: Request) {
     `);
     
     let occupancyRate = 0;
-    if (bedOccupancyResult.rows && bedOccupancyResult.rows.length > 0) {
-        const row = bedOccupancyResult.rows[0] as { occupied?: number; total?: number };
-        const occupied = row.occupied || 0;
-        const total = row.total || 0;
+    const occupancyRow = bedOccupancyResult.rows?.[0] as OccupancyResult | undefined;
+    if (occupancyRow) {
+        const occupied = parseInt(String(occupancyRow.occupied ?? 0), 10);
+        const total = parseInt(String(occupancyRow.total ?? 0), 10);
         occupancyRate = total > 0 
           ? Math.round((occupied / total) * 100) 
           : 0;
     }
     
     // Get recent admissions
+    // FIX: Removed generic type argument from db.query
+    // FIX: Use type assertion for rows
     const recentAdmissionsResult = await db.query(`
       SELECT 
         a.id, a.admission_number, a.admission_date, a.status,
@@ -60,11 +91,14 @@ export async function GET(_request: Request) {
       LIMIT 5
     `);
     
+    // Assert the type of the rows array
+    const recentAdmissions = (recentAdmissionsResult.rows as RecentAdmission[] | undefined) ?? [];
+
     return NextResponse.json({
       activeAdmissions: activeAdmissionsCount,
       availableBeds: availableBedsCount,
       occupancyRate: occupancyRate,
-      recentAdmissions: recentAdmissionsResult.rows || []
+      recentAdmissions: recentAdmissions // Use the correctly typed variable
     });
   } catch (error) {
     console.error('Error fetching IPD stats:', error);
@@ -75,3 +109,4 @@ export async function GET(_request: Request) {
     return NextResponse.json({ error: 'Failed to fetch IPD statistics', details: errorMessage }, { status: 500 });
   }
 }
+
