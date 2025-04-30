@@ -34,7 +34,7 @@ interface PatientCreateBody {
 }
 
 // Mock data for development
-let mockPatients: Patient[] = [
+const mockPatients: Patient[] = [
   { id: "pat_001", mrn: "P00001", first_name: "John", last_name: "Doe", date_of_birth: "1985-05-15", gender: "Male", phone: "555-1234", email: "john.doe@example.com", address: "123 Main St", emergency_contact: "Jane Doe 555-5678", blood_group: "O+", allergies: "Penicillin" },
   { id: "pat_002", mrn: "P00002", first_name: "Jane", last_name: "Smith", date_of_birth: "1992-08-22", gender: "Female", phone: "555-9876", email: "jane.smith@example.com", address: "456 Oak Ave", emergency_contact: "John Smith 555-1122", blood_group: "A-", allergies: "None" },
   { id: "pat_003", mrn: "P00003", first_name: "Alice", last_name: "Johnson", date_of_birth: "1978-12-01", gender: "Female", phone: "555-3456", email: "alice.j@example.com", address: "789 Pine Ln", emergency_contact: "Bob Johnson 555-7788", blood_group: "B+", allergies: "Peanuts" },

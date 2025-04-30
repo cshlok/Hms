@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth"; // Changed from getSession
-import { z } from "zod";
 import { ProgressNoteSchema } from "@/lib/schemas/ipdSchemas";
 
 // Define interface for the result of the admission check query
@@ -15,8 +14,8 @@ interface ProgressNoteInput {
   note_time?: string;
   note_type?: string;
   note_content?: string;
-  vital_signs?: Record<string, any>;
-  medication_given?: Record<string, any>;
+  vital_signs?: Record<string, unknown>;
+  medication_given?: Record<string, unknown>;
   // admission_id will be added later
 }
 
@@ -67,7 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: { admissio
       JOIN Users u ON pn.created_by = u.userId -- Assuming Users table and userId
       WHERE pn.admission_id = ?
     `;
-    let queryParams: (string | number)[] = [admissionId];
+    const queryParams: (string | number)[] = [admissionId];];
     
     // Add filters based on searchParams if needed
     // Example: 
@@ -189,12 +188,14 @@ export async function POST(request: NextRequest, { params }: { params: { admissi
     // Fixed: Apply type assertion to the result of request.json()
     const data = await request.json() as ProgressNoteInput;
     
-    // Add admission_id from path parameter
-    // Need to cast data to 'any' or a more specific type that includes admission_id before assignment
-    (data as any).admission_id = parseInt(admissionId);
+    // Add admission_id from path parameter and create a new object with the correct type
+    const dataWithId = {
+      ...data,
+      admission_id: parseInt(admissionId)
+    };
     
     // Validate input data (now includes admission_id)
-    const validationResult = ProgressNoteSchema.safeParse(data);
+    const validationResult = ProgressNoteSchema.safeParse(dataWithId);
     if (!validationResult.success) {
       return new Response(JSON.stringify({ 
         error: "Invalid input data", 

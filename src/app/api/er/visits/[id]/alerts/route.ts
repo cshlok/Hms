@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 // import { getRequestContext } from "@cloudflare/next-on-pages"; // Cloudflare specific
 
-// Mock data store for alerts (replace with actual DB interaction)
-const mockAlerts: any[] = [];
-
 // Define interface for alert input data
 interface AlertInput {
   alert_type: string; // e.g., "Code Blue", "Stroke Alert", "Sepsis Alert"
@@ -13,6 +10,17 @@ interface AlertInput {
   activation_timestamp?: string; // Optional, defaults to now if not provided
   status?: string; // Optional, defaults to "Active"
 }
+
+// Define interface for alert data (including generated fields)
+interface Alert extends AlertInput {
+  id: string;
+  visit_id: string;
+  activation_timestamp: string; // ISO 8601 date string
+  status: string;
+}
+
+// Mock data store for alerts (replace with actual DB interaction)
+const mockAlerts: Alert[] = [];
 
 // GET /api/er/visits/[id]/alerts - Get alerts for a specific ER visit
 export async function GET(
@@ -37,10 +45,10 @@ export async function GET(
                                 .sort((a, b) => new Date(b.activation_timestamp).getTime() - new Date(a.activation_timestamp).getTime());
 
     return NextResponse.json(visitAlerts);
-  } catch (e: any) {
-    console.error({ message: "Error fetching critical alerts", error: e.message });
+  } catch (e: unknown) {
+    console.error({ message: "Error fetching critical alerts", error: (e instanceof Error ? e.message : String(e)) });
     return NextResponse.json(
-      { error: "Failed to fetch critical alerts", details: e.message },
+      { error: "Failed to fetch critical alerts", details: (e instanceof Error ? e.message : String(e)) },
       { status: 500 }
     );
   }
@@ -103,10 +111,10 @@ export async function POST(
     console.log("Mock Trigger Notification:", newAlert);
 
     return NextResponse.json(newAlert, { status: 201 });
-  } catch (e: any) {
-    console.error({ message: "Error creating critical alert", error: e.message });
+  } catch (e: unknown) {
+    console.error({ message: "Error creating critical alert", error: (e instanceof Error ? e.message : String(e)) });
     return NextResponse.json(
-      { error: "Failed to create critical alert", details: e.message },
+      { error: "Failed to create critical alert", details: (e instanceof Error ? e.message : String(e)) },
       { status: 500 }
     );
   }

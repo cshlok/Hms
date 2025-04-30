@@ -9,7 +9,7 @@ interface CategoryInput {
 }
 
 // GET /api/laboratory/categories - Get all laboratory test categories
-export async function GET(request: NextRequest) {
+export async function GET(_request: Request) {t) {
   try {
     const session = await getSession();
     

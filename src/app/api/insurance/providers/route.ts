@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+
+// Define interface for Insurance Provider data
+interface InsuranceProvider {
+  id: number | string;
+  name: string;
+  contact_person?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  address?: string | null;
+  is_active: number; // Assuming 1 for active, 0 for inactive
+}
 
 // Mock data store for insurance providers (replace with actual DB interaction)
-let mockProviders: any[] = [
+const mockProviders: InsuranceProvider[] = [
   { id: 1, name: "MediCare Insurance", contact_person: "Alice Brown", contact_email: "alice@medicare.com", contact_phone: "555-1111", address: "123 Insurance St", is_active: 1 },
   { id: 2, name: "HealthGuard Plus", contact_person: "Bob White", contact_email: "bob@healthguard.com", contact_phone: "555-2222", address: "456 Provider Ave", is_active: 1 },
 ];
@@ -28,8 +38,13 @@ interface InsuranceProviderUpdateInput {
   is_active?: boolean;
 }
 
+// Define interface for insurance provider filters
+interface InsuranceProviderFilters {
+  is_active?: string | null; // Expecting "true" or "false"
+}
+
 // Helper function to simulate DB interaction (GET)
-async function getInsuranceProvidersFromDB(filters: any = {}) {
+async function getInsuranceProvidersFromDB(filters: InsuranceProviderFilters = {}) {
   console.log("Simulating DB fetch for insurance providers with filters:", filters);
   // Apply filters if implemented
   let filteredProviders = [...mockProviders];
@@ -40,16 +55,11 @@ async function getInsuranceProvidersFromDB(filters: any = {}) {
   return filteredProviders.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-// Helper function to simulate DB interaction (GET by ID)
-async function getInsuranceProviderByIdFromDB(id: number) {
-  console.log("Simulating DB fetch for insurance provider ID:", id);
-  return mockProviders.find((p) => p.id === id);
-}
 
 // Helper function to simulate DB interaction (POST)
 async function createInsuranceProviderInDB(data: InsuranceProviderInput) {
   console.log("Simulating DB create for insurance provider:", data);
-  const now = new Date().toISOString(); // Not used in mock, but would be in real DB
+  // const now = new Date().toISOString(); // Not used in mock, but would be in real DB
   const newProvider = {
     id: nextProviderId++,
     name: data.name,
@@ -74,7 +84,7 @@ async function updateInsuranceProviderInDB(id: number, data: InsuranceProviderUp
   }
   
   // Handle boolean conversion if necessary
-  const updatePayload: any = { ...data };
+  const updatePayload: Partial<InsuranceProvider> = { ...data };
   if (data.is_active !== undefined) {
     updatePayload.is_active = data.is_active ? 1 : 0;
   }

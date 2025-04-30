@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     const db = await getDB(); // Fixed: Await the promise returned by getDB()
     
     let query = 'SELECT * FROM beds WHERE 1=1';
-    const params: any[] = [];
+    const params: string[] = [];
     
     if (ward) {
       query += ' AND ward = ?';

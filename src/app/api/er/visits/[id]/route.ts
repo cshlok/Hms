@@ -2,8 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 // import { getRequestContext } from "@cloudflare/next-on-pages"; // Cloudflare specific
 
+// Define interface for ER Visit data
+interface ERVisit {
+  id: string;
+  patient_id: string | number;
+  arrival_timestamp: string; // ISO string
+  chief_complaint: string;
+  assigned_physician_id?: string | number;
+  assigned_nurse_id?: string | number;
+  current_location?: string;
+  current_status?: string;
+  disposition?: string;
+  discharge_timestamp?: string;
+  created_at: string; // ISO string
+  updated_at: string; // ISO string
+  // Add other relevant fields based on your schema
+}
+
 // Mock data store for ER visits (replace with actual DB interaction)
-let mockVisits: any[] = [];
+let mockVisits: ERVisit[] = [];
 
 // Define interface for ER visit update data
 interface ERVisitUpdateInput {
@@ -56,10 +73,11 @@ export async function GET(
       );
     }
     return NextResponse.json(visit);
-  } catch (e: any) {
-    console.error({ message: "Error fetching ER visit details", error: e.message });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error fetching ER visit details", error: errorMessage });
     return NextResponse.json(
-      { error: "Failed to fetch ER visit details", details: e.message },
+      { error: "Failed to fetch ER visit details", details: errorMessage },
       { status: 500 }
     );
   }
@@ -119,7 +137,8 @@ export async function PUT(
     }
     const updatedVisit = { ...mockVisits[visitIndex] };
     updateFields.forEach(field => {
-      (updatedVisit as any)[field] = (updateData as any)[field];
+      // Type assertion needed here as field is a string key
+      (updatedVisit as Record<string, unknown>)[field] = (updateData as Record<string, unknown>)[field];
     });
     updatedVisit.updated_at = new Date().toISOString();
     mockVisits[visitIndex] = updatedVisit;
@@ -138,10 +157,11 @@ export async function PUT(
 
     // Return the updated visit
     return NextResponse.json(updatedVisit);
-  } catch (e: any) {
-    console.error({ message: "Error updating ER visit", error: e.message });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error updating ER visit", error: errorMessage });
     return NextResponse.json(
-      { error: "Failed to update ER visit", details: e.message },
+      { error: "Failed to update ER visit", details: errorMessage },
       { status: 500 }
     );
   }
@@ -207,10 +227,11 @@ export async function DELETE(
       { message: "ER visit deleted successfully" },
       { status: 200 }
     );
-  } catch (e: any) {
-    console.error({ message: "Error deleting ER visit", error: e.message });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error deleting ER visit", error: errorMessage });
     return NextResponse.json(
-      { error: "Failed to delete ER visit", details: e.message },
+      { error: "Failed to delete ER visit", details: errorMessage },
       { status: 500 }
     );
   }

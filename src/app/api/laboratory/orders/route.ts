@@ -51,18 +51,29 @@ interface LabOrder {
   tests: { test_id: number | string; status: string; name?: string }[]; 
   created_at?: string; 
   updated_at?: string; 
-  patient_details?: any; 
-  results?: any[]; 
+  patient_details?: unknown; 
+  results?: unknown[]; 
 }
 
 
+// Interface for Lab Order Filters
+interface LabOrderFilters {
+  status?: string | null;
+  priority?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  doctorId?: string | null;
+  patientId?: string | null;
+  search?: string | null;
+}
+
 // --- Mock Database Functions (Keep for now, replace later) ---
 
-async function getLabOrdersFromDB(filters: any): Promise<LabOrder[]> { // Added return type
+async function getLabOrdersFromDB(filters: LabOrderFilters): Promise<LabOrder[]> { // Added return type
   console.warn("Mock getLabOrdersFromDB called with filters:", filters);
   const db = await getDB();
   let query = "SELECT * FROM lab_orders";
-  const params: any[] = [];
+  const params: string[] = [];
   if (filters.status) {
     query += " WHERE status = ?";
     params.push(filters.status);
@@ -116,10 +127,12 @@ async function getLabOrderByIdFromDB(id: number): Promise<LabOrder | null> { // 
 
   if (order) {
     const testsResult = await db.query("SELECT * FROM lab_order_tests WHERE order_id = ?", [id]);
-    (order as any).tests = testsResult.rows || [];
-    if ((order as any).status === "completed" || (order as any).status === "verified") {
+    // Assuming testsResult.rows contains objects matching the tests structure in LabOrder
+    (order as LabOrder).tests = (testsResult.rows || []) as { test_id: number | string; status: string; name?: string }[];
+    if ((order as LabOrder).status === "completed" || (order as LabOrder).status === "verified") {
         const resultsResult = await db.query("SELECT * FROM lab_results WHERE order_id = ?", [id]);
-        (order as any).results = resultsResult.rows || [];
+        // Assuming resultsResult.rows contains objects matching the results structure
+        (order as LabOrder).results = (resultsResult.rows || []) as unknown[];
     }
   }
   return order as LabOrder | null; // Cast to return type
