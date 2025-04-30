@@ -28,14 +28,16 @@ export const PERMISSIONS = {
 };
 
 // Placeholder function for API routes importing 'checkUserRole'
-export const checkUserRole = async (req: NextRequest, allowedRoles: string[]): Promise<boolean> => {
+// FIX: Prefix unused parameters with underscore
+export const checkUserRole = async (_req: NextRequest, _allowedRoles: string[]): Promise<boolean> => {
   console.warn("Authorization function 'checkUserRole' is not implemented yet.");
   // Mock implementation: always returns true
   return true;
 };
 
 // Placeholder function for API routes importing 'getCurrentUser'
-export const getCurrentUser = async (req?: NextRequest): Promise<User | null> => {
+// FIX: Prefix unused parameter with underscore
+export const getCurrentUser = async (_req?: NextRequest): Promise<User | null> => {
   console.warn("Authentication function 'getCurrentUser' is not implemented yet.");
   // Mock implementation: returns a dummy user or null
   // In a real implementation, this would verify a token from cookies or headers
@@ -78,14 +80,16 @@ export const setAuthCookie = (res: NextResponse, token: string) => {
 };
 
 // Placeholder function for API routes importing 'verifyPassword'
-export const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
+// FIX: Prefix unused parameters with underscore
+export const verifyPassword = async (_password: string, _hash: string): Promise<boolean> => {
   console.warn("verifyPassword function is not implemented yet.");
   // Mock implementation: always returns true
   return true;
 };
 
 // Placeholder function for API routes importing 'signToken'
-export const signToken = (payload: object): string => {
+// FIX: Prefix unused parameter with underscore
+export const signToken = (_payload: object): string => {
   console.warn("signToken function is not implemented yet.");
   // Mock implementation: returns a dummy token
   return "mock-jwt-token";

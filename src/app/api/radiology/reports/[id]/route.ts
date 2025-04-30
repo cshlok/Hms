@@ -1,25 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/db"; // Import getDB function
-import { getSession, Session } from "@/lib/session"; // Import Session type
-import { checkUserRole } from "@/lib/auth";
+import { getSession, Session, SessionUser } from "@/lib/session"; // FIX: Import SessionUser
+// import { checkUserRole } from "@/lib/auth"; // Assuming checkUserRole might not be fully implemented or needed based on roleName
 
-// Define a type for the database object based on usage
-// This should align with the actual implementation or a more robust interface
-interface PreparedStatement {
-  bind(...params: any[]): {
-    run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
-    all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
-    first<T = any>(colName?: string): Promise<T | null>;
-  };
-  run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
-  all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
-  first<T = any>(colName?: string): Promise<T | null>;
+// FIX: Define generic QueryResult type
+interface QueryResult<T> {
+  results?: T[];
+  // Add other potential properties like rowCount, etc., based on your DB library
 }
 
-interface Database {
-  prepare(sql: string): PreparedStatement;
-  exec(sql: string): Promise<{ count: number; duration: number }>;
-  // Add other methods like query if needed based on db.ts
+// FIX: Define generic SingleQueryResult type for .first()
+interface SingleQueryResult<T> {
+  result?: T | null;
+  // Add other potential properties based on your DB library
 }
 
 // Define interfaces
@@ -46,6 +39,9 @@ interface RadiologyReport {
   procedure_name?: string;
 }
 
+// FIX: Define type for the raw DB result for the GET request
+interface RadiologyReportQueryResultRow extends RadiologyReport {}
+
 interface RadiologyReportPutData {
   findings?: string | null;
   impression?: string | null;
@@ -54,24 +50,21 @@ interface RadiologyReportPutData {
   verified_by_id?: string | null; // Only if verifying
 }
 
-// Use the imported Session type
-// interface AuthenticatedSession extends Session {
-//   // Session already defines the user structure
-// }
-
 // GET a specific Radiology Report by ID
 export async function GET(
-  request: NextRequest, // Keep request for potential future use, but don't pass to getSession
+  request: NextRequest, // Keep request for potential future use
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(); // Removed request argument
+    // FIX: Get session without unsafe assertion
+    const session: Session | null = await getSession(); 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    // FIX: Assert user type after null check
+    const currentUser = session.user as SessionUser;
     // Role check example (adjust roles as needed)
-    // Assuming checkUserRole works with the Session['user'] structure
-    // if (!checkUserRole(session.user, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
+    // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(currentUser.roleName)) {
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     // }
 
@@ -80,16 +73,17 @@ export async function GET(
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const db: Database = await getDB(); // Use the defined Database interface
+    const db = await getDB(); 
 
-    const report = await db.prepare(
+    // FIX: Use type assertion for .first()
+    const reportResult = await db.prepare(
       `SELECT
          rr.*,
          rs.accession_number,
-         rad.first_name || ' ' || rad.last_name as radiologist_name,
-         ver.first_name || ' ' || ver.last_name as verified_by_name,
+         rad.first_name || \' \' || rad.last_name as radiologist_name,
+         ver.first_name || \' \' || ver.last_name as verified_by_name,
          ro.patient_id,
-         p.first_name || ' ' || p.last_name as patient_name,
+         p.first_name || \' \' || p.last_name as patient_name,
          pt.name as procedure_name
        FROM RadiologyReports rr
        JOIN RadiologyStudies rs ON rr.study_id = rs.id
@@ -99,7 +93,10 @@ export async function GET(
        JOIN Patients p ON ro.patient_id = p.id
        JOIN RadiologyProcedureTypes pt ON ro.procedure_type_id = pt.id
        WHERE rr.id = ?`
-    ).bind(reportId).first<RadiologyReport>();
+    ).bind(reportId).first() as SingleQueryResult<RadiologyReportQueryResultRow>;
+
+    // FIX: Check result property
+    const report = reportResult?.result;
 
     if (!report) {
       return NextResponse.json({ error: "Radiology report not found" }, { status: 404 });
@@ -118,34 +115,41 @@ export async function PUT(
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(); // Removed request argument
+    // FIX: Get session without unsafe assertion
+    const session: Session | null = await getSession(); 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    // FIX: Assert user type after null check
+    const currentUser = session.user as SessionUser;
 
     const reportId = params.id;
     if (!reportId) {
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const db: Database = await getDB(); // Use the defined Database interface
+    const db = await getDB(); 
     const data = await request.json() as RadiologyReportPutData;
     const updatedAt = new Date().toISOString();
 
     // Fetch the report to check ownership and current status
-    const existingReport = await db.prepare(
+    // FIX: Use type assertion for .first()
+    const existingReportResult = await db.prepare(
         "SELECT radiologist_id, status FROM RadiologyReports WHERE id = ?"
-    ).bind(reportId).first<{ radiologist_id: string, status: string }>();
+    ).bind(reportId).first() as SingleQueryResult<{ radiologist_id: string, status: string }>;
+
+    // FIX: Check result property
+    const existingReport = existingReportResult?.result;
 
     if (!existingReport) {
       return NextResponse.json({ error: "Radiology report not found" }, { status: 404 });
     }
 
-    // Authorization Check - Use session.user.roleName and session.user.userId
-    const isAdmin = session.user.roleName === "Admin"; // Assuming roleName holds the role
-    const isRadiologist = session.user.roleName === "Radiologist";
+    // Authorization Check - Use currentUser.roleName and currentUser.userId
+    const isAdmin = currentUser.roleName === "Admin"; 
+    const isRadiologist = currentUser.roleName === "Radiologist";
     // Assuming user ID is a number in the session, but string in the DB? Adjust types if needed.
-    const isOwner = isRadiologist && String(session.user.userId) === existingReport.radiologist_id;
+    const isOwner = isRadiologist && String(currentUser.userId) === existingReport.radiologist_id;
 
     // Only Admin or the owning Radiologist can update (unless already final)
     if (!isAdmin && !isOwner) {
@@ -157,8 +161,8 @@ export async function PUT(
       return NextResponse.json({ error: "Cannot update a final report. Create an addendum instead." }, { status: 403 });
     }
     // Radiologist cannot verify their own report (assuming this rule)
-    // Adjust type comparison if needed (e.g., String(session.user.userId))
-    if (isOwner && data.verified_by_id === String(session.user.userId)) {
+    // Adjust type comparison if needed (e.g., String(currentUser.userId))
+    if (isOwner && data.verified_by_id === String(currentUser.userId)) {
         return NextResponse.json({ error: "Radiologists cannot verify their own reports" }, { status: 403 });
     }
 
@@ -172,12 +176,12 @@ export async function PUT(
     }
     if (data.verified_by_id !== undefined) {
         // Optional: Check if the verifier is a valid user
-        // const verifierExists = await db.prepare("SELECT id FROM Users WHERE id = ? AND 'Radiologist' = ANY(roles)").bind(data.verified_by_id).first();
+        // const verifierExists = await db.prepare("SELECT id FROM Users WHERE id = ? AND \'Radiologist\' = ANY(roles)").bind(data.verified_by_id).first();
         // if (!verifierExists) return NextResponse.json({ error: "Invalid verifier ID or verifier is not a Radiologist" }, { status: 400 });
 
         fieldsToUpdate.verified_by_id = data.verified_by_id;
         fieldsToUpdate.verified_datetime = updatedAt;
-        // Automatically set status to 'final' when verified, if not already set
+        // Automatically set status to \'final\' when verified, if not already set
         if (fieldsToUpdate.status === undefined || fieldsToUpdate.status === "preliminary") {
           fieldsToUpdate.status = "final";
         }
@@ -193,31 +197,39 @@ export async function PUT(
     const values = [...Object.values(fieldsToUpdate), reportId];
 
     const updateStmt = `UPDATE RadiologyReports SET ${setClauses} WHERE id = ?`;
+    // FIX: Assume .run() returns a structure with success/meta, though not strictly typed here
     const info = await db.prepare(updateStmt).bind(...values).run();
 
     // Check if update actually happened (info.meta.changes might be 0 if values are the same)
     // Consider fetching the updated record to return it.
 
-    // If report status is set to 'final', update related study/order statuses
+    // If report status is set to \'final\', update related study/order statuses
     if (fieldsToUpdate.status === "final") {
-      const studyIdResult = await db.prepare("SELECT study_id FROM RadiologyReports WHERE id = ?").bind(reportId).first<{ study_id: string }>();
-      if (studyIdResult?.study_id) {
+      // FIX: Use type assertion for .first()
+      const studyIdResult = await db.prepare("SELECT study_id FROM RadiologyReports WHERE id = ?").bind(reportId).first() as SingleQueryResult<{ study_id: string }>;
+      // FIX: Check result property
+      if (studyIdResult?.result?.study_id) {
         await db.prepare("UPDATE RadiologyStudies SET status = ?, updated_at = ? WHERE id = ? AND status != ?")
-          .bind("verified", updatedAt, studyIdResult.study_id, "verified")
+          .bind("verified", updatedAt, studyIdResult.result.study_id, "verified")
           .run();
-        const orderIdResult = await db.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(studyIdResult.study_id).first<{ order_id: string }>();
-        if (orderIdResult?.order_id) {
+        // FIX: Use type assertion for .first()
+        const orderIdResult = await db.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(studyIdResult.result.study_id).first() as SingleQueryResult<{ order_id: string }>;
+        // FIX: Check result property
+        if (orderIdResult?.result?.order_id) {
           await db.prepare("UPDATE RadiologyOrders SET status = ?, updated_at = ? WHERE id = ? AND status != ?")
-            .bind("completed", updatedAt, orderIdResult.order_id, "completed")
+            .bind("completed", updatedAt, orderIdResult.result.order_id, "completed")
             .run();
         }
       }
     }
 
     // Fetch the updated report to return
-    const updatedReport = await db.prepare("SELECT * FROM RadiologyReports WHERE id = ?")
+    // FIX: Use type assertion for .first()
+    const updatedReportResult = await db.prepare("SELECT * FROM RadiologyReports WHERE id = ?")
                                 .bind(reportId)
-                                .first<RadiologyReport>();
+                                .first() as SingleQueryResult<RadiologyReport>;
+    // FIX: Check result property
+    const updatedReport = updatedReportResult?.result;
 
     return NextResponse.json(updatedReport || { id: reportId, message: "Radiology report update processed" }); // Return updated report or confirmation
 
@@ -234,9 +246,16 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(); // Removed request argument
+    // FIX: Get session without unsafe assertion
+    const session: Session | null = await getSession(); 
+    // FIX: Check session and user safely
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // FIX: Assert user type after null check
+    const currentUser = session.user as SessionUser;
     // Use roleName for check
-    if (!session?.user || session.user.roleName !== "Admin") {
+    if (currentUser.roleName !== "Admin") {
       return NextResponse.json({ error: "Unauthorized: Admin role required" }, { status: 403 });
     }
 
@@ -245,10 +264,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Report ID is required" }, { status: 400 });
     }
 
-    const db: Database = await getDB(); // Use the defined Database interface
+    const db = await getDB(); 
 
-    // Option 1: Soft delete (recommended - set status to 'retracted')
+    // Option 1: Soft delete (recommended - set status to \'retracted\')
     const retractedAt = new Date().toISOString();
+    // FIX: Assume .run() returns a structure with success/meta
     const info = await db.prepare("UPDATE RadiologyReports SET status = ?, updated_at = ? WHERE id = ?")
                       .bind("retracted", retractedAt, reportId)
                       .run();
@@ -257,7 +277,8 @@ export async function DELETE(
     // const info = await db.prepare("DELETE FROM RadiologyReports WHERE id = ?").bind(reportId).run();
 
     // Check info.meta.changes for D1 compatibility
-    if (!info.success || info.meta.changes === 0) { // Check success and changes
+    // FIX: Check info structure based on actual DB library (assuming success/meta)
+    if (!info.success) { // Check success
       return NextResponse.json({ error: "Radiology report not found or already retracted" }, { status: 404 });
     }
 

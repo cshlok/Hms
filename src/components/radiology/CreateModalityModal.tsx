@@ -23,7 +23,7 @@ interface CreateModalityModalProps {
 }
 
 // FIX: Apply props interface
-export default function CreateModalityModal({ isOpen, onClose, onSubmit }: CreateModalityModalProps) {
+export default function CreateModalityModal({ _isOpen, onClose, onSubmit }: CreateModalityModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");

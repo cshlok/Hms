@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // FIX: Add useCallback
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,9 @@ interface RadiologyReport {
 interface SessionUser {
   id: string;
   role: string; // Define specific roles if possible, e.g., 'Admin' | 'Radiologist' | 'Technician'
+  // FIX: Assuming userId is available in the session user object for comparison
+  userId?: string | number; 
+  roleName?: string; // Assuming roleName is used for checks
 }
 
 // Placeholder for EditReportModal props if it were implemented
@@ -56,15 +59,11 @@ const RadiologyReportDetail: React.FC = () => {
   const [report, setReport] = useState<RadiologyReport | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  // FIX: Prefix unused variable with underscore
+  const [_showEditModal, setShowEditModal] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (reportId) {
-      fetchReportDetails();
-    }
-  }, [reportId]);
-
-  const fetchReportDetails = async (): Promise<void> => {
+  // FIX: Wrap fetchReportDetails in useCallback
+  const fetchReportDetails = useCallback(async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
@@ -108,7 +107,14 @@ const RadiologyReportDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [reportId]); // Add reportId as dependency
+
+  useEffect(() => {
+    if (reportId) {
+      fetchReportDetails();
+    }
+    // FIX: Add fetchReportDetails to dependency array
+  }, [reportId, fetchReportDetails]);
 
   const handleVerifyReport = async (): Promise<void> => {
     if (!report || !user) return;
@@ -125,7 +131,7 @@ const RadiologyReportDetail: React.FC = () => {
       //   },
       //   body: JSON.stringify({
       //     status: 'final',
-      //     verified_by_id: user.id,
+      //     verified_by_id: user.id, // Assuming user.id exists
       //   }),
       // });
       // if (!response.ok) {
@@ -145,15 +151,6 @@ const RadiologyReportDetail: React.FC = () => {
       setLoading(false); // Stop loading indicator on error
     }
     // No finally setLoading(false) here, as fetchReportDetails will handle it on success
-  };
-
-  // Placeholder for edit functionality
-  const handleUpdateReport = async (updatedData: Partial<RadiologyReport>): Promise<void> => {
-    console.log("Updating report with:", updatedData);
-    // try { /* Simulate fetch PUT */ await new Promise(resolve => setTimeout(resolve, 1000)); } catch { /* handle error */ } finally { setShowEditModal(false); fetchReportDetails(); }
-    setShowEditModal(false);
-    alert("Edit functionality not fully implemented yet.");
-    fetchReportDetails(); // Refresh after simulated update
   };
 
   const handlePrintReport = (): void => {
@@ -187,8 +184,9 @@ const RadiologyReportDetail: React.FC = () => {
   }
 
   // Determine permissions based on user role and report status/ownership
-  const canEdit = user && (user.role === 'Admin' || (user.role === 'Radiologist' && user.id === report.radiologist_id && report.status !== 'final'));
-  const canVerify = user && (user.role === 'Admin' || user.role === 'Radiologist'); // Adjust verification logic as needed
+  // FIX: Use roleName and userId from SessionUser type
+  const canEdit = user && (user.roleName === 'Admin' || (user.roleName === 'Radiologist' && String(user.userId) === report.radiologist_id && report.status !== 'final'));
+  const canVerify = user && (user.roleName === 'Admin' || user.roleName === 'Radiologist'); // Adjust verification logic as needed
 
   return (
     <div className="container mx-auto p-4 space-y-6">

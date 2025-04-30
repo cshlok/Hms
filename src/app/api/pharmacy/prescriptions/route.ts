@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDB } from '@/lib/db'; // Assuming db returns a promise
-import { getSession, Session } from "@/lib/session";
+import { getSession, Session, SessionUser } from "@/lib/session"; // FIX: Import SessionUser
+
+// FIX: Define generic QueryResult type
+interface QueryResult<T> {
+  results?: T[];
+  // Add other potential properties like rowCount, etc., based on your DB library
+}
+
+// FIX: Define generic SingleQueryResult type for .first()
+interface SingleQueryResult<T> {
+  result?: T | null;
+  // Add other potential properties based on your DB library
+}
 
 // Define interfaces
 interface PrescriptionItem {
@@ -40,6 +52,14 @@ interface Prescription {
   items?: PrescriptionItem[]; // Added for POST response
 }
 
+// FIX: Define type for the raw DB result for prescriptions list
+interface PrescriptionQueryResultRow extends Omit<Prescription, 'items' | 'item_count'> {
+    item_count: number; // Ensure item_count is number
+}
+
+// FIX: Define type for the raw DB result for prescription items
+interface PrescriptionItemQueryResultRow extends PrescriptionItem {}
+
 interface PrescriptionItemPostData {
   medication_id: string;
   dosage: string;
@@ -57,10 +77,12 @@ interface PrescriptionPostData {
   notes?: string | null;
   items: PrescriptionItemPostData[];
 }
-// Define interfacesy/prescriptions
+
+// GET /api/pharmacy/prescriptions
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession() as Session | null;
+    // FIX: Get session without unsafe assertion
+    const session: Session | null = await getSession();
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -146,7 +168,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     query += ` ORDER BY p.prescription_date DESC`;
 
-    const result = await db.prepare(query).bind(...params).all();
+    // FIX: Use type assertion for query result
+    const result = await db.prepare(query).bind(...params).all() as QueryResult<PrescriptionQueryResultRow>;
 
     return NextResponse.json({
       prescriptions: result.results || []
@@ -161,13 +184,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // POST /api/pharmacy/prescriptions
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession() as Session | null;
+    // FIX: Get session without unsafe assertion
+    const session: Session | null = await getSession();
 
+    // FIX: Check session and user safely
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    // FIX: Assert user type after null check
+    const currentUser = session.user as SessionUser;
 
-    const hasPermission = ["admin", "doctor"].includes(session!.user!.roleName); // Use roleName from Session
+    const hasPermission = ["admin", "doctor"].includes(currentUser.roleName); // Use roleName from Session
 
     if (!hasPermission) {
       return NextResponse.json({ error: 'Forbidden: Only doctors or admins can create prescriptions' }, { status: 403 });
@@ -203,11 +230,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const db = await getDB();
 
+    // FIX: Use type assertion for .first()
     const patientExists = await db.prepare(
       `SELECT id FROM patients WHERE id = ?`
-    ).bind(data.patient_id).first();
+    ).bind(data.patient_id).first() as SingleQueryResult<{ id: string }>;
 
-    if (!patientExists) {
+    if (!patientExists?.result) { // FIX: Check result property
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
     }
 
@@ -217,11 +245,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (data.source_id) {
       const sourceTable = data.source === 'OPD' ? 'appointments' : 'admissions';
+      // FIX: Use type assertion for .first()
       const sourceExists = await db.prepare(
         `SELECT id FROM ${sourceTable} WHERE id = ?`
-      ).bind(data.source_id).first();
+      ).bind(data.source_id).first() as SingleQueryResult<{ id: string }>;
 
-      if (!sourceExists) {
+      if (!sourceExists?.result) { // FIX: Check result property
         return NextResponse.json({ error: `${data.source} record not found` }, { status: 404 });
       }
     }
@@ -245,7 +274,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         prescriptionId,
         prescriptionNumber,
         data.patient_id,
-        session!.user!.userId, // Use userId from Session
+        currentUser.userId, // Use userId from currentUser
         data.prescription_date || new Date().toISOString().split('T')[0], // Use YYYY-MM-DD format
         data.source,
         data.source_id || null,
@@ -256,11 +285,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       for (const item of data.items) {
         const itemId = `prescitem_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
+        // FIX: Use type assertion for .first()
         const medicationExists = await db.prepare(
           `SELECT id FROM medications WHERE id = ?`
-      ).bind(item.medication_id).first();
+        ).bind(item.medication_id).first() as SingleQueryResult<{ id: string }>;
 
-        if (!medicationExists) {
+        if (!medicationExists?.result) { // FIX: Check result property
           throw new Error(`Medication not found: ${item.medication_id}`);
         }
 
@@ -285,7 +315,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       await db.exec('COMMIT');
 
       // Fetch the created prescription with details
-      const createdPrescription = await db.prepare(`
+      // FIX: Use type assertion for .first()
+      const createdPrescriptionResult = await db.prepare(`
         SELECT
           p.id, p.prescription_number, p.prescription_date, p.source, p.source_id,
           p.status, p.notes, pt.id as patient_id, pt.first_name as patient_first_name,
@@ -295,16 +326,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         JOIN patients pt ON p.patient_id = pt.id
         JOIN users u ON p.doctor_id = u.id
         WHERE p.id = ?
-      `).bind(prescriptionId).first();
+      `).bind(prescriptionId).first() as SingleQueryResult<Omit<Prescription, "items" | "item_count">>;
+
+      // FIX: Check result property before using
+      const createdPrescription = createdPrescriptionResult?.result;
 
       if (!createdPrescription) {
         throw new Error("Failed to retrieve created prescription details");
       }
 
-      // Cast after null check
-      const confirmedPrescription = createdPrescription as Omit<Prescription, "items">;
-
       // Fetch prescription items with medication details
+      // FIX: Use type assertion for .all()
       const prescriptionItemsResult = await db.prepare(`
         SELECT
           pi.id, pi.dosage, pi.frequency, pi.duration, pi.quantity,
@@ -313,11 +345,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         FROM prescription_items pi
         JOIN medications m ON pi.medication_id = m.id
         WHERE pi.prescription_id = ?
-      `).bind(prescriptionId).all();
+      `).bind(prescriptionId).all() as QueryResult<PrescriptionItemQueryResultRow>;
+
+      // FIX: Assert items type safely
+      const items: PrescriptionItem[] = (prescriptionItemsResult.results || []) as PrescriptionItem[];
 
       const responseData: Prescription = {
-        ...confirmedPrescription, // Use the casted variable
-        items: prescriptionItemsResult.results || []
+        ...createdPrescription, // Use the checked variable
+        items: items
       };
 
       return NextResponse.json(responseData, { status: 201 });

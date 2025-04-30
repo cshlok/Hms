@@ -51,7 +51,7 @@ export default function RadiologySettings() {
         try {
           const errorData: { error?: string } = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) { /* Ignore if response is not JSON */ }
+        } catch (_jsonError) { /* Ignore if response is not JSON */ }
         throw new Error(errorMsg);
       }
       const data: ProcedureType[] = await response.json();
@@ -76,7 +76,7 @@ export default function RadiologySettings() {
         try {
           const errorData: { error?: string } = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) { /* Ignore if response is not JSON */ }
+        } catch (_jsonError) { /* Ignore if response is not JSON */ }
         throw new Error(errorMsg);
       }
       const data: Modality[] = await response.json();
@@ -106,7 +106,7 @@ export default function RadiologySettings() {
         try {
           const errorData: { error?: string } = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) { /* Ignore if response is not JSON */ }
+        } catch (_jsonError) { /* Ignore if response is not JSON */ }
         throw new Error(errorMsg);
       }
 
@@ -135,7 +135,7 @@ export default function RadiologySettings() {
         try {
           const errorData: { error?: string } = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) { /* Ignore if response is not JSON */ }
+        } catch (_jsonError) { /* Ignore if response is not JSON */ }
         throw new Error(errorMsg);
       }
 

@@ -76,7 +76,7 @@ export default function RadiologyOrderList() {
           // Attempt to parse error message from response body
           const errorData: { error?: string; message?: string } = await response.json();
           errorMsg = errorData.error || errorData.message || errorMsg;
-        } catch (jsonError) {
+        } catch (_jsonError) {
           // If response is not JSON or doesn't contain error details, use the status text
           errorMsg = `${errorMsg}: ${response.statusText}`;
         }

@@ -1,6 +1,7 @@
 // src/app/api/auth/logout/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { clearAuthCookie, getCurrentUser } from '@/lib/auth';
+// FIX: Remove commented out import
 // import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export async function POST(request: NextRequest) {
@@ -46,3 +47,4 @@ export async function POST(request: NextRequest) {
     return response;
   }
 }
+
