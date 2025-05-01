@@ -20,7 +20,7 @@ export default function OTDashboardPage() {
   // State to trigger list refreshes after modal saves
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleSave = useCallback(async (data: any) => {
+  const handleSave = useCallback(async (data: unknown) => {
     // In a real app, this might involve re-fetching data or updating state
     console.log("Saved data, triggering refresh:", data);
     setRefreshKey(prev => prev + 1); // Increment key to trigger re-render/re-fetch in lists

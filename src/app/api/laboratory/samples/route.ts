@@ -64,7 +64,8 @@ export async function GET(request: NextRequest) {
       LEFT JOIN users r ON s.received_by = r.id
     `;
 
-    const params: any[] = [];
+    // FIX: Use specific type for params
+    const params: (string | number)[] = [];
     const conditions: string[] = [];
 
     if (orderId) {
@@ -123,7 +124,8 @@ export async function POST(request: NextRequest) {
       }
 
       const updates: string[] = [];
-      const params: any[] = [];
+      // FIX: Use specific type for params
+      const params: (string | number | boolean)[] = [];
 
       if (body.status) {
         updates.push("status = ?");

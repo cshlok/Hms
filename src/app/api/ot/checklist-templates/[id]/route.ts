@@ -73,7 +73,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const now = new Date().toISOString();
 
     // Construct the update query dynamically
-    const fieldsToUpdate: { [key: string]: any } = {};
+    // FIX: Use specific type for fieldsToUpdate
+    const fieldsToUpdate: { [key: string]: string } = {};
     if (name !== undefined) fieldsToUpdate.name = name;
     if (phase !== undefined) {
         const validPhases = ["pre-op", "intra-op", "post-op"];
@@ -128,10 +129,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(updatedTemplate);
 
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error updating checklist template:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    if (error.message?.includes("UNIQUE constraint failed")) {
+    if (errorMessage?.includes("UNIQUE constraint failed")) { // FIX: Check errorMessage instead of error.message
         return NextResponse.json({ message: "Checklist template name must be unique", details: errorMessage }, { status: 409 });
     }
     return NextResponse.json({ message: "Error updating checklist template", details: errorMessage }, { status: 500 });
@@ -157,11 +158,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ message: "Checklist template deleted successfully" }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error deleting checklist template:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     // Handle potential foreign key constraint errors if responses exist
-    if (error.message?.includes("FOREIGN KEY constraint failed")) {
+    if (errorMessage?.includes("FOREIGN KEY constraint failed")) { // FIX: Check errorMessage instead of error.message
         return NextResponse.json({ message: "Cannot delete template with existing responses", details: errorMessage }, { status: 409 });
     }
     return NextResponse.json({ message: "Error deleting checklist template", details: errorMessage }, { status: 500 });

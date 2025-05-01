@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
 
     // Build query
     let query = 'SELECT t.*, c.name as category_name FROM lab_tests t JOIN lab_test_categories c ON t.category_id = c.id';
-    const params: any[] = [];
+    // FIX: Use specific type for params
+    const params: (string | number | boolean)[] = [];
 
     // Add filters
     const conditions: string[] = [];

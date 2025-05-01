@@ -48,16 +48,7 @@ interface OrderItem {
   // ... other fields
 }
 
-interface TestParameter {
-  id: number;
-  test_id: number;
-  // ... other fields
-}
-
-interface LabTest {
-  id: number;
-  // ... other fields
-}
+// Removed unused interfaces: TestParameter, LabTest
 
 // GET /api/laboratory/results - Get laboratory results
 export async function GET(request: NextRequest) {
@@ -90,7 +81,8 @@ export async function GET(request: NextRequest) {
       LEFT JOIN users u2 ON r.verified_by = u2.id
     `;
 
-    const params: any[] = [];
+    // FIX: Use specific type for params
+    const params: (string | number)[] = [];
     const conditions: string[] = [];
 
     if (orderItemId) {
@@ -160,7 +152,8 @@ export async function POST(request: NextRequest) {
       }
 
       const updates: string[] = [];
-      const params: any[] = [];
+      // FIX: Use specific type for params
+      const params: (string | number | boolean)[] = [];
 
       if (body.result_value !== undefined) {
         updates.push('result_value = ?');
@@ -242,12 +235,14 @@ export async function POST(request: NextRequest) {
           const parameters = parametersResult.rows || [];
 
           if (parameters.length > 0) {
-            const parameterIds = parameters.map((p: any) => p.id);
+            // FIX: Define type for parameter row
+            const parameterIds = parameters.map((p: { id: number }) => p.id);
             const resultsCountResult = await db.query(
               `SELECT COUNT(*) as count FROM lab_results WHERE order_item_id = ? AND parameter_id IN (${parameterIds.map(() => '?').join(',')})`,
               [body.order_item_id, ...parameterIds]
             );
-            const resultCount = (resultsCountResult.rows && resultsCountResult.rows.length > 0) ? (resultsCountResult.rows[0] as any).count : 0;
+            // FIX: Define type for count result
+            const resultCount = (resultsCountResult.rows && resultsCountResult.rows.length > 0) ? (resultsCountResult.rows[0] as { count: number }).count : 0;
             if (resultCount >= parameters.length) { // Use >= in case of re-entry
               allItemParamsCompleted = true;
             }
@@ -264,7 +259,8 @@ export async function POST(request: NextRequest) {
 
         // Check if all items in the order are completed
         const orderItemsResult = await db.query('SELECT status FROM lab_order_items WHERE order_id = ?', [orderItem.order_id]);
-        const allOrderItemsCompleted = (orderItemsResult.rows || []).every((item: any) => item.status === 'completed');
+        // FIX: Define type for item row
+        const allOrderItemsCompleted = (orderItemsResult.rows || []).every((item: { status: string }) => item.status === 'completed');
 
         if (allOrderItemsCompleted) {
           await db.query('UPDATE lab_orders SET status = ? WHERE id = ?', ['completed', orderItem.order_id]);

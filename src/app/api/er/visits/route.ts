@@ -1,5 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid"; // Import uuid
+import { NextRequest, NextResponse } from "next/server"; // Import uuid
 
 // Define interface for ER Visit data
 interface ERVisit {

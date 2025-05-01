@@ -80,7 +80,7 @@ export default function ERCriticalAlerts() {
             )
         );
         toast({ title: "Alert Acknowledged", description: `Alert ${alertId} marked as acknowledged.` });
-    } catch (error: any) { 
+    } catch (error: unknown) { 
         toast({ title: "Error", description: "Failed to acknowledge alert.", variant: "destructive" });
     } finally {
         setIsLoading(false);
@@ -98,7 +98,7 @@ export default function ERCriticalAlerts() {
             prevAlerts.filter(alert => alert.id !== alertId) // Remove resolved alerts from view
         );
         toast({ title: "Alert Resolved", description: `Alert ${alertId} marked as resolved.` });
-    } catch (error: any) { 
+    } catch (error: unknown) { 
         toast({ title: "Error", description: "Failed to resolve alert.", variant: "destructive" });
     } finally {
         setIsLoading(false);

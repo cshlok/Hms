@@ -91,7 +91,7 @@ async function createLabOrderInDB(orderData: LabOrderInput): Promise<LabOrder> {
 
   await db.query("INSERT INTO lab_orders (...) VALUES (...)", []);
   if (orderData.tests) {
-    for (const test of orderData.tests) {
+    for (const _ of orderData.tests) {
       await db.query("INSERT INTO lab_order_tests (...) VALUES (...)", []);
     }
   }

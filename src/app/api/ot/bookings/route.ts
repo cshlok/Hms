@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: "Booking created, but failed to fetch details" }, { status: 201 });
     }
 
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error creating OT booking:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     // TODO: Add specific error handling for time conflicts if validation is implemented

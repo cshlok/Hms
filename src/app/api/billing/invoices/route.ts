@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) { // FIX: Use unknown instead of any
     console.error("Error fetching OT bookings:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
@@ -147,7 +147,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const now = new Date().toISOString();
 
     // Construct the update query dynamically
-    const fieldsToUpdate: { [key: string]: any } = {};
+    // FIX: Use a more specific type for values
+    const fieldsToUpdate: { [key: string]: string | number | boolean | null } = {};
     if (theatre_id !== undefined) fieldsToUpdate.theatre_id = theatre_id;
     if (lead_surgeon_id !== undefined) fieldsToUpdate.lead_surgeon_id = lead_surgeon_id;
     if (anesthesiologist_id !== undefined) fieldsToUpdate.anesthesiologist_id = anesthesiologist_id;
@@ -206,7 +207,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(updatedBookingData);
 
-  } catch (error: any) {
+  } catch (error: unknown) { // FIX: Use unknown instead of any
     console.error("Error updating OT booking:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
@@ -242,7 +243,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ message: "OT Booking cancelled successfully" }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error: unknown) { // FIX: Use unknown instead of any
     console.error("Error cancelling OT booking:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

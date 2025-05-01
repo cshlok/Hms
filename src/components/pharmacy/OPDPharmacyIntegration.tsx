@@ -182,7 +182,7 @@ export default function OPDPharmacyIntegration() {
     // Ensure the field exists before assigning
     if (field in updatedMeds[index]) {
         // Type assertion needed because field is a keyof SelectedMedication
-        (updatedMeds[index] as any)[field] = value;
+        updatedMeds[index][field] = value;
         setSelectedMedications(updatedMeds);
     }
   };

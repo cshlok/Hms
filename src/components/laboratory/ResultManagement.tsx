@@ -216,12 +216,12 @@ const ResultManagement: React.FC = () => {
   useEffect(() => {
     fetchResults();
     fetchOrders();
-  }, []);
+  }, [fetchResults, fetchOrders]);
 
   // Reload results when filters change
   useEffect(() => {
     fetchResults();
-  }, [orderFilter, searchText]); // Also refetch on search text change
+  }, [orderFilter, searchText, fetchResults]); // Also refetch on search text change
 
   // Handle updating a result
   const handleUpdateResult = async (values: UpdateResultValues): Promise<void> => {
@@ -385,7 +385,7 @@ const ResultManagement: React.FC = () => {
       title: 'Reference Range',
       key: 'reference_range',
       width: '15%',
-      render: (_: any, record: LabResult) => {
+      render: (_: unknown, record: LabResult) => {
         // Simplified - in a real app, you'd use patient gender/age to determine which range to show
         return record.reference_range_male || record.reference_range_female || 'N/A';
       },
@@ -394,7 +394,7 @@ const ResultManagement: React.FC = () => {
       title: 'Status',
       key: 'status',
       width: '10%',
-      render: (_: any, record: LabResult) => {
+      render: (_: unknown, record: LabResult) => {
         if (record.verified_by) {
           return <Tag color="success">Verified</Tag>;
         } else if (record.is_abnormal) {
@@ -415,7 +415,7 @@ const ResultManagement: React.FC = () => {
       title: 'Actions',
       key: 'actions',
       width: '15%',
-      render: (_: any, record: LabResult) => {
+      render: (_: unknown, record: LabResult) => {
         const actions = [];
 
         // Edit action (only if not verified)

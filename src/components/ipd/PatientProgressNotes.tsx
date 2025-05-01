@@ -55,7 +55,7 @@ interface ApiErrorResponse {
 }
 
 // FIX: Define type for API success response (new note)
-interface NewNoteResponse extends ProgressNote {}
+type NewNoteResponse = ProgressNote;
 
 interface PatientProgressNotesProps {
   admissionId: string | null;

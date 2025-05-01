@@ -7,7 +7,7 @@ export const runtime = "edge";
 interface ChecklistResponseBody {
     checklist_template_id: string; // Assuming ID is string
     phase: string; // e.g., "Pre-Op", "Intra-Op", "Post-Op"
-    responses: Record<string, any>; // JSON object { "itemId": responseValue, ... }
+    responses: Record<string, unknown>; // JSON object { "itemId": responseValue, ... }
     completed_by_id?: string; // Optional, assuming ID is string
 }
 

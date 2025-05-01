@@ -1,7 +1,6 @@
 // src/app/api/patients/route.ts
 import { NextRequest, NextResponse } from "next/server";
 // import { getRequestContext } from "@cloudflare/next-on-pages";
-import { v4 as uuidv4 } from "uuid"; // Import uuid for generating IDs
 
 // Interface for Patient data (adjust based on actual schema)
 interface Patient {

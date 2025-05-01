@@ -113,7 +113,7 @@ const SampleManagement: React.FC = () => {
   // Load data on component mount and when filters change
   useEffect(() => {
     fetchSamples();
-  }, [statusFilter]); // Re-fetch only when statusFilter changes, search is handled manually
+  }, [statusFilter, fetchSamples]); // Re-fetch only when statusFilter changes, search is handled manually
 
   const handleSearch = (): void => {
     fetchSamples(); // Trigger fetch when search button/enter is pressed

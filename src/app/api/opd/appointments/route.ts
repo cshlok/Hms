@@ -25,8 +25,18 @@ interface AppointmentUpdateBody {
   notes?: string;
 }
 
+// FIX: Define interface for filters
+interface AppointmentFilters {
+  startDate?: string | null;
+  endDate?: string | null;
+  status?: string | null;
+  doctorId?: string | null;
+  patientId?: string | null;
+  search?: string | null;
+}
+
 // Placeholder function to simulate database interaction
-async function getAppointmentsFromDB(filters: any) {
+async function getAppointmentsFromDB(filters: AppointmentFilters) {
   console.log("Simulating fetching appointments with filters:", filters);
   // Replace with actual D1 query when DB is configured
   // const { env } = getRequestContext();
@@ -284,7 +294,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
     // Add other filters as needed
 
-    const filters = { startDate, endDate, status, doctorId, patientId, search };
+    const filters: AppointmentFilters = { startDate, endDate, status, doctorId, patientId, search };
 
     // Check if this is a request for a specific appointment
     const path = request.nextUrl.pathname;

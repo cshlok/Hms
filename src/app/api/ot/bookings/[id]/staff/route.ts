@@ -130,7 +130,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     const DB = (process.env.DB as unknown) as D1Database;
-    const info = await DB.prepare("DELETE FROM OTStaffAssignments WHERE booking_id = ?").bind(bookingId).run();
+    await DB.prepare("DELETE FROM OTStaffAssignments WHERE booking_id = ?").bind(bookingId).run();
 
     return NextResponse.json({ 
       message: "Staff assignments removed successfully", 

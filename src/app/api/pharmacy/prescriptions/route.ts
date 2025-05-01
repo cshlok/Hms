@@ -57,8 +57,8 @@ interface PrescriptionQueryResultRow extends Omit<Prescription, 'items' | 'item_
     item_count: number; // Ensure item_count is number
 }
 
-// FIX: Define type for the raw DB result for prescription items
-interface PrescriptionItemQueryResultRow extends PrescriptionItem {}
+// FIX: Remove redundant interface PrescriptionItemQueryResultRow
+// interface PrescriptionItemQueryResultRow extends PrescriptionItem {}
 
 interface PrescriptionItemPostData {
   medication_id: string;
@@ -336,7 +336,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
 
       // Fetch prescription items with medication details
-      // FIX: Use type assertion for .all()
+      // FIX: Use type assertion for .all() and use PrescriptionItem directly
       const prescriptionItemsResult = await db.prepare(`
         SELECT
           pi.id, pi.dosage, pi.frequency, pi.duration, pi.quantity,
@@ -345,7 +345,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         FROM prescription_items pi
         JOIN medications m ON pi.medication_id = m.id
         WHERE pi.prescription_id = ?
-      `).bind(prescriptionId).all() as QueryResult<PrescriptionItemQueryResultRow>;
+      `).bind(prescriptionId).all() as QueryResult<PrescriptionItem>;
 
       // FIX: Assert items type safely
       const items: PrescriptionItem[] = (prescriptionItemsResult.results || []) as PrescriptionItem[];

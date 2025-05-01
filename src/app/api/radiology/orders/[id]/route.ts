@@ -32,9 +32,10 @@ export async function GET(
       return NextResponse.json({ error: "Radiology order not found" }, { status: 404 });
     }
     return NextResponse.json(order);
-  } catch (e: any) {
-    console.error({ message: "Error fetching radiology order", error: e.message });
-    return NextResponse.json({ error: "Failed to fetch radiology order", details: e.message }, { status: 500 });
+  } catch (e: unknown) { // FIX: Use unknown instead of any
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error fetching radiology order", error: errorMessage });
+    return NextResponse.json({ error: "Failed to fetch radiology order", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -56,7 +57,8 @@ export async function PUT(
     const updatedAt = new Date().toISOString();
 
     // Build the update query dynamically based on provided fields
-    const fieldsToUpdate: { [key: string]: any } = {};
+    // FIX: Use a more specific type for fieldsToUpdate
+    const fieldsToUpdate: Record<string, string | undefined | null> = {};
     if (status !== undefined) fieldsToUpdate.status = status;
     if (priority !== undefined) fieldsToUpdate.priority = priority;
     if (clinical_indication !== undefined) fieldsToUpdate.clinical_indication = clinical_indication;
@@ -89,9 +91,10 @@ export async function PUT(
 
     return NextResponse.json({ id: orderId, status: "Radiology order updated" });
 
-  } catch (e: any) {
-    console.error({ message: "Error updating radiology order", error: e.message });
-    return NextResponse.json({ error: "Failed to update radiology order", details: e.message }, { status: 500 });
+  } catch (e: unknown) { // FIX: Use unknown instead of any
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error updating radiology order", error: errorMessage });
+    return NextResponse.json({ error: "Failed to update radiology order", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -124,6 +127,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Radiology order not found" }, { status: 404 });
         }
         // Check if existingOrder has status property before accessing it
+        // FIX: Removed unnecessary escapes around 'object' and 'status'
         if (typeof existingOrder === 'object' && existingOrder !== null && 'status' in existingOrder && existingOrder.status === "cancelled") {
             return NextResponse.json({ id: orderId, status: "Radiology order already cancelled" });
         }
@@ -132,9 +136,10 @@ export async function DELETE(
 
     return NextResponse.json({ id: orderId, status: "Radiology order cancelled" });
 
-  } catch (e: any) {
-    console.error({ message: "Error cancelling radiology order", error: e.message });
-    return NextResponse.json({ error: "Failed to cancel radiology order", details: e.message }, { status: 500 });
+  } catch (e: unknown) { // FIX: Use unknown instead of any
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error cancelling radiology order", error: errorMessage });
+    return NextResponse.json({ error: "Failed to cancel radiology order", details: errorMessage }, { status: 500 });
   }
 }
 

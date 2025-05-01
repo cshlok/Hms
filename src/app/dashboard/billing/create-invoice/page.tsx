@@ -319,7 +319,7 @@ export default function CreateInvoicePage() {
                 />
                 <CommandList>
                   {loadingPatients && <div className="p-4 text-center text-sm text-muted-foreground">Loading patients...</div>} {/* Improved loading state */}
-                  {!loadingPatients && patients.length === 0 && patientSearchTerm && <CommandEmpty>No patient found matching "{patientSearchTerm}".</CommandEmpty>}
+                  {!loadingPatients && patients.length === 0 && patientSearchTerm && <CommandEmpty>No patient found matching &quot;{patientSearchTerm}&quot;.</CommandEmpty>}
                   {!loadingPatients && patients.length === 0 && !patientSearchTerm && <CommandEmpty>Type to search for patients.</CommandEmpty>}
                   {!loadingPatients && patients.length > 0 && (
                     <CommandGroup heading="Search Results"> {/* Added heading */}
@@ -385,7 +385,7 @@ export default function CreateInvoicePage() {
                     />
                     <CommandList>
                        {loadingServices && <div className="p-4 text-center text-sm text-muted-foreground">Loading services...</div>}
-                       {!loadingServices && serviceItems.length === 0 && serviceSearchTerm && <CommandEmpty>No service/item found matching "{serviceSearchTerm}".</CommandEmpty>}
+                       {!loadingServices && serviceItems.length === 0 && serviceSearchTerm && <CommandEmpty>No service/item found matching &quot;{serviceSearchTerm}&quot;.</CommandEmpty>}
                        {!loadingServices && serviceItems.length === 0 && !serviceSearchTerm && <CommandEmpty>Type to search for services/items.</CommandEmpty>}
                        {!loadingServices && serviceItems.length > 0 && (
                         <CommandGroup heading="Search Results">

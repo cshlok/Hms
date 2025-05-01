@@ -3,11 +3,11 @@ import { getDB } from "@/lib/db"; // Import getDB function
 import { getSession, Session, SessionUser } from "@/lib/session"; // FIX: Import SessionUser
 // import { checkUserRole } from "@/lib/auth"; // Assuming checkUserRole might not be fully implemented or needed based on roleName
 
-// FIX: Define generic QueryResult type
-interface QueryResult<T> {
-  results?: T[];
-  // Add other potential properties like rowCount, etc., based on your DB library
-}
+// FIX: Define generic QueryResult type - Removed as unused
+// interface QueryResult<T> {
+//   results?: T[];
+//   // Add other potential properties like rowCount, etc., based on your DB library
+// }
 
 // FIX: Define generic SingleQueryResult type for .first()
 interface SingleQueryResult<T> {
@@ -40,6 +40,7 @@ interface RadiologyReport {
 }
 
 // FIX: Define type for the raw DB result for the GET request
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RadiologyReportQueryResultRow extends RadiologyReport {}
 
 interface RadiologyReportPutData {
@@ -62,7 +63,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // FIX: Assert user type after null check
-    const currentUser = session.user as SessionUser;
+    // const currentUser = session.user as SessionUser; // FIX: Commented out as unused for now
     // Role check example (adjust roles as needed)
     // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(currentUser.roleName)) {
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -76,14 +77,15 @@ export async function GET(
     const db = await getDB(); 
 
     // FIX: Use type assertion for .first()
+    // FIX: Removed unnecessary escapes in SQL string
     const reportResult = await db.prepare(
       `SELECT
          rr.*,
          rs.accession_number,
-         rad.first_name || \' \' || rad.last_name as radiologist_name,
-         ver.first_name || \' \' || ver.last_name as verified_by_name,
+         rad.first_name || ' ' || rad.last_name as radiologist_name,
+         ver.first_name || ' ' || ver.last_name as verified_by_name,
          ro.patient_id,
-         p.first_name || \' \' || p.last_name as patient_name,
+         p.first_name || ' ' || p.last_name as patient_name,
          pt.name as procedure_name
        FROM RadiologyReports rr
        JOIN RadiologyStudies rs ON rr.study_id = rs.id
@@ -167,7 +169,8 @@ export async function PUT(
     }
 
     // Build the update query dynamically
-    const fieldsToUpdate: { [key: string]: any } = {};
+    // FIX: Replaced any with Record<string, string | null>
+    const fieldsToUpdate: Record<string, string | null> = {};
     if (data.findings !== undefined) fieldsToUpdate.findings = data.findings;
     if (data.impression !== undefined) fieldsToUpdate.impression = data.impression;
     if (data.recommendations !== undefined) fieldsToUpdate.recommendations = data.recommendations;
@@ -176,12 +179,12 @@ export async function PUT(
     }
     if (data.verified_by_id !== undefined) {
         // Optional: Check if the verifier is a valid user
-        // const verifierExists = await db.prepare("SELECT id FROM Users WHERE id = ? AND \'Radiologist\' = ANY(roles)").bind(data.verified_by_id).first();
+        // const verifierExists = await db.prepare("SELECT id FROM Users WHERE id = ? AND 'Radiologist' = ANY(roles)").bind(data.verified_by_id).first();
         // if (!verifierExists) return NextResponse.json({ error: "Invalid verifier ID or verifier is not a Radiologist" }, { status: 400 });
 
         fieldsToUpdate.verified_by_id = data.verified_by_id;
         fieldsToUpdate.verified_datetime = updatedAt;
-        // Automatically set status to \'final\' when verified, if not already set
+        // Automatically set status to 'final' when verified, if not already set
         if (fieldsToUpdate.status === undefined || fieldsToUpdate.status === "preliminary") {
           fieldsToUpdate.status = "final";
         }
@@ -198,12 +201,13 @@ export async function PUT(
 
     const updateStmt = `UPDATE RadiologyReports SET ${setClauses} WHERE id = ?`;
     // FIX: Assume .run() returns a structure with success/meta, though not strictly typed here
-    const info = await db.prepare(updateStmt).bind(...values).run();
+    // FIX: Prefixed unused variable with underscore
+    const _info = await db.prepare(updateStmt).bind(...values).run();
 
     // Check if update actually happened (info.meta.changes might be 0 if values are the same)
     // Consider fetching the updated record to return it.
 
-    // If report status is set to \'final\', update related study/order statuses
+    // If report status is set to 'final', update related study/order statuses
     if (fieldsToUpdate.status === "final") {
       // FIX: Use type assertion for .first()
       const studyIdResult = await db.prepare("SELECT study_id FROM RadiologyReports WHERE id = ?").bind(reportId).first() as SingleQueryResult<{ study_id: string }>;
@@ -266,7 +270,7 @@ export async function DELETE(
 
     const db = await getDB(); 
 
-    // Option 1: Soft delete (recommended - set status to \'retracted\')
+    // Option 1: Soft delete (recommended - set status to 'retracted')
     const retractedAt = new Date().toISOString();
     // FIX: Assume .run() returns a structure with success/meta
     const info = await db.prepare("UPDATE RadiologyReports SET status = ?, updated_at = ? WHERE id = ?")

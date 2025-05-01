@@ -59,8 +59,7 @@ const RadiologyReportDetail: React.FC = () => {
   const [report, setReport] = useState<RadiologyReport | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  // FIX: Prefix unused variable with underscore
-  const [_showEditModal, setShowEditModal] = useState<boolean>(false);
+
 
   // FIX: Wrap fetchReportDetails in useCallback
   const fetchReportDetails = useCallback(async (): Promise<void> => {

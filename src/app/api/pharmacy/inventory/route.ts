@@ -2,8 +2,16 @@
 import { NextRequest, NextResponse } from "next/server";
 // import { getRequestContext } from "@cloudflare/next-on-pages"; // Import when ready to use D1
 
+// FIX: Define interface for filters
+interface MedicationFilters {
+  category?: string | null;
+  status?: string | null;
+  manufacturer?: string | null;
+  search?: string | null;
+}
+
 // Placeholder function to simulate database interaction
-async function getMedicationsFromDB(filters: any) {
+async function getMedicationsFromDB(filters: MedicationFilters) { // FIX: Use MedicationFilters interface
   console.log("Simulating fetching medications with filters:", filters);
   // Replace with actual D1 query when DB is configured
   // const { env } = getRequestContext();
@@ -152,6 +160,14 @@ interface MedicationInput {
   // status is usually derived, not input directly
 }
 
+// FIX: Define interface for update data
+interface MedicationUpdateData extends Partial<MedicationInput> {
+  status?: string; // Allow status update directly in mock
+  transaction_type?: string; // For stock history
+  quantity?: number; // For stock history
+  reference_id?: string; // For stock history
+}
+
 async function createMedicationInDB(medicationData: MedicationInput) {
   console.log("Simulating creating medication:", medicationData);
   // Replace with actual D1 insert query when DB is configured
@@ -255,7 +271,7 @@ async function getMedicationByIdFromDB(id: number) {
 }
 
 // Placeholder function to simulate updating a medication
-async function updateMedicationInDB(id: number, updateData: any) {
+async function updateMedicationInDB(id: number, updateData: MedicationUpdateData) { // FIX: Use MedicationUpdateData interface
   console.log("Simulating updating medication:", id, updateData);
   // Replace with actual D1 update query when DB is configured
   // const { env } = getRequestContext();
@@ -340,12 +356,12 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
     // Add other filters as needed
 
-    const filters = { category, status, manufacturer, search };
+    const filters: MedicationFilters = { category, status, manufacturer, search }; // FIX: Use interface
     
     // Check if this is a request for a specific medication
     const path = request.nextUrl.pathname;
     if (path.match(/\/api\/pharmacy\/inventory\/\d+$/)) {
-      const id = parseInt(path.split('/').pop() || '0');
+      const id = parseInt(path.split('/').pop() || '0'); // FIX: Removed unnecessary escapes
       if (id > 0) {
         const medication = await getMedicationByIdFromDB(id);
         if (!medication) {
@@ -406,13 +422,13 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const path = request.nextUrl.pathname;
-    const id = parseInt(path.split('/').pop() || '0');
+    const id = parseInt(path.split('/').pop() || '0'); // FIX: Removed unnecessary escapes
     
     if (id <= 0) {
       return NextResponse.json({ error: "Invalid medication ID" }, { status: 400 });
     }
     
-    const updateData = await request.json();
+    const updateData = await request.json() as MedicationUpdateData; // FIX: Use interface
     
     // Simulate updating the medication in the database
     const updatedMedication = await updateMedicationInDB(id, updateData);
@@ -427,3 +443,4 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+

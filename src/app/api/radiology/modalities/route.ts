@@ -24,9 +24,10 @@ export async function GET(request: NextRequest) {
       "SELECT * FROM RadiologyModalities ORDER BY name ASC"
     ).all();
     return NextResponse.json(results);
-  } catch (e: any) {
-    console.error({ message: "Error fetching radiology modalities", error: e.message });
-    return NextResponse.json({ error: "Failed to fetch radiology modalities", details: e.message }, { status: 500 });
+  } catch (e: unknown) { // FIX: Use unknown instead of any
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error fetching radiology modalities", error: errorMessage });
+    return NextResponse.json({ error: "Failed to fetch radiology modalities", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -67,12 +68,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ id, status: "Radiology modality created" }, { status: 201 });
 
-  } catch (e: any) {
-    console.error({ message: "Error creating radiology modality", error: e.message });
-    if (e.message?.includes("UNIQUE constraint failed")) {
+  } catch (e: unknown) { // FIX: Use unknown instead of any
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error creating radiology modality", error: errorMessage });
+    if (errorMessage?.includes("UNIQUE constraint failed")) {
         return NextResponse.json({ error: "Modality with this name already exists" }, { status: 409 });
     }
-    return NextResponse.json({ error: "Failed to create radiology modality", details: e.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create radiology modality", details: errorMessage }, { status: 500 });
   }
 }
 

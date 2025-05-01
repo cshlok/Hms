@@ -139,8 +139,7 @@ export async function PUT(
     // FIX: Update mock data with better type safety
     const updatedVisit: ERVisit = { ...mockVisits[visitIndex] };
     updateFields.forEach(field => {
-      // Use type assertion for dynamic assignment, but types are checked by filter
-      (updatedVisit as any)[field] = updateData[field];
+      (updatedVisit as ERVisit)[field] = updateData[field];
     });
     updatedVisit.updated_at = new Date().toISOString();
     mockVisits[visitIndex] = updatedVisit;

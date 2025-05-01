@@ -191,6 +191,8 @@ async function createRadiologyOrderInDB(orderData: RadiologyOrderInput) { // Use
 }
 
 // Placeholder function to simulate getting a single radiology order
+// FIX: Commented out unused function
+/*
 async function getRadiologyOrderByIdFromDB(id: number) {
   console.log("Simulating fetching radiology order by ID:", id);
   // Replace with actual D1 query when DB is configured
@@ -263,6 +265,7 @@ async function getRadiologyOrderByIdFromDB(id: number) {
   
   return mockRadiologyOrders.find(order => order.id === id) || null;
 }
+*/
 
 // Placeholder function to simulate updating a radiology order
 async function updateRadiologyOrderInDB(id: number, updateData: RadiologyOrderUpdateInput) { // Use interface

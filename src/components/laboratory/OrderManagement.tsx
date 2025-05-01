@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Input, Select, Spin, message, Modal, Form, DatePicker, Tag } from 'antd';
-import type { DatePickerProps, RangePickerProps } from 'antd/es/date-picker'; // FIX: Import Dayjs types
-import { PlusOutlined, SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useCallback } from 'react';
+// FIX: Removed unused Input, Form, DatePickerProps, PlusOutlined, SearchOutlined
+import { Card, Table, Button, Select, Spin, message, Modal, DatePicker, Tag } from 'antd';
+// FIX: Import Dayjs types - RangePickerProps is sufficient for RangePicker
+import type { RangePickerProps } from 'antd/es/date-picker';
+// FIX: Removed unused PlusOutlined, SearchOutlined
+import { ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs'; // FIX: Import dayjs
 import type { Dayjs } from 'dayjs'; // FIX: Import Dayjs type
 
@@ -81,13 +84,14 @@ const OrderManagement: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [tests, setTests] = useState<Test[]>([]);
+  // FIX: Prefix unused variable
+  const [_tests, setTests] = useState<Test[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loadingOrderItems, setLoadingOrderItems] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch patients
-  const fetchPatients = async (): Promise<void> => {
+  const fetchPatients = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       const response = await fetch('/api/patients'); // Assuming this endpoint exists
@@ -97,7 +101,7 @@ const OrderManagement: React.FC = () => {
           // FIX: Type errorData
           const errorData: ApiErrorResponse = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) { /* Ignore */ }
+        } catch (_jsonError) { /* Ignore */ }
         throw new Error(errorMsg);
       }
       // FIX: Type the response data
@@ -112,10 +116,10 @@ const OrderManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch tests
-  const fetchTests = async (): Promise<void> => {
+  const fetchTests = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       const response = await fetch('/api/laboratory/tests');
@@ -125,7 +129,7 @@ const OrderManagement: React.FC = () => {
           // FIX: Type errorData
           const errorData: ApiErrorResponse = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) { /* Ignore */ }
+        } catch (_jsonError) { /* Ignore */ }
         throw new Error(errorMsg);
       }
       // FIX: Type the response data
@@ -140,10 +144,10 @@ const OrderManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch orders with filters
-  const fetchOrders = async (): Promise<void> => {
+  const fetchOrders = useCallback(async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
@@ -176,21 +180,23 @@ const OrderManagement: React.FC = () => {
           // FIX: Type errorData
           const errorData: ApiErrorResponse = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) { /* Ignore */ }
+        } catch (_jsonError) { /* Ignore */ }
         throw new Error(errorMsg);
       }
       // FIX: Type the response data
       const data: OrdersApiResponse = await response.json();
       setOrders(data.results || []);
     } catch (err: unknown) { // FIX: Use unknown
-      const messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      // FIX: Prefix unused variable
+      const _messageText = err instanceof Error ? err.message : 'An unknown error occurred';
       console.error('Error fetching orders:', err);
       message.error('Failed to load laboratory orders');
-      setError(`Failed to load laboratory orders: ${messageText}`);
+      setError(`Failed to load laboratory orders: ${_messageText}`);
     } finally {
       setLoading(false);
     }
-  };
+  // FIX: Add filters to dependency array
+  }, [filters]);
 
   // Fetch order items for a specific order
   const fetchOrderItems = async (orderId: string): Promise<void> => {
@@ -203,7 +209,7 @@ const OrderManagement: React.FC = () => {
           // FIX: Type errorData
           const errorData: ApiErrorResponse = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) { /* Ignore */ }
+        } catch (_jsonError) { /* Ignore */ }
         throw new Error(errorMsg);
       }
       // FIX: Type the response data
@@ -223,20 +229,23 @@ const OrderManagement: React.FC = () => {
     fetchPatients();
     fetchTests();
     // fetchOrders(); // fetchOrders is called by the filter useEffect
-  }, []);
+  // FIX: Add fetchPatients and fetchTests to dependency array
+  }, [fetchPatients, fetchTests]);
 
   // Reload orders when filters change
   useEffect(() => {
     fetchOrders();
-  }, [filters]);
+  // FIX: Add fetchOrders to dependency array
+  }, [filters, fetchOrders]);
 
   // FIX: Update type for value in handleFilterChange for dateRange
-  const handleFilterChange = (key: keyof FilterState, value: any): void => {
+  // FIX: Replace any with unknown
+  const handleFilterChange = (key: keyof FilterState, value: unknown): void => {
     // Ensure dateRange is correctly typed when setting state
     if (key === 'dateRange') {
       setFilters(prev => ({ ...prev, [key]: value as [Dayjs, Dayjs] | null }));
     } else {
-      setFilters(prev => ({ ...prev, [key]: value }));
+      setFilters(prev => ({ ...prev, [key]: value as string | null })); // Cast other values to string | null
     }
   };
 
@@ -321,7 +330,8 @@ const OrderManagement: React.FC = () => {
       title: 'Actions',
       key: 'actions',
       width: '10%',
-      render: (_: any, record: Order) => (
+      // FIX: Replace any with unknown for unused first argument
+      render: (_: unknown, record: Order) => (
         <Button
           type="link"
           icon={<EyeOutlined />}
@@ -372,8 +382,9 @@ const OrderManagement: React.FC = () => {
             value={filters.patientId || undefined}
             onChange={(value: string) => handleFilterChange('patientId', value)}
             style={{ width: 200 }}
-            filterOption={(input: string, option: any) =>
-              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            // FIX: Type option for filterOption
+            filterOption={(input: string, option?: { children: React.ReactNode }) =>
+              option?.children?.toString().toLowerCase().includes(input.toLowerCase()) ?? false
             }
             allowClear
           >

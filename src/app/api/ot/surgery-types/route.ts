@@ -102,10 +102,10 @@ export async function POST(request: NextRequest) {
         }, { status: 201 });
     }
 
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error creating surgery type:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    if (error.message?.includes("UNIQUE constraint failed")) {
+    if (errorMessage?.includes("UNIQUE constraint failed")) { // FIX: Check errorMessage
         return NextResponse.json({ message: "Surgery type name must be unique", details: errorMessage }, { status: 409 });
     }
     return NextResponse.json({ message: "Error creating surgery type", details: errorMessage }, { status: 500 });

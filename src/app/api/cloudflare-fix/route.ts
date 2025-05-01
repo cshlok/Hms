@@ -48,10 +48,7 @@ export async function GET(_request: NextRequest) {
 
     // Example: Querying the D1 database
     // The following line will likely fail at runtime if env.DB is not a valid D1 instance
-    // but this resolves the TypeScript build error.
-    // FIX: Cast DB to 'any' to resolve TS2339 and removed unnecessary escapes for no-useless-escape
-    const { results } = await (env.DB as any).prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
-
+    // but this resolves the TypeScript build error    const { results } = await (env.DB as unknown as { prepare: (query: string) => { bind: (...args: unknown[]) => { all: () => Promise<{ results: unknown[] }> } } }).prepare("SELECT name FROM sqlite_master WHERE type=\'table\'").all();
     return new Response(JSON.stringify({ tables: results }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
