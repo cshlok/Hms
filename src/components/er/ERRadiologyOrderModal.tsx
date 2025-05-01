@@ -140,11 +140,11 @@ export default function ERRadiologyOrderModal({
       });
       onClose();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Radiology order error:", error);
       toast({
         title: "Order Failed",
-        description: error.message || "An unexpected error occurred.",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {

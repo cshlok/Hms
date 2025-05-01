@@ -5,14 +5,19 @@ import { checkUserRole } from "@/lib/auth";
 
 // Define Database interface (can be moved to a shared types file)
 interface PreparedStatement {
-  bind(...params: any[]): {
+  // FIX: Replaced any[] with unknown[]
+  bind(...params: unknown[]): {
     run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
-    all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
-    first<T = any>(colName?: string): Promise<T | null>;
+    // FIX: Replaced any with unknown
+    all<T = unknown>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+    // FIX: Replaced any with unknown
+    first<T = unknown>(colName?: string): Promise<T | null>;
   };
   run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
-  all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
-  first<T = any>(colName?: string): Promise<T | null>;
+  // FIX: Replaced any with unknown
+  all<T = unknown>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+  // FIX: Replaced any with unknown
+  first<T = unknown>(colName?: string): Promise<T | null>;
 }
 
 interface Database {
@@ -134,7 +139,8 @@ export async function PUT(
     }
 
     // Build the update query dynamically
-    const fieldsToUpdate: { [key: string]: any } = {};
+    // FIX: Replaced any with a more specific type
+    const fieldsToUpdate: Record<string, string | number | null | undefined> = {};
     if (data.accession_number !== undefined) fieldsToUpdate.accession_number = data.accession_number;
     if (data.study_datetime !== undefined) fieldsToUpdate.study_datetime = data.study_datetime;
     if (data.modality_id !== undefined) fieldsToUpdate.modality_id = data.modality_id;
@@ -172,7 +178,7 @@ export async function PUT(
         }
 
         // If status is updated to 'completed', 'reported' or 'verified', update the parent order status
-        if (fieldsToUpdate.status && ["completed", "reported", "verified"].includes(fieldsToUpdate.status)) {
+        if (fieldsToUpdate.status && ["completed", "reported", "verified"].includes(fieldsToUpdate.status as string)) { // FIX: Added type assertion
             const orderIdResult = await db.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(studyId).first<{ order_id: string }>(); // Use generic type argument
             // Add null check for orderIdResult
             if (orderIdResult?.order_id) {

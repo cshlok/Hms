@@ -136,7 +136,7 @@ export default function ERLabOrderModal({
       });
 
       // Try parsing JSON regardless of status for error messages
-      let responseData: any;
+      let responseData: unknown;
       try {
         responseData = await response.json();
       } catch (jsonError) {

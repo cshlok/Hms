@@ -125,7 +125,7 @@ export default function ERPatientAdmitModal({
       });
 
       // Try parsing JSON regardless of status for error messages
-      let admissionResponseData: any;
+      let admissionResponseData: unknown;
       try {
         admissionResponseData = await admissionResponse.json();
       } catch (jsonError) {
@@ -158,7 +158,7 @@ export default function ERPatientAdmitModal({
         }),
       });
 
-      let visitResponseData: any;
+      let visitResponseData: unknown;
       try {
         visitResponseData = await visitResponse.json();
       } catch (jsonError) {

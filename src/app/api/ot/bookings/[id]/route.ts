@@ -41,9 +41,11 @@ export async function GET(
     }
 
     return NextResponse.json(booking);
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error fetching OT booking:", error);
-    return NextResponse.json({ message: "Error fetching OT booking" }, { status: 500 });
+    // FIX: Handle error type
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error fetching OT booking", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -99,9 +101,11 @@ export async function PUT(
     };
 
     return NextResponse.json(updatedBooking);
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error updating OT booking:", error);
-    return NextResponse.json({ message: "Error updating OT booking" }, { status: 500 });
+    // FIX: Handle error type
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error updating OT booking", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -114,7 +118,7 @@ export async function DELETE(
     // const { env } = getRequestContext();
     // const DB = env.DB;
     const bookingId = params.id;
-    const now = new Date().toISOString();
+    // const now = new Date().toISOString(); // Unused variable
 
     // Option 1: Hard delete (if allowed)
     // const info = await DB.prepare("DELETE FROM OTBookings WHERE id = ?").bind(bookingId).run();
@@ -126,8 +130,11 @@ export async function DELETE(
     // Return success response
     return NextResponse.json({ message: "OT Booking cancelled successfully" }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error cancelling OT booking:", error);
-    return NextResponse.json({ message: "Error cancelling OT booking" }, { status: 500 });
+    // FIX: Handle error type
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ message: "Error cancelling OT booking", details: errorMessage }, { status: 500 });
   }
 }
+

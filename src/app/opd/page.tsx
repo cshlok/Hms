@@ -148,7 +148,7 @@ export default function OPDDashboard() {
           ) : permissions.canViewStatistics ? (
             <Card className="mt-6"> {/* Ensure consistent margin */} 
               <CardHeader>
-                <CardTitle>Today's Summary</CardTitle>
+                <CardTitle>Today&apos;s Summary</CardTitle>
               </CardHeader>
               <CardContent>
                 {/* Pass selectedDate only if it's defined */}

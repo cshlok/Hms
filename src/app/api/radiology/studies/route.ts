@@ -8,14 +8,14 @@ import { getDB } from "@/lib/db"; // Import getDB
 
 // Define Database interface (can be moved to a shared types file)
 interface PreparedStatement {
-  bind(...params: any[]): {
+  bind(...params: (string | number | null)[]): {
     run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
-    all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
-    first<T = any>(colName?: string): Promise<T | null>;
+    all<T = unknown>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+    first<T = unknown>(colName?: string): Promise<T | null>;
   };
   run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
-  all<T = any>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
-  first<T = any>(colName?: string): Promise<T | null>;
+  all<T = unknown>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+  first<T = unknown>(colName?: string): Promise<T | null>;
 }
 
 interface Database {

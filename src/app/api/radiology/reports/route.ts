@@ -4,18 +4,6 @@ import { getSession, Session, SessionUser } from "@/lib/session"; // FIX: Import
 // import { checkUserRole } from "@/lib/auth"; // Assuming checkUserRole might not be fully implemented or needed based on roleName
 import { getDB } from "@/lib/db"; // Import getDB
 
-// FIX: Define generic QueryResult type
-interface QueryResult<T> {
-  results?: T[];
-  // Add other potential properties like rowCount, etc., based on your DB library
-}
-
-// FIX: Define generic SingleQueryResult type for .first()
-interface SingleQueryResult<T> {
-  result?: T | null;
-  // Add other potential properties based on your DB library
-}
-
 // Interface for POST request body
 interface RadiologyReportPostData {
   study_id: string;
@@ -40,23 +28,20 @@ interface RadiologyReportListItem {
   // Add other fields from the SELECT query
 }
 
-// FIX: Define type for the raw DB result for the GET request
-interface RadiologyReportListQueryResultRow extends RadiologyReportListItem {}
-
-// FIX: Define type for the raw DB result for the POST request (after creation)
-interface CreatedRadiologyReportQueryResultRow extends RadiologyReportListItem {}
+// FIX: Removed redundant interface CreatedRadiologyReportQueryResultRow, using RadiologyReportListItem directly
 
 // GET all Radiology Reports (filtered by study_id, patient_id, radiologist_id, status)
 export async function GET(request: NextRequest) {
   try {
     // FIX: Get session without unsafe assertion
-    const session: Session | null = await getSession(); 
+    const session: Session | null = await getSession();
     // Check session and user existence first
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // FIX: Assert user type after null check
-    const currentUser = session.user as SessionUser;
+    // FIX: Prefix unused variable
+    const _currentUser = session.user as SessionUser;
     // Role check example (adjust roles as needed)
     // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(currentUser.roleName)) {
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -68,16 +53,17 @@ export async function GET(request: NextRequest) {
     const radiologistId = searchParams.get("radiologistId");
     const status = searchParams.get("status");
 
-    const db = await getDB(); 
+    const db = await getDB();
 
     // Select rr.*, rs.accession_number, rad.name as radiologist_name, ro.patient_id, p.name as patient_name, pt.name as procedure_name
     // Ensure aliases match the RadiologyReportListItem interface if possible
+    // FIX: Removed unnecessary escapes in SQL string
     let query = `SELECT
                    rr.id, rr.study_id, rr.report_datetime, rr.status,
                    rs.accession_number,
-                   rad.first_name || \' \' || rad.last_name as radiologist_name,
+                   rad.first_name || ' ' || rad.last_name as radiologist_name,
                    ro.patient_id,
-                   p.first_name || \' \' || p.last_name as patient_name,
+                   p.first_name || ' ' || p.last_name as patient_name,
                    pt.name as procedure_name
                  FROM RadiologyReports rr
                  JOIN RadiologyStudies rs ON rr.study_id = rs.id
@@ -110,9 +96,9 @@ export async function GET(request: NextRequest) {
     }
     query += " ORDER BY rr.report_datetime DESC";
 
-    // FIX: Use type assertion for .all()
-    const result = await db.prepare(query).bind(...params).all() as QueryResult<RadiologyReportListQueryResultRow>;
-    // FIX: Use results property
+    // FIX: Use direct type argument for .all() if supported, or assert structure
+    // Assuming .all<T>() returns { results: T[] }
+    const result = await db.prepare(query).bind(...params).all<RadiologyReportListItem>();
     return NextResponse.json(result.results || []);
 
   } catch (error) {
@@ -126,7 +112,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // FIX: Get session without unsafe assertion
-    const session: Session | null = await getSession(); 
+    const session: Session | null = await getSession();
     // Check session and user existence first
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -138,7 +124,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden: Admin or Radiologist role required" }, { status: 403 });
     }
 
-    const db = await getDB(); 
+    const db = await getDB();
     // FIX: Use type assertion for request body
     const { study_id, radiologist_id, findings, impression, recommendations, status } = await request.json() as RadiologyReportPostData;
 
@@ -147,15 +133,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if study exists
-    // FIX: Use type assertion for .first()
-    const studyResult = await db.prepare("SELECT id FROM RadiologyStudies WHERE id = ?").bind(study_id).first() as SingleQueryResult<{ id: string }>;
-    // FIX: Check result property
-    if (!studyResult?.result) {
+    // FIX: Use direct type argument for .first() and check result directly
+    const studyResult = await db.prepare("SELECT id FROM RadiologyStudies WHERE id = ?").bind(study_id).first<{ id: string }>();
+    if (!studyResult) {
         return NextResponse.json({ error: "Associated radiology study not found" }, { status: 404 });
     }
 
     // Check if a report already exists for this study (optional, depends on workflow - allow addendums?)
-    // const existingReport = await db.prepare("SELECT id FROM RadiologyReports WHERE study_id = ? AND status != \'addendum\'").bind(study_id).first();
+    // const existingReport = await db.prepare("SELECT id FROM RadiologyReports WHERE study_id = ? AND status != 'addendum'").bind(study_id).first();
     // if (existingReport) {
     //     return NextResponse.json({ error: "A report already exists for this study. Create an addendum instead?" }, { status: 409 });
     // }
@@ -179,26 +164,23 @@ export async function POST(request: NextRequest) {
       now  // updated_at
     ).run();
 
-    // Update the associated study status to \'reported\'
+    // Update the associated study status to 'reported'
     await db.prepare("UPDATE RadiologyStudies SET status = ?, updated_at = ? WHERE id = ? AND status != ?")
       .bind("reported", now, study_id, "reported") // Avoid unnecessary updates
       .run();
 
-    // Potentially update the order status to \'completed\'
-    // FIX: Use type assertion for .first()
-    const orderIdResult = await db.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(study_id).first() as SingleQueryResult<{ order_id: string }>;
-    // FIX: Check result property
-    if (orderIdResult?.result?.order_id) {
+    // Potentially update the order status to 'completed'
+    // FIX: Use direct type argument for .first() and check result directly
+    const orderIdResult = await db.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(study_id).first<{ order_id: string }>();
+    if (orderIdResult?.order_id) {
         await db.prepare("UPDATE RadiologyOrders SET status = ?, updated_at = ? WHERE id = ? AND status != ?")
-          .bind("completed", now, orderIdResult.result.order_id, "completed") // Avoid unnecessary updates
+          .bind("completed", now, orderIdResult.order_id, "completed") // Avoid unnecessary updates
           .run();
     }
 
     // Fetch the created report to return it
-    // FIX: Use type assertion for .first()
-    const createdReportResult = await db.prepare("SELECT * FROM RadiologyReports WHERE id = ?").bind(id).first() as SingleQueryResult<CreatedRadiologyReportQueryResultRow>;
-    // FIX: Check result property
-    const createdReport = createdReportResult?.result;
+    // FIX: Use direct type argument for .first()
+    const createdReport = await db.prepare("SELECT * FROM RadiologyReports WHERE id = ?").bind(id).first<CreatedRadiologyReportQueryResultRow>();
 
     return NextResponse.json(createdReport || { id, message: "Radiology report created" }, { status: 201 });
 

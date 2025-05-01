@@ -55,7 +55,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const now = new Date().toISOString();
 
     // Construct the update query dynamically
-    const fieldsToUpdate: { [key: string]: any } = {};
+    // FIX: Use specific type for fieldsToUpdate
+    const fieldsToUpdate: { [key: string]: string | null } = {};
     if (name !== undefined) fieldsToUpdate.name = name;
     if (location !== undefined) fieldsToUpdate.location = location;
     if (specialty !== undefined) fieldsToUpdate.specialty = specialty;
@@ -89,10 +90,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(results[0]);
 
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error updating operation theatre:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    if (error.message?.includes("UNIQUE constraint failed")) {
+    if (errorMessage?.includes("UNIQUE constraint failed")) { // FIX: Check errorMessage
         return NextResponse.json({ message: "Operation theatre name must be unique", details: errorMessage }, { status: 409 });
     }
     return NextResponse.json({ message: "Error updating operation theatre", details: errorMessage }, { status: 500 });
@@ -118,11 +119,11 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ message: "Operation theatre deleted successfully" }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error deleting operation theatre:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     // Handle potential foreign key constraint errors if bookings exist
-    if (error.message?.includes("FOREIGN KEY constraint failed")) {
+    if (errorMessage?.includes("FOREIGN KEY constraint failed")) { // FIX: Check errorMessage
         return NextResponse.json({ message: "Cannot delete theatre with existing bookings", details: errorMessage }, { status: 409 });
     }
     return NextResponse.json({ message: "Error deleting operation theatre", details: errorMessage }, { status: 500 });

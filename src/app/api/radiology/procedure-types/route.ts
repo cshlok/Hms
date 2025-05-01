@@ -25,9 +25,10 @@ export async function GET(request: NextRequest) {
       "SELECT * FROM RadiologyProcedureTypes ORDER BY name ASC"
     ).all();
     return NextResponse.json(results);
-  } catch (e: any) {
-    console.error({ message: "Error fetching radiology procedure types", error: e.message });
-    return NextResponse.json({ error: "Failed to fetch radiology procedure types", details: e.message }, { status: 500 });
+  } catch (e: unknown) { // FIX: Replaced any with unknown
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error fetching radiology procedure types", error: errorMessage });
+    return NextResponse.json({ error: "Failed to fetch radiology procedure types", details: errorMessage }, { status: 500 });
   }
 }
 
@@ -68,13 +69,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ id, status: "Radiology procedure type created" }, { status: 201 });
 
-  } catch (e: any) {
-    console.error({ message: "Error creating radiology procedure type", error: e.message });
+  } catch (e: unknown) { // FIX: Replaced any with unknown
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error({ message: "Error creating radiology procedure type", error: errorMessage });
     // Handle potential unique constraint violation if check fails due to race condition
-    if (e.message?.includes("UNIQUE constraint failed")) {
+    if (errorMessage?.includes("UNIQUE constraint failed")) { // FIX: Check errorMessage instead of e.message
         return NextResponse.json({ error: "Procedure type with this name already exists" }, { status: 409 });
     }
-    return NextResponse.json({ error: "Failed to create radiology procedure type", details: e.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create radiology procedure type", details: errorMessage }, { status: 500 });
   }
 }
 

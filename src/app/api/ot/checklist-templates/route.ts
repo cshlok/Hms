@@ -95,10 +95,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ id, name, phase, items, created_at: now, updated_at: now }, { status: 201 });
     }
 
-  } catch (error: any) {
+  } catch (error) { // FIX: Remove explicit any
     console.error("Error creating checklist template:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    if (error.message?.includes("UNIQUE constraint failed")) {
+    if (errorMessage?.includes("UNIQUE constraint failed")) {
         return NextResponse.json({ message: "Checklist template name must be unique", details: errorMessage }, { status: 409 });
     }
     return NextResponse.json({ message: "Error creating checklist template", details: errorMessage }, { status: 500 });

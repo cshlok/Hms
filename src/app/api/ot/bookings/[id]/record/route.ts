@@ -12,8 +12,9 @@ interface OTRecordBody {
     anesthesia_type?: string | null;
     anesthesia_notes?: string | null;
     surgical_procedure_notes?: string | null;
-    implants_used?: any[] | null; // Assuming array of objects/strings
-    specimens_collected?: any[] | null; // Assuming array of objects/strings
+    // FIX: Use unknown[] instead of any[]
+    implants_used?: unknown[] | null; // Assuming array of objects/strings
+    specimens_collected?: unknown[] | null; // Assuming array of objects/strings
     blood_loss_ml?: number | null;
     complications?: string | null;
     instrument_count_correct?: boolean | null;
@@ -123,7 +124,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         recordId = existingRecord[0].id as string;
         
         // Build update query dynamically
-        const fieldsToUpdate: { [key: string]: any } = {};
+        // FIX: Use a more specific type for fieldsToUpdate values
+        const fieldsToUpdate: { [key: string]: string | number | boolean | null } = {};
         if (actual_start_time !== undefined) fieldsToUpdate.actual_start_time = actual_start_time;
         if (actual_end_time !== undefined) fieldsToUpdate.actual_end_time = actual_end_time;
         if (anesthesia_start_time !== undefined) fieldsToUpdate.anesthesia_start_time = anesthesia_start_time;

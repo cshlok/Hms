@@ -142,7 +142,7 @@ export default function RadiologyStudyDetail() {
           const errorData: { error?: string } = await response.json();
           errorMsg = errorData.error || errorMsg;
           // FIX: Prefix unused variable with underscore
-        } catch (_jsonError) { /* Ignore if response is not JSON */ }
+        } catch { /* Ignore if response is not JSON */ }
         throw new Error(errorMsg);
       }
 

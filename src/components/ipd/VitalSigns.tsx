@@ -62,7 +62,7 @@ interface ApiErrorResponse {
 }
 
 // FIX: Define type for API success response (new record)
-interface NewVitalSignResponse extends VitalSignRecord {}
+type NewVitalSignResponse = VitalSignRecord;
 
 // FIX: Define type for submission data
 interface VitalSignSubmissionData {
