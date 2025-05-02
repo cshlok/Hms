@@ -39,7 +39,7 @@ interface SelectedAdmission {
 // --- COMPONENTS ---
 
 // FIX: Add explicit types for props and manage internal tab state
-const IPDPatientDetails: React.FC<IPDPatientDetailsProps> = ({ patientId, admissionId }) => {
+const IPDPatientDetails: React.FC<IPDPatientDetailsProps> = ({ /* _patientId, */ admissionId }) => {
   // FIX: Add state to control the inner Tabs component
   const [activeDetailTab, setActiveDetailTab] = useState("progress-notes");
 
