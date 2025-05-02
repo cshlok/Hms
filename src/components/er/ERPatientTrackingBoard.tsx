@@ -299,4 +299,30 @@ export default function ERPatientTrackingBoard() {
                             </TooltipTrigger>
                             <TooltipContent>Isolation: {patient.indicators.isolation}</TooltipContent>
                           </Tooltip>
-(Content truncated due to size limit. Use line ranges to read in chunks)
+                        )}
+                        {patient.indicators.fall_risk && (
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <TriangleAlert className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                            </TooltipTrigger>
+                            <TooltipContent>Fall Risk</TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                    No active patients found matching the criteria.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+}

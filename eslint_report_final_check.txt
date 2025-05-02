@@ -1,12 +1,7 @@
 
-> shlokam-hms@0.1.0 build
-> next build
+> shlokam-hms@0.1.0 lint
+> next lint --no-cache
 
-  ▲ Next.js 14.2.28
-
-   Creating an optimized production build ...
- ✓ Compiled successfully
-   Linting and checking validity of types ...
 
 ./src/components/er/ERPatientTrackingBoard.tsx
 71:12  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
@@ -103,9 +98,3 @@
 200:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
 
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
-Failed to compile.
-
-src/app/api/pharmacy/dispensing/route.ts
-Type error: File '/home/ubuntu/Hms/src/app/api/pharmacy/dispensing/route.ts' is not a module.
-
-Next.js build worker exited with code: 1 and signal: null

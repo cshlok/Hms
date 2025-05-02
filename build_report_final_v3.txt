@@ -8,6 +8,12 @@
  ✓ Compiled successfully
    Linting and checking validity of types ...
 
+./src/app/api/er/visits/[id]/route.ts
+142:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/api/radiology/studies/[id]/route.ts
+3:22  Warning: 'Session' is defined but never used.  @typescript-eslint/no-unused-vars
+
 ./src/components/er/ERPatientTrackingBoard.tsx
 71:12  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
@@ -105,7 +111,14 @@
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
 Failed to compile.
 
-src/app/api/pharmacy/dispensing/route.ts
-Type error: File '/home/ubuntu/Hms/src/app/api/pharmacy/dispensing/route.ts' is not a module.
+./src/app/api/radiology/studies/route.ts:55:27
+Type error: Cannot find name 'getSession'. Did you mean 'session'?
 
+[0m [90m 53 |[39m [36mexport[39m [36masync[39m [36mfunction[39m [33mGET[39m(request[33m:[39m [33mNextRequest[39m) {[0m
+[0m [90m 54 |[39m   [36mtry[39m {[0m
+[0m[31m[1m>[22m[39m[90m 55 |[39m     [36mconst[39m session [33m=[39m [36mawait[39m getSession()[33m;[39m [90m// Call without request[39m[0m
+[0m [90m    |[39m                           [31m[1m^[22m[39m[0m
+[0m [90m 56 |[39m     [90m// Check session and user existence first[39m[0m
+[0m [90m 57 |[39m     [36mif[39m ([33m![39msession[33m?[39m[33m.[39muser) {[0m
+[0m [90m 58 |[39m       [36mreturn[39m [33mNextResponse[39m[33m.[39mjson({ error[33m:[39m [32m"Unauthorized"[39m }[33m,[39m { status[33m:[39m [35m401[39m })[33m;[39m[0m
 Next.js build worker exited with code: 1 and signal: null

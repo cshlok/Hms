@@ -235,8 +235,8 @@ export async function POST(request: NextRequest) {
           const parameters = parametersResult.rows || [];
 
           if (parameters.length > 0) {
-            // FIX: Define type for parameter row
-            const parameterIds = parameters.map((p: { id: number }) => p.id);
+            // FIX: Cast parameters to the expected type before mapping
+            const parameterIds = (parameters as Array<{ id: number }>).map((p) => p.id);
             const resultsCountResult = await db.query(
               `SELECT COUNT(*) as count FROM lab_results WHERE order_item_id = ? AND parameter_id IN (${parameterIds.map(() => '?').join(',')})`,
               [body.order_item_id, ...parameterIds]
@@ -259,8 +259,8 @@ export async function POST(request: NextRequest) {
 
         // Check if all items in the order are completed
         const orderItemsResult = await db.query('SELECT status FROM lab_order_items WHERE order_id = ?', [orderItem.order_id]);
-        // FIX: Define type for item row
-        const allOrderItemsCompleted = (orderItemsResult.rows || []).every((item: { status: string }) => item.status === 'completed');
+        // FIX: Cast rows to expected type before using .every()
+        const allOrderItemsCompleted = (orderItemsResult.rows as Array<{ status: string }> || []).every((item) => item.status === 'completed');
 
         if (allOrderItemsCompleted) {
           await db.query('UPDATE lab_orders SET status = ? WHERE id = ?', ['completed', orderItem.order_id]);

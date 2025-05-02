@@ -8,6 +8,15 @@
  ✓ Compiled successfully
    Linting and checking validity of types ...
 
+./src/app/api/er/visits/[id]/route.ts
+142:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/api/radiology/studies/[id]/route.ts
+3:22  Warning: 'Session' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/radiology/studies/route.ts
+5:22  Warning: 'Session' is defined but never used.  @typescript-eslint/no-unused-vars
+
 ./src/components/er/ERPatientTrackingBoard.tsx
 71:12  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
@@ -105,7 +114,14 @@
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
 Failed to compile.
 
-src/app/api/pharmacy/dispensing/route.ts
-Type error: File '/home/ubuntu/Hms/src/app/api/pharmacy/dispensing/route.ts' is not a module.
+./src/app/pharmacy/medications/page.tsx:277:23
+Type error: 'key' is specified more than once, so this usage will be overwritten.
 
+[0m [90m 275 |[39m             [33m<[39m[33mthead[39m className[33m=[39m[32m"bg-gray-50 dark:bg-gray-700"[39m[33m>[39m              {headerGroups[33m.[39mmap((headerGroup[33m:[39m [33mHeaderGroup[39m[33m<[39m[33mMedication[39m[33m>[39m) [33m=>[39m { [90m// Type headerGroup[39m[0m
+[0m [90m 276 |[39m                 [36mreturn[39m ([0m
+[0m[31m[1m>[22m[39m[90m 277 |[39m                   [33m<[39m[33mtr[39m key[33m=[39m{headerGroup[33m.[39mid} {[33m...[39mheaderGroup[33m.[39mgetHeaderGroupProps()}[33m>[39m[0m
+[0m [90m     |[39m                       [31m[1m^[22m[39m[0m
+[0m [90m 278 |[39m                     {[90m/* Correctly type and cast column */[39m} [0m
+[0m [90m 279 |[39m                     {headerGroup[33m.[39mheaders[33m.[39mmap((column[33m:[39m [33mColumnInstance[39m[33m<[39m[33mMedication[39m[33m>[39m) [33m=>[39m {[0m
+[0m [90m 280 |[39m                       [36mconst[39m typedColumn [33m=[39m column [36mas[39m [33mMedicationColumnInstance[39m[33m;[39m[0m
 Next.js build worker exited with code: 1 and signal: null

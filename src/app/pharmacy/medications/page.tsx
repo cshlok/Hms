@@ -272,41 +272,40 @@ export default function MedicationsListPage() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table {...getTableProps()} className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              {headerGroups.map((headerGroup: HeaderGroup<Medication>) => ( // Type headerGroup
-                <tr key={headerGroup.id} {...headerGroup.getHeaderGroupProps()}>
-                  {/* Correctly type and cast column */} 
-                  {headerGroup.headers.map((column: ColumnInstance<Medication>) => {
-                    const typedColumn = column as MedicationColumnInstance;
-                    return (
-                      <th key={typedColumn.id}
-                        {...typedColumn.getHeaderProps(typedColumn.getSortByToggleProps())}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer select-none"
-                      >
-                        <div className="flex items-center">
-                          {column.render("Header")}
-                          {/* Add sorting indicator */}
-                          {typedColumn.canSort && (
-                            <ArrowUpDown className={`ml-2 h-4 w-4 ${typedColumn.isSorted ? "text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-500"}`} />
-                          )}
-                        </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              ))}
+            <thead className="bg-gray-50 dark:bg-gray-700">              {headerGroups.map((headerGroup: HeaderGroup<Medication>) => { // Type headerGroup
+                return (
+                  <tr key={headerGroup.id}>
+                    {/* Correctly type and cast column */} 
+                    {headerGroup.headers.map((column: ColumnInstance<Medication>) => {
+                      const typedColumn = column as MedicationColumnInstance;
+                      return (
+                        <th key={typedColumn.id}
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer select-none"
+                        >
+                          <div className="flex items-center">
+                            {column.render("Header")}
+                            {/* Add sorting indicator */}
+                            {typedColumn.canSort && (
+                              <ArrowUpDown className={`ml-2 h-4 w-4 ${typedColumn.isSorted ? "text-gray-900 dark:text-gray-100" : "text-gray-400 dark:text-gray-500"}`} />
+                            )}
+                          </div>
+                        </th>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </thead>
             <tbody {...getTableBodyProps()} className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {page.length > 0 ? (
                 page.map((row: Row<Medication>) => { // Type row
                   prepareRow(row);
                   return (
-                    <tr key={row.id} {...row.getRowProps()} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       {row.cells.map((cell: Cell<Medication>) => { // Type cell
                         return (
                           <td
                             key={cell.getCellProps().key} // Add key prop here
-                            {...cell.getCellProps()}
                             className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300"
                           >
                             {cell.render("Cell")}

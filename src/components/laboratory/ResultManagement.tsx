@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Table, Button, Input, Select, Spin, message, Modal, Form, Tabs, Tag, Checkbox } from 'antd'; // FIX: Import Checkbox
 import { PlusOutlined, SearchOutlined, CheckOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs'; // FIX: Use dayjs instead of moment
@@ -501,5 +501,112 @@ const ResultManagement: React.FC = () => {
             onClick={() => {
               setSearchText('');
               setOrderFilter(null);
-              // fetchResul
-(Content truncated due to size limit. Use line ranges to read in chunks)
+              // fetchResults(); // fetchResults is called via useEffect
+            }}
+          >
+            Reset Filters
+          </Button>
+        </div>
+
+        <Spin spinning={loading}>
+          <Table
+            columns={columns}
+            dataSource={results}
+            rowKey="id"
+            pagination={{ pageSize: 10 }}
+            locale={{ emptyText: loading ? "Loading results..." : "No laboratory results found matching criteria" }}
+          />
+        </Spin>
+      </Card>
+
+      {/* Result Update Modal */}
+      <Modal
+        title="Update Result"
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={[
+          <Button key="back" onClick={() => setIsModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={() => form.submit()}>
+            Update Result
+          </Button>,
+        ]}
+      >
+        <Form form={form} layout="vertical" onFinish={handleUpdateResult}>
+          <Form.Item
+            name="result_value"
+            label="Result Value"
+            rules={[{ required: true, message: "Please enter the result value" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="is_abnormal"
+            valuePropName="checked"
+            label="Is Abnormal?"
+          >
+            <Checkbox />
+          </Form.Item>
+          <Form.Item
+            name="notes"
+            label="Notes"
+          >
+            <Input.TextArea rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Result Entry Modal (Placeholder/Example) */}
+      <Modal
+        title={`Enter Result for ${selectedOrderItem?.test_name}`}
+        visible={isEntryModalVisible}
+        onCancel={() => setIsEntryModalVisible(false)}
+        footer={[
+          <Button key="back" onClick={() => setIsEntryModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={() => entryForm.submit()}>
+            Save Result
+          </Button>,
+        ]}
+      >
+        <Form form={entryForm} layout="vertical" onFinish={handleCreateResult}>
+          {parameters.length > 0 && (
+            <Form.Item
+              name="parameter_id"
+              label="Parameter"
+              rules={[{ required: true, message: "Please select a parameter" }]}
+            >
+              <Select placeholder="Select Parameter">
+                {parameters.map(p => <Option key={p.id} value={p.id}>{p.name}</Option>)}
+              </Select>
+            </Form.Item>
+          )}
+          <Form.Item
+            name="result_value"
+            label="Result Value"
+            rules={[{ required: true, message: "Please enter the result value" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="is_abnormal"
+            valuePropName="checked"
+            label="Is Abnormal?"
+          >
+            <Checkbox />
+          </Form.Item>
+          <Form.Item
+            name="notes"
+            label="Notes"
+          >
+            <Input.TextArea rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+};
+
+export default ResultManagement;

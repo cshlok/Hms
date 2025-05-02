@@ -121,13 +121,13 @@ const OPDPharmacyIntegration: React.FC = () => {
     // Fetch existing prescriptions for this patient
     const fetchPrescriptions = async (): Promise<void> => {
       // Guard clause if patient ID isn't set yet
-      if (!formData.patient_id) {
-        // setLoading(false); // Might need adjustment based on dependency flow
-        // return;
+      if (!activePatient?.id) { // Check activePatient.id directly
+        setLoading(false); // Set loading false if no patient yet
+        return;
       }
       try {
         // Simulate fetching prescriptions for the active patient
-        // const response = await fetch(`/api/pharmacy/prescriptions?patientId=${formData.patient_id}`);
+        // const response = await fetch(`/api/pharmacy/prescriptions?patientId=${activePatient.id}`);
         // if (!response.ok) throw new Error('Failed to fetch prescriptions');
         // const data = await response.json();
         // setPrescriptions(data.prescriptions || []);
@@ -170,7 +170,7 @@ const OPDPharmacyIntegration: React.FC = () => {
         setLoading(false); // Set loading false if no patient yet
     }
 
-  // Dependency array needs careful consideration. Fetching prescriptions depends on activePatient.id
+  // Dependency array needs careful consideration. Fetching prescriptions depends on activePatient.
   }, [activePatient]); // Re-run if activePatient changes
 
   const handleAddMedication = (medication: Medication): void => {
@@ -197,7 +197,7 @@ const OPDPharmacyIntegration: React.FC = () => {
     const updatedMeds = [...selectedMedications];
     // Ensure the field exists on the object before assignment (though TS should catch this)
     if (field in updatedMeds[index]) {
-      updatedMeds[index][field] = value;
+      (updatedMeds[index] as any)[field] = value; // Use 'as any' to bypass strict type checking for dynamic assignment
     }
     setSelectedMedications(updatedMeds);
   };
@@ -394,5 +394,96 @@ const OPDPharmacyIntegration: React.FC = () => {
                             value={med.quantity}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => handleMedicationChange(index, 'quantity', e.target.value)}
                             placeholder="Qty"
-  
-(Content truncated due to size limit. Use line ranges to read in chunks)
+                            className="w-16 p-1 text-sm border border-gray-300 rounded-md"
+                          />
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <textarea
+                            value={med.instructions}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleMedicationChange(index, 'instructions', e.target.value)}
+                            placeholder="e.g., Take with food"
+                            rows={1}
+                            className="w-full p-1 text-sm border border-gray-300 rounded-md"
+                          />
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMedication(index)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          
+          {/* Notes */}
+          <div className="mb-6">
+            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+              Prescription Notes (Optional)
+            </label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows={3}
+              value={formData.notes}
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Add any specific notes for the pharmacist or patient"
+            />
+          </div>
+          
+          {/* Submit Button */}
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={loading || selectedMedications.length === 0}
+              className={`inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white ${loading || selectedMedications.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'}`}
+            >
+              {loading ? 'Submitting...' : 'Create Prescription'}
+            </button>
+          </div>
+        </form>
+        
+        {/* Existing Prescriptions */}
+        <div className="mt-8">
+          <h3 className="text-md font-medium text-gray-700 mb-4">Prescription History</h3>
+          {loading && prescriptions.length === 0 ? (
+            <p className="text-sm text-gray-500">Loading prescription history...</p>
+          ) : prescriptions.length === 0 ? (
+            <p className="text-sm text-gray-500">No previous prescriptions found for this patient.</p>
+          ) : (
+            <div className="space-y-4">
+              {prescriptions.map(presc => (
+                <div key={presc.id} className="border rounded-md p-4 shadow-sm">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-semibold text-sm">Prescription #{presc.id}</span>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${presc.status === 'dispensed' ? 'bg-green-100 text-green-800' : presc.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      {presc.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">Date: {presc.date}</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {presc.items.map((item, idx) => (
+                      <li key={idx} className="text-sm text-gray-700">
+                        {item.medication} - {item.dosage}, {item.frequency}, {item.duration}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OPDPharmacyIntegration;

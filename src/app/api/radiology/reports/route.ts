@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch the created report to return it
     // FIX: Use direct type argument for .first()
-    const createdReport = await db.prepare("SELECT * FROM RadiologyReports WHERE id = ?").bind(id).first<CreatedRadiologyReportQueryResultRow>();
+    const createdReport = await db.prepare("SELECT * FROM RadiologyReports WHERE id = ?").bind(id).first<RadiologyReportListItem>(); // FIX: Use existing interface
 
     return NextResponse.json(createdReport || { id, message: "Radiology report created" }, { status: 201 });
 

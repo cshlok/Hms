@@ -8,6 +8,9 @@
  ✓ Compiled successfully
    Linting and checking validity of types ...
 
+./src/app/api/er/visits/[id]/route.ts
+142:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
 ./src/components/er/ERPatientTrackingBoard.tsx
 71:12  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
@@ -105,7 +108,16 @@
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
 Failed to compile.
 
-src/app/api/pharmacy/dispensing/route.ts
-Type error: File '/home/ubuntu/Hms/src/app/api/pharmacy/dispensing/route.ts' is not a module.
+./src/app/api/laboratory/results/route.ts:239:49
+Type error: Argument of type '(p: { id: number; }) => number' is not assignable to parameter of type '(value: unknown, index: number, array: unknown[]) => number'.
+  Types of parameters 'p' and 'value' are incompatible.
+    Type 'unknown' is not assignable to type '{ id: number; }'.
 
+[0m [90m 237 |[39m           [36mif[39m (parameters[33m.[39mlength [33m>[39m [35m0[39m) {[0m
+[0m [90m 238 |[39m             [90m// FIX: Define type for parameter row[39m[0m
+[0m[31m[1m>[22m[39m[90m 239 |[39m             [36mconst[39m parameterIds [33m=[39m parameters[33m.[39mmap((p[33m:[39m { id[33m:[39m number }) [33m=>[39m p[33m.[39mid)[33m;[39m[0m
+[0m [90m     |[39m                                                 [31m[1m^[22m[39m[0m
+[0m [90m 240 |[39m             [36mconst[39m resultsCountResult [33m=[39m [36mawait[39m db[33m.[39mquery([0m
+[0m [90m 241 |[39m               [32m`SELECT COUNT(*) as count FROM lab_results WHERE order_item_id = ? AND parameter_id IN (${parameterIds.map(() => '?').join(',')})`[39m[33m,[39m[0m
+[0m [90m 242 |[39m               [body[33m.[39morder_item_id[33m,[39m [33m...[39mparameterIds][0m
 Next.js build worker exited with code: 1 and signal: null

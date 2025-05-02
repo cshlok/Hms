@@ -139,7 +139,7 @@ export async function PUT(
     // FIX: Update mock data with better type safety
     const updatedVisit: ERVisit = { ...mockVisits[visitIndex] };
     updateFields.forEach(field => {
-      (updatedVisit as ERVisit)[field] = updateData[field];
+      (updatedVisit as any)[field] = updateData[field]; // FIX: Use 'any' to bypass TS index signature error, safety ensured by allowedFields filter
     });
     updatedVisit.updated_at = new Date().toISOString();
     mockVisits[visitIndex] = updatedVisit;

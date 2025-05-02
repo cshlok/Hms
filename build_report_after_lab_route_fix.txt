@@ -8,6 +8,9 @@
  ✓ Compiled successfully
    Linting and checking validity of types ...
 
+./src/app/api/er/visits/[id]/route.ts
+142:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
 ./src/components/er/ERPatientTrackingBoard.tsx
 71:12  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
@@ -105,7 +108,22 @@
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
 Failed to compile.
 
-src/app/api/pharmacy/dispensing/route.ts
-Type error: File '/home/ubuntu/Hms/src/app/api/pharmacy/dispensing/route.ts' is not a module.
+./src/app/api/laboratory/results/route.ts:263:76
+Type error: No overload matches this call.
+  Overload 1 of 2, '(predicate: (value: unknown, index: number, array: unknown[]) => value is unknown, thisArg?: any): this is S[]', gave the following error.
+    Argument of type '(item: { status: string; }) => boolean' is not assignable to parameter of type '(value: unknown, index: number, array: unknown[]) => value is unknown'.
+      Types of parameters 'item' and 'value' are incompatible.
+        Type 'unknown' is not assignable to type '{ status: string; }'.
+  Overload 2 of 2, '(predicate: (value: unknown, index: number, array: unknown[]) => unknown, thisArg?: any): boolean', gave the following error.
+    Argument of type '(item: { status: string; }) => boolean' is not assignable to parameter of type '(value: unknown, index: number, array: unknown[]) => unknown'.
+      Types of parameters 'item' and 'value' are incompatible.
+        Type 'unknown' is not assignable to type '{ status: string; }'.
 
+[0m [90m 261 |[39m         [36mconst[39m orderItemsResult [33m=[39m [36mawait[39m db[33m.[39mquery([32m'SELECT status FROM lab_order_items WHERE order_id = ?'[39m[33m,[39m [orderItem[33m.[39morder_id])[33m;[39m[0m
+[0m [90m 262 |[39m         [90m// FIX: Define type for item row[39m[0m
+[0m[31m[1m>[22m[39m[90m 263 |[39m         [36mconst[39m allOrderItemsCompleted [33m=[39m (orderItemsResult[33m.[39mrows [33m||[39m [])[33m.[39mevery((item[33m:[39m { status[33m:[39m string }) [33m=>[39m item[33m.[39mstatus [33m===[39m [32m'completed'[39m)[33m;[39m[0m
+[0m [90m     |[39m                                                                            [31m[1m^[22m[39m[0m
+[0m [90m 264 |[39m[0m
+[0m [90m 265 |[39m         [36mif[39m (allOrderItemsCompleted) {[0m
+[0m [90m 266 |[39m           [36mawait[39m db[33m.[39mquery([32m'UPDATE lab_orders SET status = ? WHERE id = ?'[39m[33m,[39m [[32m'completed'[39m[33m,[39m orderItem[33m.[39morder_id])[33m;[39m[0m
 Next.js build worker exited with code: 1 and signal: null

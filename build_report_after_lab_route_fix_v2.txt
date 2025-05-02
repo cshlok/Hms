@@ -8,6 +8,9 @@
  ✓ Compiled successfully
    Linting and checking validity of types ...
 
+./src/app/api/er/visits/[id]/route.ts
+142:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
 ./src/components/er/ERPatientTrackingBoard.tsx
 71:12  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
@@ -105,7 +108,14 @@
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
 Failed to compile.
 
-src/app/api/pharmacy/dispensing/route.ts
-Type error: File '/home/ubuntu/Hms/src/app/api/pharmacy/dispensing/route.ts' is not a module.
+./src/app/api/pharmacy/medications/route.ts:178:33
+Type error: Property 'id' does not exist on type '{}'.
 
+[0m [90m 176 |[39m[0m
+[0m [90m 177 |[39m     [90m// Extract the ID from the results (structure might vary based on DB driver)[39m[0m
+[0m[31m[1m>[22m[39m[90m 178 |[39m     [36mconst[39m newId [33m=[39m results[33m?[39m[33m.[39m[[35m0[39m][33m?[39m[33m.[39mid[33m;[39m[0m
+[0m [90m     |[39m                                 [31m[1m^[22m[39m[0m
+[0m [90m 179 |[39m[0m
+[0m [90m 180 |[39m     [36mif[39m ([33m![39mnewId) {[0m
+[0m [90m 181 |[39m       [36mthrow[39m [36mnew[39m [33mError[39m([32m"Failed to retrieve ID after medication creation."[39m)[33m;[39m[0m
 Next.js build worker exited with code: 1 and signal: null

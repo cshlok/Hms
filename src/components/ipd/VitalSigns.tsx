@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
@@ -55,11 +54,6 @@ interface FormData {
   pain_level: string;
   notes: string;
 }
-
-// FIX: Define type for API error response
-// interface ApiErrorResponse { // FIX: Removed unused interface
-//   error?: string;
-// }
 
 // FIX: Define type for API success response (new record)
 type NewVitalSignResponse = VitalSignRecord;
@@ -429,5 +423,23 @@ const VitalSigns: React.FC<VitalSignsProps> = ({ admissionId }) => {
                     <TableRow key={record.id}>
                       <TableCell className="whitespace-nowrap">{formatDateTime(record.record_time)}</TableCell>
                       <TableCell className="text-center">{record.temperature ?? "-"}</TableCell>
-                      <TableCell className="text-center">{record.pulse ?
-(Content truncated due to size limit. Use line ranges to read in chunks)
+                      <TableCell className="text-center">{record.pulse ?? "-"}</TableCell>
+                      <TableCell className="text-center">{record.respiratory_rate ?? "-"}</TableCell>
+                      <TableCell className="text-center whitespace-nowrap">{record.blood_pressure ?? "-"}</TableCell>
+                      <TableCell className="text-center">{record.oxygen_saturation ?? "-"}</TableCell>
+                      <TableCell className="text-center">{record.pain_level ?? "-"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{record.recorded_by_first_name} {record.recorded_by_last_name?.charAt(0)}.</TableCell>
+                      <TableCell className="max-w-[150px] truncate" title={record.notes ?? ""}>{record.notes ?? "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default VitalSigns;

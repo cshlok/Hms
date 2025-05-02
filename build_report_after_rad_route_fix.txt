@@ -8,6 +8,9 @@
  ✓ Compiled successfully
    Linting and checking validity of types ...
 
+./src/app/api/er/visits/[id]/route.ts
+142:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
 ./src/components/er/ERPatientTrackingBoard.tsx
 71:12  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
@@ -105,7 +108,14 @@
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
 Failed to compile.
 
-src/app/api/pharmacy/dispensing/route.ts
-Type error: File '/home/ubuntu/Hms/src/app/api/pharmacy/dispensing/route.ts' is not a module.
+./src/app/api/radiology/studies/[id]/route.ts:67:27
+Type error: Cannot find name 'getSession'. Did you mean 'session'?
 
+[0m [90m 65 |[39m )[33m:[39m [33mPromise[39m[33m<[39m[33mNextResponse[39m[33m>[39m {[0m
+[0m [90m 66 |[39m   [36mtry[39m {[0m
+[0m[31m[1m>[22m[39m[90m 67 |[39m     [36mconst[39m session [33m=[39m [36mawait[39m getSession()[33m;[39m [90m// Call without request[39m[0m
+[0m [90m    |[39m                           [31m[1m^[22m[39m[0m
+[0m [90m 68 |[39m     [90m// Allow broader read access[39m[0m
+[0m [90m 69 |[39m     [36mif[39m ([33m![39msession[33m?[39m[33m.[39muser) { [90m// Basic check if any logged-in user can view[39m[0m
+[0m [90m 70 |[39m       [36mreturn[39m [33mNextResponse[39m[33m.[39mjson({ error[33m:[39m [32m"Unauthorized"[39m }[33m,[39m { status[33m:[39m [35m401[39m })[33m;[39m[0m
 Next.js build worker exited with code: 1 and signal: null

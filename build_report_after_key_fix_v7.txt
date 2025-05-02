@@ -8,11 +8,20 @@
  ✓ Compiled successfully
    Linting and checking validity of types ...
 
+./src/app/api/er/visits/[id]/route.ts
+142:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/api/radiology/studies/[id]/route.ts
+3:22  Warning: 'Session' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/radiology/studies/route.ts
+5:22  Warning: 'Session' is defined but never used.  @typescript-eslint/no-unused-vars
+
 ./src/components/er/ERPatientTrackingBoard.tsx
 71:12  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./src/components/er/ERRegistrationModal.tsx
-214:18  Warning: '_jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+213:18  Warning: '_jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
 
 ./src/components/ipd/DischargeSummary.tsx
 161:13  Warning: '_submissionData' is assigned a value but never used.  @typescript-eslint/no-unused-vars
@@ -105,7 +114,14 @@
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
 Failed to compile.
 
-src/app/api/pharmacy/dispensing/route.ts
-Type error: File '/home/ubuntu/Hms/src/app/api/pharmacy/dispensing/route.ts' is not a module.
+./src/components/er/ERRegistrationModal.tsx:154:95
+Type error: Type '"secondary"' is not assignable to type '"default" | "destructive" | null | undefined'.
 
+[0m [90m 152 |[39m         toast({ title[33m:[39m [32m"Patient Found"[39m[33m,[39m description[33m:[39m [32m`Found ${mockPatient.first_name} ${mockPatient.last_name}.`[39m })[33m;[39m[0m
+[0m [90m 153 |[39m       } [36melse[39m {[0m
+[0m[31m[1m>[22m[39m[90m 154 |[39m         toast({ title[33m:[39m [32m"Patient Not Found"[39m[33m,[39m description[33m:[39m [32m`No patient found with MRN ${mrn}.`[39m[33m,[39m variant[33m:[39m [32m"secondary"[39m })[33m;[39m[0m
+[0m [90m     |[39m                                                                                               [31m[1m^[22m[39m[0m
+[0m [90m 155 |[39m       }[0m
+[0m [90m 156 |[39m     } [36mcatch[39m (error) {[0m
+[0m [90m 157 |[39m       console[33m.[39merror([32m"Patient search error:"[39m[33m,[39m error)[33m;[39m[0m
 Next.js build worker exited with code: 1 and signal: null

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
@@ -10,12 +9,9 @@ import {
   Button,
   Textarea,
   Table,
-  // TableHeader, // FIX: Removed unused import
   TableRow,
-  // TableHead, // FIX: Removed unused import
   TableBody,
   TableCell,
-  // Badge, // FIX: Removed unused import
 } from "@/components/ui"; // Assuming Input, Label are also here
 import { Loader2 } from "lucide-react";
 
@@ -176,18 +172,14 @@ const NursingNotes: React.FC<NursingNotesProps> = ({ admissionId }) => {
 
     try {
       // Validate JSON fields before submitting
-      // let parsedVitalSigns: VitalSigns | null = null; // FIX: Removed unused variable assignment
-      // let parsedIntakeOutput: IntakeOutput | null = null; // FIX: Removed unused variable assignment
       try {
-        // parsedVitalSigns = JSON.parse(formData.vital_signs);
-        JSON.parse(formData.vital_signs); // FIX: Just parse to validate, don't assign
-      } catch { // FIX: Removed unused 'err' variable
+        JSON.parse(formData.vital_signs); // Just parse to validate, don't assign
+      } catch {
         throw new Error("Invalid JSON format in Vital Signs field. Please check the structure.");
       }
       try {
-        // parsedIntakeOutput = JSON.parse(formData.intake_output);
-        JSON.parse(formData.intake_output); // FIX: Just parse to validate, don't assign
-      } catch { // FIX: Removed unused 'err' variable
+        JSON.parse(formData.intake_output); // Just parse to validate, don't assign
+      } catch {
         throw new Error("Invalid JSON format in Intake/Output field. Please check the structure.");
       }
 
@@ -324,7 +316,7 @@ const NursingNotes: React.FC<NursingNotesProps> = ({ admissionId }) => {
                   name="vital_signs"
                   value={formData.vital_signs}
                   onChange={handleChange}
-                  placeholder="Enter vital signs in JSON format" // Keep placeholder
+                  placeholder="Enter vital signs in JSON format"
                   className="font-mono text-sm min-h-[150px] bg-gray-50"
                   disabled={submitting}
                 />
@@ -340,7 +332,7 @@ const NursingNotes: React.FC<NursingNotesProps> = ({ admissionId }) => {
                   name="intake_output"
                   value={formData.intake_output}
                   onChange={handleChange}
-                  placeholder="Enter intake/output in JSON format" // Keep placeholder
+                  placeholder="Enter intake/output in JSON format"
                   className="font-mono text-sm min-h-[150px] bg-gray-50"
                   disabled={submitting}
                 />
@@ -440,5 +432,61 @@ const NursingNotes: React.FC<NursingNotesProps> = ({ admissionId }) => {
                               {Object.entries(vitals)
                                 .filter(([, value]) => value) // Only show entries with a value
                                 .map(([key, value]) => (
-                                  
-(Content truncated due to size limit. Use line ranges to read in chunks)
+                                  <TableRow key={key}>
+                                    <TableCell className="font-medium capitalize pr-2 py-1">{key.replace(/_/g, " ")}</TableCell>
+                                    <TableCell className="py-1">{value}</TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                      {io && Object.values(io).some(v => v) && (
+                        <div className="bg-gray-50 p-3 rounded border">
+                          <h4 className="font-medium mb-2 text-sm">Intake/Output</h4>
+                          <Table className="text-xs">
+                            <TableBody>
+                              {Object.entries(io)
+                                .filter(([, value]) => value)
+                                .map(([key, value]) => (
+                                  <TableRow key={key}>
+                                    <TableCell className="font-medium capitalize pr-2 py-1">{key.replace(/_/g, " ")}</TableCell>
+                                    <TableCell className="py-1">{value}</TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </div>
+
+                    {note.medication_given && (
+                      <div className="mb-3">
+                        <h4 className="font-medium text-sm">Medications Given:</h4>
+                        <p className="text-sm whitespace-pre-wrap">{note.medication_given}</p>
+                      </div>
+                    )}
+
+                    {note.procedures && (
+                      <div className="mb-3">
+                        <h4 className="font-medium text-sm">Procedures:</h4>
+                        <p className="text-sm whitespace-pre-wrap">{note.procedures}</p>
+                      </div>
+                    )}
+
+                    <div className="mb-3">
+                      <h4 className="font-medium text-sm">Notes:</h4>
+                      <p className="text-sm whitespace-pre-wrap">{note.notes}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default NursingNotes;
