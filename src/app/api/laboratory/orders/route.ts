@@ -91,7 +91,8 @@ async function createLabOrderInDB(orderData: LabOrderInput): Promise<LabOrder> {
 
   await db.query("INSERT INTO lab_orders (...) VALUES (...)", []);
   if (orderData.tests) {
-    for (const _test of orderData.tests) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const _ of orderData.tests) {
       await db.query("INSERT INTO lab_order_tests (...) VALUES (...)", []);
     }
   }

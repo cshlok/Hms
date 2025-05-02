@@ -139,7 +139,7 @@ const AdmissionForm = () => {
         try {
           const errorData: ApiErrorResponse = await response.json();
           errorMsg = errorData.error || errorData.message || errorMsg;
-        } catch (_jsonError) {
+        } catch {
           errorMsg = `${errorMsg}: ${response.statusText}`;
         }
         throw new Error(errorMsg);

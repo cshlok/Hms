@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import { useRouter } from 'next/navigation';
 
 // Define interfaces for data structures
 interface DispensingRecord {
@@ -30,7 +29,7 @@ interface BillingPharmacyIntegrationProps {
 }
 
 const BillingPharmacyIntegration: React.FC<BillingPharmacyIntegrationProps> = ({ patientId }) => {
-  const _router = useRouter();
+  // const _router = useRouter(); // Commented out as unused
   const [loading, setLoading] = useState<boolean>(true);
   const [dispensingRecords, setDispensingRecords] = useState<DispensingRecord[]>([]);
   const [unbilledItems, setUnbilledItems] = useState<UnbilledItem[]>([]);

@@ -249,7 +249,7 @@ export default function CreateInvoicePage() {
             // FIX: Cast error response JSON to defined type
             const errorData = await response.json() as ErrorResponse;
             errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${response.status}`;
-        } catch (_jsonError) {
+        } catch {
             // Handle cases where response is not JSON or empty
             errorMessage = `HTTP error! status: ${response.status}`;
         }

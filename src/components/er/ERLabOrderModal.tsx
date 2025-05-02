@@ -139,7 +139,7 @@ export default function ERLabOrderModal({
       let responseData: unknown;
       try {
         responseData = await response.json();
-      } catch (_jsonError) {
+      } catch {
         // Handle non-JSON responses or empty responses
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: Failed to create lab order. Invalid response from server.`);

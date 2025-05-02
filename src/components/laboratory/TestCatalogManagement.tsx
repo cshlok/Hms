@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Input, Select, Spin, message, Modal, Form, Switch } from 'antd';
 import { PlusOutlined, SearchOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import type { TableColumnsType, TableProps, FormProps, TablePaginationConfig } from 'antd';
-import type { FilterValue, SorterResult, SortOrder } from 'antd/es/table/interface';
+import type { FilterValue, SorterResult } from 'antd/es/table/interface';
 
 const { Option } = Select;
 

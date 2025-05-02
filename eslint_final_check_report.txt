@@ -1,0 +1,128 @@
+
+> shlokam-hms@0.1.0 lint
+> next lint
+
+
+./src/app/api/laboratory/orders/route.ts
+94:16  Warning: '_' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/billing/create-invoice/page.tsx
+252:18  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/billing/service-items/page.tsx
+260:18  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/billing/BillingPharmacyIntegration.tsx
+4:10  Warning: 'useRouter' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/er/ERCriticalAlerts.tsx
+83:14  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+101:14  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/er/ERLabOrderModal.tsx
+142:16  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/er/ERPatientAdmitModal.tsx
+131:16  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+164:16  Warning: '_' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/er/ERPatientTrackingBoard.tsx
+Error: Parsing error: ')' expected.
+
+./src/components/er/ERRadiologyOrderModal.tsx
+117:18  Warning: '_jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/er/ERRegistrationModal.tsx
+2:4  Error: Parsing error: Declaration or statement expected.
+
+./src/components/er/ERTriageForm.tsx
+110:18  Warning: '_jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ipd/AdmissionForm.tsx
+142:18  Warning: '_jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ipd/BedManagementDashboard.tsx
+82:20  Warning: '_jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ipd/DischargeSummary.tsx
+Error: Parsing error: Identifier expected.
+
+./src/components/ipd/MedicationAdministration.tsx
+431:17  Error: Parsing error: JSX element 'TableRow' has no corresponding closing tag.
+
+./src/components/ipd/NursingNotes.tsx
+444:9  Error: Parsing error: ')' expected.
+
+./src/components/ipd/VitalSigns.tsx
+433:9  Error: Parsing error: ')' expected.
+
+./src/components/laboratory/OrderManagement.tsx
+88:6  Error: Parsing error: ',' expected.
+
+./src/components/laboratory/ResultManagement.tsx
+505:9  Error: Parsing error: ')' expected.
+
+./src/components/laboratory/SampleManagement.tsx
+448:15  Error: Parsing error: JSX element 'Option' has no corresponding closing tag.
+
+./src/components/laboratory/TestCatalogManagement.tsx
+5:42  Warning: 'SortOrder' is defined but never used.  @typescript-eslint/no-unused-vars
+92:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+137:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+246:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/opd/OPDAppointmentList.tsx
+112:20  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+150:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+180:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/opd/OPDConsultationForm.tsx
+163:20  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+176:15  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+212:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+221:13  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+260:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+276:13  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/opd/OPDPatientQueue.tsx
+5:8  Warning: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+103:20  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+144:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+174:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/opd/OPDPharmacyIntegration.tsx
+Error: Parsing error: Identifier expected.
+
+./src/components/opd/OPDStatistics.tsx
+6:10  Warning: 'Card' is defined but never used.  @typescript-eslint/no-unused-vars
+6:16  Warning: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+6:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+6:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+52:20  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ot/OTBillingItems.tsx
+28:6  Warning: 'BillingItemsApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+33:11  Warning: 'ApiErrorResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ot/OTChecklistTemplateList.tsx
+8:24  Warning: 'ListChecks' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ot/OTChecklistTemplateModal.tsx
+9:10  Warning: 'Textarea' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ot/OTRecordModal.tsx
+382:19  Error: Parsing error: JSX element 'CardTitle' has no corresponding closing tag.
+
+./src/components/ot/OTStaffAssignment.tsx
+11:37  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+45:26  Warning: 'setAvailableUsers' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+83:6  Warning: React Hook useCallback has an unnecessary dependency: 'bookingId'. Either exclude it or remove the dependency array.  react-hooks/exhaustive-deps
+102:13  Warning: 'assignmentData' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/pharmacy/BillingPharmacyIntegration.tsx
+33:9  Warning: '_router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/pharmacy/OPDPharmacyIntegration.tsx
+Error: Parsing error: Identifier expected.
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

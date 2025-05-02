@@ -1,0 +1,96 @@
+
+> shlokam-hms@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.28
+
+   Creating an optimized production build ...
+Failed to compile.
+
+src/app/page.tsx
+You cannot have two parallel pages that resolve to the same path. Please check /page and /route. Refer to the route group docs for more information: https://nextjs.org/docs/app/building-your-application/routing/route-groups
+
+./src/components/er/ERPatientTrackingBoard.tsx
+Error: 
+  [31mx[0m Unexpected token `TooltipProvider`. Expected jsx identifier
+     ,-[[36;1;4m/home/ubuntu/Hms/src/components/er/ERPatientTrackingBoard.tsx[0m:144:1]
+ [2m144[0m |   const locations = ["all", ...Array.from(new Set(patients.map(p => p.location)))];
+ [2m145[0m | 
+ [2m146[0m |   return (
+ [2m147[0m |     <TooltipProvider> {/* Wrap with TooltipProvider */}
+     : [31;1m     ^^^^^^^^^^^^^^^[0m
+ [2m148[0m |       <div className="space-y-4">
+ [2m149[0m |         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+ [2m150[0m |           <Input 
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/er/ERPatientTrackingBoard.tsx
+./src/app/dashboard/er/page.tsx
+
+./src/components/er/ERRegistrationModal.tsx
+Error: 
+  [31mx[0m Expression expected
+   ,-[[36;1;4m/home/ubuntu/Hms/src/components/er/ERRegistrationModal.tsx[0m:1:1]
+ [2m1[0m |         toast({ title: "Search Failed", description: "Could not search for patient.", variant: "destructive" });
+ [2m2[0m |     } finally {
+   : [31;1m    ^[0m
+ [2m3[0m |         setIsSearching(false);
+ [2m4[0m |     }
+ [2m5[0m |   };
+   `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/er/ERRegistrationModal.tsx
+./src/app/dashboard/er/page.tsx
+
+./src/components/ipd/DischargeSummary.tsx
+Error: 
+  [31mx[0m Unexpected token `div`. Expected jsx identifier
+     ,-[[36;1;4m/home/ubuntu/Hms/src/components/ipd/DischargeSummary.tsx[0m:229:1]
+ [2m229[0m |   };
+ [2m230[0m | 
+ [2m231[0m |   return (
+ [2m232[0m |     <div className="space-y-6">
+     : [31;1m     ^^^[0m
+ [2m233[0m |       {patientInfo && (
+ [2m234[0m |         <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+ [2m235[0m |           <h3 className="font-semibold text-lg text-blue-900">
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/ipd/DischargeSummary.tsx
+./src/app/ipd/page.tsx
+
+./src/components/ipd/MedicationAdministration.tsx
+Error: 
+  [31mx[0m Unexpected token `div`. Expected jsx identifier
+     ,-[[36;1;4m/home/ubuntu/Hms/src/components/ipd/MedicationAdministration.tsx[0m:291:1]
+ [2m291[0m |   ];
+ [2m292[0m | 
+ [2m293[0m |   return (
+ [2m294[0m |     <div className="space-y-6">
+     : [31;1m     ^^^[0m
+ [2m295[0m |       {patientInfo && (
+ [2m296[0m |         <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+ [2m297[0m |           <h3 className="font-semibold text-lg text-blue-900">
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/ipd/MedicationAdministration.tsx
+./src/app/ipd/page.tsx
+
+
+> Build failed because of webpack errors
