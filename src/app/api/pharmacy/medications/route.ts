@@ -174,8 +174,8 @@ export async function POST(request: NextRequest) {
       now
     ).all(); // Use .all() for RETURNING clause
 
-    // Extract the ID from the results (structure might vary based on DB driver)
-    const newId = results?.[0]?.id;
+    // FIX: Cast results to expected type to access 'id'
+    const newId = (results as Array<{ id: number | string }>)?. [0]?.id;
 
     if (!newId) {
       throw new Error("Failed to retrieve ID after medication creation.");

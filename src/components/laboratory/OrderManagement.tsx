@@ -83,9 +83,9 @@ const OrderManagement: React.FC = () => {
   });
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
-  const [patients, setPatients] = useState<Patient[]>([]      // FIX: Prefix unused variable
-      // const _tests = useState<Test[]>([]); // FIX: Commented out unused state
-      const [_tests, setTests] = useState<Test[]>([]);nst [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [_tests, setTests] = useState<Test[]>([]); // FIX: Prefix unused variable if tests are not used directly
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loadingOrderItems, setLoadingOrderItems] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -344,14 +344,14 @@ const OrderManagement: React.FC = () => {
 
   // Order items columns for the modal
   const orderItemColumns = [
-    { 
-      title: 'Test/Panel', 
-      dataIndex: 'name', 
-      key: 'name' 
+    {
+      title: 'Test/Panel',
+      dataIndex: 'name',
+      key: 'name'
     },
-    { 
-      title: 'Status', 
-      dataIndex: 'status', 
+    {
+      title: 'Status',
+      dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
         let color = 'default';
@@ -362,9 +362,9 @@ const OrderManagement: React.FC = () => {
         return <Tag color={color}>{status.toUpperCase()}</Tag>;
       }
     },
-    { 
-      title: 'Price', 
-      dataIndex: 'price', 
+    {
+      title: 'Price',
+      dataIndex: 'price',
       key: 'price',
       render: (price: number) => `₹${price.toFixed(2)}`
     },
@@ -471,5 +471,20 @@ const OrderManagement: React.FC = () => {
               {orderItems.length > 0 ? (
                 <Table
                   dataSource={orderItems}
-                  
-(Content truncated due to size limit. Use line ranges to read in chunks)
+                  columns={orderItemColumns} // FIX: Use defined columns
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                />
+              ) : (
+                <p>No items found for this order.</p>
+              )}
+            </Spin>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+};
+
+export default OrderManagement;

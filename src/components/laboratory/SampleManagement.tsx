@@ -446,4 +446,26 @@ const SampleManagement: React.FC = () => {
               <Option value="improper_labeling">Improper Labeling</Option>
               <Option value="delayed_transport">Delayed Transport</Option>
               <Option value="other">O
-(Content truncated due to size limit. Use line ranges to read in chunks)
+(Content truncated due to size limit. Use line ranges to read in chunks)ther</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="notes"
+            label="Additional Notes"
+          >
+            <Input.TextArea rows={3} placeholder="Optional details about rejection" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" danger htmlType="submit">
+              Confirm Rejection
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+};
+
+export default SampleManagement;

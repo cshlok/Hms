@@ -257,7 +257,7 @@ function Dashboard() {
                 </div>
                 <div className="mt-4 text-center">
                   <Link href="/dashboard/ipd" passHref>
-                    <Button variant="link" size="sm">View All Admissions</Button>
+                    <Button variant="ghost" size="sm">View All Admissions</Button>
                   </Link>
                 </div>
               </CardContent>
@@ -278,7 +278,7 @@ function Dashboard() {
                 </div>
                 <div className="mt-4 text-center">
                   <Link href="/dashboard/opd" passHref>
-                    <Button variant="link" size="sm">View Full Schedule</Button>
+                    <Button variant="ghost" size="sm">View Full Schedule</Button>
                   </Link>
                 </div>
               </CardContent>

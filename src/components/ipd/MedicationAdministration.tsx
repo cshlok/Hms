@@ -434,4 +434,28 @@ const MedicationAdministration: React.FC<MedicationAdministrationProps> = ({ adm
                   <TableHead>Dosage</TableHead>
                   <TableHead>Route</TableHead>
         
-(Content truncated due to size limit. Use line ranges to read in chunks)
+(Content truncated due to size limit. Use line ranges to read in chunks)          <TableHead>Administered By</TableHead>
+                  <TableHead>Notes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {medicationRecords.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell>{formatDate(record.administered_time)}</TableCell>
+                    <TableCell>{record.medication_name}</TableCell>
+                    <TableCell>{record.dosage}</TableCell>
+                    <TableCell>{record.route}</TableCell>
+                    <TableCell>{record.administered_by_first_name} {record.administered_by_last_name}</TableCell>
+                    <TableCell>{record.notes || "-"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default MedicationAdministration;

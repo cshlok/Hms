@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
@@ -405,5 +404,31 @@ const DischargeSummary: React.FC<DischargeSummaryProps> = ({ admissionId }) => {
               <div className="space-y-2">
                 <Label htmlFor="home_care_instructions">Home Care Instructions</Label>
                 <Textarea
-      
-(Content truncated due to size limit. Use line ranges to read in chunks)
+                  id="home_care_instructions"
+                  name="home_care_instructions"
+                  value={formData.home_care_instructions}
+                  onChange={handleChange}
+                  placeholder="Provide instructions for wound care, activity restrictions, diet, etc. (optional)"
+                  className="min-h-[100px]"
+                  disabled={submitting}
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
+                  ) : (
+                    "Save Discharge Summary"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default DischargeSummary;

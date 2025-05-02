@@ -380,4 +380,54 @@ export default function OTRecordModal({ trigger, bookingId, existingRecord, onSa
               <Card>
                 <CardHeader>
                   <CardTitle>Medications Ad
-(Content truncated due to size limit. Use line ranges to read in chunks)
+(Content truncated due to size limit. Use line ranges to read in chunks)ministered</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    This section would list medications administered during the procedure.
+                    In a full implementation, this would allow adding/editing medication records.
+                  </p>
+                  <Input placeholder="e.g., Propofol 100mg IV" disabled />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="post-op" className="space-y-4">
+              <div>
+                <Label htmlFor="post_op_instructions">Post-Op Instructions</Label>
+                <Textarea 
+                  id="post_op_instructions" 
+                  name="post_op_instructions" 
+                  value={formData.post_op_instructions} 
+                  onChange={handleChange} 
+                  className="mt-1 h-24" 
+                  placeholder="Instructions for post-operative care..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="recovery_notes">Recovery Notes</Label>
+                <Textarea 
+                  id="recovery_notes" 
+                  name="recovery_notes" 
+                  value={formData.recovery_notes} 
+                  onChange={handleChange} 
+                  className="mt-1 h-24" 
+                  placeholder="Notes on patient's recovery status..."
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          <DialogFooter className="mt-6">
+            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isSaving}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Saving..." : (existingRecord ? "Update Record" : "Save Record")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

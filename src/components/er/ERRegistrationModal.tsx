@@ -1,4 +1,160 @@
-        toast({ title: "Search Failed", description: "Could not search for patient.", variant: "destructive" });
+// src/components/er/ERRegistrationModal.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+
+// Define Zod schema for form validation
+const registrationSchema = z.object({
+  searchMrn: z.string().optional(), // MRN for searching existing patient
+  firstName: z.string().min(1, "First name is required").optional(),
+  lastName: z.string().min(1, "Last name is required").optional(),
+  dob: z.string().optional(), // Consider using a date type if input is date picker
+  sex: z.enum(["Male", "Female", "Other"]).optional(),
+  chiefComplaint: z.string().min(1, "Chief complaint is required"),
+  arrivalMode: z.string().optional(),
+}).refine(data => !!data.searchMrn || (!!data.firstName && !!data.lastName && !!data.dob && !!data.sex), {
+  message: "Either search for an existing patient or provide full details for a new patient.",
+  path: ["firstName"], // Attach error to a relevant field
+});
+
+type RegistrationFormValues = z.infer<typeof registrationSchema>;
+
+// Define interfaces for API responses (adjust based on actual API)
+interface PatientResponse {
+  id: string;
+  mrn: string;
+  first_name: string;
+  last_name: string;
+  dob: string;
+  sex: string;
+}
+
+interface ERVisitResponse {
+  id: string;
+  visit_number?: string; // Optional visit number
+  patient_id: string;
+  status: string;
+}
+
+interface ApiErrorResponse {
+  error: string;
+}
+
+interface ERRegistrationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: (visit: ERVisitResponse) => void; // Optional callback on successful registration
+}
+
+export default function ERRegistrationModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: ERRegistrationModalProps) {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [foundPatient, setFoundPatient] = useState<PatientResponse | null>(null);
+
+  const form = useForm<RegistrationFormValues>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: {
+      searchMrn: "",
+      firstName: "",
+      lastName: "",
+      dob: "",
+      sex: undefined,
+      chiefComplaint: "",
+      arrivalMode: "",
+    },
+  });
+
+  // Reset form and found patient state when modal closes or opens
+  useEffect(() => {
+    if (!isOpen) {
+      form.reset();
+      setFoundPatient(null);
+      setIsLoading(false);
+      setIsSearching(false);
+    }
+  }, [isOpen, form]);
+
+  // Populate form if a patient is found
+  useEffect(() => {
+    if (foundPatient) {
+      form.setValue("firstName", foundPatient.first_name);
+      form.setValue("lastName", foundPatient.last_name);
+      form.setValue("dob", foundPatient.dob); // Assuming dob format matches input
+      form.setValue("sex", foundPatient.sex as "Male" | "Female" | "Other");
+      // Disable fields
+      form.control.getFieldState("firstName").isDirty = false;
+      form.control.getFieldState("lastName").isDirty = false;
+      form.control.getFieldState("dob").isDirty = false;
+      form.control.getFieldState("sex").isDirty = false;
+    }
+  }, [foundPatient, form]);
+
+  const handleSearchPatient = async () => {
+    const mrn = form.getValues("searchMrn");
+    if (!mrn) {       toast({ title: "MRN Required", description: "Please enter an MRN to search.", variant: "destructive" });
+      return;
+    }
+    setIsSearching(true);
+    setFoundPatient(null);
+    console.log(`Searching for patient with MRN: ${mrn}`);
+    try {
+      // TODO: Implement actual API call: GET /api/patients?mrn={mrn}
+      // const response = await fetch(`/api/patients?mrn=${encodeURIComponent(mrn)}`);
+      // if (!response.ok) { ... handle not found or other errors ... }
+      // const patientData: PatientResponse = await response.json();
+      
+      // Mock search result
+      await new Promise(resolve => setTimeout(resolve, 500));
+      if (mrn === "MRN001") { // Simulate finding a patient
+        const mockPatient: PatientResponse = {
+          id: "p1",
+          mrn: "MRN001",
+          first_name: "John",
+          last_name: "Doe",
+          dob: "1979-01-15", // Example format
+          sex: "Male",
+        };
+        setFoundPatient(mockPatient);
+        toast({ title: "Patient Found", description: `Found ${mockPatient.first_name} ${mockPatient.last_name}.` });
+      } else {         toast({ title: "Patient Not Found", description: `No patient found with MRN ${mrn}.`, variant: "default" });
+      }
+    } catch (error) {
+      console.error("Patient search error:", error);
+      toast({ title: "Search Failed", description: "Could not search for patient.", variant: "destructive" });
     } finally {
         setIsSearching(false);
     }
@@ -238,4 +394,3 @@
     </Dialog>
   );
 }
-
