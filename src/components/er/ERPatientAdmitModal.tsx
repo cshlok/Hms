@@ -128,7 +128,7 @@ export default function ERPatientAdmitModal({
       let admissionResponseData: unknown;
       try {
         admissionResponseData = await admissionResponse.json();
-      } catch (_jsonError) {
+      } catch {
         if (!admissionResponse.ok) {
           throw new Error(`HTTP error ${admissionResponse.status}: Failed to create admission. Invalid response from server.`);
         }
@@ -161,7 +161,7 @@ export default function ERPatientAdmitModal({
       let visitResponseData: unknown;
       try {
         visitResponseData = await visitResponse.json();
-      } catch (jsonError) {
+      } catch {
         if (!visitResponse.ok) {
           throw new Error(`HTTP error ${visitResponse.status}: Failed to update ER visit status. Invalid response from server.`);
         }

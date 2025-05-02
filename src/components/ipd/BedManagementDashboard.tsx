@@ -79,7 +79,7 @@ const BedManagementDashboard: React.FC = () => {
             // FIX: Add type for errorData
             const errorData: ApiErrorResponse = await response.json();
             errorMsg = errorData.error || errorMsg;
-          } catch (_jsonError) {
+          } catch {
             // Ignore if response is not JSON
           }
           throw new Error(errorMsg);
