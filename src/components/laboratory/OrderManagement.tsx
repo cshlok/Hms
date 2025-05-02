@@ -83,10 +83,9 @@ const OrderManagement: React.FC = () => {
   });
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
-  const [patients, setPatients] = useState<Patient[]>([]);
-  // FIX: Prefix unused variable
-  const [_tests, setTests] = useState<Test[]>([]);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]      // FIX: Prefix unused variable
+      // const _tests = useState<Test[]>([]); // FIX: Commented out unused state
+      const [_tests, setTests] = useState<Test[]>([]);nst [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loadingOrderItems, setLoadingOrderItems] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,7 +100,7 @@ const OrderManagement: React.FC = () => {
           // FIX: Type errorData
           const errorData: ApiErrorResponse = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (_jsonError) { /* Ignore */ }
+        } catch { /* Ignore */ } // FIX: Removed unused _jsonError
         throw new Error(errorMsg);
       }
       // FIX: Type the response data
@@ -129,7 +128,7 @@ const OrderManagement: React.FC = () => {
           // FIX: Type errorData
           const errorData: ApiErrorResponse = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (_jsonError) { /* Ignore */ }
+        } catch { /* Ignore */ } // FIX: Removed unused _jsonError
         throw new Error(errorMsg);
       }
       // FIX: Type the response data
@@ -180,7 +179,7 @@ const OrderManagement: React.FC = () => {
           // FIX: Type errorData
           const errorData: ApiErrorResponse = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (_jsonError) { /* Ignore */ }
+        } catch { /* Ignore */ } // FIX: Removed unused _jsonError
         throw new Error(errorMsg);
       }
       // FIX: Type the response data
@@ -188,10 +187,10 @@ const OrderManagement: React.FC = () => {
       setOrders(data.results || []);
     } catch (err: unknown) { // FIX: Use unknown
       // FIX: Prefix unused variable
-      const _messageText = err instanceof Error ? err.message : 'An unknown error occurred';
+      // const _messageText = err instanceof Error ? err.message : 'An unknown error occurred'; // FIX: Commented out unused variable
       console.error('Error fetching orders:', err);
       message.error('Failed to load laboratory orders');
-      setError(`Failed to load laboratory orders: ${_messageText}`);
+      setError(`Failed to load laboratory orders: ${err instanceof Error ? err.message : 'An unknown error occurred'}`); // FIX: Use error directly
     } finally {
       setLoading(false);
     }
@@ -209,7 +208,7 @@ const OrderManagement: React.FC = () => {
           // FIX: Type errorData
           const errorData: ApiErrorResponse = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch (_jsonError) { /* Ignore */ }
+        } catch { /* Ignore */ } // FIX: Removed unused _jsonError
         throw new Error(errorMsg);
       }
       // FIX: Type the response data
@@ -472,20 +471,5 @@ const OrderManagement: React.FC = () => {
               {orderItems.length > 0 ? (
                 <Table
                   dataSource={orderItems}
-                  columns={orderItemColumns}
-                  rowKey="id"
-                  pagination={false}
-                />
-              ) : (
-                <p>No items found for this order.</p>
-              )}
-            </Spin>
-          </div>
-        )}
-      </Modal>
-    </div>
-  );
-};
-
-export default OrderManagement;
-
+                  
+(Content truncated due to size limit. Use line ranges to read in chunks)

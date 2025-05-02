@@ -114,7 +114,7 @@ export default function ERRadiologyOrderModal({
         try {
           const errorData: { error?: string } = await response.json(); // FIX: Add type for errorData
           errorMsg = errorData.error || errorMsg;
-        } catch (jsonError) {
+        } catch (_jsonError) {
           // Ignore if response is not JSON
         }
         throw new Error(errorMsg);

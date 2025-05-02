@@ -9,11 +9,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 
-// Props for the modal - include booking data for editing
+// Define the Booking type based on usage
+interface Booking {
+  id?: string; // Optional ID for existing bookings
+  patient_id: string;
+  surgery_type_id: string;
+  theatre_id: string;
+  lead_surgeon_id: string;
+  anesthesiologist_id: string;
+  scheduled_start_time: string | Date; // Can be string or Date
+  scheduled_end_time: string | Date; // Can be string or Date
+  booking_type: string;
+  priority: string;
+  booking_notes: string;
+}
+
+// Define the type for data passed to onSave
+interface BookingSaveData {
+  patient_id: string;
+  surgery_type_id: string;
+  theatre_id: string;
+  lead_surgeon_id: string;
+  anesthesiologist_id: string;
+  scheduled_start_time: string | null;
+  scheduled_end_time: string | null;
+  booking_type: string;
+  priority: string;
+  booking_notes: string;
+}
+
+// Props for the modal - use defined types
 interface OTBookingModalProps {
   trigger: React.ReactNode;
-  booking?: any; // Replace any with actual Booking type
-  onSave: (bookingData: any) => Promise<void>; // Function to handle saving
+  booking?: Booking; // Use Booking type
+  onSave: (bookingData: BookingSaveData) => Promise<void>; // Use BookingSaveData type
 }
 
 // Mock data for dropdowns - replace with API calls
@@ -47,7 +76,8 @@ const mockAnesthesiologists = [
 
 export default function OTBookingModal({ trigger, booking, onSave }: OTBookingModalProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  // Initialize form data state, handling potential Date objects for time
+  const [formData, setFormData] = useState(() => ({
     patient_id: booking?.patient_id || "",
     surgery_type_id: booking?.surgery_type_id || "",
     theatre_id: booking?.theatre_id || "",
@@ -58,31 +88,28 @@ export default function OTBookingModal({ trigger, booking, onSave }: OTBookingMo
     booking_type: booking?.booking_type || "elective",
     priority: booking?.priority || "routine",
     booking_notes: booking?.booking_notes || "",
-  });
+  }));
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  // Reset form when booking prop changes (for editing)
+  // Reset form when booking prop changes (for editing) or modal opens
   useEffect(() => {
-    if (booking) {
-      setFormData({
-        patient_id: booking.patient_id || "",
-        surgery_type_id: booking.surgery_type_id || "",
-        theatre_id: booking.theatre_id || "",
-        lead_surgeon_id: booking.lead_surgeon_id || "",
-        anesthesiologist_id: booking.anesthesiologist_id || "",
-        scheduled_start_time: booking.scheduled_start_time ? new Date(booking.scheduled_start_time).toISOString().slice(0, 16) : "",
-        scheduled_end_time: booking.scheduled_end_time ? new Date(booking.scheduled_end_time).toISOString().slice(0, 16) : "",
-        booking_type: booking.booking_type || "elective",
-        priority: booking.priority || "routine",
-        booking_notes: booking.booking_notes || "",
-      });
+    if (isOpen) {
+        setFormData({
+            patient_id: booking?.patient_id || "",
+            surgery_type_id: booking?.surgery_type_id || "",
+            theatre_id: booking?.theatre_id || "",
+            lead_surgeon_id: booking?.lead_surgeon_id || "",
+            anesthesiologist_id: booking?.anesthesiologist_id || "",
+            scheduled_start_time: booking?.scheduled_start_time ? new Date(booking.scheduled_start_time).toISOString().slice(0, 16) : "",
+            scheduled_end_time: booking?.scheduled_end_time ? new Date(booking.scheduled_end_time).toISOString().slice(0, 16) : "",
+            booking_type: booking?.booking_type || "elective",
+            priority: booking?.priority || "routine",
+            booking_notes: booking?.booking_notes || "",
+        });
     } else {
-      // Reset for new booking
-      setFormData({
-        patient_id: "", surgery_type_id: "", theatre_id: "", lead_surgeon_id: "", anesthesiologist_id: "",
-        scheduled_start_time: "", scheduled_end_time: "", booking_type: "elective", priority: "routine", booking_notes: "",
-      });
+        // Optionally clear form when closed, or keep last state
+        // setFormData({ patient_id: "", ... }); 
     }
   }, [booking, isOpen]);
 
@@ -100,7 +127,7 @@ export default function OTBookingModal({ trigger, booking, onSave }: OTBookingMo
     setIsSaving(true);
     try {
       // Convert datetime-local strings back to ISO strings for API
-      const apiData = {
+      const apiData: BookingSaveData = {
         ...formData,
         scheduled_start_time: formData.scheduled_start_time ? new Date(formData.scheduled_start_time).toISOString() : null,
         scheduled_end_time: formData.scheduled_end_time ? new Date(formData.scheduled_end_time).toISOString() : null,
@@ -130,11 +157,15 @@ export default function OTBookingModal({ trigger, booking, onSave }: OTBookingMo
         description: `Booking ${booking ? "updated" : "created"} successfully.`,
       });
       setIsOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) { // Use unknown for error type
       console.error("Error saving booking:", error);
+      let errorMessage = "Failed to save booking.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: "Error",
-        description: error.message || "Failed to save booking.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -267,3 +298,4 @@ export default function OTBookingModal({ trigger, booking, onSave }: OTBookingMo
     </Dialog>
   );
 }
+

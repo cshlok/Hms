@@ -50,9 +50,9 @@ interface FormData {
 }
 
 // FIX: Define type for API error response
-interface ApiErrorResponse {
-  error?: string;
-}
+// interface ApiErrorResponse { // FIX: Removed unused interface
+//   error?: string;
+// }
 
 // FIX: Define type for API success response (new note)
 type NewNoteResponse = ProgressNote;
@@ -282,7 +282,7 @@ const PatientProgressNotes: React.FC<PatientProgressNotesProps> = ({ admissionId
         hour12: true,
       };
       return new Intl.DateTimeFormat(undefined, options).format(new Date(dateString));
-    } catch (e) {
+    } catch {
       return "Invalid Date";
     }
   };

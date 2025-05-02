@@ -10,40 +10,65 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { PlusCircle, Trash2 } from "lucide-react";
 
-// Props for the modal - include template data for editing
-interface OTChecklistTemplateModalProps {
-  trigger: React.ReactNode;
-  template?: any; // Replace any with actual ChecklistTemplate type
-  onSave: (templateData: any) => Promise<void>; // Function to handle saving
-}
-
+// Define ChecklistItem type
 interface ChecklistItem {
   id: string;
   text: string;
 }
 
+// Define ChecklistTemplate type
+interface ChecklistTemplate {
+  id?: string; // Optional for new templates
+  name: string;
+  phase: string;
+  items: ChecklistItem[];
+  updated_at?: string; // Optional, may not be present on new/unsaved
+}
+
+// Define the type for data passed to onSave
+interface ChecklistTemplateSaveData {
+  name: string;
+  phase: string;
+  items: { id: string; text: string }[]; // Ensure ID is included if needed by backend
+}
+
+// Props for the modal - use defined types
+interface OTChecklistTemplateModalProps {
+  trigger: React.ReactNode;
+  template?: ChecklistTemplate; // Use ChecklistTemplate type
+  onSave: (templateData: ChecklistTemplateSaveData) => Promise<void>; // Use specific save data type
+}
+
 export default function OTChecklistTemplateModal({ trigger, template, onSave }: OTChecklistTemplateModalProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     name: template?.name || "",
     phase: template?.phase || "pre-op",
-  });
-  const [items, setItems] = useState<ChecklistItem[]>(template?.items || [{ id: crypto.randomUUID(), text: "" }]);
+  }));
+  const [items, setItems] = useState<ChecklistItem[]>(() => 
+    template?.items && template.items.length > 0 
+      ? template.items.map(item => ({ ...item })) // Deep copy items
+      : [{ id: crypto.randomUUID(), text: "" }]
+  );
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  // Reset form when template prop changes (for editing)
+  // Reset form when template prop changes or modal opens
   useEffect(() => {
-    if (template) {
+    if (isOpen) {
       setFormData({
-        name: template.name || "",
-        phase: template.phase || "pre-op",
+        name: template?.name || "",
+        phase: template?.phase || "pre-op",
       });
-      setItems(template.items || [{ id: crypto.randomUUID(), text: "" }]);
+      setItems(
+        template?.items && template.items.length > 0
+          ? template.items.map(item => ({ ...item })) // Deep copy items
+          : [{ id: crypto.randomUUID(), text: "" }]
+      );
     } else {
-      // Reset for new template
-      setFormData({ name: "", phase: "pre-op" });
-      setItems([{ id: crypto.randomUUID(), text: "" }]);
+        // Optionally clear form when closed
+        // setFormData({ name: "", phase: "pre-op" });
+        // setItems([{ id: crypto.randomUUID(), text: "" }]);
     }
   }, [template, isOpen]);
 
@@ -84,7 +109,7 @@ export default function OTChecklistTemplateModal({ trigger, template, onSave }: 
           return;
       }
       
-      const apiData = {
+      const apiData: ChecklistTemplateSaveData = {
         ...formData,
         items: items.map(item => ({ id: item.id, text: item.text.trim() })), // Ensure IDs and trimmed text are sent
       };
@@ -113,11 +138,15 @@ export default function OTChecklistTemplateModal({ trigger, template, onSave }: 
         description: `Checklist Template ${template ? "updated" : "created"} successfully.`,
       });
       setIsOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) { // Use unknown for error type
       console.error("Error saving checklist template:", error);
+      let errorMessage = "Failed to save checklist template.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: "Error",
-        description: error.message || "Failed to save checklist template.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -194,3 +223,4 @@ export default function OTChecklistTemplateModal({ trigger, template, onSave }: 
     </Dialog>
   );
 }
+

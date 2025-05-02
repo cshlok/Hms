@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation"; // FIX: Removed unused import
 import { Loader2 } from "lucide-react";
 
 // Define interfaces for data structures
@@ -49,7 +49,7 @@ interface IPDPharmacyIntegrationProps {
 }
 
 const IPDPharmacyIntegration: React.FC<IPDPharmacyIntegrationProps> = ({ admissionId, patientId }) => {
-  const router = useRouter();
+  // const router = useRouter(); // FIX: Removed unused router
   const [loading, setLoading] = useState<boolean>(true);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [medicationSchedule, setMedicationSchedule] = useState<MedicationScheduleItem[]>([]);
@@ -205,7 +205,7 @@ const IPDPharmacyIntegration: React.FC<IPDPharmacyIntegrationProps> = ({ admissi
         hour12: true,
       };
       return new Intl.DateTimeFormat(undefined, options).format(new Date(dateString));
-    } catch (e) {
+    } catch {
       return "Invalid Date";
     }
   };

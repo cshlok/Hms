@@ -159,7 +159,7 @@ const DischargeSummary: React.FC<DischargeSummaryProps> = ({ admissionId }) => {
         throw new Error("Discharge Diagnosis, Treatment Summary, and Discharge Medications are required.");
       }
 
-      const submissionData = {
+      const _submissionData = {
         ...formData,
         // discharged_by_doctor_id: session?.user?.id // Get from session
       };
@@ -405,29 +405,5 @@ const DischargeSummary: React.FC<DischargeSummaryProps> = ({ admissionId }) => {
               <div className="space-y-2">
                 <Label htmlFor="home_care_instructions">Home Care Instructions</Label>
                 <Textarea
-                  id="home_care_instructions"
-                  name="home_care_instructions"
-                  value={formData.home_care_instructions}
-                  onChange={handleChange}
-                  placeholder="Provide instructions for care at home, activity restrictions, diet, wound care, etc. (optional)"
-                  className="min-h-[100px]"
-                  disabled={submitting}
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {submitting ? "Processing..." : "Create Summary & Discharge Patient"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-};
-
-export default DischargeSummary;
-
+      
+(Content truncated due to size limit. Use line ranges to read in chunks)

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -79,7 +79,7 @@ const BedManagementDashboard: React.FC = () => {
             // FIX: Add type for errorData
             const errorData: ApiErrorResponse = await response.json();
             errorMsg = errorData.error || errorMsg;
-          } catch (jsonError) {
+          } catch (_jsonError) {
             // Ignore if response is not JSON
           }
           throw new Error(errorMsg);

@@ -1,0 +1,82 @@
+/home/ubuntu/Hms/src/components/opd/OPDStatistics.tsx
+   6:10  warning  'Card' is defined but never used         @typescript-eslint/no-unused-vars
+   6:16  warning  'CardContent' is defined but never used  @typescript-eslint/no-unused-vars
+   6:29  warning  'CardHeader' is defined but never used   @typescript-eslint/no-unused-vars
+   6:41  warning  'CardTitle' is defined but never used    @typescript-eslint/no-unused-vars
+  52:20  warning  'jsonError' is defined but never used    @typescript-eslint/no-unused-vars
+
+/home/ubuntu/Hms/src/components/ot/OTBillingItems.tsx
+  28:6   warning  'BillingItemsApiResponse' is defined but never used  @typescript-eslint/no-unused-vars
+  33:11  warning  'ApiErrorResponse' is defined but never used         @typescript-eslint/no-unused-vars
+
+/home/ubuntu/Hms/src/components/ot/OTBookingList.tsx
+  110:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/ot/OTBookingModal.tsx
+   15:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   16:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/ot/OTChecklistTemplateList.tsx
+   8:24  warning  'ListChecks' is defined but never used    @typescript-eslint/no-unused-vars
+  88:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/ot/OTChecklistTemplateModal.tsx
+    9:10  warning  'Textarea' is defined but never used      @typescript-eslint/no-unused-vars
+   16:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   17:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/ot/OTDashboardStats.tsx
+    6:27  warning  'Users' is defined but never used                                @typescript-eslint/no-unused-vars
+   72:61  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  123:60  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/ubuntu/Hms/src/components/ot/OTPatientSurgeries.tsx
+  8:20  warning  'Clock' is defined but never used     @typescript-eslint/no-unused-vars
+  8:27  warning  'User' is defined but never used      @typescript-eslint/no-unused-vars
+  8:33  warning  'FileText' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/Hms/src/components/ot/OTRecordModal.tsx
+   18:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   19:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  143:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/ot/OTStaffAssignment.tsx
+   11:37  warning  'Search' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+   45:26  warning  'setAvailableUsers' is assigned a value but never used                                                               @typescript-eslint/no-unused-vars
+   75:19  warning  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   79:6   warning  React Hook useCallback has an unnecessary dependency: 'bookingId'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+   98:13  warning  'assignmentData' is assigned a value but never used                                                                  @typescript-eslint/no-unused-vars
+  129:21  warning  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  154:21  warning  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/ot/OTSurgeryTypeList.tsx
+  77:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/ot/OTSurgeryTypeModal.tsx
+   14:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   15:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/ot/OTTheatreList.tsx
+  78:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/ot/OTTheatreModal.tsx
+  15:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  86:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ubuntu/Hms/src/components/pharmacy/BillingPharmacyIntegration.tsx
+   54:9   warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  162:18  warning  'jsonError' is defined but never used        @typescript-eslint/no-unused-vars
+
+/home/ubuntu/Hms/src/components/pharmacy/IPDPharmacyIntegration.tsx
+   52:9   warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  208:14  warning  'e' is defined but never used                @typescript-eslint/no-unused-vars
+
+/home/ubuntu/Hms/src/components/pharmacy/OPDPharmacyIntegration.tsx
+  66:9  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 169 problems (2 errors, 167 warnings)
+
