@@ -84,7 +84,7 @@ export default function MedicationsListPage() {
           try {
             const errorData: ApiErrorResponse = await response.json();
             errorMsg = errorData.error || errorMsg;
-          } catch (parseError) { /* Ignore */ }
+          } catch { /* Ignore */ }
           throw new Error(errorMsg);
         }
         const data: MedicationsApiResponse = await response.json();

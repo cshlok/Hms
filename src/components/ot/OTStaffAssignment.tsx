@@ -72,8 +72,12 @@ export default function OTStaffAssignment({ bookingId }: OTStaffAssignmentProps)
       setAssignedStaff(mockAssigned);
 
       setLoading(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred while fetching staff");
+      }
       setLoading(false);
     }
   }, [bookingId]);
@@ -126,9 +130,13 @@ export default function OTStaffAssignment({ bookingId }: OTStaffAssignmentProps)
       setSelectedRole("");
       toast({ title: "Success", description: "Staff assigned successfully." });
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error assigning staff:", error);
-      toast({ title: "Error", description: error.message || "Failed to assign staff.", variant: "destructive" });
+      let errorMessage = "Failed to assign staff.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setIsAdding(false);
     }
@@ -151,9 +159,13 @@ export default function OTStaffAssignment({ bookingId }: OTStaffAssignmentProps)
       setAssignedStaff(prev => prev.filter(staff => staff.assignment_id !== assignmentId));
       toast({ title: "Success", description: "Staff removed successfully." });
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error removing staff:", error);
-      toast({ title: "Error", description: error.message || "Failed to remove staff.", variant: "destructive" });
+      let errorMessage = "Failed to remove staff.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     }
   };
 

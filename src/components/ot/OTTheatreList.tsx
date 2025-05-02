@@ -75,8 +75,12 @@ export default function OTTheatreList() {
         setTheatres(mockData);
 
         setLoading(false);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred while fetching theatres");
+        }
         setLoading(false);
       }
     };

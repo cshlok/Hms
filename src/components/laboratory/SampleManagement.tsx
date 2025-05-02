@@ -61,7 +61,7 @@ const SampleManagement: React.FC = () => {
   const [updateForm] = Form.useForm<UpdateFormValues>();
 
   // Fetch samples with optional filters
-  const fetchSamples = async (): Promise<void> => {
+  const fetchSamples = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       // Simulate API call
@@ -108,7 +108,7 @@ const SampleManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, searchText]);
 
   // Load data on component mount and when filters change
   useEffect(() => {
@@ -445,27 +445,5 @@ const SampleManagement: React.FC = () => {
               <Option value="contaminated">Contaminated</Option>
               <Option value="improper_labeling">Improper Labeling</Option>
               <Option value="delayed_transport">Delayed Transport</Option>
-              <Option value="other">Other (specify in notes)</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="notes"
-            label="Notes"
-          >
-            <Input.TextArea rows={3} placeholder="Additional notes (required if reason is Other)" />
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" danger htmlType="submit">
-              Confirm Rejection
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
-  );
-};
-
-export default SampleManagement;
-
+              <Option value="other">O
+(Content truncated due to size limit. Use line ranges to read in chunks)

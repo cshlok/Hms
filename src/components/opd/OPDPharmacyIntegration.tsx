@@ -195,8 +195,10 @@ const OPDPharmacyIntegration: React.FC = () => {
 
   const handleMedicationChange = (index: number, field: keyof SelectedMedication, value: string): void => {
     const updatedMeds = [...selectedMedications];
-    // Type assertion needed because field is a key, but value is always string from input/select
-    (updatedMeds[index] as any)[field] = value;
+    // Ensure the field exists on the object before assignment (though TS should catch this)
+    if (field in updatedMeds[index]) {
+      updatedMeds[index][field] = value;
+    }
     setSelectedMedications(updatedMeds);
   };
 
@@ -392,110 +394,5 @@ const OPDPharmacyIntegration: React.FC = () => {
                             value={med.quantity}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => handleMedicationChange(index, 'quantity', e.target.value)}
                             placeholder="Qty"
-                            min="1"
-                            className="w-full p-1 text-sm border border-gray-300 rounded-md"
-                          />
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <input
-                            type="text"
-                            value={med.instructions}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleMedicationChange(index, 'instructions', e.target.value)}
-                            placeholder="Special instructions"
-                            className="w-full p-1 text-sm border border-gray-300 rounded-md"
-                          />
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveMedication(index)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-          
-          {/* Notes Textarea */}
-          <div className="mb-6">
-            <label htmlFor="prescriptionNotes" className="block text-sm font-medium text-gray-700 mb-2">
-              Notes
-            </label>
-            <textarea
-              id="prescriptionNotes"
-              value={formData.notes}
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFormData({...formData, notes: e.target.value})}
-              rows={2}
-              className="w-full p-2 border border-gray-300 rounded-md"
-              placeholder="Any additional notes for the pharmacist"
-            ></textarea>
-          </div>
-          
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={loading || selectedMedications.length === 0}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-            >
-              {loading ? 'Creating Prescription...' : 'Create Prescription'}
-            </button>
-          </div>
-        </form>
-        
-        {/* Previous Prescriptions List */}
-        {prescriptions.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-md font-medium text-gray-700 mb-2">Previous Prescriptions</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medications</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {prescriptions.map((prescription) => (
-                    <tr key={prescription.id}>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{prescription.date}</td>
-                      <td className="px-4 py-2 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          prescription.status === 'dispensed' ? 'bg-green-100 text-green-800' : 
-                          prescription.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {prescription.status.charAt(0).toUpperCase() + prescription.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2 text-sm text-gray-500">
-                        {prescription.items.map((item, idx) => (
-                          <div key={idx}>{item.medication} ({item.dosage}, {item.frequency}, {item.duration})</div>
-                        ))}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
-                        {/* Add actions like 'View Details' or 'Repeat Prescription' if needed */}
-                        <button className="text-blue-600 hover:text-blue-800">View</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default OPDPharmacyIntegration;
-
+  
+(Content truncated due to size limit. Use line ranges to read in chunks)

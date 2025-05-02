@@ -30,7 +30,7 @@ interface BillingPharmacyIntegrationProps {
 }
 
 const BillingPharmacyIntegration: React.FC<BillingPharmacyIntegrationProps> = ({ patientId }) => {
-  const router = useRouter();
+  const _router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
   const [dispensingRecords, setDispensingRecords] = useState<DispensingRecord[]>([]);
   const [unbilledItems, setUnbilledItems] = useState<UnbilledItem[]>([]);

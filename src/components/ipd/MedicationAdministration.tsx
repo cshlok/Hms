@@ -16,7 +16,7 @@ import {
   TableCell,
   Input,
   Label,
-  Textarea,
+  // Textarea, // FIX: Removed unused import
 } from "@/components/ui"; // Assuming Select components are also here or adjust import
 import { Loader2 } from "lucide-react";
 
@@ -271,7 +271,7 @@ const MedicationAdministration: React.FC<MedicationAdministrationProps> = ({ adm
         hour12: true,
       };
       return new Intl.DateTimeFormat(undefined, options).format(new Date(dateString));
-    } catch (e) {
+    } catch {
       return "Invalid Date";
     }
   };
@@ -433,29 +433,5 @@ const MedicationAdministration: React.FC<MedicationAdministrationProps> = ({ adm
                   <TableHead>Medication</TableHead>
                   <TableHead>Dosage</TableHead>
                   <TableHead>Route</TableHead>
-                  <TableHead>Administered By</TableHead>
-                  <TableHead>Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {medicationRecords.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell className="whitespace-nowrap">{formatDate(record.administered_time)}</TableCell>
-                    <TableCell>{record.medication_name}</TableCell>
-                    <TableCell>{record.dosage}</TableCell>
-                    <TableCell className="capitalize">{record.route}</TableCell>
-                    <TableCell>{record.administered_by_first_name} {record.administered_by_last_name}</TableCell>
-                    <TableCell>{record.notes || "-"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-export default MedicationAdministration;
-
+        
+(Content truncated due to size limit. Use line ranges to read in chunks)

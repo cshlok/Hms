@@ -8,7 +8,7 @@ import {
   TableBody,
   TableCell,
   Button,
-  Badge,
+  // Badge, // FIX: Removed unused import
 } from "@/components/ui";
 
 // FIX: Define an interface for the patient data structure

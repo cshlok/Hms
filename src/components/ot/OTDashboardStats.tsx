@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, Activity, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, Activity, AlertTriangle } from "lucide-react";
 
 export default function OTDashboardStats() {
   const [stats, setStats] = useState({
@@ -69,7 +69,7 @@ export default function OTDashboardStats() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Today's Surgeries</CardTitle>
+            <CardTitle className="text-sm font-medium">Today&apos;s Surgeries</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -120,7 +120,7 @@ export default function OTDashboardStats() {
         </Card>
       </div>
       
-      <h3 className="text-xl font-semibold mt-8 mb-4">Today's Schedule</h3>
+      <h3 className="text-xl font-semibold mt-8 mb-4">Today&apos;s Schedule</h3>
       <Card>
         <CardContent className="p-0">
           <div className="rounded-md border">

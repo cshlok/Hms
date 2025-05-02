@@ -11,82 +11,130 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// Props for the modal - include booking data for editing
+// Define types for Vitals and Medications (example structure)
+interface VitalReadings {
+  bp_readings: { time: string; value: string }[];
+  pulse_readings: { time: string; value: number }[];
+  o2_saturation_readings: { time: string; value: number }[];
+  temperature_readings: { time: string; value: number }[];
+}
+
+interface MedicationAdministered {
+  medication_name: string;
+  dosage: string;
+  time: string;
+}
+
+interface ChecklistResponse {
+  id: string;
+  text: string;
+  checked: boolean;
+}
+
+// Define the OTRecord type
+interface OTRecord {
+  id?: string; // Optional ID for existing records
+  procedure_notes: string;
+  procedure_start_time: string | Date | null;
+  procedure_end_time: string | Date | null;
+  anesthesia_type: string;
+  anesthesia_notes: string;
+  vitals: VitalReadings;
+  medications_administered: MedicationAdministered[];
+  complications: string;
+  blood_loss_ml: number | string | null; // Allow string for input
+  post_op_instructions: string;
+  recovery_notes: string;
+  checklist_responses?: ChecklistResponse[]; // Optional checklist responses
+}
+
+// Define the type for data passed to onSave
+interface OTRecordSaveData extends Omit<OTRecord, 'id' | 'vitals' | 'medications_administered' | 'checklist_responses'> {
+  booking_id: string;
+  procedure_start_time: string | null;
+  procedure_end_time: string | null;
+  blood_loss_ml: number | null;
+  checklist_responses: ChecklistResponse[];
+  // Include vitals and meds if they are saved separately or structured differently for API
+}
+
+// Props for the modal - use defined types
 interface OTRecordModalProps {
   trigger: React.ReactNode;
   bookingId: string;
-  existingRecord?: any; // Replace any with actual OTRecord type
-  onSave: (recordData: any) => Promise<void>; // Function to handle saving
+  existingRecord?: OTRecord; // Use OTRecord type
+  onSave: (recordData: OTRecordSaveData) => Promise<void>; // Use OTRecordSaveData type
 }
 
 export default function OTRecordModal({ trigger, bookingId, existingRecord, onSave }: OTRecordModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("procedure");
-  const [formData, setFormData] = useState({
-    // Procedure details
+  const [formData, setFormData] = useState(() => ({
     procedure_notes: existingRecord?.procedure_notes || "",
     procedure_start_time: existingRecord?.procedure_start_time ? new Date(existingRecord.procedure_start_time).toISOString().slice(0, 16) : "",
     procedure_end_time: existingRecord?.procedure_end_time ? new Date(existingRecord.procedure_end_time).toISOString().slice(0, 16) : "",
     anesthesia_type: existingRecord?.anesthesia_type || "",
     anesthesia_notes: existingRecord?.anesthesia_notes || "",
-    
-    // Vitals
     vitals: existingRecord?.vitals || {
       bp_readings: [],
       pulse_readings: [],
       o2_saturation_readings: [],
       temperature_readings: []
     },
-    
-    // Medications
     medications_administered: existingRecord?.medications_administered || [],
-    
-    // Complications
     complications: existingRecord?.complications || "",
     blood_loss_ml: existingRecord?.blood_loss_ml || "",
-    
-    // Post-op
     post_op_instructions: existingRecord?.post_op_instructions || "",
     recovery_notes: existingRecord?.recovery_notes || "",
-  });
+  }));
   
-  // Mock data for checklist items
-  const [checklistItems, setChecklistItems] = useState([
-    { id: "1", text: "Surgical site marked", checked: false },
-    { id: "2", text: "Patient identity confirmed", checked: false },
-    { id: "3", text: "Consent verified", checked: false },
-    { id: "4", text: "Allergies checked", checked: false },
-    { id: "5", text: "Equipment checked", checked: false },
-    { id: "6", text: "Team briefing completed", checked: false },
-  ]);
+  // Mock data for checklist items - replace with fetched template if applicable
+  const [checklistItems, setChecklistItems] = useState<ChecklistResponse[]>(() => 
+    existingRecord?.checklist_responses || [
+      { id: "1", text: "Surgical site marked", checked: false },
+      { id: "2", text: "Patient identity confirmed", checked: false },
+      { id: "3", text: "Consent verified", checked: false },
+      { id: "4", text: "Allergies checked", checked: false },
+      { id: "5", text: "Equipment checked", checked: false },
+      { id: "6", text: "Team briefing completed", checked: false },
+    ]
+  );
   
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  // Reset form when existingRecord prop changes (for editing)
+  // Reset form when existingRecord prop changes or modal opens
   useEffect(() => {
-    if (existingRecord) {
+    if (isOpen) {
       setFormData({
-        procedure_notes: existingRecord.procedure_notes || "",
-        procedure_start_time: existingRecord.procedure_start_time ? new Date(existingRecord.procedure_start_time).toISOString().slice(0, 16) : "",
-        procedure_end_time: existingRecord.procedure_end_time ? new Date(existingRecord.procedure_end_time).toISOString().slice(0, 16) : "",
-        anesthesia_type: existingRecord.anesthesia_type || "",
-        anesthesia_notes: existingRecord.anesthesia_notes || "",
-        vitals: existingRecord.vitals || {
+        procedure_notes: existingRecord?.procedure_notes || "",
+        procedure_start_time: existingRecord?.procedure_start_time ? new Date(existingRecord.procedure_start_time).toISOString().slice(0, 16) : "",
+        procedure_end_time: existingRecord?.procedure_end_time ? new Date(existingRecord.procedure_end_time).toISOString().slice(0, 16) : "",
+        anesthesia_type: existingRecord?.anesthesia_type || "",
+        anesthesia_notes: existingRecord?.anesthesia_notes || "",
+        vitals: existingRecord?.vitals || {
           bp_readings: [],
           pulse_readings: [],
           o2_saturation_readings: [],
           temperature_readings: []
         },
-        medications_administered: existingRecord.medications_administered || [],
-        complications: existingRecord.complications || "",
-        blood_loss_ml: existingRecord.blood_loss_ml || "",
-        post_op_instructions: existingRecord.post_op_instructions || "",
-        recovery_notes: existingRecord.recovery_notes || "",
+        medications_administered: existingRecord?.medications_administered || [],
+        complications: existingRecord?.complications || "",
+        blood_loss_ml: existingRecord?.blood_loss_ml || "",
+        post_op_instructions: existingRecord?.post_op_instructions || "",
+        recovery_notes: existingRecord?.recovery_notes || "",
       });
       
-      // If we had actual checklist responses, we would load them here
-      // setChecklistItems(existingRecord.checklist_responses || []);
+      setChecklistItems(
+        existingRecord?.checklist_responses || [
+          { id: "1", text: "Surgical site marked", checked: false },
+          { id: "2", text: "Patient identity confirmed", checked: false },
+          { id: "3", text: "Consent verified", checked: false },
+          { id: "4", text: "Allergies checked", checked: false },
+          { id: "5", text: "Equipment checked", checked: false },
+          { id: "6", text: "Team briefing completed", checked: false },
+        ]
+      );
     }
   }, [existingRecord, isOpen]);
 
@@ -107,18 +155,30 @@ export default function OTRecordModal({ trigger, bookingId, existingRecord, onSa
     e.preventDefault();
     setIsSaving(true);
     try {
-      const apiData = {
-        ...formData,
+      const bloodLoss = formData.blood_loss_ml ? parseInt(formData.blood_loss_ml.toString(), 10) : null;
+      if (formData.blood_loss_ml && (isNaN(bloodLoss as number) || (bloodLoss as number) < 0)) {
+        toast({ title: "Error", description: "Blood loss must be a non-negative number.", variant: "destructive" });
+        setIsSaving(false);
+        return;
+      }
+
+      const apiData: OTRecordSaveData = {
+        procedure_notes: formData.procedure_notes,
+        anesthesia_type: formData.anesthesia_type,
+        anesthesia_notes: formData.anesthesia_notes,
+        complications: formData.complications,
+        post_op_instructions: formData.post_op_instructions,
+        recovery_notes: formData.recovery_notes,
         booking_id: bookingId,
         procedure_start_time: formData.procedure_start_time ? new Date(formData.procedure_start_time).toISOString() : null,
         procedure_end_time: formData.procedure_end_time ? new Date(formData.procedure_end_time).toISOString() : null,
-        blood_loss_ml: formData.blood_loss_ml ? parseInt(formData.blood_loss_ml.toString(), 10) : null,
+        blood_loss_ml: bloodLoss,
         checklist_responses: checklistItems,
       };
       
       // Replace with actual API call
-      // const url = existingRecord ? `/api/ot/bookings/${bookingId}/record/${existingRecord.id}` : `/api/ot/bookings/${bookingId}/record`;
-      // const method = existingRecord ? "PUT" : "POST";
+      // const url = existingRecord?.id ? `/api/ot/bookings/${bookingId}/record/${existingRecord.id}` : `/api/ot/bookings/${bookingId}/record`;
+      // const method = existingRecord?.id ? "PUT" : "POST";
       // const response = await fetch(url, {
       //   method: method,
       //   headers: { "Content-Type": "application/json" },
@@ -140,11 +200,15 @@ export default function OTRecordModal({ trigger, bookingId, existingRecord, onSa
         description: `Operation record ${existingRecord ? "updated" : "created"} successfully.`,
       });
       setIsOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) { // Use unknown for error type
       console.error("Error saving operation record:", error);
+      let errorMessage = "Failed to save operation record.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: "Error",
-        description: error.message || "Failed to save operation record.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -230,6 +294,7 @@ export default function OTRecordModal({ trigger, bookingId, existingRecord, onSa
                     value={formData.blood_loss_ml} 
                     onChange={handleChange} 
                     className="mt-1" 
+                    min="0" // Add min attribute for validation
                   />
                 </div>
               </div>
@@ -314,64 +379,5 @@ export default function OTRecordModal({ trigger, bookingId, existingRecord, onSa
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Medications Administered</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    This section would include medications administered during the procedure.
-                    In a full implementation, this would be a dynamic form for recording multiple medications.
-                  </p>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label>Medication</Label>
-                      <Input placeholder="e.g., Propofol" disabled />
-                    </div>
-                    <div>
-                      <Label>Dosage</Label>
-                      <Input placeholder="e.g., 200mg" disabled />
-                    </div>
-                    <div>
-                      <Label>Time</Label>
-                      <Input type="time" disabled />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="post-op" className="space-y-4">
-              <div>
-                <Label htmlFor="post_op_instructions">Post-Op Instructions</Label>
-                <Textarea 
-                  id="post_op_instructions" 
-                  name="post_op_instructions" 
-                  value={formData.post_op_instructions} 
-                  onChange={handleChange} 
-                  className="mt-1 h-32" 
-                  placeholder="Instructions for post-operative care..."
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="recovery_notes">Recovery Notes</Label>
-                <Textarea 
-                  id="recovery_notes" 
-                  name="recovery_notes" 
-                  value={formData.recovery_notes} 
-                  onChange={handleChange} 
-                  className="mt-1 h-32" 
-                  placeholder="Notes on patient's immediate recovery..."
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
-          
-          <DialogFooter className="mt-6">
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSaving}>{isSaving ? "Saving..." : "Save Record"}</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
+                  <CardTitle>Medications Ad
+(Content truncated due to size limit. Use line ranges to read in chunks)

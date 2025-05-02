@@ -98,7 +98,7 @@ const ResultManagement: React.FC = () => {
   const [parameters, setParameters] = useState<LabParameter[]>([]); // For parameter selection
 
   // Fetch results with optional filters
-  const fetchResults = async (): Promise<void> => {
+  const fetchResults = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       let url = '/api/laboratory/results';
@@ -144,10 +144,10 @@ const ResultManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderFilter, searchText]);
 
   // Fetch orders for filter dropdown
-  const fetchOrders = async (): Promise<void> => {
+  const fetchOrders = useCallback(async (): Promise<void> => {
     try {
       const response = await fetch('/api/laboratory/orders');
       if (!response.ok) {
@@ -166,7 +166,7 @@ const ResultManagement: React.FC = () => {
       console.error('Error fetching orders:', err);
       message.error(`Failed to load laboratory orders: ${messageText}`);
     }
-  };
+  }, []);
 
   // Fetch order items for a specific order
   const fetchOrderItems = async (orderId: string): Promise<void> => {
@@ -501,141 +501,5 @@ const ResultManagement: React.FC = () => {
             onClick={() => {
               setSearchText('');
               setOrderFilter(null);
-              // fetchResults(); // Called via useEffect
-            }}
-          >
-            Reset
-          </Button>
-        </div>
-
-        <Spin spinning={loading}>
-          <Table
-            columns={columns}
-            dataSource={results}
-            rowKey="id"
-            pagination={{ pageSize: 10 }}
-            locale={{ emptyText: 'No laboratory results found' }}
-          />
-        </Spin>
-      </Card>
-
-      {/* Update Result Modal */}
-      <Modal
-        title={`Update Result: ${selectedResult?.test_name} ${selectedResult?.parameter_name ? `- ${selectedResult.parameter_name}` : ''}`}
-        visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
-      >
-        {selectedResult && (
-          <Form<UpdateResultValues>
-            form={form}
-            layout="vertical"
-            onFinish={handleUpdateResult}
-            initialValues={{
-              result_value: selectedResult.result_value,
-              is_abnormal: selectedResult.is_abnormal,
-              notes: selectedResult.notes || ''
-            }}
-          >
-            <Form.Item
-              name="result_value"
-              label="Result Value"
-              rules={[{ required: true, message: 'Please enter result value' }]}
-            >
-              <Input />
-            </Form.Item>
-
-            {/* FIX: Use Checkbox for boolean value */}
-            <Form.Item
-              name="is_abnormal"
-              valuePropName="checked"
-              label="Abnormal"
-            >
-              <Checkbox />
-            </Form.Item>
-
-            <Form.Item
-              name="notes"
-              label="Notes"
-            >
-              {/* FIX: Correct typo Input.TextArea */}
-              <Input.TextArea rows={3} />
-            </Form.Item>
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Update Result
-              </Button>
-            </Form.Item>
-          </Form>
-        )}
-      </Modal>
-
-      {/* Enter Result Modal */}
-      <Modal
-        title={`Enter Result for: ${selectedOrderItem?.test_name}`}
-        visible={isEntryModalVisible}
-        onCancel={() => setIsEntryModalVisible(false)}
-        footer={null}
-      >
-        {selectedOrderItem && (
-          <Form<CreateResultValues>
-            form={entryForm}
-            layout="vertical"
-            onFinish={handleCreateResult}
-            initialValues={{ is_abnormal: false }} // Default abnormal to false
-          >
-            {/* Only show parameter selection if parameters exist for the test */}
-            {parameters.length > 0 && (
-              <Form.Item
-                name="parameter_id"
-                label="Parameter"
-                rules={[{ required: true, message: 'Please select a parameter' }]}
-              >
-                <Select placeholder="Select Parameter">
-                  {parameters.map(param => (
-                    <Option key={param.id} value={param.id}>{param.name} {param.unit ? `(${param.unit})` : ''}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            )}
-
-            <Form.Item
-              name="result_value"
-              label="Result Value"
-              rules={[{ required: true, message: 'Please enter result value' }]}
-            >
-              <Input />
-            </Form.Item>
-
-            {/* FIX: Use Checkbox for boolean value */}
-            <Form.Item
-              name="is_abnormal"
-              valuePropName="checked"
-              label="Abnormal"
-            >
-              <Checkbox />
-            </Form.Item>
-
-            <Form.Item
-              name="notes"
-              label="Notes"
-            >
-              {/* FIX: Correct typo Input.TextArea */}
-              <Input.TextArea rows={3} />
-            </Form.Item>
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Save Result
-              </Button>
-            </Form.Item>
-          </Form>
-        )}
-      </Modal>
-    </div>
-  );
-};
-
-export default ResultManagement;
-
+              // fetchResul
+(Content truncated due to size limit. Use line ranges to read in chunks)

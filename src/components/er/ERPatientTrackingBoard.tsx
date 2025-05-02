@@ -68,7 +68,7 @@ const calculateTimeDiff = (startTime: string): string => {
     const diffHours = Math.floor(diffMinutes / 60);
     const remainingMinutes = diffMinutes % 60;
     return `${diffHours}h ${remainingMinutes}m`;
-  } catch (e) {
+  } catch (_e) {
     return "Error";
   }
 };
@@ -298,31 +298,5 @@ export default function ERPatientTrackingBoard() {
                               <Biohazard className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                             </TooltipTrigger>
                             <TooltipContent>Isolation: {patient.indicators.isolation}</TooltipContent>
-                          </Tooltip>
-                        )}
-                        {patient.indicators.fall_risk && (
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <TriangleAlert className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
-                            </TooltipTrigger>
-                            <TooltipContent>Fall Risk</TooltipContent>
-                          </Tooltip>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-gray-500 dark:text-gray-400">
-                    No active patients found matching criteria.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    </TooltipProvider>
-  );
-}
+                         
+(Content truncated due to size limit. Use line ranges to read in chunks)

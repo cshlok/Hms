@@ -9,40 +9,58 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 
-// Props for the modal - include theatre data for editing
+// Define Theatre interface
+interface Theatre {
+  id?: string; // Optional for new theatres
+  name: string;
+  location: string | null;
+  specialty: string | null;
+  status: string;
+  equipment?: string | null; // Assuming simple text for now
+  updated_at?: string; // Optional
+}
+
+// Define the type for data passed to onSave
+interface TheatreSaveData {
+  name: string;
+  location: string | null;
+  specialty: string | null;
+  status: string;
+  equipment: string | null;
+}
+
+// Props for the modal - use defined types
 interface OTTheatreModalProps {
   trigger: React.ReactNode;
-  theatre?: any; // Replace any with actual Theatre type
-  onSave: (theatreData: any) => Promise<void>; // Function to handle saving
+  theatre?: Theatre; // Use Theatre type
+  onSave: (theatreData: TheatreSaveData) => Promise<void>; // Use TheatreSaveData type
 }
 
 export default function OTTheatreModal({ trigger, theatre, onSave }: OTTheatreModalProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     name: theatre?.name || "",
     location: theatre?.location || "",
     specialty: theatre?.specialty || "",
     status: theatre?.status || "available",
-    equipment: theatre?.equipment || "", // Assuming equipment is a simple text field for now
-  });
+    equipment: theatre?.equipment || "",
+  }));
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  // Reset form when theatre prop changes (for editing)
+  // Reset form when theatre prop changes or modal opens
   useEffect(() => {
-    if (theatre) {
+    if (isOpen) {
       setFormData({
-        name: theatre.name || "",
-        location: theatre.location || "",
-        specialty: theatre.specialty || "",
-        status: theatre.status || "available",
-        equipment: theatre.equipment || "",
+        name: theatre?.name || "",
+        location: theatre?.location || "",
+        specialty: theatre?.specialty || "",
+        status: theatre?.status || "available",
+        equipment: theatre?.equipment || "",
       });
     } else {
-      // Reset for new theatre
-      setFormData({
-        name: "", location: "", specialty: "", status: "available", equipment: "",
-      });
+      // Optionally clear form when closed
+      // setFormData({ name: "", ... });
     }
   }, [theatre, isOpen]);
 
@@ -59,13 +77,21 @@ export default function OTTheatreModal({ trigger, theatre, onSave }: OTTheatreMo
     e.preventDefault();
     setIsSaving(true);
     try {
+      const apiData: TheatreSaveData = {
+        name: formData.name,
+        location: formData.location || null,
+        specialty: formData.specialty || null,
+        status: formData.status,
+        equipment: formData.equipment || null,
+      };
+
       // Replace with actual API call
-      // const url = theatre ? `/api/ot/theatres/${theatre.id}` : `/api/ot/theatres`;
-      // const method = theatre ? "PUT" : "POST";
+      // const url = theatre?.id ? `/api/ot/theatres/${theatre.id}` : `/api/ot/theatres`;
+      // const method = theatre?.id ? "PUT" : "POST";
       // const response = await fetch(url, {
       //   method: method,
       //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(formData),
+      //   body: JSON.stringify(apiData),
       // });
       // if (!response.ok) {
       //   const errorData = await response.json();
@@ -74,20 +100,24 @@ export default function OTTheatreModal({ trigger, theatre, onSave }: OTTheatreMo
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log("Saving theatre:", formData);
+      console.log("Saving theatre:", apiData);
       
-      await onSave(formData); // Call parent callback to refresh list
+      await onSave(apiData); // Call parent callback to refresh list
       
       toast({
         title: "Success",
         description: `Theatre ${theatre ? "updated" : "created"} successfully.`,
       });
       setIsOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) { // Use unknown for error type
       console.error("Error saving theatre:", error);
+      let errorMessage = "Failed to save theatre.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: "Error",
-        description: error.message || "Failed to save theatre.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -113,11 +143,11 @@ export default function OTTheatreModal({ trigger, theatre, onSave }: OTTheatreMo
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="location" className="text-right">Location</Label>
-              <Input id="location" name="location" value={formData.location} onChange={handleChange} className="col-span-3" />
+              <Input id="location" name="location" value={formData.location || ''} onChange={handleChange} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="specialty" className="text-right">Specialty</Label>
-              <Input id="specialty" name="specialty" value={formData.specialty} onChange={handleChange} className="col-span-3" />
+              <Input id="specialty" name="specialty" value={formData.specialty || ''} onChange={handleChange} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="status" className="text-right">Status</Label>
@@ -135,7 +165,7 @@ export default function OTTheatreModal({ trigger, theatre, onSave }: OTTheatreMo
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
               <Label htmlFor="equipment" className="text-right pt-2">Equipment</Label>
-              <Textarea id="equipment" name="equipment" value={formData.equipment} onChange={handleChange} className="col-span-3" placeholder="List key equipment available..." />
+              <Textarea id="equipment" name="equipment" value={formData.equipment || ''} onChange={handleChange} className="col-span-3" placeholder="List key equipment available..." />
             </div>
           </div>
           <DialogFooter>
@@ -147,3 +177,4 @@ export default function OTTheatreModal({ trigger, theatre, onSave }: OTTheatreMo
     </Dialog>
   );
 }
+

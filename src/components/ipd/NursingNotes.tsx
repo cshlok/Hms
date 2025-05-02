@@ -10,12 +10,12 @@ import {
   Button,
   Textarea,
   Table,
-  TableHeader,
+  // TableHeader, // FIX: Removed unused import
   TableRow,
-  TableHead,
+  // TableHead, // FIX: Removed unused import
   TableBody,
   TableCell,
-  Badge,
+  // Badge, // FIX: Removed unused import
 } from "@/components/ui"; // Assuming Input, Label are also here
 import { Loader2 } from "lucide-react";
 
@@ -176,16 +176,18 @@ const NursingNotes: React.FC<NursingNotesProps> = ({ admissionId }) => {
 
     try {
       // Validate JSON fields before submitting
-      let parsedVitalSigns: VitalSigns | null = null;
-      let parsedIntakeOutput: IntakeOutput | null = null;
+      // let parsedVitalSigns: VitalSigns | null = null; // FIX: Removed unused variable assignment
+      // let parsedIntakeOutput: IntakeOutput | null = null; // FIX: Removed unused variable assignment
       try {
-        parsedVitalSigns = JSON.parse(formData.vital_signs);
-      } catch (err) {
+        // parsedVitalSigns = JSON.parse(formData.vital_signs);
+        JSON.parse(formData.vital_signs); // FIX: Just parse to validate, don't assign
+      } catch { // FIX: Removed unused 'err' variable
         throw new Error("Invalid JSON format in Vital Signs field. Please check the structure.");
       }
       try {
-        parsedIntakeOutput = JSON.parse(formData.intake_output);
-      } catch (err) {
+        // parsedIntakeOutput = JSON.parse(formData.intake_output);
+        JSON.parse(formData.intake_output); // FIX: Just parse to validate, don't assign
+      } catch { // FIX: Removed unused 'err' variable
         throw new Error("Invalid JSON format in Intake/Output field. Please check the structure.");
       }
 
@@ -266,7 +268,7 @@ const NursingNotes: React.FC<NursingNotesProps> = ({ admissionId }) => {
         hour12: true,
       };
       return new Intl.DateTimeFormat(undefined, options).format(new Date(dateString));
-    } catch (e) {
+    } catch {
       return "Invalid Date";
     }
   };
@@ -438,63 +440,5 @@ const NursingNotes: React.FC<NursingNotesProps> = ({ admissionId }) => {
                               {Object.entries(vitals)
                                 .filter(([, value]) => value) // Only show entries with a value
                                 .map(([key, value]) => (
-                                  <TableRow key={key} className="border-none">
-                                    <TableCell className="font-medium capitalize py-1 px-2">{key.replace(/_/g, " ")}</TableCell>
-                                    <TableCell className="py-1 px-2">{value}</TableCell>
-                                  </TableRow>
-                                ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      )}
-
-                      {io && Object.values(io).some(v => v) && (
-                        <div className="bg-gray-50 p-3 rounded border">
-                          <h4 className="font-medium mb-2 text-sm">Intake/Output</h4>
-                          <Table className="text-xs">
-                            <TableBody>
-                              {Object.entries(io)
-                                .filter(([, value]) => value) // Only show entries with a value
-                                .map(([key, value]) => (
-                                  <TableRow key={key} className="border-none">
-                                    <TableCell className="font-medium capitalize py-1 px-2">{key.replace(/_/g, " ")}</TableCell>
-                                    <TableCell className="py-1 px-2">{value}</TableCell>
-                                  </TableRow>
-                                ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      )}
-                    </div>
-
-                    {note.medication_given && (
-                      <div className="mb-3">
-                        <h4 className="font-medium text-sm mb-1">Medications Given</h4>
-                        <p className="text-sm whitespace-pre-wrap bg-gray-50 p-2 rounded border">{note.medication_given}</p>
-                      </div>
-                    )}
-
-                    {note.procedures && (
-                      <div className="mb-3">
-                        <h4 className="font-medium text-sm mb-1">Procedures</h4>
-                        <p className="text-sm whitespace-pre-wrap bg-gray-50 p-2 rounded border">{note.procedures}</p>
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 className="font-medium text-sm mb-1">Notes</h4>
-                      <p className="text-sm whitespace-pre-wrap bg-gray-50 p-2 rounded border">{note.notes}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-export default NursingNotes;
-
+                                  
+(Content truncated due to size limit. Use line ranges to read in chunks)

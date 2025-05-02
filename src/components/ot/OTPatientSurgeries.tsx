@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Clock, User, FileText, ArrowRight, Loader2 } from "lucide-react"; // Added Loader2
+import { Calendar, ArrowRight, Loader2 } from "lucide-react"; // Added Loader2
 import Link from "next/link";
 import { toast } from "@/components/ui/use-toast"; // Import toast
 
