@@ -39,9 +39,8 @@ export async function GET(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // FIX: Assert user type after null check
-    // FIX: Prefix unused variable
-    const _currentUser = session.user as SessionUser;
+    // FIX: Assert user type after null check - Variable removed as unused
+    // const _currentUser = session.user as SessionUser;
     // Role check example (adjust roles as needed)
     // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(currentUser.roleName)) {
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });

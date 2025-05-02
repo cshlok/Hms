@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 // Remove D1Database import if using getDB
 // import { D1Database } from "@cloudflare/workers-types";
 import { nanoid } from "nanoid";
-import { getSession, Session } from "@/lib/session"; // Import Session type
-import { checkUserRole } from "@/lib/auth";
+// import { getSession, Session } from "@/lib/session"; // Import Session type - Session unused
+// import { checkUserRole } from "@/lib/auth";
 import { getDB } from "@/lib/db"; // Import getDB
 
 // Define Database interface (can be moved to a shared types file)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/db";
-import { getSession, Session } from "@/lib/session"; // Import Session instead of SessionData
-import { checkUserRole } from "@/lib/auth";
+// import { getSession, Session } from "@/lib/session"; // Import Session instead of SessionData - Session unused
+// import { checkUserRole } from "@/lib/auth";
 
 // Define Database interface (can be moved to a shared types file)
 interface PreparedStatement {

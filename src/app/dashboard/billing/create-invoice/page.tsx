@@ -21,11 +21,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  // Select,
+// SelectContent,
+// SelectItem,
+// SelectTrigger,
+// SelectValue,
 } from "@/components/ui/select";
 import {
   Command,
@@ -40,7 +40,7 @@ import {
   PopoverContent, 
   PopoverTrigger 
 } from "@/components/ui/popover";
-import { Skeleton } from "@/components/ui/skeleton";
+// import { Skeleton } from "@/components/ui/skeleton";
 import { X, Plus, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils"; // Assuming you have this utility
 
@@ -249,7 +249,7 @@ export default function CreateInvoicePage() {
             // FIX: Cast error response JSON to defined type
             const errorData = await response.json() as ErrorResponse;
             errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${response.status}`;
-        } catch (jsonError) {
+        } catch (_jsonError) {
             // Handle cases where response is not JSON or empty
             errorMessage = `HTTP error! status: ${response.status}`;
         }

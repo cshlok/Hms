@@ -382,6 +382,6 @@ const PillIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const FlaskConicalIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-(Content truncated due to size limit. Use line ranges to read in chunks)
+// const FlaskConicalIcon = (props: React.SVGProps<SVGSVGElement>) => (
+//   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+// (Content truncated due to size limit. Use line ranges to read in chunks)

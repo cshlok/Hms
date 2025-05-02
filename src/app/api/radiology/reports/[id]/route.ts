@@ -200,9 +200,9 @@ export async function PUT(
     const values = [...Object.values(fieldsToUpdate), reportId];
 
     const updateStmt = `UPDATE RadiologyReports SET ${setClauses} WHERE id = ?`;
-    // FIX: Assume .run() returns a structure with success/meta, though not strictly typed here
-    // FIX: Prefixed unused variable with underscore
-    const _info = await db.prepare(updateStmt).bind(...values).run();
+    // FIX: Prefixed unused variable with underscore - Result of run() might not be needed
+    // const _info = await db.prepare(updateStmt).bind(...values).run();
+    await db.prepare(updateStmt).bind(...values).run(); // Execute without assigning
 
     // Check if update actually happened (info.meta.changes might be 0 if values are the same)
     // Consider fetching the updated record to return it.

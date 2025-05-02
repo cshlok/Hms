@@ -298,5 +298,5 @@ export default function ERPatientTrackingBoard() {
                               <Biohazard className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                             </TooltipTrigger>
                             <TooltipContent>Isolation: {patient.indicators.isolation}</TooltipContent>
-                         
+                          </Tooltip>
 (Content truncated due to size limit. Use line ranges to read in chunks)
