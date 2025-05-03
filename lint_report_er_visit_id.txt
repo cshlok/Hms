@@ -1,0 +1,13 @@
+
+> shlokam-hms@0.1.0 lint
+> next lint ./src/app/api/er/visits/[id]/route.ts
+
+/home/ubuntu/Hms/node_modules/next/dist/lib/find-pages-dir.js:42
+        throw new Error("> Couldn't find any `pages` or `app` directory. Please create one under the project root");
+              ^
+
+Error: > Couldn't find any `pages` or `app` directory. Please create one under the project root
+    at findPagesDir (/home/ubuntu/Hms/node_modules/next/dist/lib/find-pages-dir.js:42:15)
+    at Module.nextLint (/home/ubuntu/Hms/node_modules/next/dist/cli/next-lint.js:76:65)
+
+Node.js v22.13.0

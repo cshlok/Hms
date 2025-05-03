@@ -1,0 +1,1875 @@
+
+> shlokam-hms@0.1.0 lint
+> next lint
+
+
+./src/app/api/billing/invoices/route.ts
+22:73  Error: Parsing error: Unterminated string literal.
+
+./src/app/api/billing/service-items/route.ts
+62:4  Error: Parsing error: Unexpected keyword or identifier.
+
+./src/app/api/cloudflare-fix/route.ts
+39:4  Error: Parsing error: Unexpected keyword or identifier.
+
+./src/app/api/dashboard/ipd-stats/route.ts
+48:142  Error: Parsing error: ';' expected.
+
+./src/app/api/er/visits/route.ts
+38:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+39:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+40:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+41:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+58:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+59:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+124:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+127:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+128:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+129:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+130:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/insurance/claims/route.ts
+30:23  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+34:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+35:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+36:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+38:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+39:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+48:23  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+53:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+54:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+55:26  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+109:32  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+110:10  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+
+./src/app/api/insurance/policies/route.ts
+81:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+82:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+137:23  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+138:10  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+144:24  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+145:10  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+183:40  Error: Use `undefined` instead of `null`.  unicorn/no-null
+184:46  Error: Use `undefined` instead of `null`.  unicorn/no-null
+185:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+189:48  Error: Use `undefined` instead of `null`.  unicorn/no-null
+191:16  Error: Unexpected negated condition.  unicorn/no-negated-condition
+193:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+194:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/insurance/pre-authorizations/route.ts
+30:21  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+30:27  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+34:22  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+34:28  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+44:21  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+44:26  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+47:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+48:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+49:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+97:32  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+98:10  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+133:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+136:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+137:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+138:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+139:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+140:54  Error: Use `undefined` instead of `null`.  unicorn/no-null
+141:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+142:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/insurance/providers/route.ts
+78:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+79:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+80:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+81:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+82:16  Error: Unexpected negated condition.  unicorn/no-negated-condition
+
+./src/app/api/ipd/[admissionId]/progress-notes/route.ts
+35:11  Error: `allowedRoles` should be a `Set`, and use `allowedRoles.has()` to check existence or non-existence.  unicorn/prefer-set-has
+48:18  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+49:19  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+69:11  Error: The variable `queryParams` should be named `queryParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+130:11  Error: `allowedRoles` should be a `Set`, and use `allowedRoles.has()` to check existence or non-existence.  unicorn/prefer-set-has
+150:188  Error: Use `undefined` instead of `null`.  unicorn/no-null
+177:126  Error: Use `undefined` instead of `null`.  unicorn/no-null
+194:21  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+235:69  Error: Use `undefined` instead of `null`.  unicorn/no-null
+236:79  Error: Use `undefined` instead of `null`.  unicorn/no-null
+242:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/discharge/route.ts
+30:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+40:107  Error: Use `undefined` instead of `null`.  unicorn/no-null
+64:135  Error: Use `undefined` instead of `null`.  unicorn/no-null
+68:46  Error: Use `undefined` instead of `null`.  unicorn/no-null
+111:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+122:191  Error: Use `undefined` instead of `null`.  unicorn/no-null
+178:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+179:40  Error: Use `undefined` instead of `null`.  unicorn/no-null
+188:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/medication-administration/route.ts
+29:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+39:107  Error: Use `undefined` instead of `null`.  unicorn/no-null
+117:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+122:141  Error: Use `undefined` instead of `null`.  unicorn/no-null
+135:111  Error: Use `undefined` instead of `null`.  unicorn/no-null
+154:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/nursing-notes/route.ts
+30:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+40:107  Error: Use `undefined` instead of `null`.  unicorn/no-null
+109:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+114:141  Error: Use `undefined` instead of `null`.  unicorn/no-null
+134:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+135:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+136:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+137:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/progress-notes/route.ts
+29:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+39:152  Error: Use `undefined` instead of `null`.  unicorn/no-null
+127:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+132:168  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/vital-signs/route.ts
+32:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+42:107  Error: Use `undefined` instead of `null`.  unicorn/no-null
+113:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+118:141  Error: Use `undefined` instead of `null`.  unicorn/no-null
+139:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+140:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+141:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+142:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+143:33  Error: Use `undefined` instead of `null`.  unicorn/no-null
+144:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+145:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/route.ts
+28:18  Error: Use `for…of` instead of `.forEach(…)`.  unicorn/no-array-for-each
+52:18  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+53:11  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+125:27  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+127:9  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+
+./src/app/api/ipd/beds/route.ts
+31:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+34:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+97:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+102:115  Error: Use `undefined` instead of `null`.  unicorn/no-null
+120:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/route.ts
+29:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+38:19  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+39:20  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+43:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+135:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+190:50  Error: Use `undefined` instead of `null`.  unicorn/no-null
+192:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+196:37  Error: Use `undefined` instead of `null`.  unicorn/no-null
+197:39  Error: Use `undefined` instead of `null`.  unicorn/no-null
+198:52  Error: Use `undefined` instead of `null`.  unicorn/no-null
+199:52  Error: Use `undefined` instead of `null`.  unicorn/no-null
+208:58  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+
+./src/app/api/laboratory/categories/route.ts
+21:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+61:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/laboratory/orders/route.ts
+74:9  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+76:9  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+88:9  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+89:44  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+90:69  Error: Prefer `String#replaceAll()` over `String#replace()`.  unicorn/prefer-string-replace-all
+109:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+110:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+111:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+112:25  Error: Use `undefined` instead of `null`.  unicorn/no-null
+125:9  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+127:74  Error: Use `undefined` instead of `null`.  unicorn/no-null
+144:9  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+153:10  Error: Use `undefined` instead of `null`.  unicorn/no-null
+169:20  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+170:13  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+239:16  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+240:9  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+
+./src/app/api/laboratory/results/route.ts
+66:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+85:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+143:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+148:106  Error: Use `undefined` instead of `null`.  unicorn/no-null
+156:13  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+189:125  Error: Use `undefined` instead of `null`.  unicorn/no-null
+204:112  Error: Use `undefined` instead of `null`.  unicorn/no-null
+223:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+229:60  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+232:13  Error: The variable `allItemParamsCompleted` should be named `allItemParametersCompleted`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/laboratory/samples/route.ts
+53:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+68:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+115:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+120:106  Error: Use `undefined` instead of `null`.  unicorn/no-null
+128:13  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+166:125  Error: Use `undefined` instead of `null`.  unicorn/no-null
+198:109  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/laboratory/tests/route.ts
+36:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+101:11  Error: The variable `insertParams` should be named `insertParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+108:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+110:7  Error: Unexpected negated condition.  unicorn/no-negated-condition
+116:51  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+120:18  Error: Unexpected negated condition.  unicorn/no-negated-condition
+123:61  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/opd/appointments/route.ts
+187:6  Error: Prefer `String#replaceAll()` over `String#replace()`.  unicorn/prefer-string-replace-all
+257:75  Error: Use `undefined` instead of `null`.  unicorn/no-null
+301:9  Error: Prefer `RegExp#test(…)` over `String#match(…)`.  unicorn/prefer-regexp-test
+302:18  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+380:16  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+
+./src/app/api/ot/bookings/[id]/checklist-responses/route.ts
+36:11  Error: The variable `queryParams` should be named `queryParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+54:18  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+54:18  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+104:49  Error: Use `undefined` instead of `null`.  unicorn/no-null
+120:62  Error: Use `undefined` instead of `null`.  unicorn/no-null
+135:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+151:18  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+151:18  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/ot/bookings/[id]/record/route.ts
+56:14  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+56:14  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+170:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+171:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+172:38  Error: Use `undefined` instead of `null`.  unicorn/no-null
+173:36  Error: Use `undefined` instead of `null`.  unicorn/no-null
+174:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+175:33  Error: Use `undefined` instead of `null`.  unicorn/no-null
+176:41  Error: Use `undefined` instead of `null`.  unicorn/no-null
+177:61  Error: Use `undefined` instead of `null`.  unicorn/no-null
+178:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+179:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+180:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+181:13  Error: Unexpected negated condition.  unicorn/no-negated-condition
+181:81  Error: Use `undefined` instead of `null`.  unicorn/no-null
+182:13  Error: Unexpected negated condition.  unicorn/no-negated-condition
+182:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+183:31  Error: Use `undefined` instead of `null`.  unicorn/no-null
+201:18  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+201:18  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/ot/bookings/[id]/staff/route.ts
+110:5  Error: This `if` statement can be replaced by a ternary expression.  unicorn/prefer-ternary
+
+./src/app/api/ot/bookings/route.ts
+48:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+133:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+139:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+140:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+163:5  Error: This `if` statement can be replaced by a ternary expression.  unicorn/prefer-ternary
+
+./src/app/api/ot/checklist-templates/route.ts
+30:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/ot/surgery-types/[id]/route.ts
+47:14  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+47:14  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+122:14  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+122:14  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/ot/surgery-types/route.ts
+32:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+71:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+72:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+73:52  Error: Use `undefined` instead of `null`.  unicorn/no-null
+74:59  Error: Use `undefined` instead of `null`.  unicorn/no-null
+75:67  Error: Use `undefined` instead of `null`.  unicorn/no-null
+93:18  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+93:18  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/ot/theatres/route.ts
+23:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+59:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+59:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+59:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+64:5  Error: This `if` statement can be replaced by a ternary expression.  unicorn/prefer-ternary
+
+./src/app/api/patients/route.ts
+51:19  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+52:20  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+
+./src/app/api/pharmacy/inventory/route.ts
+42:22  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+96:22  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+114:23  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+233:22  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+270:70  Error: Use `undefined` instead of `null`.  unicorn/no-null
+363:9  Error: Prefer `RegExp#test(…)` over `String#match(…)`.  unicorn/prefer-regexp-test
+364:18  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+425:16  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+
+./src/app/api/pharmacy/medications/route.ts
+69:129  Error: Use `undefined` instead of `null`.  unicorn/no-null
+70:90  Error: Use `undefined` instead of `null`.  unicorn/no-null
+73:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+84:11  Error: The variable `queryParams` should be named `queryParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+144:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+163:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+166:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+170:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+171:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+172:31  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/pharmacy/prescriptions/route.ts
+99:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+127:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+141:7  Error: Unexpected `if` as the only statement in a `if` block without `else`.  unicorn/no-lonely-if
+148:7  Error: Unexpected `if` as the only statement in a `if` block without `else`.  unicorn/no-lonely-if
+156:7  Error: Unexpected `if` as the only statement in a `if` block without `else`.  unicorn/no-lonely-if
+163:7  Error: Unexpected `if` as the only statement in a `if` block without `else`.  unicorn/no-lonely-if
+231:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+258:51  Error: Prefer `String#slice()` over `String#substring()`.  unicorn/prefer-string-slice
+260:11  Error: The variable `dateStr` should be named `dateString`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+260:54  Error: Prefer `String#replaceAll()` over `String#replace()`.  unicorn/prefer-string-replace-all
+261:11  Error: The variable `randomNum` should be named `randomNumber`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+280:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+282:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+286:51  Error: Prefer `String#slice()` over `String#substring()`.  unicorn/prefer-string-slice
+310:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/portal/patient/auth/route.ts
+60:10  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/radiology/modalities/route.ts
+27:12  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+27:12  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+63:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+64:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+71:12  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+71:12  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/radiology/orders/[id]/route.ts
+35:12  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+35:12  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+94:12  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+94:12  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+139:12  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+139:12  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/radiology/orders/route.ts
+66:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+67:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+68:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+69:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+90:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+91:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+175:68  Error: Prefer `String#replaceAll()` over `String#replace()`.  unicorn/prefer-string-replace-all
+183:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+184:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+185:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+186:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+187:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+378:27  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+380:20  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+
+./src/app/api/radiology/procedure-types/route.ts
+28:12  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+28:12  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+64:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+65:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+72:12  Error: The catch parameter `e` should be named `error`.  unicorn/catch-error-name
+72:12  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/radiology/reports/[id]/route.ts
+77:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+133:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+271:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/radiology/reports/route.ts
+55:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+73:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+126:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+158:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+160:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/radiology/studies/[id]/route.ts
+3:22  Warning: 'Session' is defined but never used.  @typescript-eslint/no-unused-vars
+9:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+82:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+129:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+137:46  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+197:14  Error: The variable `dbError` should be named `databaseError`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+230:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/api/radiology/studies/route.ts
+5:22  Warning: 'Session' is defined but never used.  @typescript-eslint/no-unused-vars
+11:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+71:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+83:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+128:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+137:9  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+161:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+163:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+165:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+166:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+167:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/dashboard/billing/create-invoice/page.tsx
+90:74  Error: Use `undefined` instead of `null`.  unicorn/no-null
+96:86  Error: Use `undefined` instead of `null`.  unicorn/no-null
+104:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+109:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+117:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+117:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+129:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+137:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+137:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+177:27  Error: Prefer `!== -1` over `> -1` to check existence.  unicorn/consistent-existence-index-check
+187:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+223:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+264:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+264:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+307:92  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+307:140  Error: Use `undefined` instead of `null`.  unicorn/no-null
+458:38  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+458:72  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+
+./src/app/dashboard/billing/invoices/page.tsx
+46:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+51:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+53:13  Error: The variable `queryParams` should be named `queryParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+66:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+66:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+83:71  Error: Move arrow function 'getStatusBadgeVariant' to the outer scope.  unicorn/consistent-function-scoping
+85:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+87:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+90:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+92:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+94:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+118:24  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/dashboard/billing/page.tsx
+53:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+59:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+71:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+71:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+86:71  Error: Move arrow function 'getStatusBadgeVariant' to the outer scope.  unicorn/consistent-function-scoping
+88:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+90:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+92:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+94:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+96:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+98:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+
+./src/app/dashboard/billing/service-items/page.tsx
+63:11  Error: The variable `ServiceItemFormProps` should be named `ServiceItemFormProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+107:25  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+111:20  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+113:20  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+113:49  Error: Prefer `Number.parseFloat` over `parseFloat`.  unicorn/prefer-number-properties
+115:20  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+120:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+123:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+212:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+215:70  Error: Use `undefined` instead of `null`.  unicorn/no-null
+219:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+229:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+229:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+245:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+270:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+273:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+273:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+283:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+301:74  Error: Move arrow function 'getStatusBadgeVariant' to the outer scope.  unicorn/consistent-function-scoping
+324:65  Error: Use `undefined` instead of `null`.  unicorn/no-null
+337:24  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/dashboard/layout.tsx
+41:59  Error: Use `undefined` instead of `null`.  unicorn/no-null
+42:59  Error: Use `undefined` instead of `null`.  unicorn/no-null
+55:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+56:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+100:20  Error: Prefer `globalThis` over `window`.  unicorn/prefer-global-this
+156:20  Error: Use `new Array()` instead of `Array()`.  unicorn/new-for-builtins
+156:39  Error: The variable `i` should be named `index`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+186:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+308:28  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+316:23  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+327:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+337:19  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+344:23  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+353:18  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+367:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+376:25  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+383:19  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+390:27  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+400:23  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+408:23  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+415:21  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+423:19  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+430:23  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/dashboard/ot/page.tsx
+26:19  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/dashboard/page.tsx
+50:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+56:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+69:101  Error: Please rename the variable `res`. Suggested names are: `resource`, `response`, `result`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+89:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+89:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+112:13  Error: The variable `StatCardProps` should be named `StatCardProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+297:11  Error: The variable `ActivityItemProps` should be named `ActivityItemProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+322:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+330:23  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+338:18  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+343:24  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+348:25  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+353:19  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/ipd/page.tsx
+28:11  Error: The variable `IPDPatientDetailsProps` should be named `IPDPatientDetailsProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+47:9  Error: The variable `admissionIdStr` should be named `admissionIdString`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+91:88  Error: Use `undefined` instead of `null`.  unicorn/no-null
+102:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/login/page.tsx
+50:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+56:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+69:101  Error: Please rename the variable `res`. Suggested names are: `resource`, `response`, `result`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+89:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+89:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+112:13  Error: The variable `StatCardProps` should be named `StatCardProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+296:11  Error: The variable `ActivityItemProps` should be named `ActivityItemProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+321:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+329:23  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+337:18  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+342:24  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+347:25  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+352:19  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/opd/page.tsx
+43:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+49:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+51:16  Error: Please rename the variable `createRes`. Suggested names are: `createResource`, `createResponse`, `createResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+51:27  Error: Please rename the variable `statsRes`. Suggested names are: `statsResource`, `statsResponse`, `statsResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+58:17  Error: Please rename the variable `failedRes`. Suggested names are: `failedResource`, `failedResponse`, `failedResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+58:29  Error: Unexpected negated condition.  unicorn/no-negated-condition
+139:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+159:15  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/pharmacy/inventory/add/page.tsx
+86:25  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+88:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+92:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+110:20  Error: Use `for…of` instead of `.forEach(…)`.  unicorn/no-array-for-each
+127:27  Error: Prefer `Number.parseFloat` over `parseFloat`.  unicorn/prefer-number-properties
+128:37  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+132:26  Error: Prefer `Number.parseFloat` over `parseFloat`.  unicorn/prefer-number-properties
+133:36  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+137:29  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+138:39  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+146:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+160:25  Error: Prefer `Number.parseFloat` over `parseFloat`.  unicorn/prefer-number-properties
+161:24  Error: Prefer `Number.parseFloat` over `parseFloat`.  unicorn/prefer-number-properties
+162:27  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+
+./src/app/pharmacy/medications/add/page.tsx
+90:25  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+94:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+101:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+113:20  Error: Use `for…of` instead of `.forEach(…)`.  unicorn/no-array-for-each
+123:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/pharmacy/medications/page.tsx
+73:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+79:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+83:15  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+92:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+92:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+226:37  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+341:27  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/pharmacy/page.tsx
+10:11  Error: The variable `StatCardProps` should be named `StatCardProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+81:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+114:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+120:43  Error: Move arrow function 'getThirtyDaysFromNow' to the outer scope.  unicorn/consistent-function-scoping
+248:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+250:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+252:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+254:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+
+./src/app/route.ts
+56:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+74:11  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+127:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+159:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+161:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/billing/BillingPharmacyIntegration.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `billing-pharmacy-integration.tsx`.  unicorn/filename-case
+27:11  Error: The variable `BillingPharmacyIntegrationProps` should be named `BillingPharmacyIntegrationProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+70:31  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+86:29  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+113:24  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+115:24  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+115:44  Error: The variable `i` should be named `index`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+163:28  Error: The variable `prevRecords` should be named `previousRecords`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+171:24  Error: The variable `prevItems` should be named `previousItems`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+189:34  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+254:69  Error: The variable `i` should be named `index`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+258:55  Error: The variable `i` should be named `index`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+259:38  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/er/ERCriticalAlerts.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `er-critical-alerts.tsx`.  unicorn/filename-case
+50:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+51:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+52:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+77:19  Error: The variable `prevAlerts` should be named `previousAlerts`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+97:19  Error: The variable `prevAlerts` should be named `previousAlerts`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/er/ERDashboardStats.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `er-dashboard-stats.tsx`.  unicorn/filename-case
+
+./src/components/er/ERLabOrderModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `er-lab-order-modal.tsx`.  unicorn/filename-case
+47:11  Error: The variable `ERLabOrderModalProps` should be named `ERLabOrderModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+133:49  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/er/ERPatientAdmitModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `er-patient-admit-modal.tsx`.  unicorn/filename-case
+47:11  Error: The variable `ERPatientAdmitModalProps` should be named `ERPatientAdmitModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+120:49  Error: Use `undefined` instead of `null`.  unicorn/no-null
+122:51  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/er/ERPatientTrackingBoard.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `er-patient-tracking-board.tsx`.  unicorn/filename-case
+60:9  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+71:12  Error: Remove unused catch binding `_e`.  unicorn/prefer-optional-catch-binding
+71:12  Error: The catch parameter `_e` should be named `error`.  unicorn/catch-error-name
+71:12  Warning: '_e' is defined but never used.  @typescript-eslint/no-unused-vars
+71:12  Error: Please rename the variable `_e`. Suggested names are: `_error`, `_event`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+79:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+80:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+81:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+82:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+83:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+84:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+91:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+100:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+108:264  Error: Use `undefined` instead of `null`.  unicorn/no-null
+109:265  Error: Use `undefined` instead of `null`.  unicorn/no-null
+109:287  Error: Use `undefined` instead of `null`.  unicorn/no-null
+120:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+120:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+139:55  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+144:32  Error: Prefer the spread operator over `Array.from(…)`.  unicorn/prefer-spread
+153:24  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/er/ERRadiologyOrderModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `er-radiology-order-modal.tsx`.  unicorn/filename-case
+41:11  Error: The variable `ERRadiologyOrderModalProps` should be named `ERRadiologyOrderModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+107:49  Error: Use `undefined` instead of `null`.  unicorn/no-null
+113:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/er/ERRegistrationModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `er-registration-modal.tsx`.  unicorn/filename-case
+72:11  Error: The variable `ERRegistrationModalProps` should be named `ERRegistrationModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+86:76  Error: Use `undefined` instead of `null`.  unicorn/no-null
+105:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+132:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+207:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+212:18  Error: Remove unused catch binding `_jsonError`.  unicorn/prefer-optional-catch-binding
+212:18  Warning: '_jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+229:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/er/ERTriageForm.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `er-triage-form.tsx`.  unicorn/filename-case
+89:10  Error: `Array#reduce()` is not allowed. Prefer other types of loop for readability.  unicorn/no-array-reduce
+89:10  Error: Prefer `Object.fromEntries()` over `Array#reduce()`.  unicorn/prefer-object-from-entries
+89:18  Error: The variable `obj` should be named `object`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+105:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ipd/AdmissionForm.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `admission-form.tsx`.  unicorn/filename-case
+97:25  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+99:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+106:20  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+108:20  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+113:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+138:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+165:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+165:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+323:78  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/BedManagementDashboard.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `bed-management-dashboard.tsx`.  unicorn/filename-case
+48:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+66:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+68:15  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+77:15  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+91:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+91:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+108:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+111:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+113:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+115:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+117:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+124:5  Error: Use `switch` instead of multiple `else-if`.  unicorn/prefer-switch
+
+./src/components/ipd/DischargeSummary.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `discharge-summary.tsx`.  unicorn/filename-case
+50:11  Error: The variable `DischargeSummaryProps` should be named `DischargeSummaryProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+56:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+57:89  Error: Use `undefined` instead of `null`.  unicorn/no-null
+67:65  Error: Use `undefined` instead of `null`.  unicorn/no-null
+69:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+81:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+97:49  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+117:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+125:25  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+128:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+128:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+140:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+142:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+145:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+152:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+161:13  Warning: '_submissionData' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+201:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+201:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+220:14  Error: Remove unused catch binding `e`.  unicorn/prefer-optional-catch-binding
+220:14  Error: The catch parameter `e` should be named `error_`.  unicorn/catch-error-name
+220:14  Warning: 'e' is defined but never used.  @typescript-eslint/no-unused-vars
+220:14  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+225:32  Error: Move arrow function 'handlePrint' to the outer scope.  unicorn/consistent-function-scoping
+227:5  Error: Prefer `globalThis` over `window`.  unicorn/prefer-global-this
+
+./src/components/ipd/IPDPatientList.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ipd-patient-list.tsx`.  unicorn/filename-case
+36:11  Error: The variable `IPDPatientListProps` should be named `IPDPatientListProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+47:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+53:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+67:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+67:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+82:28  Error: The variable `admissionIdStr` should be named `admissionIdString`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+82:52  Error: The variable `patientIdStr` should be named `patientIdString`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+84:25  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+85:23  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+86:10  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+86:33  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+
+./src/components/ipd/IPDPharmacyIntegration.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ipd-pharmacy-integration.tsx`.  unicorn/filename-case
+46:11  Error: The variable `IPDPharmacyIntegrationProps` should be named `IPDPharmacyIntegrationProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+57:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+68:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+110:167  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+117:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+117:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+167:33  Error: The variable `prevRecords` should be named `previousRecords`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+170:30  Error: The variable `prevSchedule` should be named `previousSchedule`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+177:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+177:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+197:51  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+274:98  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/MedicationAdministration.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `medication-administration.tsx`.  unicorn/filename-case
+57:11  Error: The variable `MedicationAdministrationProps` should be named `MedicationAdministrationProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+64:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+74:65  Error: Use `undefined` instead of `null`.  unicorn/no-null
+76:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+89:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+105:54  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+115:54  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+125:49  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+133:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+133:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+167:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+167:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+178:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+180:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+186:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+193:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+237:29  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+253:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+253:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+263:51  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+407:83  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/NursingNotes.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `nursing-notes.tsx`.  unicorn/filename-case
+63:11  Error: The variable `NursingNotesProps` should be named `NursingNotesProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+86:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+88:52  Error: Use `undefined` instead of `null`.  unicorn/no-null
+89:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+95:65  Error: Use `undefined` instead of `null`.  unicorn/no-null
+97:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+110:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+126:46  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+138:49  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+146:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+146:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+158:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+160:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+163:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+170:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+225:24  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+229:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+230:60  Error: Use `undefined` instead of `null`.  unicorn/no-null
+242:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+242:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+252:51  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+270:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+273:14  Error: The catch parameter `e` should be named `error_`.  unicorn/catch-error-name
+273:14  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+275:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+388:83  Error: Use `undefined` instead of `null`.  unicorn/no-null
+427:63  Error: arrow function is equivalent to `Boolean`. Use `Boolean` directly.  unicorn/prefer-native-coercion-functions
+436:98  Error: Prefer `String#replaceAll()` over `String#replace()`.  unicorn/prefer-string-replace-all
+444:55  Error: arrow function is equivalent to `Boolean`. Use `Boolean` directly.  unicorn/prefer-native-coercion-functions
+453:98  Error: Prefer `String#replaceAll()` over `String#replace()`.  unicorn/prefer-string-replace-all
+
+./src/components/ipd/PatientProgressNotes.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `patient-progress-notes.tsx`.  unicorn/filename-case
+60:11  Error: The variable `PatientProgressNotesProps` should be named `PatientProgressNotesProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+65:11  Error: The variable `NoteDisplayProps` should be named `NoteDisplayProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+117:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+125:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+138:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+158:49  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+165:87  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+173:87  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+178:124  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+185:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+185:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+197:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+199:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+202:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+251:25  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+263:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+263:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+273:67  Error: Move arrow function 'formatDateTime' to the outer scope.  unicorn/consistent-function-scoping
+369:83  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/VitalSigns.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `vital-signs.tsx`.  unicorn/filename-case
+74:11  Error: The variable `VitalSignsProps` should be named `VitalSignsProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+81:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+92:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+105:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+125:49  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+132:89  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+137:89  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+146:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+146:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+158:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+160:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+163:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+176:45  Error: Prefer `Number.parseFloat` over `parseFloat`.  unicorn/prefer-number-properties
+176:80  Error: Use `undefined` instead of `null`.  unicorn/no-null
+177:33  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+177:64  Error: Use `undefined` instead of `null`.  unicorn/no-null
+178:55  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+178:97  Error: Use `undefined` instead of `null`.  unicorn/no-null
+179:52  Error: Use `undefined` instead of `null`.  unicorn/no-null
+180:57  Error: Prefer `Number.parseFloat` over `parseFloat`.  unicorn/prefer-number-properties
+180:98  Error: Use `undefined` instead of `null`.  unicorn/no-null
+181:43  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+181:79  Error: Use `undefined` instead of `null`.  unicorn/no-null
+182:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+187:50  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+220:22  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+235:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+235:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+245:67  Error: Move arrow function 'formatDateTime' to the outer scope.  unicorn/consistent-function-scoping
+384:83  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/laboratory/OrderManagement.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `order-management.tsx`.  unicorn/filename-case
+80:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+81:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+82:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+85:66  Error: Use `undefined` instead of `null`.  unicorn/no-null
+87:10  Warning: '_tests' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+90:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+98:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+109:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+110:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+110:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+126:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+137:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+138:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+138:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+151:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+154:13  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+177:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+188:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+188:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+206:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+217:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+217:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+218:13  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+245:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+247:18  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+254:15  Error: Use `undefined` instead of `null`.  unicorn/no-null
+255:15  Error: Use `undefined` instead of `null`.  unicorn/no-null
+256:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+456:17  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/laboratory/ResultManagement.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `result-management.tsx`.  unicorn/filename-case
+3:55  Warning: 'CloseOutlined' is defined but never used.  @typescript-eslint/no-unused-vars
+4:8  Warning: 'dayjs' is defined but never used.  @typescript-eslint/no-unused-vars
+5:15  Warning: 'Dayjs' is defined but never used.  @typescript-eslint/no-unused-vars
+8:9  Warning: 'TabPane' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+89:65  Error: Use `undefined` instead of `null`.  unicorn/no-null
+92:74  Error: Use `undefined` instead of `null`.  unicorn/no-null
+93:83  Error: Use `undefined` instead of `null`.  unicorn/no-null
+97:10  Warning: 'orderItems' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+105:13  Error: The variable `params` should be named `parameters_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+117:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+121:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+121:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+140:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+140:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+154:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+158:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+158:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+164:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+164:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+172:9  Warning: 'fetchOrderItems' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+176:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+180:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+180:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+186:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+186:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+198:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+202:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+202:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+208:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+208:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+243:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+247:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+247:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+255:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+255:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+279:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+283:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+283:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+291:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+291:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+314:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+318:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+318:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+324:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+324:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+332:9  Warning: 'showResultEntryModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+476:24  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+503:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/laboratory/SampleManagement.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `sample-management.tsx`.  unicorn/filename-case
+12:3  Warning: 'Upload' is defined but never used.  @typescript-eslint/no-unused-vars
+16:10  Warning: 'PlusOutlined' is defined but never used.  @typescript-eslint/no-unused-vars
+19:15  Warning: 'FormInstance' is defined but never used.  @typescript-eslint/no-unused-vars
+56:67  Error: Use `undefined` instead of `null`.  unicorn/no-null
+59:71  Error: Use `undefined` instead of `null`.  unicorn/no-null
+85:197  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+85:317  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+86:197  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+86:320  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+86:412  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+87:196  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+87:388  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+124:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+129:37  Warning: 'values' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+252:64  Error: Unexpected negated condition.  unicorn/no-negated-condition
+259:102  Error: Unexpected negated condition.  unicorn/no-negated-condition
+280:9  Error: Use `switch` instead of multiple `else-if`.  unicorn/prefer-switch
+304:19  Error: Do not call `Array#push()` multiple times.  unicorn/no-array-push-push
+344:24  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+384:17  Error: Use `undefined` instead of `null`.  unicorn/no-null
+417:17  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/laboratory/TestCatalogManagement.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `test-catalog-management.tsx`.  unicorn/filename-case
+57:11  Error: The variable `TableParams` should be named `TableParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+68:76  Error: Do not use useless `undefined`.  unicorn/no-useless-undefined
+71:10  Error: The variable `tableParams` should be named `tableParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+71:23  Error: The variable `setTableParams` should be named `setTableParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+88:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+92:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+92:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+97:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+97:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+105:29  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+109:13  Error: The variable `queryParams` should be named `queryParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+133:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+137:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+137:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+156:22  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+170:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+170:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+188:11  Error: The variable `newTableParams` should be named `newTableParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+201:11  Error: The variable `newParams` should be named `newParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+216:13  Error: The variable `priceNum` should be named `priceNumber`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+216:24  Error: Prefer `Number.parseFloat` over `parseFloat`.  unicorn/prefer-number-properties
+217:13  Error: The variable `processingTimeNum` should be named `processingTimeNumber`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+217:58  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+217:97  Error: Use `undefined` instead of `null`.  unicorn/no-null
+219:11  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+220:19  Error: `new Error()` is too unspecific for a type check. Use `new TypeError()` instead.  unicorn/prefer-type-error
+222:68  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+242:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+246:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+246:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+254:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+254:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+307:52  Error: Unexpected negated condition.  unicorn/no-negated-condition
+307:60  Error: Use `undefined` instead of `null`.  unicorn/no-null
+316:46  Error: Unexpected negated condition.  unicorn/no-negated-condition
+316:55  Error: Use `undefined` instead of `null`.  unicorn/no-null
+334:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+361:49  Error: Unexpected negated condition.  unicorn/no-negated-condition
+361:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+362:39  Error: Unexpected negated condition.  unicorn/no-negated-condition
+362:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+389:24  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+400:22  Error: Use `.length === 0` when checking length is zero.  unicorn/explicit-length-check
+418:21  Error: The variable `resetParams` should be named `resetParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+455:17  Error: Use `undefined` instead of `null`.  unicorn/no-null
+484:60  Error: Use `.length === 0` when checking length is zero.  unicorn/explicit-length-check
+
+./src/components/opd/OPDAppointmentList.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `opd-appointment-list.tsx`.  unicorn/filename-case
+50:11  Error: The variable `OPDAppointmentListProps` should be named `OPDAppointmentListProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+58:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+68:16  Error: Please rename the variable `checkInRes`. Suggested names are: `checkInResource`, `checkInResponse`, `checkInResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+68:28  Error: Please rename the variable `cancelRes`. Suggested names are: `cancelResource`, `cancelResponse`, `cancelResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+101:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+108:15  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+112:20  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+112:20  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+127:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+127:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+146:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+150:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+150:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+161:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+161:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+176:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+180:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+180:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+191:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+191:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+205:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+207:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+209:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+211:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+214:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+216:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+
+./src/components/opd/OPDConsultationForm.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `opd-consultation-form.tsx`.  unicorn/filename-case
+88:74  Error: Use `undefined` instead of `null`.  unicorn/no-null
+124:16  Error: Please rename the variable `prescribeRes`. Suggested names are: `prescribeResource`, `prescribeResponse`, `prescribeResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+124:30  Error: Please rename the variable `orderRes`. Suggested names are: `orderResource`, `orderResponse`, `orderResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+159:15  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+163:20  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+163:20  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+175:16  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+175:16  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+176:15  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+188:35  Error: Use `undefined` instead of `null`.  unicorn/no-null
+203:57  Error: Move async arrow function 'fetchPatientHistory' to the outer scope.  unicorn/consistent-function-scoping
+208:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+212:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+212:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+220:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+220:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+221:13  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+239:64  Error: The variable `i` should be named `index_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+256:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+260:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+260:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+275:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+275:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+276:13  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/opd/OPDPatientQueue.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `opd-patient-queue.tsx`.  unicorn/filename-case
+5:8  Warning: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+41:11  Error: The variable `OPDPatientQueueProps` should be named `OPDPatientQueueProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+48:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+58:16  Error: Please rename the variable `callRes`. Suggested names are: `callResource`, `callResponse`, `callResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+58:25  Error: Please rename the variable `completeRes`. Suggested names are: `completeResource`, `completeResponse`, `completeResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+92:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+99:15  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+103:20  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+103:20  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+115:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+115:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+128:55  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+140:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+144:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+144:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+155:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+155:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+170:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+174:18  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+174:18  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+185:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+185:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+195:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+197:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+199:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+202:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+204:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+209:47  Error: Move arrow function 'formatWaitingTime' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/components/opd/OPDPharmacyIntegration.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `opd-pharmacy-integration.tsx`.  unicorn/filename-case
+65:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+67:70  Error: Use `undefined` instead of `null`.  unicorn/no-null
+92:21  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+200:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+205:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+218:26  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+219:13  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+273:19  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+361:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+369:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+386:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+395:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+403:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+436:26  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+436:78  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+473:45  Error: The variable `idx` should be named `index`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/opd/OPDStatistics.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `opd-statistics.tsx`.  unicorn/filename-case
+6:10  Warning: 'Card' is defined but never used.  @typescript-eslint/no-unused-vars
+6:16  Warning: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+6:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+6:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+8:11  Error: The variable `OPDStatisticsProps` should be named `OPDStatisticsProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+34:71  Error: Use `undefined` instead of `null`.  unicorn/no-null
+36:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+41:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+48:15  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+52:20  Error: Remove unused catch binding `jsonError`.  unicorn/prefer-optional-catch-binding
+52:20  Warning: 'jsonError' is defined but never used.  @typescript-eslint/no-unused-vars
+63:25  Error: Use `undefined` instead of `null`.  unicorn/no-null
+65:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+65:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/OTBillingItems.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-billing-items.tsx`.  unicorn/filename-case
+28:6  Warning: 'BillingItemsApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+33:11  Warning: 'ApiErrorResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+37:11  Error: The variable `OTBillingItemsProps` should be named `OTBillingItemsProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+49:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+55:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+77:21  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+86:21  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+113:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+113:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+126:22  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+127:7  Error: This `if` statement can be replaced by a ternary expression.  unicorn/prefer-ternary
+145:43  Error: Move arrow function 'formatCurrency' to the outer scope.  unicorn/consistent-function-scoping
+155:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+156:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+157:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+158:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+221:51  Error: Unexpected negated condition.  unicorn/no-negated-condition
+
+./src/components/ot/OTBookingList.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-booking-list.tsx`.  unicorn/filename-case
+30:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+43:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+46:15  Error: The variable `queryParams` should be named `queryParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+110:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+110:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+124:16  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+129:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+130:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+131:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+132:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+133:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+134:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+135:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+154:32  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/OTBookingModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-booking-modal.tsx`.  unicorn/filename-case
+42:11  Error: The variable `OTBookingModalProps` should be named `OTBookingModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+116:25  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+118:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+122:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+125:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+132:119  Error: Use `undefined` instead of `null`.  unicorn/no-null
+133:113  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/OTChecklistTemplateList.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-checklist-template-list.tsx`.  unicorn/filename-case
+8:24  Warning: 'ListChecks' is defined but never used.  @typescript-eslint/no-unused-vars
+27:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+33:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+88:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+88:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+103:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+104:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+105:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+106:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+
+./src/components/ot/OTChecklistTemplateModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-checklist-template-modal.tsx`.  unicorn/filename-case
+9:10  Warning: 'Textarea' is defined but never used.  @typescript-eslint/no-unused-vars
+36:11  Error: The variable `OTChecklistTemplateModalProps` should be named `OTChecklistTemplateModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+75:29  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+77:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+81:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+96:41  Error: The variable `i` should be named `index_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+101:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+195:34  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/OTDashboardStats.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-dashboard-stats.tsx`.  unicorn/filename-case
+
+./src/components/ot/OTPatientSurgeries.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-patient-surgeries.tsx`.  unicorn/filename-case
+23:11  Error: The variable `OTPatientSurgeriesProps` should be named `OTPatientSurgeriesProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+31:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+37:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+72:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+72:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+90:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+91:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+92:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+93:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+94:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+95:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+99:43  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+106:43  Error: Move arrow function 'formatTime' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/components/ot/OTRecordModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-record-modal.tsx`.  unicorn/filename-case
+62:11  Error: The variable `OTRecordModalProps` should be named `OTRecordModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+141:25  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+143:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+147:23  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+154:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+158:50  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+158:100  Error: Use `undefined` instead of `null`.  unicorn/no-null
+159:38  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+173:119  Error: Use `undefined` instead of `null`.  unicorn/no-null
+174:113  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/OTStaffAssignment.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-staff-assignment.tsx`.  unicorn/filename-case
+11:37  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+14:11  Error: The variable `OTStaffAssignmentProps` should be named `OTStaffAssignmentProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+45:26  Warning: 'setAvailableUsers' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+50:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+56:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+75:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+75:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+83:6  Warning: React Hook useCallback has an unnecessary dependency: 'bookingId'. Either exclude it or remove the dependency array.  react-hooks/exhaustive-deps
+102:13  Warning: 'assignmentData' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+128:24  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+159:24  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+202:26  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/OTSurgeryTypeList.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-surgery-type-list.tsx`.  unicorn/filename-case
+22:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+28:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+77:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+77:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/OTSurgeryTypeModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-surgery-type-modal.tsx`.  unicorn/filename-case
+34:11  Error: The variable `OTSurgeryTypeModalProps` should be named `OTSurgeryTypeModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+47:94  Error: Use `undefined` instead of `null`.  unicorn/no-null
+48:106  Error: Use `undefined` instead of `null`.  unicorn/no-null
+61:98  Error: Use `undefined` instead of `null`.  unicorn/no-null
+62:110  Error: Use `undefined` instead of `null`.  unicorn/no-null
+70:25  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+72:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+75:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+80:41  Error: Use `undefined` instead of `null`.  unicorn/no-null
+81:45  Error: Use `undefined` instead of `null`.  unicorn/no-null
+97:62  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+97:114  Error: Use `undefined` instead of `null`.  unicorn/no-null
+98:51  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+106:46  Error: Use `undefined` instead of `null`.  unicorn/no-null
+107:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/OTTheatreList.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-theatre-list.tsx`.  unicorn/filename-case
+23:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+29:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+78:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+78:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+93:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+94:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+95:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+96:7  Error: Missing braces in case clause.  unicorn/switch-case-braces
+
+./src/components/ot/OTTheatreModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ot-theatre-modal.tsx`.  unicorn/filename-case
+33:11  Error: The variable `OTTheatreModalProps` should be named `OTTheatreModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+67:25  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+69:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+73:17  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+76:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+82:40  Error: Use `undefined` instead of `null`.  unicorn/no-null
+83:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+85:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/pharmacy/BillingPharmacyIntegration.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `billing-pharmacy-integration.tsx`.  unicorn/filename-case
+28:11  Error: The variable `BillingPharmacyIntegrationProps` should be named `BillingPharmacyIntegrationProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+33:9  Warning: '_router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+71:31  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+87:29  Error: Don't use a zero fraction in the number.  unicorn/no-zero-fractions
+114:24  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+116:24  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+116:44  Error: The variable `i` should be named `index`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+164:28  Error: The variable `prevRecords` should be named `previousRecords`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+172:24  Error: The variable `prevItems` should be named `previousItems`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+190:34  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+255:69  Error: The variable `i` should be named `index`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+259:55  Error: The variable `i` should be named `index`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+260:38  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/pharmacy/IPDPharmacyIntegration.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `ipd-pharmacy-integration.tsx`.  unicorn/filename-case
+46:11  Error: The variable `IPDPharmacyIntegrationProps` should be named `IPDPharmacyIntegrationProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+57:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+68:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+110:167  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+117:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+117:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+167:33  Error: The variable `prevRecords` should be named `previousRecords`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+170:30  Error: The variable `prevSchedule` should be named `previousSchedule`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+177:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+177:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+197:51  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+274:98  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/pharmacy/OPDPharmacyIntegration.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `opd-pharmacy-integration.tsx`.  unicorn/filename-case
+65:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+67:70  Error: Use `undefined` instead of `null`.  unicorn/no-null
+92:21  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+200:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+205:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+218:26  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+219:13  Error: Prefer `Number.isNaN` over `isNaN`.  unicorn/prefer-number-properties
+273:19  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+361:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+369:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+386:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+395:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+403:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+436:26  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+436:78  Error: The variable `prev` should be named `previous`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+473:45  Error: The variable `idx` should be named `index`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/CreateModalityModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `create-modality-modal.tsx`.  unicorn/filename-case
+19:11  Error: The variable `CreateModalityModalProps` should be named `CreateModalityModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+33:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+70:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+81:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+91:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+101:83  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/CreateProcedureTypeModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `create-procedure-type-modal.tsx`.  unicorn/filename-case
+19:11  Error: The variable `CreateProcedureTypeModalProps` should be named `CreateProcedureTypeModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+31:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+42:40  Error: Use `undefined` instead of `null`.  unicorn/no-null
+72:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+83:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+94:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+105:83  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/CreateRadiologyOrderModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `create-radiology-order-modal.tsx`.  unicorn/filename-case
+40:11  Error: The variable `CreateRadiologyOrderModalProps` should be named `CreateRadiologyOrderModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+57:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+66:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+69:16  Error: Please rename the variable `patientsRes`. Suggested names are: `patientsResource`, `patientsResponse`, `patientsResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+69:29  Error: Please rename the variable `proceduresRes`. Suggested names are: `proceduresResource`, `proceduresResponse`, `proceduresResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+69:44  Error: Please rename the variable `doctorsRes`. Suggested names are: `doctorsResource`, `doctorsResponse`, `doctorsResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+89:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+89:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+100:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+108:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+115:51  Error: Use `undefined` instead of `null`.  unicorn/no-null
+146:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+162:46  Error: Prefer `String#slice()` over `String#substring()`.  unicorn/prefer-string-slice
+193:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+240:85  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/CreateRadiologyReportModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `create-radiology-report-modal.tsx`.  unicorn/filename-case
+32:11  Error: The variable `CreateRadiologyReportModalProps` should be named `CreateRadiologyReportModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+71:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+79:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+95:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+95:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+106:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+113:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+118:31  Error: Use `undefined` instead of `null`.  unicorn/no-null
+120:45  Error: Use `undefined` instead of `null`.  unicorn/no-null
+160:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+197:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+210:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+224:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+251:85  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/CreateRadiologyStudyModal.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `create-radiology-study-modal.tsx`.  unicorn/filename-case
+36:11  Error: The variable `CreateRadiologyStudyModalProps` should be named `CreateRadiologyStudyModalProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+54:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+60:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+62:16  Error: Please rename the variable `modalitiesRes`. Suggested names are: `modalitiesResource`, `modalitiesResponse`, `modalitiesResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+62:31  Error: Please rename the variable `techniciansRes`. Suggested names are: `techniciansResource`, `techniciansResponse`, `techniciansResult`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+81:16  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+81:16  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+92:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+101:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+103:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+105:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+106:48  Error: Use `undefined` instead of `null`.  unicorn/no-null
+107:42  Error: Prefer `Number.parseInt` over `parseInt`.  unicorn/prefer-number-properties
+107:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+133:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+145:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+189:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+199:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+211:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+221:85  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/RadiologyOrderDetail.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `radiology-order-detail.tsx`.  unicorn/filename-case
+36:9  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+40:61  Error: Use `undefined` instead of `null`.  unicorn/no-null
+42:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+47:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+50:11  Error: Unexpected negated condition.  unicorn/no-negated-condition
+53:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+62:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+64:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+64:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+68:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+104:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+104:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+126:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+126:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+204:71  Error: Prefer `String#slice()` over `String#substring()`.  unicorn/prefer-string-slice
+
+./src/components/radiology/RadiologyOrderList.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `radiology-order-list.tsx`.  unicorn/filename-case
+27:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+37:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+47:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+47:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+74:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+89:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+89:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/RadiologyReportDetail.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `radiology-report-detail.tsx`.  unicorn/filename-case
+53:9  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+59:64  Error: Use `undefined` instead of `null`.  unicorn/no-null
+61:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+62:10  Warning: 'showEditModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+68:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+103:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+103:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+147:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+147:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+156:38  Error: Move arrow function 'handlePrintReport' to the outer scope.  unicorn/consistent-function-scoping
+157:5  Error: Prefer `globalThis` over `window`.  unicorn/prefer-global-this
+161:25  Error: Use `undefined` instead of `null`.  unicorn/no-null
+224:72  Error: Prefer `String#slice()` over `String#substring()`.  unicorn/prefer-string-slice
+
+./src/components/radiology/RadiologyReportsList.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `radiology-reports-list.tsx`.  unicorn/filename-case
+26:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+42:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+43:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+43:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/RadiologySettings.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `radiology-settings.tsx`.  unicorn/filename-case
+34:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+35:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+46:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+50:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+59:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+59:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+71:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+75:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+84:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+84:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+105:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+116:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+116:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+134:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+145:14  Error: The catch parameter `err` should be named `error`.  unicorn/catch-error-name
+145:14  Error: The variable `err` should be named `error`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/RadiologyStudiesList.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `radiology-studies-list.tsx`.  unicorn/filename-case
+24:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+33:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+42:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+43:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+43:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/RadiologyStudyDetail.tsx
+1:1  Error: Filename is not in kebab case. Rename it to `radiology-study-detail.tsx`.  unicorn/filename-case
+45:9  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+47:63  Error: Use `undefined` instead of `null`.  unicorn/no-null
+49:59  Error: Use `undefined` instead of `null`.  unicorn/no-null
+51:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+62:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+88:49  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+99:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+102:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+102:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+106:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+140:13  Error: The variable `errorMsg` should be named `errorMessage`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+156:14  Error: The catch parameter `err` should be named `error_`.  unicorn/catch-error-name
+156:14  Error: The variable `err` should be named `error_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+224:80  Error: Prefer `String#slice()` over `String#substring()`.  unicorn/prefer-string-slice
+
+./src/components/ui/alert.tsx
+27:29  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+27:38  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+40:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+40:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+52:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+52:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/badge.tsx
+25:18  Error: The variable `BadgeProps` should be named `BadgeProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+29:41  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/button.tsx
+35:18  Error: The variable `ButtonProps` should be named `ButtonProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+42:52  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+42:61  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/calendar.tsx
+11:13  Error: The variable `CalendarProps` should be named `CalendarProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+13:71  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/card.tsx
+8:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+8:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+24:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+24:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+36:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+36:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+51:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+51:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+63:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+63:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+71:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+71:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/checkbox.tsx
+12:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+12:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/command.tsx
+14:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+14:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+27:6  Error: The variable `CommandDialogProps` should be named `CommandDialogProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+29:39  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+46:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+46:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+65:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+65:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+78:4  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+78:11  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+91:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+91:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+107:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+107:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+119:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+119:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+134:6  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/dialog.tsx
+20:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+20:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+35:30  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+35:39  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+58:6  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+72:6  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+87:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+87:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+102:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+102:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/form.tsx
+20:6  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+61:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+61:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+75:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+75:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+92:9  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+92:18  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+99:25  Error: Unexpected negated condition.  unicorn/no-negated-condition
+110:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+110:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+127:30  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+127:39  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+132:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ui/index.tsx
+10:11  Error: The variable `ButtonProps` should be named `ButtonProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+16:89  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+45:11  Error: The variable `CardProps` should be named `CardProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+49:53  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+58:11  Error: The variable `CardHeaderProps` should be named `CardHeaderProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+62:59  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+71:11  Error: The variable `CardTitleProps` should be named `CardTitleProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+75:58  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+84:11  Error: The variable `CardDescriptionProps` should be named `CardDescriptionProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+88:64  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+97:11  Error: The variable `CardContentProps` should be named `CardContentProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+101:60  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+110:11  Error: The variable `CardFooterProps` should be named `CardFooterProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+114:59  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+124:124  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+124:133  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+136:134  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+136:143  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+146:136  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+146:145  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+158:11  Error: The variable `BadgeProps` should be named `BadgeProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+163:75  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+184:11  Error: The variable `AlertProps` should be named `AlertProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+189:75  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+209:11  Error: The variable `AlertDescriptionProps` should be named `AlertDescriptionProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+213:65  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+223:134  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+223:143  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+234:149  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+234:158  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+243:147  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+243:156  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+252:138  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+252:147  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+261:143  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+261:152  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+270:143  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+270:152  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+280:11  Error: The variable `TabsProps` should be named `TabsProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+288:75  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+308:11  Error: The variable `TabsListProps` should be named `TabsListProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+313:57  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+323:11  Error: The variable `TabsTriggerProps` should be named `TabsTriggerProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+331:95  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+354:11  Error: The variable `TabsContentProps` should be named `TabsContentProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+361:80  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+364:25  Error: Use `undefined` instead of `null`.  unicorn/no-null
+380:11  Error: The variable `DialogProps` should be named `DialogProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+387:75  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+389:16  Error: Unexpected negated condition.  unicorn/no-negated-condition
+410:11  Error: The variable `DialogTriggerProps` should be named `DialogTriggerProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+417:64  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+427:17  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+443:11  Error: The variable `DialogContentProps` should be named `DialogContentProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+450:77  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+461:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+467:19  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+489:11  Error: The variable `DialogHeaderProps` should be named `DialogHeaderProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+493:61  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+503:11  Error: The variable `DialogTitleProps` should be named `DialogTitleProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+507:60  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+517:11  Error: The variable `DialogFooterProps` should be named `DialogFooterProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+521:61  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+531:11  Error: The variable `DialogCloseProps` should be named `DialogCloseProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+537:62  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+546:17  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+566:6  Error: The variable `CalendarProps` should be named `CalendarProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+573:78  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+602:37  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+619:11  Error: The variable `SkeletonProps` should be named `SkeletonProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+623:42  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/input.tsx
+8:6  Error: The variable `InputProps` should be named `InputProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+11:26  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+11:35  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/label.tsx
+17:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+17:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/logo.tsx
+4:11  Error: The variable `LogoProps` should be named `LogoProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/popover.tsx
+15:54  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+15:63  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/select.tsx
+18:30  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+18:39  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+38:51  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+38:60  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+68:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+68:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+80:30  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+80:39  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+103:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+103:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/skeleton.tsx
+5:35  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/sonner.tsx
+6:6  Error: The variable `ToasterProps` should be named `ToasterProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+8:23  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/table.tsx
+10:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+10:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+24:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+24:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+32:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+32:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+44:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+44:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+59:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+59:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+74:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+74:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+89:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+89:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+101:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+101:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/tabs.tsx
+13:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+13:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+28:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+28:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+43:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+43:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/textarea.tsx
+8:6  Error: The variable `TextareaProps` should be named `TextareaProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+11:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+11:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/toast.tsx
+14:97  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+14:106  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+15:105  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+15:114  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+16:104  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+16:113  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+17:98  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+17:107  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+18:104  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+18:113  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+19:102  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+19:111  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+52:29  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+52:38  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+66:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+66:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+81:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+81:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+99:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+99:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+111:20  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+111:29  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+120:6  Error: The variable `ToastProps` should be named `ToastProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/toaster.tsx
+21:66  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/tooltip.tsx
+17:36  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+17:45  Error: The variable `ref` should be named `reference`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ui/use-toast.ts
+7:28  Error: Invalid group length in numeric value.  unicorn/numeric-separators-style
+70:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+76:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+92:22  Error: Use `for…of` instead of `.forEach(…)`.  unicorn/no-array-for-each
+109:5  Error: Missing braces in case clause.  unicorn/switch-case-braces
+130:16  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+133:19  Error: The variable `props` should be named `properties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+157:11  Error: The variable `ToastContextProps` should be named `ToastContextProperties`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+184:29  Error: Use `export…from` to re-export `ToastProps`.  unicorn/prefer-export-from
+184:41  Error: Use `export…from` to re-export `ToastActionElement`.  unicorn/prefer-export-from
+
+./src/lib/auth.ts
+32:37  Error: The variable `_req` should be named `_request`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+40:38  Error: The variable `_req` should be named `_request`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+54:10  Error: Use `undefined` instead of `null`.  unicorn/no-null
+58:37  Error: The variable `req` should be named `request`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+69:33  Error: Please rename the variable `res`. Suggested names are: `resource`, `response`, `result`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+76:31  Error: Please rename the variable `res`. Suggested names are: `resource`, `response`, `result`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/lib/db.ts
+7:1  Error: The filename `db.ts` should be named `database.ts`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+18:13  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+33:37  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+41:7  Error: The variable `boundParams` should be named `boundParameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+43:15  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+60:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+75:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+91:45  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+103:14  Error: The variable `getDb` should be named `getDatabase`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+111:45  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+120:14  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+126:43  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+140:43  Error: The variable `params` should be named `parameters`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+147:14  Error: The variable `initializeDb` should be named `initializeDatabase`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/lib/ipd.ts
+54:9  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+64:9  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+68:67  Error: Use `undefined` instead of `null`.  unicorn/no-null
+75:9  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+95:9  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+104:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/lib/schemas/ipdSchemas.ts
+1:1  Error: Filename is not in kebab case. Rename it to `ipd-schemas.ts`.  unicorn/filename-case
+
+./src/lib/session.ts
+48:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+62:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+74:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+83:11  Error: The variable `db` should be named `database`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+109:90  Error: Use `undefined` instead of `null`.  unicorn/no-null
+113:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+153:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

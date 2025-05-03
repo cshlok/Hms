@@ -7,16 +7,16 @@
   :root {
     /* Shlokam Primary Colors */
     --primary-dark: 225 43% 18%;    /* #1a2342; Dark navy blue (background) */
-    --primary: 227 35% 28%;         /* #2e3b62; Navy blue (hands in logo) */
+    --primary: 222.2 47.4% 11.2%;         /* #2e3b62; Navy blue (hands in logo) */
     --primary-light: 227 30% 42%;   /* #4a5a8f; Lighter navy blue */
     
     /* Shlokam Secondary Colors */
-    --secondary: 174 64% 47%;       /* #2ec4b6; Teal/turquoise (figure in logo and text) */
+    --secondary: 210 40% 96.1%;       /* #2ec4b6; Teal/turquoise (figure in logo and text) */
     --secondary-light: 174 80% 62%; /* #5edfd4; Lighter teal */
     --secondary-dark: 174 70% 34%;  /* #1a9589; Darker teal */
     
     /* Shlokam Accent Colors */
-    --accent: 340 100% 68%;          /* #ff5e8f; Pink (circle in logo) */
+    --accent: 210 40% 96.1%;          /* #ff5e8f; Pink (circle in logo) */
     --accent-light: 340 100% 75%;    /* #ff8fb0; Lighter pink */
     --accent-dark: 340 60% 53%;     /* #d13e6f; Darker pink */
     
@@ -39,26 +39,34 @@
     --border-light: 215 20% 90%;    /* #e2e8f0; Light mode borders */
 
     /* Standard Shadcn UI Variables (Dark Mode - Default) */
-    --background: 240 17% 15%; /* Using Shlokam's --background-dark */
-    --foreground: 0 0% 97%; /* Using Shlokam's --text-light */
-    --card: 240 10% 19%; /* Using Shlokam's --card-dark */
-    --card-foreground: 0 0% 97%; /* Using Shlokam's --text-light */
-    --popover: 240 10% 19%; /* Using Shlokam's --card-dark */
-    --popover-foreground: 0 0% 97%; /* Using Shlokam's --text-light */
+    --background: 0 0% 100%; /* Using Shlokam's --background-dark */
+    --foreground: 222.2 84% 4.9%; /* Using Shlokam's --text-light */
+    --card: 0 0% 100%; /* Using Shlokam's --card-dark */
+    --card-foreground: 222.2 84% 4.9%; /* Using Shlokam's --text-light */
+    --popover: 0 0% 100%; /* Using Shlokam's --card-dark */
+    --popover-foreground: 222.2 84% 4.9%; /* Using Shlokam's --text-light */
     --primary-shadcn: 174 64% 47%; /* Using Shlokam's --secondary (Teal) as primary for components */
     --primary-foreground-shadcn: 0 0% 97%; /* Using Shlokam's --text-light */
     --secondary-shadcn: 227 35% 28%; /* Using Shlokam's --primary (Navy) as secondary for components */
     --secondary-foreground-shadcn: 0 0% 97%; /* Using Shlokam's --text-light */
-    --muted: 240 17% 31%; /* Using Shlokam's --border-dark */
-    --muted-foreground: 215 20% 65%; /* Adjusted for dark bg */
+    --muted: 210 40% 96.1%; /* Using Shlokam's --border-dark */
+    --muted-foreground: 215.4 16.3% 46.9%; /* Adjusted for dark bg */
     --accent-shadcn: 340 100% 68%; /* Using Shlokam's --accent (Pink) */
     --accent-foreground-shadcn: 0 0% 97%; /* Using Shlokam's --text-light */
-    --destructive: 0 84% 60%; /* Using Shlokam's --error */
-    --destructive-foreground: 0 0% 97%; /* Using Shlokam's --text-light */
-    --border: 240 17% 31%; /* Using Shlokam's --border-dark */
-    --input: 240 17% 31%; /* Using Shlokam's --border-dark */
-    --ring: 174 64% 47%; /* Using Shlokam's --secondary (Teal) */
+    --destructive: 0 84.2% 60.2%; /* Using Shlokam's --error */
+    --destructive-foreground: 210 40% 98%; /* Using Shlokam's --text-light */
+    --border: 214.3 31.8% 91.4%; /* Using Shlokam's --border-dark */
+    --input: 214.3 31.8% 91.4%; /* Using Shlokam's --border-dark */
+    --ring: 222.2 84% 4.9%; /* Using Shlokam's --secondary (Teal) */
     --radius: 0.5rem;
+    --primary-foreground: 210 40% 98%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
 
   .light {
@@ -83,6 +91,32 @@
     --input: 215 20% 90%; /* Using Shlokam's --border-light */
     --ring: 174 64% 47%; /* Using Shlokam's --secondary (Teal) */
     /* --radius: 0.5rem; */ /* Radius is same for both modes */
+  }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 

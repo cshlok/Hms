@@ -5,6 +5,10 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "noUnusedLocals": true, // Added for stricter checks
+    "noUnusedParameters": true, // Added for stricter checks
+    "noImplicitReturns": true, // Added for stricter checks
+    "noFallthroughCasesInSwitch": true, // Added for stricter checks
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
