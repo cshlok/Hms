@@ -248,7 +248,7 @@ export async function GET(request: NextRequest) {
 
     const policies = await getPatientInsurancePoliciesFromDB(filters);
     return NextResponse.json({ policies });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching patient insurance policies:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
@@ -295,7 +295,7 @@ export async function POST(request: NextRequest) {
     const newPolicy = await createPatientInsurancePolicyInDB(policyData);
 
     return NextResponse.json({ policy: newPolicy }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating patient insurance policy:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

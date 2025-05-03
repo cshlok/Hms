@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       .all();
 
     return NextResponse.json(results || []); // Ensure empty array if results is null/undefined
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching operation theatres:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           },
           { status: 201 }
         );
-  } catch (error: any) {
+  } catch (error: unknown) {
     // FIX: Remove explicit any
     console.error("Error creating operation theatre:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

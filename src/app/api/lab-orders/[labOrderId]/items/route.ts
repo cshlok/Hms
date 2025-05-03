@@ -3,7 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare/context";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { LabOrderItem, LabOrderItemStatus } from "@/types/opd";
+// import { LabOrderItem, LabOrderItemStatus } from "@/types/opd";
 import { z } from "zod";
 
 // Define roles allowed to add items to lab orders (adjust as needed)
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
         });
 
         // 6. Execute the batch insert
-        const insertResults = await DB.batch(batchActions);
+        // const insertResults = await DB.batch(batchActions); // Commented out: Unused variable
 
         // Basic check for success
 

@@ -4,7 +4,7 @@ import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { User } from "@/types/user";
+// import { User } from "@/types/user";
 import { Patient } from "@/types/patient";
 
 // Define roles allowed to view patient details
@@ -136,7 +136,7 @@ export async function PUT(request: Request) {
 
         // Construct SET clause dynamically
         const setClauses: string[] = [];
-        const values: any[] = [];
+        const values: (string | number | null)[] = [];
         Object.entries(updates).forEach(([key, value]) => {
             if (value !== undefined) {
                 setClauses.push(`${key} = ?`);

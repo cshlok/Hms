@@ -332,7 +332,7 @@ export async function GET(request: NextRequest) {
     const appointments = await getAppointmentsFromDB(filters);
 
     return NextResponse.json({ appointments });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching appointments:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -373,7 +373,7 @@ export async function POST(request: NextRequest) {
     const newAppointment = await createAppointmentInDB(appointmentData);
 
     return NextResponse.json({ appointment: newAppointment }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating appointment:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -408,7 +408,7 @@ export async function PUT(request: NextRequest) {
     const updatedAppointment = await updateAppointmentInDB(id, updateData);
 
     return NextResponse.json({ appointment: updatedAppointment });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating appointment:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

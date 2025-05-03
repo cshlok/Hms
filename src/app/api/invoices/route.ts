@@ -105,7 +105,7 @@ export async function GET(request: Request) {
         query += " ORDER BY i.invoice_date DESC, i.invoice_id DESC";
 
         // 3. Retrieve invoices
-        const invoicesResult = await DB.prepare(query).bind(...queryParams).all<any>(); // Use any for joined fields
+        const invoicesResult = await DB.prepare(query).bind(...queryParams).all<unknown[]>(); // Use unknown[] for joined fields
 
         if (!invoicesResult.results) {
             throw new Error("Failed to retrieve invoices");

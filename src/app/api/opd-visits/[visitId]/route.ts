@@ -55,7 +55,7 @@ export async function GET(request: Request) {
              JOIN Doctors d ON ov.doctor_id = d.doctor_id
              JOIN Users u ON d.user_id = u.user_id
              WHERE ov.opd_visit_id = ?`
-        ).bind(visitId).first<any>();
+        ).bind(visitId).first<unknown>();
 
         if (!visitResult) {
             return new Response(JSON.stringify({ error: "OPD Visit not found" }), {

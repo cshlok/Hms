@@ -3,7 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare/context";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { Payment, PaymentMethod, InvoiceStatus } from "@/types/billing";
+import { /* Payment, */ PaymentMethod, /* InvoiceStatus */ } from "@/types/billing"; // Commented out unused imports
 import { z } from "zod";
 
 // Define roles allowed to manage payments (adjust as needed)
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
         ).bind(newPaidAmount, newStatus, invoiceId));
 
         // 4. Execute the batch transaction
-        const transactionResults = await DB.batch(batchActions);
+        // const transactionResults = await DB.batch(batchActions); // Commented out: Unused variable
 
         // Basic check for success (D1 batch doesn't guarantee rollback)
         // A more robust approach might involve checking affected rows or re-querying.

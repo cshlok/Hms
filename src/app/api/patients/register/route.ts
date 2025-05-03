@@ -4,8 +4,8 @@ import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { User } from "@/types/user";
-import { Patient } from "@/types/patient";
+// import { User } from "@/types/user";
+// import { Patient } from "@/types/patient";
 
 // Input validation schema for patient registration
 const PatientRegistrationSchema = z.object({

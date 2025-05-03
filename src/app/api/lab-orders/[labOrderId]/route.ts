@@ -3,7 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare/context";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { LabOrder, LabOrderItem, LabOrderStatus } from "@/types/opd";
+import { LabOrder, /* LabOrderItem, */ LabOrderStatus } from "@/types/opd"; // Commented out unused LabOrderItem
 import { z } from "zod";
 
 // Define roles allowed to view/update lab orders (adjust as needed)
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
              JOIN Doctors d ON lo.doctor_id = d.doctor_id
              JOIN Users u ON d.user_id = u.user_id
              WHERE lo.lab_order_id = ?`
-        ).bind(labOrderId).first<any>();
+        ).bind(labOrderId).first<unknown>();
 
         if (!orderResult) {
             return new Response(JSON.stringify({ error: "Lab Order not found" }), { status: 404 });
@@ -80,7 +80,7 @@ export async function GET(request: Request) {
              LEFT JOIN Users sc_user ON loi.sample_collected_by_user_id = sc_user.user_id
              LEFT JOIN Users rv_user ON loi.result_verified_by_user_id = rv_user.user_id
              WHERE loi.lab_order_id = ? ORDER BY loi.lab_order_item_id`
-        ).bind(labOrderId).all<any>();
+        ).bind(labOrderId).all<unknown[]>();
 
         // 5. Format the final response
         const labOrder: LabOrder = {

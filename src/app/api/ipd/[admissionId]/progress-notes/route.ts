@@ -109,7 +109,7 @@ export async function GET(
         headers: { "Content-Type": "application/json" },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching IPD progress notes:", error);
     return new Response(
       JSON.stringify({
@@ -292,7 +292,7 @@ export async function POST(
         status: 201,
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating IPD progress note:", error);
     return new Response(
       JSON.stringify({

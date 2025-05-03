@@ -3,7 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare/context";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { User } from "@/types/user";
+// import { User } from "@/types/user";
 import { Patient } from "@/types/patient";
 import { z } from "zod"; // Import zod for POST validation
 
@@ -42,7 +42,7 @@ const PatientCreateSchema = z.object({
  * Retrieves a list of active patients.
  * Requires authentication and specific roles.
  */
-export async function GET(request: Request) {
+export async function GET(/* request: Request */) { // Removed unused parameter
   const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
 
   // 1. Check Authentication & Authorization

@@ -58,7 +58,7 @@ const addToRemoveQueue = (toastId: string) => {
 
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId);
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+     
     dispatch({ type: "REMOVE_TOAST", toastId: toastId });
   }, TOAST_REMOVE_DELAY);
 
@@ -127,7 +127,7 @@ type Toast = Omit<ToasterToast, "id">;
 
 // We need a global dispatch function, typically provided by the Toaster component's context
 // This is a placeholder and needs to be connected to the actual reducer instance
-// eslint-disable-next-line @typescript-eslint/no-empty-function
+ 
 let dispatch: React.Dispatch<Action> = () => {};
 
 function toast(properties: Toast) {

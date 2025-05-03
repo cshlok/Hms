@@ -119,7 +119,7 @@ export async function GET(request: Request) {
         queryParamsList.push(filters.limit, filters.offset);
 
         // 3. Execute Query
-        const results = await DB.prepare(query).bind(...queryParamsList).all<any>();
+        const results = await DB.prepare(query).bind(...queryParamsList).all<unknown[]>();
 
         // 4. Format Response (basic details for list view)
         const labOrders: Partial<LabOrder>[] = results.results?.map(row => ({

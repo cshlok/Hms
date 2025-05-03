@@ -3,7 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare/context";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { Invoice, InvoiceItem, InvoiceStatus, Payment } from "@/types/billing";
+import { Invoice, /* InvoiceItem, */ InvoiceStatus, Payment } from "@/types/billing"; // Commented out unused InvoiceItem
 import { z } from "zod";
 
 // Define roles allowed to view/manage invoices (adjust as needed)
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
              FROM Invoices i
              JOIN Patients p ON i.patient_id = p.patient_id
              WHERE i.invoice_id = ?`
-        ).bind(invoiceId).first<any>();
+        ).bind(invoiceId).first<unknown>();
 
         if (!invoiceResult) {
             return new Response(JSON.stringify({ error: "Invoice not found" }), {
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
              FROM InvoiceItems ii 
              JOIN BillableItems bi ON ii.billable_item_id = bi.item_id
              WHERE ii.invoice_id = ? ORDER BY ii.invoice_item_id`
-        ).bind(invoiceId).all<any>();
+        ).bind(invoiceId).all<unknown[]>();
 
         // 5. Retrieve associated payments
         const paymentsResult = await DB.prepare(

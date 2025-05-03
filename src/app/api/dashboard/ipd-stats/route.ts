@@ -1,5 +1,5 @@
 // API route for IPD statistics
-import { NextRequest, NextResponse } from "next/server";
+import { /* NextRequest, */ NextResponse } from "next/server"; // Commented out unused NextRequest
 import { getDB } from "@/lib/database";
 import { getSession } from "@/lib/session";
 
@@ -29,7 +29,7 @@ interface RecentAdmission {
 }
 
 // FIX: Renamed request to _request as it's unused
-export async function GET(_request: NextRequest) {
+export async function GET(/* _request: unknown */) { // Removed unused parameter
   try {
     const session = await getSession();
     // Check authentication
@@ -112,7 +112,7 @@ export async function GET(_request: NextRequest) {
       occupancyRate: occupancyRate,
       recentAdmissions: recentAdmissions, // Use the correctly typed variable
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching IPD stats:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

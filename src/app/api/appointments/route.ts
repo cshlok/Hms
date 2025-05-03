@@ -98,7 +98,7 @@ export async function GET(request: Request) {
         query += " ORDER BY a.appointment_datetime ASC";
 
         // 3. Retrieve appointments
-        const appointmentsResult = await DB.prepare(query).bind(...queryParams).all<any>(); // Use any for now due to joined fields
+        const appointmentsResult = await DB.prepare(query).bind(...queryParams).all<unknown[]>(); // Use unknown[] for joined fields
 
         if (!appointmentsResult.results) {
             throw new Error("Failed to retrieve appointments");

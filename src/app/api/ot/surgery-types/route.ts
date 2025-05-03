@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       .all();
 
     return NextResponse.json(results || []); // Ensure empty array if results is null/undefined
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching surgery types:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
             newSurgeryType.required_equipment
           );
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(
           "Failed to parse JSON fields for new surgery type:",
           id,
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
         { status: 201 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // FIX: Remove explicit any
     console.error("Error creating surgery type:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

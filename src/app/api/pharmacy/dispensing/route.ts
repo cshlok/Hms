@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       { message: "Dispensing record created (simulated)", data: body },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error processing POST request:", error);
     return NextResponse.json(
       { error: "Failed to process request" },

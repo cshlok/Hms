@@ -253,7 +253,7 @@ export default function MedicationsListPage() {
   // Set initial page size after instance creation
   useEffect(() => {
     setPageSize(10);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [setPageSize]); // Dependency array includes setPageSize
 
   const handleGlobalFilterChange = (event: ChangeEvent<HTMLInputElement>) => {

@@ -27,7 +27,7 @@ export async function GET() {
     );
 
     return NextResponse.json(categoriesResult.rows || []);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching laboratory test categories:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       { message: "Category created (mock operation)" },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating laboratory test category:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";

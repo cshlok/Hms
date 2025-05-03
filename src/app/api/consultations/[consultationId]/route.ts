@@ -49,7 +49,7 @@ export async function GET(request: Request) {
              JOIN Doctors d ON c.doctor_id = d.doctor_id
              JOIN Users u ON d.user_id = u.user_id
              WHERE c.consultation_id = ?`
-        ).bind(consultationId).first<any>();
+        ).bind(consultationId).first<unknown>();
 
         if (!consultResult) {
             return new Response(JSON.stringify({ error: "Consultation not found" }), { status: 404 });

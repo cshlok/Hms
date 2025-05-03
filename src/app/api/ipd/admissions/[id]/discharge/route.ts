@@ -83,7 +83,7 @@ export async function GET(
       admission,
       discharge_summary: dischargeSummary || undefined,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching discharge summary:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -250,7 +250,7 @@ export async function POST(
         },
         { status: 201 }
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error during discharge database operations:", error);
       // await db.exec('ROLLBACK'); // Uncomment if using real DB with transactions
       const errorMessage =
@@ -263,7 +263,7 @@ export async function POST(
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating discharge summary:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

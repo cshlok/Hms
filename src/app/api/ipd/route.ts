@@ -1,6 +1,6 @@
 // Example API route for IPD (Inpatient Department) Management
 import { NextRequest } from "next/server";
-import { getDb } from "@/lib/database"; // Using mock DB
+// import { getDb } from "@/lib/database"; // Using mock DB
 import { z } from "zod";
 
 // Schema for IPD Admission
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching IPD admissions:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
@@ -267,7 +267,7 @@ export async function POST(request: NextRequest) {
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating IPD admission:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(

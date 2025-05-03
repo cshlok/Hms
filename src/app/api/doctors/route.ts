@@ -3,7 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare/context";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { User } from "@/types/user";
+// import { User } from "@/types/user";
 import { Doctor } from "@/types/doctor";
 import { z } from "zod";
 

@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({ serviceItem: newItem }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating service item:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

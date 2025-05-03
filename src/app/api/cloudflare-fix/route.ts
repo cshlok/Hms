@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+// import { NextRequest } from "next/server";
 
 // Define the expected structure of the Cloudflare environment bindings
 interface Environment {
@@ -62,7 +62,7 @@ export async function GET() {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error accessing Cloudflare bindings or DB:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

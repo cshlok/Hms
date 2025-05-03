@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     // Fixed: Use db.query
     const samplesResult = await database.query(query, parameters);
     return NextResponse.json(samplesResult.rows || []);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching laboratory samples:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(newSample, { status: 201 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error managing laboratory sample:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";

@@ -86,7 +86,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
         queryParamsList.push(filters.limit, filters.offset);
 
         // 5. Execute Query
-        const results = await DB.prepare(query).bind(...queryParamsList).all<any>();
+        const results = await DB.prepare(query).bind(...queryParamsList).all<unknown[]>();
 
         // 6. Format Response
         const vitals: PatientVital[] = results.results?.map(row => ({
