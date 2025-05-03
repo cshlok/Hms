@@ -92,7 +92,7 @@ export default function OTSurgeryTypeModal({
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 

@@ -6,13 +6,7 @@ import React from "react";
 // import Image from 'next/image';
 
 // Define interfaces for component props and data structures
-interface StatCardProperties {
-  title: string;
-  value: number | string;
-  icon: React.ReactNode; // Allow JSX/string for icons
-  color: string; // Tailwind background color class
-  onClick?: () => void;
-}
+// Removed unused StatCardProperties interface
 
 
 

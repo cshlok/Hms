@@ -9,7 +9,6 @@ import {
   message,
   Modal,
   Form,
-  Tabs,
   Tag,
   Checkbox,
 } from "antd"; // FIX: Import Checkbox
@@ -76,9 +75,9 @@ interface OrdersApiResponse {
   results?: LabOrder[];
 }
 
-interface OrderItemsApiResponse {
-  results?: LabOrderItem[];
-}
+// interface OrderItemsApiResponse { // Removed unused interface
+//   results?: LabOrderItem[];
+// }
 
 interface ParametersApiResponse {
   results?: LabParameter[];
@@ -110,8 +109,8 @@ const ResultManagement: React.FC = () => {
   const [isEntryModalVisible, setIsEntryModalVisible] =
     useState<boolean>(false);
   const [selectedResult, setSelectedResult] = useState<LabResult | null>();
-  const [selectedOrderItem, setSelectedOrderItem] =
-    useState<LabOrderItem | null>();
+  // const [selectedOrderItem, setSelectedOrderItem] = // Removed unused state
+  //   useState<LabOrderItem | null>();
   const [form] = Form.useForm<UpdateResultValues>();
   const [entryForm] = Form.useForm<CreateResultValues>();
   const [orders, setOrders] = useState<LabOrder[]>([]); // For order selection
@@ -225,32 +224,32 @@ const ResultManagement: React.FC = () => {
   // };
 
   // Fetch parameters for a specific test
-  const fetchParameters = async (testId: string): Promise<void> => {
-    try {
-      const response = await fetch(
-        `/api/laboratory/tests/${testId}/parameters`
-      );
-      if (!response.ok) {
-        let errorMessage = "Failed to fetch test parameters";
-        try {
-          const errorData: ApiErrorResponse = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          /* Ignore */
-        }
-        throw new Error(errorMessage);
-      }
-      // FIX: Type the response data
-      const data: ParametersApiResponse = await response.json();
-      setParameters(data.results || []);
-    } catch (error: unknown) {
-      // FIX: Use unknown
-      const messageText =
-        error instanceof Error ? error.message : "An unknown error occurred";
-      console.error("Error fetching test parameters:", error);
-      message.error(`Failed to load test parameters: ${messageText}`);
-    }
-  };
+  // const fetchParameters = async (testId: string): Promise<void> => { // Removed unused function
+  //   try {
+  //     const response = await fetch(
+  //       `/api/laboratory/tests/${testId}/parameters`
+  //     );
+  //     if (!response.ok) {
+  //       let errorMessage = "Failed to fetch test parameters";
+  //       try {
+  //         const errorData: ApiErrorResponse = await response.json();
+  //         errorMessage = errorData.error || errorMessage;
+  //       } catch {
+  //         /* Ignore */
+  //       }
+  //       throw new Error(errorMessage);
+  //     }
+  //     // FIX: Type the response data
+  //     const data: ParametersApiResponse = await response.json();
+  //     setParameters(data.results || []);
+  //   } catch (error: unknown) {
+  //     // FIX: Use unknown
+  //     const messageText =
+  //       error instanceof Error ? error.message : "An unknown error occurred";
+  //     console.error("Error fetching test parameters:", error);
+  //     message.error(`Failed to load test parameters: ${messageText}`);
+  //   }
+  // };
 
   // Load data on component mount
   useEffect(() => {

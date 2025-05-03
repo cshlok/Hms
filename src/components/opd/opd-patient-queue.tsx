@@ -27,9 +27,9 @@ interface Patient {
 
 // Assuming the API returns an array directly, adjust if it returns { results: Patient[] }
 
-interface ApiErrorResponse {
-  error?: string;
-}
+// interface ApiErrorResponse { // Removed unused interface
+//   error?: string;
+// }
 
 interface OPDPatientQueueProperties {
   date: Date;
@@ -76,6 +76,7 @@ const getStatusBadge = (status: Patient["status"]) => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function OPDPatientQueue({ date: _date }: OPDPatientQueueProperties) {
   if (loading || loadingPermissions) {
     return (

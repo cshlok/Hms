@@ -60,7 +60,7 @@ interface PrescriptionFormData {
 
 // Component to integrate Pharmacy with OPD module
 const OPDPharmacyIntegration: React.FC = () => {
-  const router = useRouter();
+  // const router = useRouter(); // Removed unused variable (and missing import)
   const [loading, setLoading] = useState<boolean>(true);
   const [activePatient, setActivePatient] = useState<Patient | null>();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);

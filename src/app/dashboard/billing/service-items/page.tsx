@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge, BadgeProps } from "@/components/ui/badge"; // Import BadgeProps
+import { Badge } from "@/components/ui/badge"; // Import BadgeProps
 import {
   Dialog,
   DialogContent,

@@ -1,6 +1,4 @@
 "use client";
-
-import React from "react";
 import { } from "@/components/ui";
 
 
@@ -18,6 +16,6 @@ interface DischargeSummaryProperties {
 
 
 
-export default function DischargeSummary({ admissionId }: DischargeSummaryProperties) {
+export default function DischargeSummary({ _admissionId }: DischargeSummaryProperties) {
 
 }

@@ -31,7 +31,7 @@ interface CreateModalityModalProperties {
 
 // FIX: Apply props interface
 export default function CreateModalityModal({
-  isOpen: _isOpen,
+  isOpen,
   onClose,
   onSubmit,
 }: CreateModalityModalProperties) {
@@ -42,7 +42,7 @@ export default function CreateModalityModal({
 
   // FIX: Type event parameter
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    event.preventDefault();
     if (!name) {
       alert("Please enter a modality name.");
       return;
@@ -82,7 +82,7 @@ export default function CreateModalityModal({
               <Input
                 id="name"
                 value={name}
-                onChange={(_event_) => setName(e.target.value)}
+                onChange={(event) => setName(event.target.value)}
                 className="col-span-3"
                 placeholder="e.g., CT Scanner 1, MRI Unit A"
                 required
@@ -95,7 +95,7 @@ export default function CreateModalityModal({
               <Input
                 id="location"
                 value={location}
-                onChange={(_event_) => setLocation(e.target.value)}
+                onChange={(event) => setLocation(event.target.value)}
                 className="col-span-3"
                 placeholder="e.g., Room 203, Radiology Wing"
               />
@@ -107,7 +107,7 @@ export default function CreateModalityModal({
               <Textarea
                 id="description"
                 value={description}
-                onChange={(_event_) => setDescription(e.target.value)}
+                onChange={(event) => setDescription(event.target.value)}
                 className="col-span-3"
               />
             </div>

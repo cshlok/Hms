@@ -85,7 +85,7 @@ export default function OTTheatreModal({
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 

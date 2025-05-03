@@ -189,6 +189,7 @@ const SampleManagement: React.FC = () => {
 
   // Handle updating a sample (specifically rejection in this modal)
   const handleUpdateSample = async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _values: UpdateFormValues
   ): Promise<void> => {
     if (!selectedSample) return;

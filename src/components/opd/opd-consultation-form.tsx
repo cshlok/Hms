@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
 import {
   Form,
   FormControl,
@@ -22,43 +21,43 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+// import { zodResolver } from "@hookform/resolvers/zod"; // Removed unused import
+// import { useForm } from "react-hook-form"; // Removed unused import
 import * as z from "zod";
 
 // Define the form schema
-const consultationFormSchema = z.object({
-  patientId: z.string().min(1, { message: "Please select a patient" }),
-  chiefComplaint: z.string().min(3, { message: "Chief complaint is required" }),
-  presentIllness: z.string().optional(),
-  vitalSigns: z.object({
-    temperature: z.string().optional(),
-    pulse: z.string().optional(),
-    respiratoryRate: z.string().optional(),
-    bloodPressure: z.string().optional(),
-    oxygenSaturation: z.string().optional(),
-    weight: z.string().optional(),
-    height: z.string().optional(),
-  }),
-  diagnosis: z.string().min(3, { message: "Diagnosis is required" }),
-  treatmentPlan: z.string().min(3, { message: "Treatment plan is required" }),
-  medications: z
-    .array(
-      z.object({
-        name: z.string().min(1, { message: "Medication name is required" }),
-        dosage: z.string().min(1, { message: "Dosage is required" }),
-        frequency: z.string().min(1, { message: "Frequency is required" }),
-        duration: z.string().min(1, { message: "Duration is required" }),
-        instructions: z.string().optional(),
-      })
-    )
-    .optional(),
-  labTests: z.array(z.string()).optional(),
-  followUpDate: z.string().optional(),
-  notes: z.string().optional(),
-});
+// const consultationFormSchema = z.object({ // Removed unused schema definition
+//   patientId: z.string().min(1, { message: "Please select a patient" }),
+//   chiefComplaint: z.string().min(3, { message: "Chief complaint is required" }),
+//   presentIllness: z.string().optional(),
+//   vitalSigns: z.object({
+//     temperature: z.string().optional(),
+//     pulse: z.string().optional(),
+//     respiratoryRate: z.string().optional(),
+//     bloodPressure: z.string().optional(),
+//     oxygenSaturation: z.string().optional(),
+//     weight: z.string().optional(),
+//     height: z.string().optional(),
+//   }),
+//   diagnosis: z.string().min(3, { message: "Diagnosis is required" }),
+//   treatmentPlan: z.string().min(3, { message: "Treatment plan is required" }),
+//   medications: z
+//     .array(
+//       z.object({
+//         name: z.string().min(1, { message: "Medication name is required" }),
+//         dosage: z.string().min(1, { message: "Dosage is required" }),
+//         frequency: z.string().min(1, { message: "Frequency is required" }),
+//         duration: z.string().min(1, { message: "Duration is required" }),
+//         instructions: z.string().optional(),
+//       })
+//     )
+//     .optional(),
+//   labTests: z.array(z.string()).optional(),
+//   followUpDate: z.string().optional(),
+//   notes: z.string().optional(),
+// });
 
-type ConsultationFormValues = z.infer<typeof consultationFormSchema>;
+// type ConsultationFormValues = z.infer<typeof consultationFormSchema>; // Type depends on unused schema
 
 interface Patient {
   id: string;
@@ -69,13 +68,13 @@ interface Patient {
 }
 
 // FIX: Define API response types
-interface PermissionApiResponse {
-  hasPermission?: boolean;
-  error?: string;
-}
+// interface PermissionApiResponse { // Removed unused interface
+//   hasPermission?: boolean;
+//   error?: string;
+// }
 
 // Assuming the API returns an array directly, adjust if it returns { results: Patient[] }
-type PatientsQueueApiResponse = Patient[];
+// type PatientsQueueApiResponse = Patient[]; // Removed unused type
 
 interface ConsultationApiResponse {
   consultationId: string; // Assuming the API returns the ID of the created consultation
@@ -87,32 +86,32 @@ interface ApiErrorResponse {
 }
 
 // Fetch patient history - moved outside component
-const fetchPatientHistory = async (patientId: string) => {
-  try {
-    const response = await fetch(`/api/patients/${patientId}/history`);
-
-    if (!response.ok) {
-      let errorMessage = "Failed to fetch patient history";
-      try {
-        const errorData: ApiErrorResponse = await response.json();
-        errorMessage = errorData.error || errorMessage;
-      } catch {
-        /* Ignore */
-      }
-      throw new Error(errorMessage);
-    }
-
-    // TODO: Process patient history data if needed
-    // const historyData = await response.json();
-    // console.log("Patient History:", historyData);
-  } catch (error_: unknown) {
-    // FIX: Use unknown
-    const messageText =
-      error_ instanceof Error ? error_.message : "An unknown error occurred";
-    console.error("Error fetching patient history:", error_);
-    // TODO: Show error notification to user
-  }
-};
+// const fetchPatientHistory = async (patientId: string) => { // Removed unused function
+//   try {
+//     const response = await fetch(`/api/patients/${patientId}/history`);
+// 
+//     if (!response.ok) {
+//       let errorMessage = "Failed to fetch patient history";
+//       try {
+//         const errorData: ApiErrorResponse = await response.json();
+//         errorMessage = errorData.error || errorMessage;
+//       } catch {
+//         /* Ignore */
+//       }
+//       throw new Error(errorMessage);
+//     }
+// 
+//     // TODO: Process patient history data if needed
+//     // const historyData = await response.json();
+//     // console.log("Patient History:", historyData);
+//   } catch (error_: unknown) {
+//     // FIX: Use unknown
+//     // const messageText = // Removed unused variable
+//     //   error_ instanceof Error ? error_.message : "An unknown error occurred";
+//     console.error("Error fetching patient history:", error_);
+//     // TODO: Show error notification to user
+//   }
+// };
 
 export default function OPDConsultationForm() {
   const addMedication = () => {
@@ -169,8 +168,8 @@ export default function OPDConsultationForm() {
       }
     } catch (error: unknown) {
       // FIX: Use unknown
-      const messageText =
-        error instanceof Error ? error.message : "An unknown error occurred";
+      // const messageText = // Removed unused variable
+      //   error instanceof Error ? error.message : "An unknown error occurred";
       console.error("Error saving consultation:", error);
       // TODO: Show error notification to user
     } finally {

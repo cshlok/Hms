@@ -32,7 +32,7 @@ interface BillingPharmacyIntegrationProperties {
 const BillingPharmacyIntegration: React.FC<
   BillingPharmacyIntegrationProperties
 > = ({ patientId }) => {
-  const _router = useRouter();
+  // const _router = useRouter(); // Removed unused router
   const [loading, setLoading] = useState<boolean>(true);
   const [dispensingRecords, setDispensingRecords] = useState<
     DispensingRecord[]

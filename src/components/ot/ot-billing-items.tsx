@@ -33,9 +33,9 @@ interface BillingItem {
 // FIX: Define API response types
 // Assuming API returns { results: BillingItem[] }
 
-interface ApiErrorResponse {
-  error?: string;
-}
+// interface ApiErrorResponse { // Removed unused interface
+//   error?: string;
+// }
 
 interface OTBillingItemsProperties {
   patientId: string;

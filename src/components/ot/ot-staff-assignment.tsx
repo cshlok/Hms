@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
-import { PlusCircle, Trash2, Users, Search } from "lucide-react";
+import { PlusCircle, Trash2, Users } from "lucide-react";
 
 // Props for the component
 interface OTStaffAssignmentProperties {
@@ -57,7 +57,7 @@ export default function OTStaffAssignment({
   bookingId,
 }: OTStaffAssignmentProperties) {
   const [assignedStaff, setAssignedStaff] = useState<AssignedStaff[]>([]);
-  const [availableUsers, setAvailableUsers] = useState<User[]>(mockUsers);
+  const [availableUsers] = useState<User[]>(mockUsers); // Removed unused setAvailableUsers
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -110,6 +110,7 @@ export default function OTStaffAssignment({
       }
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
 
   useEffect(() => {
@@ -133,10 +134,10 @@ export default function OTStaffAssignment({
       const userData = availableUsers.find((u) => u.id === selectedUser);
       if (!userData) throw new Error("Selected user not found");
 
-      const assignmentData = {
-        user_id: selectedUser,
-        role: selectedRole,
-      };
+      // const assignmentData = { // Removed unused variable (used only in commented-out API call)
+      //   user_id: selectedUser,
+      //   role: selectedRole,
+      // };
 
       // Replace with actual API call
       // const response = await fetch(`/api/ot/bookings/${bookingId}/staff`, {
