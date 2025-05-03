@@ -455,5 +455,4 @@ export default IPDPharmacyIntegration;
         </div>
       </div>
     </div>
-  );
-}
+  );}

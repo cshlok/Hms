@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React from "react";
 import {
   Table,
   TableBody,
@@ -25,13 +24,8 @@ interface Patient {
 }
 
 // FIX: Define API response types
-interface PermissionApiResponse {
-  hasPermission?: boolean;
-  error?: string;
-}
 
 // Assuming the API returns an array directly, adjust if it returns { results: Patient[] }
-type PatientQueueApiResponse = Patient[];
 
 interface ApiErrorResponse {
   error?: string;
@@ -82,7 +76,7 @@ const getStatusBadge = (status: Patient["status"]) => {
   }
 };
 
-export default function OPDPatientQueue({ date }: OPDPatientQueueProperties) {
+export default function OPDPatientQueue({ date: _date }: OPDPatientQueueProperties) {
   if (loading || loadingPermissions) {
     return (
       <div className="flex justify-center p-4">Loading patient queue...</div>

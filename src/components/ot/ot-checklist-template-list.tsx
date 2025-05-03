@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card"; // FIX: Add missing imports
-import { Edit, Trash2, ListChecks } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 
 // Mock data structure - replace with actual API response type
 interface ChecklistItem {

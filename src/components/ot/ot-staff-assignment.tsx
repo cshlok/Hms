@@ -110,7 +110,6 @@ export default function OTStaffAssignment({
       }
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
 
   useEffect(() => {
@@ -244,7 +243,7 @@ export default function OTStaffAssignment({
             <Input
               id="role-input"
               value={selectedRole}
-              onChange={(_event_) => setSelectedRole(e.target.value)}
+              onChange={(event) => setSelectedRole(event.target.value)}
               placeholder="e.g., Lead Surgeon"
               className="mt-1"
             />

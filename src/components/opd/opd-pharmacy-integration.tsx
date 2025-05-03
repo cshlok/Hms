@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import { useRouter } from "next/navigation";
 
 // Define interfaces for data structures
 interface Patient {
@@ -97,7 +96,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           patient_id: simulatedPatient.id,
           doctor_id: "doc_67890", // Simulate logged-in doctor ID
         }));
-      } catch {
+      } catch (error) {
         console.error("Error fetching active patient:", error);
         // Handle error appropriately (e.g., show message)
       }
@@ -145,7 +144,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           },
         ];
         setMedications(simulatedMedications);
-      } catch {
+      } catch (error) {
         console.error("Error fetching medications:", error);
         // Handle error appropriately
       }
@@ -201,7 +200,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           },
         ];
         setPrescriptions(simulatedPrescriptions);
-      } catch {
+      } catch (error) {
         console.error("Error fetching prescriptions:", error);
         // Handle error appropriately
       } finally {
@@ -325,12 +324,15 @@ const OPDPharmacyIntegration: React.FC = () => {
 
       // Reset form state
       setSelectedMedications([]);
-      setFormData((previous) => ({ ...previous, notes: "" }));
-    } catch {
-      console.error("Error creating prescription:", error);
-      const message =
-        error instanceof Error ? error.message : "An unknown error occurred.";
-      alert(`Failed to create prescription: ${message}`);
+      setFormData((previous) => ({
+        ...previous,
+        notes: "", // Reset notes field
+      }));
+    } catch (error) {
+        console.error("Error creating prescription:", error);
+        const message =
+          error instanceof Error ? error.message : "An unknown error occurred.";
+        alert(`Failed to create prescription: ${message}`);
     } finally {
       setLoading(false);
     }

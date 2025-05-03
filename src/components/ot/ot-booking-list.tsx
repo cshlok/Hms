@@ -193,7 +193,7 @@ export default function OTBookingList() {
             <Input
               type="date"
               value={filters.date}
-              onChange={(_event_) => handleFilterChange("date", e.target.value)}
+              onChange={(event) => handleFilterChange("date", event.target.value)}
             />
             <Select
               value={filters.status}

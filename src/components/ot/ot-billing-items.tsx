@@ -32,10 +32,6 @@ interface BillingItem {
 
 // FIX: Define API response types
 // Assuming API returns { results: BillingItem[] }
-type BillingItemsApiResponse = {
-  results?: BillingItem[];
-  error?: string;
-};
 
 interface ApiErrorResponse {
   error?: string;

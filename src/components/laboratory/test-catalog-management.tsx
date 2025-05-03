@@ -488,7 +488,7 @@ const TestCatalogManagement: React.FC = () => {
             prefix={<SearchOutlined />}
             value={searchText}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-              setSearchText(e.target.value)
+              setSearchText(event.target.value)
             }
             style={{ width: 250 }}
             allowClear

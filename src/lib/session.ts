@@ -1,4 +1,5 @@
-import { IronSessionOptions } from "iron-session";
+import { IronSessionOptions, getIronSession } from "iron-session";
+import { cookies } from "next/headers"; // Import cookies from next/headers for App Router
 import { User } from "@/types/user"; // Assuming you define a User type
 
 declare module "iron-session" {
@@ -10,7 +11,9 @@ declare module "iron-session" {
 // This is the secret used to encrypt the session cookie.
 // It should be at least 32 characters long and kept secret.
 // You should use an environment variable for this in production.
-const sessionPassword = process.env.SECRET_COOKIE_PASSWORD || "complex_password_at_least_32_characters_long_for_dev";
+const sessionPassword =
+  process.env.SECRET_COOKIE_PASSWORD ||
+  "complex_password_at_least_32_characters_long_for_dev";
 
 if (!sessionPassword || sessionPassword.length < 32) {
   console.warn(
@@ -27,3 +30,13 @@ export const sessionOptions: IronSessionOptions = {
     maxAge: 60 * 60 * 24 * 7, // 1 week
   },
 };
+
+// Function to get the session in App Router Route Handlers or Server Components
+export async function getSession() {
+  const session = await getIronSession<IronSessionData>(
+    cookies(),
+    sessionOptions
+  );
+  return session;
+}
+

@@ -91,7 +91,7 @@ export default function OTChecklistTemplateModal({
   }, [template, isOpen]);
 
   const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 
@@ -236,7 +236,7 @@ export default function OTChecklistTemplateModal({
                   <div key={item.id} className="flex items-center space-x-2">
                     <Input
                       value={item.text}
-                      onChange={(_event_) => handleItemChange(index, e.target.value)}
+                      onChange={(event) => handleItemChange(index, event.target.value)}
                       placeholder={`Item ${index + 1}`}
                       className="flex-grow"
                     />

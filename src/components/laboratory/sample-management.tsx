@@ -9,12 +9,10 @@ import {
   message,
   Modal,
   Form,
-  Upload,
   Tag,
   Space,
 } from "antd";
 import {
-  PlusOutlined,
   SearchOutlined,
   BarcodeOutlined,
   PrinterOutlined,
@@ -23,7 +21,6 @@ import {
 } from "@ant-design/icons";
 import moment from "moment";
 import type { ColumnsType } from "antd/es/table";
-import type { FormInstance } from "antd/es/form";
 
 const { Option } = Select;
 
@@ -192,7 +189,7 @@ const SampleManagement: React.FC = () => {
 
   // Handle updating a sample (specifically rejection in this modal)
   const handleUpdateSample = async (
-    values: UpdateFormValues
+    _values: UpdateFormValues
   ): Promise<void> => {
     if (!selectedSample) return;
     try {
