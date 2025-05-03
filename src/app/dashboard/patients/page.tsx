@@ -37,11 +37,12 @@ export default function PatientsPage() {
         }
         const data: Patient[] = await response.json();
         setPatients(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) { // Use unknown
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(message);
         toast({
           title: "Error Fetching Patients",
-          description: err.message,
+          description: message,
           variant: "destructive",
         });
       } finally {

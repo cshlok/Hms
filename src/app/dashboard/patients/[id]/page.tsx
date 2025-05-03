@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label"; // Added import for Label
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/types/patient";
 import { AlertTriangle, Edit, Trash2 } from "lucide-react";
@@ -46,11 +47,12 @@ export default function PatientDetailPage() {
         }
         const data: Patient = await response.json();
         setPatient(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) { // Use unknown
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(message);
         toast({
           title: "Error Fetching Patient",
-          description: err.message,
+          description: message,
           variant: "destructive",
         });
       } finally {
@@ -76,10 +78,11 @@ export default function PatientDetailPage() {
             description: `${patient?.first_name} ${patient?.last_name} has been deactivated.`,
         });
         router.push("/dashboard/patients"); // Redirect to list after deactivation
-    } catch (err: any) {
+    } catch (err: unknown) { // Use unknown
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
         toast({
             title: "Deactivation Failed",
-            description: err.message,
+            description: message,
             variant: "destructive",
         });
     } finally {

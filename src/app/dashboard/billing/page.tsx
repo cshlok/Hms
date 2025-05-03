@@ -52,11 +52,12 @@ export default function BillingPage() {
         }
         const data: Invoice[] = await response.json();
         setInvoices(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) { // Use unknown
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(message);
         toast({
           title: "Error Fetching Invoices",
-          description: err.message,
+          description: message,
           variant: "destructive",
         });
       } finally {

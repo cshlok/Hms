@@ -1,5 +1,5 @@
 // app/api/auth/login/route.ts
-import { getCloudflareContext } from "@opennextjs/cloudflare/context";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { comparePassword } from "@/lib/authUtils";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";

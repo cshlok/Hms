@@ -56,10 +56,11 @@ export default function SelectRolePage() {
       // Redirect to the main dashboard
       router.push("/dashboard");
 
-    } catch (error: any) {
+    } catch (error: unknown) { // Use unknown
+      const message = error instanceof Error ? error.message : "Failed to set role.";
       toast({
         title: "Error",
-        description: error.message || "Failed to set role.",
+        description: message,
         variant: "destructive",
       });
     } finally {

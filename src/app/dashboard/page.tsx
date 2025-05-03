@@ -316,7 +316,7 @@ function Dashboard() {
               {/* Today's OPD Schedule Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Today's OPD Schedule</CardTitle>
+                  <CardTitle>Today&apos;s OPD Schedule</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {/* Placeholder Content - Replace with actual data fetching */}

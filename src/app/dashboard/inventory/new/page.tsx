@@ -49,10 +49,11 @@ export default function AddInventoryItemPage() {
         if (!response.ok) throw new Error("Failed to fetch billable items");
         const data: BillableItem[] = await response.json();
         setBillableItems(data);
-      } catch (err: any) {
+      } catch (err: unknown) { // Use unknown
+        const message = err instanceof Error ? err.message : "Could not load items for linking.";
         toast({
           title: "Error Fetching Billable Items",
-          description: err.message || "Could not load items for linking.",
+          description: message,
           variant: "destructive",
         });
       } finally {
@@ -119,11 +120,12 @@ export default function AddInventoryItemPage() {
 
       router.push("/dashboard/inventory"); // Redirect to inventory list
 
-    } catch (err: any) {
-      setErrors([{ path: ["form"], message: err.message || "An unexpected error occurred." }]);
+    } catch (err: unknown) { // Use unknown
+      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setErrors([{ path: ["form"], message: message }]);
       toast({
         title: "Creation Failed",
-        description: err.message || "An unexpected error occurred.",
+        description: message,
         variant: "destructive",
       });
     } finally {

@@ -1,14 +1,28 @@
 // app/api/prescriptions/route.ts
-import { getCloudflareContext } from "@opennextjs/cloudflare/context";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { Prescription, PrescriptionItem } from "@/types/opd";
+import { Prescription } from "@/types/opd";
 import { z } from "zod";
 
 // Define roles allowed to view/create prescriptions (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse", "Pharmacist", "Patient"]; // Patient can view own
 const ALLOWED_ROLES_CREATE = ["Doctor"];
+
+// Define the expected shape of the list query result
+interface ListPrescriptionsQueryResult {
+    prescription_id: number;
+    consultation_id: number | null;
+    patient_id: number;
+    doctor_id: number;
+    prescription_date: string; // Assuming date is returned as string
+    notes: string | null;
+    created_at: string;
+    patient_first_name: string;
+    patient_last_name: string;
+    doctor_full_name: string;
+}
 
 // GET handler for listing prescriptions with filters
 const ListPrescriptionsQuerySchema = z.object({
@@ -44,8 +58,8 @@ export async function GET(request: Request) {
 
         // 2. Build Query
         let query = `
-            SELECT 
-                pr.*, 
+            SELECT
+                pr.*,
                 p.first_name as patient_first_name, p.last_name as patient_last_name,
                 u.full_name as doctor_full_name
             FROM Prescriptions pr
@@ -114,7 +128,7 @@ export async function GET(request: Request) {
         queryParamsList.push(filters.limit, filters.offset);
 
         // 3. Execute Query
-        const results = await DB.prepare(query).bind(...queryParamsList).all<any>();
+        const results = await DB.prepare(query).bind(...queryParamsList).all<ListPrescriptionsQueryResult>(); // Use defined interface
 
         // 4. Format Response (basic details for list view)
         const prescriptions: Partial<Prescription>[] = results.results?.map(row => ({
@@ -138,7 +152,7 @@ export async function GET(request: Request) {
 
         return new Response(JSON.stringify(prescriptions), { status: 200 });
 
-    } catch (error) {
+    } catch (error: unknown) { // Use unknown
         console.error("List prescriptions error:", error);
         const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
         return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), { status: 500 });
@@ -216,7 +230,7 @@ export async function POST(request: Request) {
             headers: { "Content-Type": "application/json" },
         });
 
-    } catch (error) {
+    } catch (error: unknown) { // Use unknown
         console.error("Create prescription error:", error);
         const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
         return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
@@ -225,4 +239,5 @@ export async function POST(request: Request) {
         });
     }
 }
+
 

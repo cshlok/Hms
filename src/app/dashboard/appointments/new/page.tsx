@@ -60,10 +60,11 @@ export default function BookAppointmentPage() {
         setPatients(patientsData.filter(p => p.is_active)); // Only show active patients
         setDoctors(doctorsData); // Assuming API returns doctors linked to active users
 
-      } catch (err: any) {
+      } catch (err: unknown) { // Use unknown
+        const message = err instanceof Error ? err.message : "Could not load patients or doctors.";
         toast({
           title: "Error Fetching Data",
-          description: err.message || "Could not load patients or doctors.",
+          description: message,
           variant: "destructive",
         });
         setErrors([{ path: ["form"], message: "Could not load required data." }]);
@@ -134,11 +135,12 @@ export default function BookAppointmentPage() {
 
       router.push("/dashboard/appointments"); // Redirect to appointment list
 
-    } catch (err: any) {
-      setErrors([{ path: ["form"], message: err.message || "An unexpected error occurred." }]);
+    } catch (err: unknown) { // Use unknown
+      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setErrors([{ path: ["form"], message: message }]);
       toast({
         title: "Booking Failed",
-        description: err.message || "An unexpected error occurred.",
+        description: message,
         variant: "destructive",
       });
     } finally {

@@ -148,6 +148,7 @@ export default function OPDAppointmentList({
     };
 
     fetchAppointments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date]);
 
   const handleCheckIn = async (appointmentId: number) => {

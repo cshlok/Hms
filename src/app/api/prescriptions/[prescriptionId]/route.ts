@@ -1,13 +1,43 @@
 // app/api/prescriptions/[prescriptionId]/route.ts
-import { getCloudflareContext } from "@opennextjs/cloudflare/context";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { Prescription, PrescriptionItem } from "@/types/opd";
-import { z } from "zod";
+import { Prescription } from "@/types/opd";
 
 // Define roles allowed to view prescriptions (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse", "Pharmacist", "Patient"]; // Patient can view own
+
+// Define the expected shape of the main prescription query result
+interface PrescriptionQueryResult {
+    prescription_id: number;
+    consultation_id: number | null;
+    patient_id: number;
+    doctor_id: number;
+    prescription_date: string; // Assuming date is returned as string
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+    patient_first_name: string;
+    patient_last_name: string;
+    doctor_full_name: string;
+}
+
+// Define the expected shape of the prescription items query result
+interface PrescriptionItemQueryResult {
+    prescription_item_id: number;
+    prescription_id: number;
+    inventory_item_id: number;
+    drug_name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    route: string;
+    instructions: string | null;
+    quantity_prescribed: number;
+    created_at: string;
+    inventory_unit_of_measure: string;
+}
 
 // Helper function to get prescription ID from URL
 function getPrescriptionId(pathname: string): number | null {
@@ -39,8 +69,8 @@ export async function GET(request: Request) {
 
         // 2. Retrieve the main prescription record with patient and doctor details
         const presResult = await DB.prepare(
-            `SELECT 
-                pr.*, 
+            `SELECT
+                pr.*,
                 p.first_name as patient_first_name, p.last_name as patient_last_name,
                 u.full_name as doctor_full_name
              FROM Prescriptions pr
@@ -48,7 +78,7 @@ export async function GET(request: Request) {
              JOIN Doctors d ON pr.doctor_id = d.doctor_id
              JOIN Users u ON d.user_id = u.user_id
              WHERE pr.prescription_id = ?`
-        ).bind(prescriptionId).first<any>();
+        ).bind(prescriptionId).first<PrescriptionQueryResult>(); // Use defined interface
 
         if (!presResult) {
             return new Response(JSON.stringify({ error: "Prescription not found" }), { status: 404 });
@@ -75,7 +105,7 @@ export async function GET(request: Request) {
              FROM PrescriptionItems pi
              JOIN InventoryItems ii ON pi.inventory_item_id = ii.inventory_item_id
              WHERE pi.prescription_id = ? ORDER BY pi.prescription_item_id`
-        ).bind(prescriptionId).all<any>();
+        ).bind(prescriptionId).all<PrescriptionItemQueryResult>(); // Use defined interface
 
         // 5. Format the final response
         const prescription: Prescription = {
@@ -122,4 +152,5 @@ export async function GET(request: Request) {
 // PUT/DELETE handlers - Generally prescriptions are not updated/deleted once issued.
 // Modifications might involve cancelling and creating a new one.
 // Implement if specific update/delete logic is required.
+
 

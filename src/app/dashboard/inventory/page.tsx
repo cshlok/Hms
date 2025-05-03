@@ -44,11 +44,12 @@ export default function InventoryPage() {
         }
         const data: InventoryItem[] = await response.json();
         setInventoryItems(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) { // Use unknown
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(message);
         toast({
           title: "Error Fetching Inventory",
-          description: err.message,
+          description: message,
           variant: "destructive",
         });
       } finally {

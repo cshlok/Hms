@@ -47,11 +47,12 @@ export default function AppointmentsPage() {
         }
         const data: Appointment[] = await response.json();
         setAppointments(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) { // Use unknown
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(message);
         toast({
           title: "Error Fetching Appointments",
-          description: err.message,
+          description: message,
           variant: "destructive",
         });
       } finally {

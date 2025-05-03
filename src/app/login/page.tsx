@@ -47,11 +47,12 @@ export default function LoginPage() {
       // For now, redirect to a placeholder dashboard
       router.push("/dashboard");
 
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+    } catch (err: unknown) { // Use unknown
+      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setError(message);
       toast({
         title: "Login Failed",
-        description: err.message || "An unexpected error occurred.",
+        description: message,
         variant: "destructive",
       });
     } finally {

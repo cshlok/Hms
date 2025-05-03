@@ -96,11 +96,12 @@ export default function AddPatientPage() {
 
       router.push("/dashboard/patients"); // Redirect to patient list
 
-    } catch (err: any) {
-      setErrors([{ path: ["form"], message: err.message || "An unexpected error occurred." }]);
+    } catch (err: unknown) { // Use unknown
+      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setErrors([{ path: ["form"], message: message }]);
       toast({
         title: "Registration Failed",
-        description: err.message || "An unexpected error occurred.",
+        description: message,
         variant: "destructive",
       });
     } finally {

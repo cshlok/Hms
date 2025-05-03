@@ -1,4 +1,4 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare/context";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { hashPassword } from "@/lib/authUtils";
 import { z } from "zod";
 

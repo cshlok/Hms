@@ -68,11 +68,12 @@ export default function EditPatientPage() {
             date_of_birth: data.date_of_birth ? data.date_of_birth.split("T")[0] : "",
         };
         setFormData(formattedData);
-      } catch (err: any) {
-        setErrors([{ path: ["form"], message: err.message }]);
+      } catch (err: unknown) { // Use unknown
+        const message = err instanceof Error ? err.message : "An unknown error occurred";
+        setErrors([{ path: ["form"], message: message }]);
         toast({
           title: "Error Fetching Patient",
-          description: err.message,
+          description: message,
           variant: "destructive",
         });
       } finally {
@@ -155,11 +156,12 @@ export default function EditPatientPage() {
 
       router.push(`/dashboard/patients/${patientId}`); // Redirect back to patient detail view
 
-    } catch (err: any) {
-      setErrors([{ path: ["form"], message: err.message || "An unexpected error occurred." }]);
+    } catch (err: unknown) { // Use unknown
+      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setErrors([{ path: ["form"], message: message }]);
       toast({
         title: "Update Failed",
-        description: err.message || "An unexpected error occurred.",
+        description: message,
         variant: "destructive",
       });
     } finally {
