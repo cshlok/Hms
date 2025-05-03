@@ -83,7 +83,7 @@ export async function GET(
       admission,
       vital_signs: vitalSignsResult.rows || [],
     });
-  } catch (error) {
+  } catch {
     console.error("Error fetching vital signs:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -191,7 +191,7 @@ export async function POST(
       { message: "Vital signs recorded (mock operation)" },
       { status: 201 }
     );
-  } catch (error) {
+  } catch {
     console.error("Error creating vital signs record:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

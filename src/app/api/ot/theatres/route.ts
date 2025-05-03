@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       .all();
 
     return NextResponse.json(results || []); // Ensure empty array if results is null/undefined
-  } catch (error) {
+  } catch {
     console.error("Error fetching operation theatres:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -85,25 +85,23 @@ export async function POST(request: NextRequest) {
       .bind(id)
       .all();
 
-    if (results && results.length > 0) {
-      return NextResponse.json(results[0], { status: 201 });
-    } else {
-      // Fallback if select fails immediately after insert
-      return NextResponse.json(
-        {
-          id,
-          name,
-          location,
-          specialty,
-          equipment,
-          status: "available",
-          created_at: now,
-          updated_at: now,
-        },
-        { status: 201 }
-      );
-    }
-  } catch (error) {
+    return results && results.length > 0
+      ? NextResponse.json(results[0], { status: 201 })
+      : // Fallback if select fails immediately after insert
+        NextResponse.json(
+          {
+            id,
+            name,
+            location,
+            specialty,
+            equipment,
+            status: "available",
+            created_at: now,
+            updated_at: now,
+          },
+          { status: 201 }
+        );
+  } catch {
     // FIX: Remove explicit any
     console.error("Error creating operation theatre:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

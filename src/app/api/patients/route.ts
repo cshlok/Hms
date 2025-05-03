@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json({ patients: formattedResults });
-  } catch (error) {
+  } catch {
     console.error("Error fetching patients:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
     mockPatients.push(newPatient);
 
     return NextResponse.json({ patient: newPatient }, { status: 201 });
-  } catch (error) {
+  } catch {
     console.error("Error creating patient:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

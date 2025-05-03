@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     const testsResult = await db.query(query, parameters);
 
     return NextResponse.json(testsResult.rows || []); // Return rows from the result
-  } catch (error) {
+  } catch {
     console.error("Error fetching laboratory tests:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(mockCreatedTest, { status: 201 });
-  } catch (error) {
+  } catch {
     console.error("Error creating laboratory test:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

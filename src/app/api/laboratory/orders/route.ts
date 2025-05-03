@@ -244,7 +244,7 @@ export async function GET(request: NextRequest) {
     const orders = await getLabOrdersFromDB(filters);
 
     return NextResponse.json({ orders });
-  } catch (error) {
+  } catch {
     console.error("Error fetching lab orders:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
@@ -282,7 +282,7 @@ export async function POST(request: NextRequest) {
     const newOrder = await createLabOrderInDB(orderData);
 
     return NextResponse.json({ order: newOrder }, { status: 201 });
-  } catch (error) {
+  } catch {
     console.error("Error creating lab order:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
@@ -323,7 +323,7 @@ export async function PUT(
     }
 
     return NextResponse.json({ order: updatedOrder });
-  } catch (error) {
+  } catch {
     console.error("Error updating lab order:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";

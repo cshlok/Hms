@@ -41,7 +41,7 @@ export async function GET(
     }
 
     return NextResponse.json(results[0]);
-  } catch (error) {
+  } catch {
     console.error("Error fetching operation theatre details:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -141,7 +141,7 @@ export async function PUT(
     }
 
     return NextResponse.json(results[0]);
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error updating operation theatre:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -194,7 +194,7 @@ export async function DELETE(
       { message: "Operation theatre deleted successfully" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error deleting operation theatre:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

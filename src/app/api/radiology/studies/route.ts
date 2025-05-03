@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Remove D1Database import if using getDB
 // import { D1Database } from "@cloudflare/workers-types";
 import { nanoid } from "nanoid";
-import { getSession, Session } from "@/lib/session"; // Import Session type
+import { getSession } from "@/lib/session"; // Import Session type
 // import { checkUserRole } from "@/lib/auth";
 import { getDB } from "@/lib/database"; // Import getDB
 
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
       .bind(...parameters)
       .all<RadiologyStudyListItem>();
     return NextResponse.json(results);
-  } catch (error) {
+  } catch {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({
@@ -258,7 +258,7 @@ export async function POST(request: NextRequest) {
       createdStudy || { id, message: "Radiology study created" },
       { status: 201 }
     );
-  } catch (error) {
+  } catch {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({

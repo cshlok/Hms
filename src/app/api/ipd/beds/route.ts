@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     const bedsResult = await database.query(query, parameters);
 
     return NextResponse.json(bedsResult.rows || []);
-  } catch (error) {
+  } catch {
     console.error("Error fetching beds:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
       { message: "Bed created (mock operation)" },
       { status: 201 }
     );
-  } catch (error) {
+  } catch {
     console.error("Error creating bed:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";

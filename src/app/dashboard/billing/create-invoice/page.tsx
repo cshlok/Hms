@@ -345,7 +345,7 @@ export default function CreateInvoicePage() {
                 {selectedPatient ? (
                   (<X
                     className="ml-2 h-4 w-4 shrink-0 opacity-50 cursor-pointer"
-                    onClick={(e) => {
+                    onClick={(_event_) => {
                       e.stopPropagation();
                       setSelectedPatient(undefined);
                       setPatientSearchTerm("");
@@ -561,7 +561,7 @@ export default function CreateInvoicePage() {
                           type="number"
                           min="1"
                           value={item.quantity}
-                          onChange={(e) =>
+                          onChange={(_event_) =>
                             updateItemQuantity(
                               item.id,
                               Number.parseInt(e.target.value) || 1

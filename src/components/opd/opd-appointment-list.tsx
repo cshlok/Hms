@@ -89,7 +89,7 @@ export default function OPDAppointmentList({
 
         setCanCheckIn(checkInData.hasPermission || false);
         setCanCancel(cancelData.hasPermission || false);
-      } catch (error) {
+      } catch {
         console.error("Error fetching permissions:", error);
         setCanCheckIn(false);
         setCanCancel(false);

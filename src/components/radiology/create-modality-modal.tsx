@@ -56,7 +56,7 @@ export default function CreateModalityModal({
       });
       // Assuming onSubmit handles success/error reporting
       // onClose(); // Optionally close on successful submit
-    } catch (error) {
+    } catch {
       console.error("Failed to submit modality:", error);
       // Optionally show an error message to the user
       alert(
@@ -82,7 +82,7 @@ export default function CreateModalityModal({
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(_event_) => setName(e.target.value)}
                 className="col-span-3"
                 placeholder="e.g., CT Scanner 1, MRI Unit A"
                 required
@@ -95,7 +95,7 @@ export default function CreateModalityModal({
               <Input
                 id="location"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(_event_) => setLocation(e.target.value)}
                 className="col-span-3"
                 placeholder="e.g., Room 203, Radiology Wing"
               />
@@ -107,7 +107,7 @@ export default function CreateModalityModal({
               <Textarea
                 id="description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(_event_) => setDescription(e.target.value)}
                 className="col-span-3"
               />
             </div>

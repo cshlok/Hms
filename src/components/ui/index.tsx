@@ -634,7 +634,7 @@ export const DialogContent = ({
     >
       <div
         className={`relative w-full max-w-md overflow-hidden rounded-lg bg-white p-6 shadow-lg ${className}`}
-        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside content
+        onClick={(_event_) => e.stopPropagation()} // Prevent closing when clicking inside content
         {...properties}
       >
         <button

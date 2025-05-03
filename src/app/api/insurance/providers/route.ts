@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
 
     const providers = await getInsuranceProvidersFromDB(filters);
     return NextResponse.json({ providers });
-  } catch (error) {
+  } catch {
     console.error("Error fetching insurance providers:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
     const newProvider = await createInsuranceProviderInDB(providerData);
 
     return NextResponse.json({ provider: newProvider }, { status: 201 });
-  } catch (error) {
+  } catch {
     console.error("Error creating insurance provider:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

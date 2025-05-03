@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
 
     const results = await database.query(query, parameters);
     return NextResponse.json(results.rows || []);
-  } catch (error) {
+  } catch {
     console.error("Error fetching laboratory results:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
@@ -391,7 +391,7 @@ export async function POST(request: NextRequest) {
         throw txError; // Re-throw to be caught by outer handler
       }
     }
-  } catch (error) {
+  } catch {
     console.error("Error managing laboratory result:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";

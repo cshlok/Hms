@@ -89,7 +89,7 @@ const AddInventoryPage: React.FC = () => {
           // Add more mock medications as needed
         ];
         setMedications(simulatedMedications);
-      } catch (error) {
+      } catch {
         console.error("Error fetching medications:", error);
         // Handle error appropriately
       }
@@ -226,7 +226,7 @@ const AddInventoryPage: React.FC = () => {
       setTimeout(() => {
         router.push("/pharmacy/inventory");
       }, 2000);
-    } catch (error) {
+    } catch {
       const message =
         error instanceof Error ? error.message : "An unknown error occurred.";
       setSubmitError(message);

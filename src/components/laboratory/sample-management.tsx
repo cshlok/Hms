@@ -165,7 +165,7 @@ const SampleManagement: React.FC = () => {
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )
       );
-    } catch (error) {
+    } catch {
       const messageText =
         error instanceof Error ? error.message : "An unknown error occurred.";
       console.error("Error fetching samples:", error);
@@ -213,7 +213,7 @@ const SampleManagement: React.FC = () => {
       setIsUpdateModalVisible(false);
       updateForm.resetFields();
       fetchSamples(); // Refresh list
-    } catch (error) {
+    } catch {
       const messageText =
         error instanceof Error ? error.message : "An unknown error occurred.";
       console.error("Error updating sample:", error);
@@ -242,7 +242,7 @@ const SampleManagement: React.FC = () => {
 
       message.success(`Sample marked as ${newStatus}`);
       fetchSamples(); // Refresh list
-    } catch (error) {
+    } catch {
       const messageText =
         error instanceof Error ? error.message : "An unknown error occurred.";
       console.error(`Error updating sample status to ${newStatus}:`, error);

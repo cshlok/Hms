@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     setAuthCookie(response, token);
 
     return response;
-  } catch (error) {
+  } catch {
     console.error("Login error:", error);
     return NextResponse.json(
       { error: "Authentication failed" },

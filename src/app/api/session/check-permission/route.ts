@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ hasPermission: hasPerm });
-  } catch (error) {
+  } catch {
     console.error("Error checking permission:", error);
     return NextResponse.json(
       { error: "Internal server error" },

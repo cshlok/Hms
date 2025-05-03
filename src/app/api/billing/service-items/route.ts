@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
       page,
       limit,
     });
-  } catch (error) {
+  } catch {
     console.error("Error fetching service items:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({ serviceItem: newItem }, { status: 201 });
-  } catch (error) {
+  } catch {
     console.error("Error creating service item:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

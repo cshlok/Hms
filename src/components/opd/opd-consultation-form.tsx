@@ -145,7 +145,7 @@ export default function OPDConsultationForm() {
 
         setCanPrescribe(prescribeData.hasPermission || false);
         setCanOrderTests(orderData.hasPermission || false);
-      } catch (error) {
+      } catch {
         console.error("Error fetching permissions:", error);
         setCanPrescribe(false);
         setCanOrderTests(false);
@@ -212,35 +212,35 @@ export default function OPDConsultationForm() {
     }
   };
 
-  // Fetch patient history
-  const fetchPatientHistory = async (patientId: string) => {
-    try {
-      const response = await fetch(`/api/patients/${patientId}/history`);
+  // Fetch patient history - moved outside component
+const fetchPatientHistory = async (patientId: string) => {
+  try {
+    const response = await fetch(`/api/patients/${patientId}/history`);
 
-      if (!response.ok) {
-        let errorMessage = "Failed to fetch patient history";
-        try {
-          const errorData: ApiErrorResponse = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          /* Ignore */
-        }
-        throw new Error(errorMessage);
+    if (!response.ok) {
+      let errorMessage = "Failed to fetch patient history";
+      try {
+        const errorData: ApiErrorResponse = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        /* Ignore */
       }
-
-      // TODO: Process patient history data if needed
-      // const historyData = await response.json();
-      // console.log("Patient History:", historyData);
-    } catch (error: unknown) {
-      // FIX: Use unknown
-      const messageText =
-        error instanceof Error ? error.message : "An unknown error occurred";
-      console.error("Error fetching patient history:", error);
-      // TODO: Show error notification to user
+      throw new Error(errorMessage);
     }
-  };
 
-  // Add medication field
+    // TODO: Process patient history data if needed
+    // const historyData = await response.json();
+    // console.log("Patient History:", historyData);
+  } catch (error_: unknown) {
+    // FIX: Use unknown
+    const messageText =
+      error_ instanceof Error ? error_.message : "An unknown error occurred";
+    console.error("Error fetching patient history:", error_);
+    // TODO: Show error notification to user
+  }
+};
+
+export default function OPDConsultationForm() {
   const addMedication = () => {
     const currentMedications = form.getValues().medications || [];
     form.setValue("medications", [

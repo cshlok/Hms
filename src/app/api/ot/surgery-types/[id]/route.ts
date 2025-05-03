@@ -65,7 +65,7 @@ export async function GET(
           surgeryType.required_equipment
         );
       }
-    } catch (error) {
+    } catch {
       console.error(
         "Failed to parse JSON fields for surgery type:",
         surgeryTypeId,
@@ -74,7 +74,7 @@ export async function GET(
     }
 
     return NextResponse.json(surgeryType);
-  } catch (error) {
+  } catch {
     console.error("Error fetching surgery type details:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -203,7 +203,7 @@ export async function PUT(
           updatedSurgeryType.required_equipment
         );
       }
-    } catch (error) {
+    } catch {
       console.error(
         "Failed to parse JSON fields for updated surgery type:",
         surgeryTypeId,
@@ -212,7 +212,7 @@ export async function PUT(
     }
 
     return NextResponse.json(updatedSurgeryType);
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error updating surgery type:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -262,7 +262,7 @@ export async function DELETE(
       { message: "Surgery type deleted successfully" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error deleting surgery type:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

@@ -254,192 +254,26 @@ const IPDPharmacyIntegration: React.FC<IPDPharmacyIntegrationProperties> = ({
       }
     }
     return "N/A";
-  };
-
-  // Format date for display
-  const formatDate = (dateString: string): string => {
-    try {
-      const options: Intl.DateTimeFormatOptions = {
-        // year: "numeric",
-        // month: "short",
-        // day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      };
-      return new Intl.DateTimeFormat(undefined, options).format(
-        new Date(dateString)
-      );
-    } catch {
-      return "Invalid Date";
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" /> Loading
-        medication schedule...
-      </div>
-    );
   }
+};
 
-  if (error) {
-    return (
-      <div className="text-center text-red-500 p-4" role="alert">
-        {error}
-      </div>
+// Format date for display - moved outside component
+const formatDate = (dateString: string): string => {
+  try {
+    const options: Intl.DateTimeFormatOptions = {
+      // year: "numeric",
+      // month: "short",
+      // day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    };
+    return new Intl.DateTimeFormat(undefined, options).format(
+      new Date(dateString)
     );
+  } catch {
+    return "Invalid Date";
   }
-
-  return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden mt-6">
-      <div className="px-6 py-4 bg-blue-50 border-b border-blue-100">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Medication Administration Record (MAR)
-        </h2>
-      </div>
-      <div className="p-6 space-y-8">
-        {/* Medication Schedule */}
-        <div>
-          <h3 className="text-md font-medium text-gray-700 mb-3">
-            Scheduled Medications
-          </h3>
-          {medicationSchedule.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              No medications scheduled for this patient.
-            </p>
-          ) : (
-            <div className="overflow-x-auto border rounded-md">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Time
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Medication
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dosage
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Condition
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {medicationSchedule.map((item) => (
-                    <tr key={item.id}>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {item.scheduled_time}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                        {item.medication_name}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                        {getDosageForScheduleItem(item.prescription_item_id)}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                        {item.condition || "-"}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            item.status === "administered"
-                              ? "bg-green-100 text-green-800"
-                              : item.status === "skipped" ||
-                                  item.status === "held"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {item.status.charAt(0).toUpperCase() +
-                            item.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm">
-                        {item.status === "pending" && (
-                          <button
-                            onClick={() => handleAdministerMedication(item)}
-                            disabled={loading} // Consider a more specific loading state
-                            className="px-3 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {loading ? (
-                              <Loader2 className="h-3 w-3 animate-spin inline mr-1" />
-                            ) : undefined}
-                            Administer
-                          </button>
-                        )}
-                        {/* Add buttons for Skip, Hold, etc. with appropriate logic */}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Administration History */}
-        <div>
-          <h3 className="text-md font-medium text-gray-700 mb-3">
-            Administration History
-          </h3>
-          {administrationRecords.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              No administration records found.
-            </p>
-          ) : (
-            <div className="overflow-x-auto border rounded-md">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Time
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Medication
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Administered By
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Notes
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {administrationRecords.map((record) => (
-                    <tr key={record.id}>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(record.administered_at)}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                        {record.medication_name}
-                      </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                        {record.administered_by}
-                      </td>
-                      <td className="px-4 py-2 text-sm text-gray-500">
-                        {record.notes || "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 };
 
 export default IPDPharmacyIntegration;

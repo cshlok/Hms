@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database";
-import { getSession, Session } from "@/lib/session"; // Import Session instead of SessionData
+import { getSession } from "@/lib/session"; // Import Session instead of SessionData
 // import { checkUserRole } from "@/lib/auth";
 
 // Define Database interface (can be moved to a shared types file)
@@ -138,7 +138,7 @@ export async function GET(
       );
     }
     return NextResponse.json(study);
-  } catch (error) {
+  } catch {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({
@@ -327,7 +327,7 @@ export async function PUT(
       // Re-throw other DB errors to be caught by the outer catch block
       throw databaseError;
     }
-  } catch (error) {
+  } catch {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({
@@ -405,7 +405,7 @@ export async function DELETE(
       id: studyId,
       status: "Radiology study deleted",
     });
-  } catch (error) {
+  } catch {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({

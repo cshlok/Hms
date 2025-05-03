@@ -69,7 +69,7 @@ export default function RadiologySettings() {
       }
       const data: ProcedureType[] = await response.json();
       setProcedureTypes(data || []); // Ensure it's always an array
-    } catch (error) {
+    } catch {
       const message = error instanceof Error ? error.message : "Unknown error";
       console.error("Error fetching procedure types:", error);
       setErrorProcedures(`Failed to load procedure types: ${message}`);
@@ -96,7 +96,7 @@ export default function RadiologySettings() {
       }
       const data: Modality[] = await response.json();
       setModalities(data || []); // Ensure it's always an array
-    } catch (error) {
+    } catch {
       const message = error instanceof Error ? error.message : "Unknown error";
       console.error("Error fetching modalities:", error);
       setErrorModalities(`Failed to load modalities: ${message}`);
@@ -132,7 +132,7 @@ export default function RadiologySettings() {
       setShowCreateProcedureModal(false);
       fetchProcedureTypes(); // Refresh the list
       // Consider showing a success message
-    } catch (error) {
+    } catch {
       const message = error instanceof Error ? error.message : "Unknown error";
       console.error("Error creating procedure type:", error);
       alert(`Error: ${message}`); // Replace alert with a better notification system (e.g., toast)
@@ -165,7 +165,7 @@ export default function RadiologySettings() {
       setShowCreateModalityModal(false);
       fetchModalities(); // Refresh the list
       // Consider showing a success message
-    } catch (error) {
+    } catch {
       const message = error instanceof Error ? error.message : "Unknown error";
       console.error("Error creating modality:", error);
       alert(`Error: ${message}`); // Replace alert with a better notification system
