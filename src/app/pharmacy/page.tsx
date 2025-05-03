@@ -1,13 +1,12 @@
+"use client";
 
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 // Removed unused Image import
 // import Image from 'next/image';
 
 // Define interfaces for component props and data structures
-interface StatCardProps {
+interface StatCardProperties {
   title: string;
   value: number | string;
   icon: React.ReactNode; // Allow JSX/string for icons
@@ -27,7 +26,7 @@ interface RecentPrescription {
   number: string;
   patient: string;
   date: string;
-  status: 'pending' | 'dispensed' | 'partially_dispensed' | string; // Allow other statuses
+  status: "pending" | "dispensed" | "partially_dispensed" | string; // Allow other statuses
 }
 
 interface ExpiringMedication {
@@ -41,13 +40,13 @@ interface ExpiringMedication {
 // Main Pharmacy Dashboard Page
 export default function PharmacyPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<PharmacyStats>({
     totalMedications: 0,
     lowStockItems: 0,
     pendingPrescriptions: 0,
-    expiringItems: 0
+    expiringItems: 0,
   });
 
   useEffect(() => {
@@ -58,15 +57,15 @@ export default function PharmacyPage() {
         // In a real implementation, these would be separate API calls
         // For now, we'll simulate the data
         // TODO: Replace with actual API calls and error handling
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
         setStats({
           totalMedications: 125,
           lowStockItems: 8,
           pendingPrescriptions: 12,
-          expiringItems: 5
+          expiringItems: 5,
         });
       } catch (error) {
-        console.error('Error fetching pharmacy stats:', error);
+        console.error("Error fetching pharmacy stats:", error);
         // Optionally set an error state to display to the user
       } finally {
         setLoading(false);
@@ -78,7 +77,7 @@ export default function PharmacyPage() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'dashboard':
+      case "dashboard": {
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatCard
@@ -86,57 +85,67 @@ export default function PharmacyPage() {
               value={stats.totalMedications}
               icon="📦"
               color="bg-blue-100"
-              onClick={() => router.push('/pharmacy/medications')}
+              onClick={() => router.push("/pharmacy/medications")}
             />
             <StatCard
               title="Low Stock Items"
               value={stats.lowStockItems}
               icon="⚠️"
               color="bg-yellow-100"
-              onClick={() => router.push('/pharmacy/inventory?low_stock=true')}
+              onClick={() => router.push("/pharmacy/inventory?low_stock=true")}
             />
             <StatCard
               title="Pending Prescriptions"
               value={stats.pendingPrescriptions}
               icon="📋"
               color="bg-green-100"
-              onClick={() => router.push('/pharmacy/prescriptions?status=pending')}
+              onClick={() =>
+                router.push("/pharmacy/prescriptions?status=pending")
+              }
             />
             <StatCard
               title="Expiring Soon"
               value={stats.expiringItems}
               icon="⏱️"
               color="bg-red-100"
-              onClick={() => router.push('/pharmacy/inventory?expiry_before=' + getThirtyDaysFromNow())}
+              onClick={() =>
+                router.push(
+                  "/pharmacy/inventory?expiry_before=" + getThirtyDaysFromNow()
+                )
+              }
             />
           </div>
         );
-      default:
+      }
+      default: {
         // Should not happen if tabs are managed correctly, but good for safety
         return <div>Select a tab to view content</div>;
+      }
     }
   };
 
   const getThirtyDaysFromNow = (): string => {
     const date = new Date();
     date.setDate(date.getDate() + 30);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">Pharmacy Management</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Pharmacy Management
+        </h1>
         <div className="flex space-x-2">
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-            onClick={() => router.push('/pharmacy/inventory/add')}
+            onClick={() => router.push("/pharmacy/inventory/add")}
           >
             Add Inventory
           </button>
           <button
             className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
-            onClick={() => router.push('/pharmacy/medications/add')}
+            onClick={() => router.push("/pharmacy/medications/add")}
           >
             Add Medication
           </button>
@@ -148,33 +157,35 @@ export default function PharmacyPage() {
           {/* Simplified tab buttons - consider making this dynamic */}
           <button
             className={`px-4 py-3 text-sm font-medium ${
-              activeTab === 'dashboard' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:text-gray-800'
+              activeTab === "dashboard"
+                ? "bg-blue-50 text-blue-600 border-b-2 border-blue-500"
+                : "text-gray-600 hover:text-gray-800"
             }`}
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => setActiveTab("dashboard")}
           >
             Dashboard
           </button>
           <button
             className={`px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-800`}
-            onClick={() => router.push('/pharmacy/inventory')}
+            onClick={() => router.push("/pharmacy/inventory")}
           >
             Inventory
           </button>
           <button
             className={`px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-800`}
-            onClick={() => router.push('/pharmacy/medications')}
+            onClick={() => router.push("/pharmacy/medications")}
           >
             Medications
           </button>
           <button
             className={`px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-800`}
-            onClick={() => router.push('/pharmacy/prescriptions')}
+            onClick={() => router.push("/pharmacy/prescriptions")}
           >
             Prescriptions
           </button>
           <button
             className={`px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-800`}
-            onClick={() => router.push('/pharmacy/dispensing')}
+            onClick={() => router.push("/pharmacy/dispensing")}
           >
             Dispensing
           </button>
@@ -195,7 +206,9 @@ export default function PharmacyPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="px-6 py-4 bg-blue-50 border-b border-blue-100">
-            <h2 className="text-lg font-semibold text-gray-800">Recent Prescriptions</h2>
+            <h2 className="text-lg font-semibold text-gray-800">
+              Recent Prescriptions
+            </h2>
           </div>
           <div className="p-6">
             <RecentPrescriptionsList />
@@ -204,7 +217,9 @@ export default function PharmacyPage() {
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="px-6 py-4 bg-blue-50 border-b border-blue-100">
-            <h2 className="text-lg font-semibold text-gray-800">Expiring Medications</h2>
+            <h2 className="text-lg font-semibold text-gray-800">
+              Expiring Medications
+            </h2>
           </div>
           <div className="p-6">
             <ExpiringMedicationsList />
@@ -216,7 +231,7 @@ export default function PharmacyPage() {
 }
 
 // Stat Card Component - Typed props
-function StatCard({ title, value, icon, color, onClick }: StatCardProps) {
+function StatCard({ title, value, icon, color, onClick }: StatCardProperties) {
   return (
     <div
       className={`${color} rounded-lg shadow-md p-6 cursor-pointer transition-transform hover:scale-105`}
@@ -237,23 +252,63 @@ function StatCard({ title, value, icon, color, onClick }: StatCardProps) {
 function RecentPrescriptionsList() {
   // Mock data for recent prescriptions - Typed
   const recentPrescriptions: RecentPrescription[] = [
-    { id: 'presc_1', number: 'PRSC-20250428-1234', patient: 'John Smith', date: '2025-04-28', status: 'pending' },
-    { id: 'presc_2', number: 'PRSC-20250427-5678', patient: 'Jane Doe', date: '2025-04-27', status: 'dispensed' },
-    { id: 'presc_3', number: 'PRSC-20250426-9012', patient: 'Robert Johnson', date: '2025-04-26', status: 'partially_dispensed' },
+    {
+      id: "presc_1",
+      number: "PRSC-20250428-1234",
+      patient: "John Smith",
+      date: "2025-04-28",
+      status: "pending",
+    },
+    {
+      id: "presc_2",
+      number: "PRSC-20250427-5678",
+      patient: "Jane Doe",
+      date: "2025-04-27",
+      status: "dispensed",
+    },
+    {
+      id: "presc_3",
+      number: "PRSC-20250426-9012",
+      patient: "Robert Johnson",
+      date: "2025-04-26",
+      status: "partially_dispensed",
+    },
   ];
 
   // Typed the status parameter
-  const getStatusBadge = (status: RecentPrescription['status']): JSX.Element => {
+  const getStatusBadge = (
+    status: RecentPrescription["status"]
+  ): JSX.Element => {
     switch (status) {
-      case 'pending':
-        return <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>;
-      case 'dispensed':
-        return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Dispensed</span>;
-      case 'partially_dispensed':
-        return <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Partial</span>;
-      default:
+      case "pending": {
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+            Pending
+          </span>
+        );
+      }
+      case "dispensed": {
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+            Dispensed
+          </span>
+        );
+      }
+      case "partially_dispensed": {
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+            Partial
+          </span>
+        );
+      }
+      default: {
         // Handle unknown statuses gracefully
-        return <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">{status}</span>;
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+            {status}
+          </span>
+        );
+      }
     }
   };
 
@@ -267,19 +322,41 @@ function RecentPrescriptionsList() {
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prescription</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Prescription
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Patient
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Date
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {recentPrescriptions.map((prescription) => (
-            <tr key={prescription.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {/* TODO: Navigate to prescription detail */}}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{prescription.number}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{prescription.patient}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{prescription.date}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(prescription.status)}</td>
+            <tr
+              key={prescription.id}
+              className="hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                /* TODO: Navigate to prescription detail */
+              }}
+            >
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                {prescription.number}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {prescription.patient}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {prescription.date}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {getStatusBadge(prescription.status)}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -292,9 +369,27 @@ function RecentPrescriptionsList() {
 function ExpiringMedicationsList() {
   // Mock data for expiring medications - Typed
   const expiringMedications: ExpiringMedication[] = [
-    { id: 'batch_1', medication: 'Amoxicillin 500mg', batch: 'AMX2023001', expiry: '2025-05-15', stock: 120 },
-    { id: 'batch_2', medication: 'Paracetamol 500mg', batch: 'PCM2023001', expiry: '2025-05-20', stock: 85 },
-    { id: 'batch_3', medication: 'Cetirizine 10mg', batch: 'CET2023001', expiry: '2025-05-30', stock: 42 },
+    {
+      id: "batch_1",
+      medication: "Amoxicillin 500mg",
+      batch: "AMX2023001",
+      expiry: "2025-05-15",
+      stock: 120,
+    },
+    {
+      id: "batch_2",
+      medication: "Paracetamol 500mg",
+      batch: "PCM2023001",
+      expiry: "2025-05-20",
+      stock: 85,
+    },
+    {
+      id: "batch_3",
+      medication: "Cetirizine 10mg",
+      batch: "CET2023001",
+      expiry: "2025-05-30",
+      stock: 42,
+    },
   ];
 
   // TODO: Replace mock data with actual data fetching
@@ -307,19 +402,41 @@ function ExpiringMedicationsList() {
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medication</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Medication
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Batch
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Expiry
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Stock
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {expiringMedications.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => {/* TODO: Navigate to inventory detail */}}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.medication}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.batch}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-medium">{item.expiry}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.stock}</td>
+            <tr
+              key={item.id}
+              className="hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                /* TODO: Navigate to inventory detail */
+              }}
+            >
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {item.medication}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {item.batch}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-medium">
+                {item.expiry}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {item.stock}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -327,4 +444,3 @@ function ExpiringMedicationsList() {
     </div>
   );
 }
-

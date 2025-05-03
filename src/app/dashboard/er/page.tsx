@@ -3,7 +3,13 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import ERDashboardStats from "@/components/er/ERDashboardStats";
 import ERPatientTrackingBoard from "@/components/er/ERPatientTrackingBoard";
 import ERTriageForm from "@/components/er/ERTriageForm";
@@ -32,7 +38,7 @@ export default function ERDashboardPage() {
           <TabsTrigger value="alerts">Critical Alerts</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="tracking" className="mt-4">
           <Card>
             <CardHeader>
@@ -46,7 +52,7 @@ export default function ERDashboardPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="triage" className="mt-4">
           <Card>
             <CardHeader>
@@ -60,7 +66,7 @@ export default function ERDashboardPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="alerts" className="mt-4">
           <Card>
             <CardHeader>
@@ -74,7 +80,7 @@ export default function ERDashboardPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="reports" className="mt-4">
           <Card>
             <CardHeader>
@@ -84,15 +90,17 @@ export default function ERDashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p>Reports functionality will be implemented in a future iteration.</p>
+              <p>
+                Reports functionality will be implemented in a future iteration.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      <ERRegistrationModal 
-        isOpen={isRegistrationModalOpen} 
-        onClose={() => setIsRegistrationModalOpen(false)} 
+      <ERRegistrationModal
+        isOpen={isRegistrationModalOpen}
+        onClose={() => setIsRegistrationModalOpen(false)}
       />
     </div>
   );

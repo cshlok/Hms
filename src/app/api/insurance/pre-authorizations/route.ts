@@ -27,11 +27,11 @@ const mockPreAuths: PreAuthorization[] = [
     id: 1,
     patient_insurance_id: 101,
     requested_procedure: "Appendectomy",
-    estimated_cost: 150000.00,
+    estimated_cost: 150_000,
     request_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
     status: "Approved", // e.g., "Pending", "Approved", "Rejected", "More Info Required"
     authorization_number: "AUTH12345",
-    approved_amount: 140000.00,
+    approved_amount: 140_000,
     expiry_date: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(), // Expires in 25 days
     notes: "Approved with co-pay.",
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -41,12 +41,12 @@ const mockPreAuths: PreAuthorization[] = [
     id: 2,
     patient_insurance_id: 102,
     requested_procedure: "MRI Brain",
-    estimated_cost: 15000.00,
+    estimated_cost: 15_000,
     request_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
     status: "Pending",
-    authorization_number: null,
-    approved_amount: null,
-    expiry_date: null,
+    authorization_number: undefined,
+    approved_amount: undefined,
+    expiry_date: undefined,
     notes: "Awaiting review.",
     created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -84,31 +84,47 @@ interface PreAuthorizationFilters {
 }
 
 // Helper function to simulate DB interaction (GET)
-async function getPreAuthorizationsFromDB(filters: PreAuthorizationFilters = {}) {
-  console.log("Simulating DB fetch for pre-authorizations with filters:", filters);
+async function getPreAuthorizationsFromDB(
+  filters: PreAuthorizationFilters = {}
+) {
+  console.log(
+    "Simulating DB fetch for pre-authorizations with filters:",
+    filters
+  );
   let filteredPreAuths = [...mockPreAuths];
-  
+
   // FIX: Check filters.status before using (TS18049)
   if (filters.status) {
-    filteredPreAuths = filteredPreAuths.filter(pa => pa.status.toLowerCase() === filters.status!.toLowerCase());
+    filteredPreAuths = filteredPreAuths.filter(
+      (pa) => pa.status.toLowerCase() === filters.status!.toLowerCase()
+    );
   }
   // FIX: Check filters.patient_insurance_id before parsing (TS2345)
   if (filters.patient_insurance_id) {
-    const patientInsuranceId = parseInt(filters.patient_insurance_id);
-    if (!isNaN(patientInsuranceId)) {
-      filteredPreAuths = filteredPreAuths.filter(pa => pa.patient_insurance_id === patientInsuranceId);
+    const patientInsuranceId = Number.parseInt(filters.patient_insurance_id);
+    if (!Number.isNaN(patientInsuranceId)) {
+      filteredPreAuths = filteredPreAuths.filter(
+        (pa) => pa.patient_insurance_id === patientInsuranceId
+      );
     }
   }
 
   // Add date filtering if needed
   if (filters.date_from) {
-    filteredPreAuths = filteredPreAuths.filter(pa => new Date(pa.request_date) >= new Date(filters.date_from!));
+    filteredPreAuths = filteredPreAuths.filter(
+      (pa) => new Date(pa.request_date) >= new Date(filters.date_from!)
+    );
   }
   if (filters.date_to) {
-    filteredPreAuths = filteredPreAuths.filter(pa => new Date(pa.request_date) <= new Date(filters.date_to!));
+    filteredPreAuths = filteredPreAuths.filter(
+      (pa) => new Date(pa.request_date) <= new Date(filters.date_to!)
+    );
   }
-  
-  return filteredPreAuths.sort((a, b) => new Date(b.request_date).getTime() - new Date(a.request_date).getTime());
+
+  return filteredPreAuths.sort(
+    (a, b) =>
+      new Date(b.request_date).getTime() - new Date(a.request_date).getTime()
+  );
 }
 
 // Helper function to simulate DB interaction (GET by ID) - Belongs in [id]/route.ts
@@ -122,7 +138,10 @@ async function getPreAuthorizationsFromDB(filters: PreAuthorizationFilters = {})
 // }
 
 // Helper function to simulate DB interaction (POST)
-async function createPreAuthorizationInDB(data: PreAuthorizationInput): Promise<PreAuthorization> { // Added return type
+async function createPreAuthorizationInDB(
+  data: PreAuthorizationInput
+): Promise<PreAuthorization> {
+  // Added return type
   console.log("Simulating DB create for pre-authorization:", data);
   const now = new Date().toISOString();
   // FIX: Ensure created object matches PreAuthorization interface
@@ -130,16 +149,16 @@ async function createPreAuthorizationInDB(data: PreAuthorizationInput): Promise<
     id: nextPreAuthId++,
     patient_insurance_id: data.patient_insurance_id,
     requested_procedure: data.requested_procedure,
-    estimated_cost: data.estimated_cost ?? null, // Use nullish coalescing for optional number
+    estimated_cost: data.estimated_cost ?? undefined, // Use nullish coalescing for optional number
     request_date: data.request_date || now,
     status: "Pending",
-    authorization_number: null,
-    approved_amount: null,
-    expiry_date: null,
-    notes: data.notes || null, // Use null for optional string
-    referring_doctor_id: data.referring_doctor_id || null,
-    diagnosis_code: data.diagnosis_code || null,
-    rejection_reason: null,
+    authorization_number: undefined,
+    approved_amount: undefined,
+    expiry_date: undefined,
+    notes: data.notes || undefined, // Use null for optional string
+    referring_doctor_id: data.referring_doctor_id || undefined,
+    diagnosis_code: data.diagnosis_code || undefined,
+    rejection_reason: undefined,
     created_at: now,
     updated_at: now,
   };
@@ -156,16 +175,15 @@ async function createPreAuthorizationInDB(data: PreAuthorizationInput): Promise<
 //   }
 //   const now = new Date().toISOString();
 //   // FIX: Ensure updated object matches PreAuthorization interface
-//   const updatedPreAuth = { 
-//     ...mockPreAuths[preAuthIndex], 
-//     ...data, 
-//     approved_amount: data.approved_amount === null ? null : data.approved_amount, // Allow null
-//     updated_at: now 
+//   const updatedPreAuth = {
+//     ...mockPreAuths[preAuthIndex],
+//     ...data,
+//     approved_amount: data.approved_amount === undefined ? null : data.approved_amount, // Allow null
+//     updated_at: now
 //   };
 //   mockPreAuths[preAuthIndex] = updatedPreAuth;
 //   return updatedPreAuth;
 // }
-
 
 /**
  * GET /api/insurance/pre-authorizations
@@ -190,7 +208,10 @@ export async function GET(request: NextRequest) {
       errorMessage = error.message;
     }
     return NextResponse.json(
-      { error: "Failed to fetch pre-authorization requests", details: errorMessage },
+      {
+        error: "Failed to fetch pre-authorization requests",
+        details: errorMessage,
+      },
       { status: 500 }
     );
   }
@@ -209,7 +230,10 @@ export async function POST(request: NextRequest) {
     // Basic validation (add more comprehensive validation)
     if (!preAuthData.patient_insurance_id || !preAuthData.requested_procedure) {
       return NextResponse.json(
-        { error: "Missing required fields (patient_insurance_id, requested_procedure)" },
+        {
+          error:
+            "Missing required fields (patient_insurance_id, requested_procedure)",
+        },
         { status: 400 }
       );
     }
@@ -225,11 +249,13 @@ export async function POST(request: NextRequest) {
       errorMessage = error.message;
     }
     return NextResponse.json(
-      { error: "Failed to create pre-authorization request", details: errorMessage },
+      {
+        error: "Failed to create pre-authorization request",
+        details: errorMessage,
+      },
       { status: 500 }
     );
   }
 }
 
 // Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
-

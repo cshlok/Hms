@@ -11,7 +11,8 @@ interface MedicationFilters {
 }
 
 // Placeholder function to simulate database interaction
-async function getMedicationsFromDB(filters: MedicationFilters) { // FIX: Use MedicationFilters interface
+async function getMedicationsFromDB(filters: MedicationFilters) {
+  // FIX: Use MedicationFilters interface
   console.log("Simulating fetching medications with filters:", filters);
   // Replace with actual D1 query when DB is configured
   // const { env } = getRequestContext();
@@ -24,7 +25,7 @@ async function getMedicationsFromDB(filters: MedicationFilters) { // FIX: Use Me
   //   filters.category || null
   // ).all();
   // return results;
-  
+
   // Return mock data for now
   const mockMedications = [
     {
@@ -39,11 +40,11 @@ async function getMedicationsFromDB(filters: MedicationFilters) { // FIX: Use Me
       expiry_date: "2027-03-15",
       current_stock: 1250,
       reorder_level: 200,
-      unit_price: 2.50,
+      unit_price: 2.5,
       location: "Shelf A-12",
       status: "active", // active, low_stock, out_of_stock, expired
       created_at: "2025-01-15T10:30:00Z",
-      updated_at: "2025-04-15T14:20:00Z"
+      updated_at: "2025-04-15T14:20:00Z",
     },
     {
       id: 2,
@@ -61,7 +62,7 @@ async function getMedicationsFromDB(filters: MedicationFilters) { // FIX: Use Me
       location: "Shelf B-05",
       status: "low_stock",
       created_at: "2025-02-20T09:15:00Z",
-      updated_at: "2025-04-20T11:30:00Z"
+      updated_at: "2025-04-20T11:30:00Z",
     },
     {
       id: 3,
@@ -79,7 +80,7 @@ async function getMedicationsFromDB(filters: MedicationFilters) { // FIX: Use Me
       location: "Shelf C-08",
       status: "active",
       created_at: "2025-01-10T13:45:00Z",
-      updated_at: "2025-04-10T16:20:00Z"
+      updated_at: "2025-04-10T16:20:00Z",
     },
     {
       id: 4,
@@ -93,11 +94,11 @@ async function getMedicationsFromDB(filters: MedicationFilters) { // FIX: Use Me
       expiry_date: "2026-04-05",
       current_stock: 75,
       reorder_level: 50,
-      unit_price: 120.00,
+      unit_price: 120,
       location: "Refrigerator 2",
       status: "active",
       created_at: "2025-04-05T08:30:00Z",
-      updated_at: "2025-04-25T09:15:00Z"
+      updated_at: "2025-04-25T09:15:00Z",
     },
     {
       id: 5,
@@ -111,24 +112,29 @@ async function getMedicationsFromDB(filters: MedicationFilters) { // FIX: Use Me
       expiry_date: "2027-02-10",
       current_stock: 0,
       reorder_level: 30,
-      unit_price: 85.50,
+      unit_price: 85.5,
       location: "Shelf D-03",
       status: "out_of_stock",
       created_at: "2025-02-10T11:20:00Z",
-      updated_at: "2025-04-18T15:45:00Z"
-    }
+      updated_at: "2025-04-18T15:45:00Z",
+    },
   ];
-  
-  return mockMedications.filter(medication => {
+
+  return mockMedications.filter((medication) => {
     // Apply category filter
-    if (filters.category && medication.category !== filters.category) return false;
-    
+    if (filters.category && medication.category !== filters.category)
+      return false;
+
     // Apply status filter
     if (filters.status && medication.status !== filters.status) return false;
-    
+
     // Apply manufacturer filter
-    if (filters.manufacturer && medication.manufacturer !== filters.manufacturer) return false;
-    
+    if (
+      filters.manufacturer &&
+      medication.manufacturer !== filters.manufacturer
+    )
+      return false;
+
     // Apply search filter
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
@@ -138,7 +144,7 @@ async function getMedicationsFromDB(filters: MedicationFilters) { // FIX: Use Me
         medication.category.toLowerCase().includes(searchTerm)
       );
     }
-    
+
     return true;
   });
 }
@@ -190,19 +196,23 @@ async function createMedicationInDB(medicationData: MedicationInput) {
   //   medicationData.current_stock > 0 ? (medicationData.current_stock <= medicationData.reorder_level ? "low_stock" : "active") : "out_of_stock"
   // ).run();
   // return { id: info.meta.last_row_id, ...medicationData };
-  
+
   // Return mock success response
   const newId = Math.floor(Math.random() * 1000) + 10;
-  const status = (medicationData.current_stock ?? 0) > 0 
-    ? ((medicationData.current_stock ?? 0) <= (medicationData.reorder_level ?? 0) ? "low_stock" : "active") 
-    : "out_of_stock";
-  
+  const status =
+    (medicationData.current_stock ?? 0) > 0
+      ? (medicationData.current_stock ?? 0) <=
+        (medicationData.reorder_level ?? 0)
+        ? "low_stock"
+        : "active"
+      : "out_of_stock";
+
   return {
     id: newId,
     ...medicationData,
     status,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -215,7 +225,7 @@ async function getMedicationByIdFromDB(id: number) {
   //   "SELECT * FROM pharmacy_inventory WHERE id = ?"
   // ).bind(id).all();
   // return results[0];
-  
+
   // Return mock data for now
   const mockMedications = [
     {
@@ -230,17 +240,37 @@ async function getMedicationByIdFromDB(id: number) {
       expiry_date: "2027-03-15",
       current_stock: 1250,
       reorder_level: 200,
-      unit_price: 2.50,
+      unit_price: 2.5,
       location: "Shelf A-12",
       status: "active",
       created_at: "2025-01-15T10:30:00Z",
       updated_at: "2025-04-15T14:20:00Z",
       stock_history: [
-        { date: "2025-01-15", transaction_type: "purchase", quantity: 2000, batch_number: "BN20250315" },
-        { date: "2025-02-20", transaction_type: "dispense", quantity: -350, prescription_id: "RX20250220-001" },
-        { date: "2025-03-10", transaction_type: "dispense", quantity: -200, prescription_id: "RX20250310-005" },
-        { date: "2025-04-05", transaction_type: "dispense", quantity: -200, prescription_id: "RX20250405-012" }
-      ]
+        {
+          date: "2025-01-15",
+          transaction_type: "purchase",
+          quantity: 2000,
+          batch_number: "BN20250315",
+        },
+        {
+          date: "2025-02-20",
+          transaction_type: "dispense",
+          quantity: -350,
+          prescription_id: "RX20250220-001",
+        },
+        {
+          date: "2025-03-10",
+          transaction_type: "dispense",
+          quantity: -200,
+          prescription_id: "RX20250310-005",
+        },
+        {
+          date: "2025-04-05",
+          transaction_type: "dispense",
+          quantity: -200,
+          prescription_id: "RX20250405-012",
+        },
+      ],
     },
     {
       id: 3,
@@ -260,18 +290,37 @@ async function getMedicationByIdFromDB(id: number) {
       created_at: "2025-01-10T13:45:00Z",
       updated_at: "2025-04-10T16:20:00Z",
       stock_history: [
-        { date: "2025-01-10", transaction_type: "purchase", quantity: 500, batch_number: "BN20250110" },
-        { date: "2025-02-15", transaction_type: "dispense", quantity: -30, prescription_id: "RX20250215-003" },
-        { date: "2025-03-20", transaction_type: "dispense", quantity: -20, prescription_id: "RX20250320-008" }
-      ]
-    }
+        {
+          date: "2025-01-10",
+          transaction_type: "purchase",
+          quantity: 500,
+          batch_number: "BN20250110",
+        },
+        {
+          date: "2025-02-15",
+          transaction_type: "dispense",
+          quantity: -30,
+          prescription_id: "RX20250215-003",
+        },
+        {
+          date: "2025-03-20",
+          transaction_type: "dispense",
+          quantity: -20,
+          prescription_id: "RX20250320-008",
+        },
+      ],
+    },
   ];
-  
-  return mockMedications.find(medication => medication.id === id) || null;
+
+  return mockMedications.find((medication) => medication.id === id) || undefined;
 }
 
 // Placeholder function to simulate updating a medication
-async function updateMedicationInDB(id: number, updateData: MedicationUpdateData) { // FIX: Use MedicationUpdateData interface
+async function updateMedicationInDB(
+  id: number,
+  updateData: MedicationUpdateData
+) {
+  // FIX: Use MedicationUpdateData interface
   console.log("Simulating updating medication:", id, updateData);
   // Replace with actual D1 update query when DB is configured
   // const { env } = getRequestContext();
@@ -279,13 +328,13 @@ async function updateMedicationInDB(id: number, updateData: MedicationUpdateData
   //   .map(([key, _]) => `${key} = ?`)
   //   .join(", ");
   // const updateValues = Object.values(updateData);
-  // 
+  //
   // // Update status based on current_stock if it's being updated
   // if (updateData.current_stock !== undefined) {
   //   const { results } = await env.DB.prepare(
   //     "SELECT reorder_level FROM pharmacy_inventory WHERE id = ?"
   //   ).bind(id).all();
-  //   
+  //
   //   if (results.length > 0) {
   //     const reorderLevel = results[0].reorder_level;
   //     let status;
@@ -296,16 +345,16 @@ async function updateMedicationInDB(id: number, updateData: MedicationUpdateData
   //     } else {
   //       status = "active";
   //     }
-  //     
+  //
   //     updateFields += ", status = ?";
   //     updateValues.push(status);
   //   }
   // }
-  // 
+  //
   // await env.DB.prepare(
   //   `UPDATE pharmacy_inventory SET ${updateFields}, updated_at = ? WHERE id = ?`
   // ).bind(...updateValues, new Date().toISOString(), id).run();
-  // 
+  //
   // // If this is a stock transaction, record it in history
   // if (updateData.transaction_type && updateData.quantity) {
   //   await env.DB.prepare(
@@ -318,14 +367,17 @@ async function updateMedicationInDB(id: number, updateData: MedicationUpdateData
   //     updateData.reference_id || null
   //   ).run();
   // }
-  // 
+  //
   // return { id, ...updateData };
-  
+
   // Return mock success response
   let status = updateData.status;
-  
+
   // Update status based on current_stock if it's being updated
-  if (updateData.current_stock !== undefined && updateData.reorder_level !== undefined) {
+  if (
+    updateData.current_stock !== undefined &&
+    updateData.reorder_level !== undefined
+  ) {
     if (updateData.current_stock <= 0) {
       status = "out_of_stock";
     } else if (updateData.current_stock <= updateData.reorder_level) {
@@ -334,12 +386,12 @@ async function updateMedicationInDB(id: number, updateData: MedicationUpdateData
       status = "active";
     }
   }
-  
+
   return {
     id,
     ...updateData,
     status: status || updateData.status,
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -356,28 +408,38 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
     // Add other filters as needed
 
-    const filters: MedicationFilters = { category, status, manufacturer, search }; // FIX: Use interface
-    
+    const filters: MedicationFilters = {
+      category,
+      status,
+      manufacturer,
+      search,
+    }; // FIX: Use interface
+
     // Check if this is a request for a specific medication
     const path = request.nextUrl.pathname;
-    if (path.match(/\/api\/pharmacy\/inventory\/\d+$/)) {
-      const id = parseInt(path.split('/').pop() || '0'); // FIX: Removed unnecessary escapes
+    if (/\/api\/pharmacy\/inventory\/\d+$/.test(path)) {
+      const id = Number.parseInt(path.split("/").pop() || "0"); // FIX: Removed unnecessary escapes
       if (id > 0) {
         const medication = await getMedicationByIdFromDB(id);
         if (!medication) {
-          return NextResponse.json({ error: "Medication not found" }, { status: 404 });
+          return NextResponse.json(
+            { error: "Medication not found" },
+            { status: 404 }
+          );
         }
         return NextResponse.json({ medication });
       }
     }
-    
+
     // Otherwise, return filtered list
     const medications = await getMedicationsFromDB(filters);
 
     return NextResponse.json({ medications });
-  } catch (error: unknown) { // Added type annotation
+  } catch (error: unknown) {
+    // Added type annotation
     console.error("Error fetching medications:", error);
-    const message = error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
     return NextResponse.json(
       { error: "Failed to fetch medications", details: message },
       { status: 500 }
@@ -391,12 +453,21 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const medicationData = await request.json() as MedicationInput;
+    const medicationData = (await request.json()) as MedicationInput;
 
     // Basic validation (add more comprehensive validation)
-    if (!medicationData.name || !medicationData.generic_name || !medicationData.category || !medicationData.form || !medicationData.strength) {
+    if (
+      !medicationData.name ||
+      !medicationData.generic_name ||
+      !medicationData.category ||
+      !medicationData.form ||
+      !medicationData.strength
+    ) {
       return NextResponse.json(
-        { error: "Missing required fields (name, generic_name, category, form, strength)" },
+        {
+          error:
+            "Missing required fields (name, generic_name, category, form, strength)",
+        },
         { status: 400 }
       );
     }
@@ -405,9 +476,11 @@ export async function POST(request: NextRequest) {
     const newMedication = await createMedicationInDB(medicationData);
 
     return NextResponse.json({ medication: newMedication }, { status: 201 });
-  } catch (error: unknown) { // Added type annotation
+  } catch (error: unknown) {
+    // Added type annotation
     console.error("Error creating medication:", error);
-    const message = error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
     return NextResponse.json(
       { error: "Failed to create medication", details: message },
       { status: 500 }
@@ -422,25 +495,29 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const path = request.nextUrl.pathname;
-    const id = parseInt(path.split('/').pop() || '0'); // FIX: Removed unnecessary escapes
-    
+    const id = Number.parseInt(path.split("/").pop() || "0"); // FIX: Removed unnecessary escapes
+
     if (id <= 0) {
-      return NextResponse.json({ error: "Invalid medication ID" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid medication ID" },
+        { status: 400 }
+      );
     }
-    
-    const updateData = await request.json() as MedicationUpdateData; // FIX: Use interface
-    
+
+    const updateData = (await request.json()) as MedicationUpdateData; // FIX: Use interface
+
     // Simulate updating the medication in the database
     const updatedMedication = await updateMedicationInDB(id, updateData);
 
     return NextResponse.json({ medication: updatedMedication });
-  } catch (error: unknown) { // Added type annotation
+  } catch (error: unknown) {
+    // Added type annotation
     console.error("Error updating medication:", error);
-    const message = error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred"; // Handle unknown error type
     return NextResponse.json(
       { error: "Failed to update medication", details: message },
       { status: 500 }
     );
   }
 }
-

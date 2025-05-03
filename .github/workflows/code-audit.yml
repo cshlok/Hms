@@ -33,4 +33,3 @@ jobs:
       - name: Audit vulnerabilities
         # Check for high severity vulnerabilities in dependencies
         run: npm audit --audit-level=high
-

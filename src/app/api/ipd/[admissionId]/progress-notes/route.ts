@@ -20,35 +20,39 @@ interface ProgressNoteInput {
 }
 
 // GET handler for fetching progress notes
-export async function GET(request: NextRequest, { params }: { params: { admissionId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { admissionId: string } }
+) {
   try {
     const user = await getCurrentUser(); // Changed from getSession
-    
+
     // Check if user is authenticated
-    if (!user) { // Changed from !session || !session.user
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
-        status: 401 
+    if (!user) {
+      // Changed from !session || !session.user
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
       });
     }
-    
+
     // Check if user has appropriate role (e.g., Doctor, Nurse, Admin)
-    const allowedRoles = ["Doctor", "Nurse", "Consultant", "Admin"]; // Add roles as needed
+    const allowedRoles = new Set(["Doctor", "Nurse", "Consultant", "Admin"]); // Add roles as needed
     // Changed from !allowedRoles.includes(session.user.roleName)
-    if (!user.roles.some(role => allowedRoles.includes(role))) { 
-      return new Response(JSON.stringify({ error: "Forbidden" }), { 
-        status: 403 
+    if (!user.roles.some((role) => allowedRoles.has(role))) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
       });
     }
-    
+
     const admissionId = params.admissionId;
-    const DB = (process.env.DB as unknown) as D1Database;
+    const DB = process.env.DB as unknown as D1Database;
     const { searchParams } = new URL(request.url);
-    
+
     // Pagination parameters
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const page = Number.parseInt(searchParams.get("page") || "1");
+    const limit = Number.parseInt(searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
-    
+
     // Base query
     let query = `
       SELECT 
@@ -66,10 +70,10 @@ export async function GET(request: NextRequest, { params }: { params: { admissio
       JOIN Users u ON pn.created_by = u.userId -- Assuming Users table and userId
       WHERE pn.admission_id = ?
     `;
-    const queryParams: (string | number)[] = [admissionId];
-    
+    const queryParameters: (string | number)[] = [admissionId];
+
     // Add filters based on searchParams if needed
-    // Example: 
+    // Example:
     // const noteType = searchParams.get("note_type");
     // if (noteType) {
     //   query += " AND pn.note_type = ?";
@@ -81,140 +85,175 @@ export async function GET(request: NextRequest, { params }: { params: { admissio
         pn.note_date DESC, pn.note_time DESC
       LIMIT ? OFFSET ?
     `;
-    
-    queryParams.push(limit, offset);
-    
+
+    queryParameters.push(limit, offset);
+
     // Fixed: Use DB.prepare().bind().all() for SELECT
-    const preparedStatement = DB.prepare(query).bind(...queryParams);
+    const preparedStatement = DB.prepare(query).bind(...queryParameters);
     const progressNotesResult = await preparedStatement.all();
-    
+
     // D1 .all() returns { results: T[] }
     const progressNotes = progressNotesResult.results || [];
-    
+
     // Optionally, fetch total count for pagination
     // const countResult = await DB.prepare("SELECT COUNT(*) as count FROM IPDProgressNotes WHERE admission_id = ?").bind(admissionId).first();
     // const totalCount = countResult ? (countResult.count as number) : 0;
-    
-    return new Response(JSON.stringify({ 
-      notes: progressNotes, 
-      // pagination: { page, limit, totalCount } // Include if count is fetched
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
-    
+
+    return new Response(
+      JSON.stringify({
+        notes: progressNotes,
+        // pagination: { page, limit, totalCount } // Include if count is fetched
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Error fetching IPD progress notes:", error);
-    return new Response(JSON.stringify({ 
-      error: "Failed to fetch IPD progress notes", 
-      details: error instanceof Error ? error.message : String(error) 
-    }), { 
-      status: 500 
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Failed to fetch IPD progress notes",
+        details: error instanceof Error ? error.message : String(error),
+      }),
+      {
+        status: 500,
+      }
+    );
   }
 }
 
 // POST handler for creating a new progress note
-export async function POST(request: NextRequest, { params }: { params: { admissionId: string } }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { admissionId: string } }
+) {
   try {
     const user = await getCurrentUser(); // Changed from getSession
-    
+
     // Check if user is authenticated
-    if (!user) { // Changed from !session || !session.user
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
-        status: 401 
+    if (!user) {
+      // Changed from !session || !session.user
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
       });
     }
-    
+
     // Check if user has appropriate role
-    const allowedRoles = ["Doctor", "Nurse", "Consultant"];
+    const allowedRoles = new Set(["Doctor", "Nurse", "Consultant"]);
     // Changed from !allowedRoles.includes(session.user.roleName)
-    if (!user.roles.some(role => allowedRoles.includes(role))) { 
-      return new Response(JSON.stringify({ error: "Forbidden" }), { 
-        status: 403 
+    if (!user.roles.some((role) => allowedRoles.has(role))) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
       });
     }
-    
+
     const admissionId = params.admissionId;
-    const DB = (process.env.DB as unknown) as D1Database;
-    
+    const DB = process.env.DB as unknown as D1Database;
+
     // Verify admission exists and is active
-    const admissionCheckStmt = DB.prepare(`
+    const admissionCheckStmt = DB.prepare(
+      `
       SELECT admission_id, status 
       FROM IPDAdmissions
       WHERE admission_id = ?
-    `).bind(admissionId);
+    `
+    ).bind(admissionId);
     const admissionCheckResult = await admissionCheckStmt.all();
-    
+
     // Fixed: Use double assertion for type conversion
-    const admissionCheck: AdmissionCheck | null = admissionCheckResult.results && admissionCheckResult.results.length > 0 ? admissionCheckResult.results[0] as unknown as AdmissionCheck : null;
-    
+    const admissionCheck: AdmissionCheck | null =
+      admissionCheckResult.results && admissionCheckResult.results.length > 0
+        ? (admissionCheckResult.results[0] as unknown as AdmissionCheck)
+        : undefined;
+
     if (!admissionCheck) {
-      return new Response(JSON.stringify({ 
-        error: "Admission not found" 
-      }), { 
-        status: 404 
-      });
+      return new Response(
+        JSON.stringify({
+          error: "Admission not found",
+        }),
+        {
+          status: 404,
+        }
+      );
     }
-    
+
     if (admissionCheck.status !== "Active") {
-      return new Response(JSON.stringify({ 
-        error: "Cannot add progress notes to a non-active admission" 
-      }), { 
-        status: 400 
-      });
+      return new Response(
+        JSON.stringify({
+          error: "Cannot add progress notes to a non-active admission",
+        }),
+        {
+          status: 400,
+        }
+      );
     }
-    
+
     // If user is a doctor, verify they are assigned to this patient
-    if (user.roles.includes("Doctor")) { 
-      const doctorCheckStmt = DB.prepare(`
+    if (user.roles.includes("Doctor")) {
+      const doctorCheckStmt = DB.prepare(
+        `
         SELECT admission_id 
         FROM IPDAdmissions
         WHERE admission_id = ? AND doctor_id = ?
-      `).bind(admissionId, user.id); // Changed from session.user.userId
+      `
+      ).bind(admissionId, user.id); // Changed from session.user.userId
       const doctorCheckResult = await doctorCheckStmt.all();
       // Assuming the result row has admission_id, we can cast more safely if needed
-      const doctorCheck = doctorCheckResult.results && doctorCheckResult.results.length > 0 ? doctorCheckResult.results[0] : null;
-      
+      const doctorCheck =
+        doctorCheckResult.results && doctorCheckResult.results.length > 0
+          ? doctorCheckResult.results[0]
+          : undefined;
+
       if (!doctorCheck) {
-        return new Response(JSON.stringify({ 
-          error: "You are not authorized to add notes for this patient" 
-        }), { 
-          status: 403 
-        });
+        return new Response(
+          JSON.stringify({
+            error: "You are not authorized to add notes for this patient",
+          }),
+          {
+            status: 403,
+          }
+        );
       }
     }
-    
+
     // Fixed: Apply type assertion to the result of request.json()
-    const data = await request.json() as ProgressNoteInput;
-    
+    const data = (await request.json()) as ProgressNoteInput;
+
     // Add admission_id from path parameter and create a new object with the correct type
     const dataWithId = {
       ...data,
-      admission_id: parseInt(admissionId)
+      admission_id: Number.parseInt(admissionId),
     };
-    
+
     // Validate input data (now includes admission_id)
     const validationResult = ProgressNoteSchema.safeParse(dataWithId);
     if (!validationResult.success) {
-      return new Response(JSON.stringify({ 
-        error: "Invalid input data", 
-        details: validationResult.error.format() 
-      }), { 
-        status: 400 
-      });
+      return new Response(
+        JSON.stringify({
+          error: "Invalid input data",
+          details: validationResult.error.format(),
+        }),
+        {
+          status: 400,
+        }
+      );
     }
-    
+
     const noteData = validationResult.data;
-    
+
     // Set note_type based on user role if not specified
     if (!noteData.note_type) {
-      noteData.note_type = user.roles.includes("Doctor") ? "Doctor" : 
-                          user.roles.includes("Nurse") ? "Nurse" : "Consultant";
+      noteData.note_type = user.roles.includes("Doctor")
+        ? "Doctor"
+        : user.roles.includes("Nurse")
+          ? "Nurse"
+          : "Consultant";
     }
-    
+
     // Insert progress note
-    const insertStmt = DB.prepare(`
+    const insertStmt = DB.prepare(
+      `
       INSERT INTO IPDProgressNotes (
         admission_id,
         note_date,
@@ -226,36 +265,43 @@ export async function POST(request: NextRequest, { params }: { params: { admissi
         created_by,
         created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `).bind(
+    `
+    ).bind(
       noteData.admission_id,
       noteData.note_date,
       noteData.note_time,
       noteData.note_type,
       noteData.note_content,
-      noteData.vital_signs ? JSON.stringify(noteData.vital_signs) : null,
-      noteData.medication_given ? JSON.stringify(noteData.medication_given) : null,
+      noteData.vital_signs ? JSON.stringify(noteData.vital_signs) : undefined,
+      noteData.medication_given
+        ? JSON.stringify(noteData.medication_given)
+        : undefined,
       user.id // Changed from session.user.userId
     );
-    
+
     const result = await insertStmt.run();
-    
-    const progressNoteId = result.meta?.last_row_id || null;
-    
-    return new Response(JSON.stringify({ 
-      message: "Progress note created successfully", 
-      progress_note_id: progressNoteId 
-    }), { 
-      status: 201 
-    });
-    
+
+    const progressNoteId = result.meta?.last_row_id || undefined;
+
+    return new Response(
+      JSON.stringify({
+        message: "Progress note created successfully",
+        progress_note_id: progressNoteId,
+      }),
+      {
+        status: 201,
+      }
+    );
   } catch (error) {
     console.error("Error creating IPD progress note:", error);
-    return new Response(JSON.stringify({ 
-      error: "Failed to create IPD progress note", 
-      details: error instanceof Error ? error.message : String(error) 
-    }), { 
-      status: 500 
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Failed to create IPD progress note",
+        details: error instanceof Error ? error.message : String(error),
+      }),
+      {
+        status: 500,
+      }
+    );
   }
 }
-

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 // Define interfaces for data structures
 interface Category {
@@ -37,21 +37,21 @@ const AddMedicationPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [formData, setFormData] = useState<MedicationFormData>({
-    item_code: '',
-    generic_name: '',
-    brand_name: '',
-    category_id: '',
-    manufacturer_id: '',
-    dosage_form: '',
-    strength: '',
-    route: '',
-    unit_of_measure: '',
+    item_code: "",
+    generic_name: "",
+    brand_name: "",
+    category_id: "",
+    manufacturer_id: "",
+    dosage_form: "",
+    strength: "",
+    route: "",
+    unit_of_measure: "",
     prescription_required: false,
     narcotic: false,
-    description: ''
+    description: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [submitError, setSubmitError] = useState<string>('');
+  const [submitError, setSubmitError] = useState<string>("");
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
 
   useEffect(() => {
@@ -60,26 +60,26 @@ const AddMedicationPage: React.FC = () => {
       try {
         // Simulate fetching data
         const simulatedCategories: Category[] = [
-          { id: 'cat_001', name: 'Antibiotics' },
-          { id: 'cat_002', name: 'Analgesics' },
-          { id: 'cat_003', name: 'Antipyretics' },
-          { id: 'cat_004', name: 'Antihypertensives' },
-          { id: 'cat_005', name: 'Antidiabetics' },
-          { id: 'cat_006', name: 'Antihistamines' },
-          { id: 'cat_007', name: 'Antacids' },
-          { id: 'cat_008', name: 'Vitamins & Supplements' },
+          { id: "cat_001", name: "Antibiotics" },
+          { id: "cat_002", name: "Analgesics" },
+          { id: "cat_003", name: "Antipyretics" },
+          { id: "cat_004", name: "Antihypertensives" },
+          { id: "cat_005", name: "Antidiabetics" },
+          { id: "cat_006", name: "Antihistamines" },
+          { id: "cat_007", name: "Antacids" },
+          { id: "cat_008", name: "Vitamins & Supplements" },
         ];
         const simulatedManufacturers: Manufacturer[] = [
-          { id: 'mfr_001', name: 'Cipla Ltd.' },
-          { id: 'mfr_002', name: 'Sun Pharmaceutical Industries Ltd.' },
-          { id: 'mfr_003', name: 'Lupin Limited' },
-          { id: 'mfr_004', name: 'Dr. Reddy\'s Laboratories' },
-          { id: 'mfr_005', name: 'Zydus Cadila' },
+          { id: "mfr_001", name: "Cipla Ltd." },
+          { id: "mfr_002", name: "Sun Pharmaceutical Industries Ltd." },
+          { id: "mfr_003", name: "Lupin Limited" },
+          { id: "mfr_004", name: "Dr. Reddy's Laboratories" },
+          { id: "mfr_005", name: "Zydus Cadila" },
         ];
         setCategories(simulatedCategories);
         setManufacturers(simulatedManufacturers);
       } catch (error) {
-        console.error('Error fetching categories/manufacturers:', error);
+        console.error("Error fetching categories/manufacturers:", error);
         // Handle error appropriately, e.g., set an error state
       }
     };
@@ -87,50 +87,55 @@ const AddMedicationPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>): void => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ): void => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked; // Type assertion for checked property
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: type === "checkbox" ? checked : value,
     }));
-    
+
     // Clear error for the field being changed
     if (errors[name as keyof MedicationFormData]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((previous) => ({ ...previous, [name]: "" }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     // Required fields check
     const requiredFields: (keyof MedicationFormData)[] = [
-      'generic_name', 'dosage_form', 'strength', 'unit_of_measure'
+      "generic_name",
+      "dosage_form",
+      "strength",
+      "unit_of_measure",
     ];
-    
-    requiredFields.forEach(field => {
+
+    for (const field of requiredFields) {
       if (!formData[field]) {
-        newErrors[field] = 'This field is required';
+        newErrors[field] = "This field is required";
       }
-    });
-    
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
-    setSubmitError('');
+    setSubmitError("");
     setSubmitSuccess(false);
-    
+
     try {
       // Simulate API call
       // const response = await fetch('/api/pharmacy/medications', {
@@ -140,41 +145,41 @@ const AddMedicationPage: React.FC = () => {
       //   },
       //   body: JSON.stringify(formData),
       // });
-      
+
       // if (!response.ok) {
       //   const errorData = await response.json().catch(() => ({}));
       //   throw new Error(errorData.error || 'Failed to add medication');
       // }
-      
+
       console.log("Simulating medication save:", formData);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
 
       setSubmitSuccess(true);
-      
+
       // Reset form
       setFormData({
-        item_code: '',
-        generic_name: '',
-        brand_name: '',
-        category_id: '',
-        manufacturer_id: '',
-        dosage_form: '',
-        strength: '',
-        route: '',
-        unit_of_measure: '',
+        item_code: "",
+        generic_name: "",
+        brand_name: "",
+        category_id: "",
+        manufacturer_id: "",
+        dosage_form: "",
+        strength: "",
+        route: "",
+        unit_of_measure: "",
         prescription_required: false,
         narcotic: false,
-        description: ''
+        description: "",
       });
       setErrors({}); // Clear errors on success
-      
+
       // Redirect after a short delay
       setTimeout(() => {
-        router.push('/pharmacy/medications'); // Assuming this is the correct path
+        router.push("/pharmacy/medications"); // Assuming this is the correct path
       }, 2000);
-      
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+      const message =
+        error instanceof Error ? error.message : "An unknown error occurred.";
       setSubmitError(message);
     } finally {
       setLoading(false);
@@ -185,9 +190,9 @@ const AddMedicationPage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Add New Medication</h1>
-        <button 
+        <button
           className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
-          onClick={() => router.push('/pharmacy/medications')} // Assuming this path
+          onClick={() => router.push("/pharmacy/medications")} // Assuming this path
         >
           Back to Medications
         </button>
@@ -210,7 +215,10 @@ const AddMedicationPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Item Code */}
             <div>
-              <label htmlFor="item_code" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="item_code"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Item Code (Optional)
               </label>
               <input
@@ -222,12 +230,17 @@ const AddMedicationPage: React.FC = () => {
                 className="w-full p-2 border border-gray-300 rounded-md"
                 disabled={loading}
               />
-              <p className="mt-1 text-xs text-gray-500">Leave blank to auto-generate.</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Leave blank to auto-generate.
+              </p>
             </div>
 
             {/* Generic Name */}
             <div>
-              <label htmlFor="generic_name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="generic_name"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Generic Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -236,18 +249,30 @@ const AddMedicationPage: React.FC = () => {
                 name="generic_name"
                 value={formData.generic_name}
                 onChange={handleChange}
-                className={`w-full p-2 border rounded-md ${errors.generic_name ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full p-2 border rounded-md ${errors.generic_name ? "border-red-500" : "border-gray-300"}`}
                 disabled={loading}
                 required
                 aria-invalid={!!errors.generic_name}
-                aria-describedby={errors.generic_name ? "generic_name-error" : undefined}
+                aria-describedby={
+                  errors.generic_name ? "generic_name-error" : undefined
+                }
               />
-              {errors.generic_name && <p id="generic_name-error" className="mt-1 text-sm text-red-500">{errors.generic_name}</p>}
+              {errors.generic_name && (
+                <p
+                  id="generic_name-error"
+                  className="mt-1 text-sm text-red-500"
+                >
+                  {errors.generic_name}
+                </p>
+              )}
             </div>
 
             {/* Brand Name */}
             <div>
-              <label htmlFor="brand_name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="brand_name"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Brand Name
               </label>
               <input
@@ -263,7 +288,10 @@ const AddMedicationPage: React.FC = () => {
 
             {/* Dosage Form */}
             <div>
-              <label htmlFor="dosage_form" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="dosage_form"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Dosage Form <span className="text-red-500">*</span>
               </label>
               <input
@@ -273,18 +301,27 @@ const AddMedicationPage: React.FC = () => {
                 value={formData.dosage_form}
                 onChange={handleChange}
                 placeholder="e.g., Tablet, Capsule, Syrup, Injection"
-                className={`w-full p-2 border rounded-md ${errors.dosage_form ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full p-2 border rounded-md ${errors.dosage_form ? "border-red-500" : "border-gray-300"}`}
                 disabled={loading}
                 required
                 aria-invalid={!!errors.dosage_form}
-                aria-describedby={errors.dosage_form ? "dosage_form-error" : undefined}
+                aria-describedby={
+                  errors.dosage_form ? "dosage_form-error" : undefined
+                }
               />
-              {errors.dosage_form && <p id="dosage_form-error" className="mt-1 text-sm text-red-500">{errors.dosage_form}</p>}
+              {errors.dosage_form && (
+                <p id="dosage_form-error" className="mt-1 text-sm text-red-500">
+                  {errors.dosage_form}
+                </p>
+              )}
             </div>
 
             {/* Strength */}
             <div>
-              <label htmlFor="strength" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="strength"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Strength <span className="text-red-500">*</span>
               </label>
               <input
@@ -294,18 +331,27 @@ const AddMedicationPage: React.FC = () => {
                 value={formData.strength}
                 onChange={handleChange}
                 placeholder="e.g., 500mg, 10ml, 1g"
-                className={`w-full p-2 border rounded-md ${errors.strength ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full p-2 border rounded-md ${errors.strength ? "border-red-500" : "border-gray-300"}`}
                 disabled={loading}
                 required
                 aria-invalid={!!errors.strength}
-                aria-describedby={errors.strength ? "strength-error" : undefined}
+                aria-describedby={
+                  errors.strength ? "strength-error" : undefined
+                }
               />
-              {errors.strength && <p id="strength-error" className="mt-1 text-sm text-red-500">{errors.strength}</p>}
+              {errors.strength && (
+                <p id="strength-error" className="mt-1 text-sm text-red-500">
+                  {errors.strength}
+                </p>
+              )}
             </div>
 
             {/* Unit of Measure */}
             <div>
-              <label htmlFor="unit_of_measure" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="unit_of_measure"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Unit of Measure <span className="text-red-500">*</span>
               </label>
               <input
@@ -315,18 +361,30 @@ const AddMedicationPage: React.FC = () => {
                 value={formData.unit_of_measure}
                 onChange={handleChange}
                 placeholder="e.g., Tablet, Bottle, Vial"
-                className={`w-full p-2 border rounded-md ${errors.unit_of_measure ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full p-2 border rounded-md ${errors.unit_of_measure ? "border-red-500" : "border-gray-300"}`}
                 disabled={loading}
                 required
                 aria-invalid={!!errors.unit_of_measure}
-                aria-describedby={errors.unit_of_measure ? "unit_of_measure-error" : undefined}
+                aria-describedby={
+                  errors.unit_of_measure ? "unit_of_measure-error" : undefined
+                }
               />
-              {errors.unit_of_measure && <p id="unit_of_measure-error" className="mt-1 text-sm text-red-500">{errors.unit_of_measure}</p>}
+              {errors.unit_of_measure && (
+                <p
+                  id="unit_of_measure-error"
+                  className="mt-1 text-sm text-red-500"
+                >
+                  {errors.unit_of_measure}
+                </p>
+              )}
             </div>
 
             {/* Route */}
             <div>
-              <label htmlFor="route" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="route"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Route
               </label>
               <input
@@ -343,7 +401,10 @@ const AddMedicationPage: React.FC = () => {
 
             {/* Category */}
             <div>
-              <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="category_id"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Category
               </label>
               <select
@@ -355,15 +416,20 @@ const AddMedicationPage: React.FC = () => {
                 disabled={loading}
               >
                 <option value="">Select a category</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* Manufacturer */}
             <div>
-              <label htmlFor="manufacturer_id" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="manufacturer_id"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Manufacturer
               </label>
               <select
@@ -375,8 +441,10 @@ const AddMedicationPage: React.FC = () => {
                 disabled={loading}
               >
                 <option value="">Select a manufacturer</option>
-                {manufacturers.map(mfr => (
-                  <option key={mfr.id} value={mfr.id}>{mfr.name}</option>
+                {manufacturers.map((mfr) => (
+                  <option key={mfr.id} value={mfr.id}>
+                    {mfr.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -393,7 +461,10 @@ const AddMedicationPage: React.FC = () => {
                   className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   disabled={loading}
                 />
-                <label htmlFor="prescription_required" className="ml-2 block text-sm text-gray-900">
+                <label
+                  htmlFor="prescription_required"
+                  className="ml-2 block text-sm text-gray-900"
+                >
                   Prescription Required
                 </label>
               </div>
@@ -407,7 +478,10 @@ const AddMedicationPage: React.FC = () => {
                   className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   disabled={loading}
                 />
-                <label htmlFor="narcotic" className="ml-2 block text-sm text-gray-900">
+                <label
+                  htmlFor="narcotic"
+                  className="ml-2 block text-sm text-gray-900"
+                >
                   Narcotic
                 </label>
               </div>
@@ -416,7 +490,10 @@ const AddMedicationPage: React.FC = () => {
 
           {/* Description */}
           <div className="mt-6">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Description
             </label>
             <textarea
@@ -433,7 +510,7 @@ const AddMedicationPage: React.FC = () => {
           <div className="mt-8 flex justify-end">
             <button
               type="button"
-              onClick={() => router.push('/pharmacy/medications')} // Assuming this path
+              onClick={() => router.push("/pharmacy/medications")} // Assuming this path
               className="mr-4 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               disabled={loading}
             >
@@ -444,7 +521,7 @@ const AddMedicationPage: React.FC = () => {
               className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
               disabled={loading}
             >
-              {loading ? 'Saving...' : 'Save Medication'}
+              {loading ? "Saving..." : "Save Medication"}
             </button>
           </div>
         </form>
@@ -454,4 +531,3 @@ const AddMedicationPage: React.FC = () => {
 };
 
 export default AddMedicationPage;
-

@@ -12,7 +12,7 @@ interface Environment {
 // via the second argument to the handler function or through a global context.
 // The exact mechanism might vary based on the specific setup (e.g., using Hono or other frameworks).
 
-// For standard Next.js API routes deployed on Cloudflare Pages, 
+// For standard Next.js API routes deployed on Cloudflare Pages,
 // bindings are typically accessed via `request.cf` or context passed during runtime.
 // However, direct access like in Workers might require specific adapters or configurations.
 
@@ -21,58 +21,69 @@ interface Environment {
 // In Next.js on Cloudflare, this might need a custom server setup or adapter.
 
 // Placeholder for accessing bindings - Actual implementation depends on deployment specifics
-function getCloudflareBindings(_request: NextRequest): Environment | undefined { // Parameter prefixed as unused in this placeholder
+function getCloudflareBindings(_request: NextRequest): Environment | undefined {
+  // Parameter prefixed as unused in this placeholder
   // Cloudflare Pages passes bindings via the `request.cf` object or context
   // This is a simplified example; the actual access method might differ.
   // Refer to Cloudflare Pages Functions documentation for the correct way.
   // Example: return (request as any).cf?.env as Env;
   // Or if using a framework adapter, it might be passed differently.
-  console.warn("Accessing Cloudflare bindings in Next.js API routes on Cloudflare Pages requires specific setup. This is a placeholder.");
+  console.warn(
+    "Accessing Cloudflare bindings in Next.js API routes on Cloudflare Pages requires specific setup. This is a placeholder."
+  );
   // Returning undefined to indicate bindings might not be directly available this way without proper setup.
-  return undefined; 
+  return undefined;
 }
 
 // FIX: Renamed 'request' to '_request' to satisfy @typescript-eslint/no-unused-vars
-export async function GET(_request: NextRequest) { 
+export async function GET(_request: NextRequest) {
   try {
     // Attempt to get Cloudflare bindings (replace with actual method)
     const environment = getCloudflareBindings(_request);
 
     if (!environment || !environment.DB) {
-      console.error("Cloudflare DB binding not found. Ensure the project is configured correctly for Cloudflare Pages/Workers.");
-      return new Response(JSON.stringify({ error: "Database binding not available" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+      console.error(
+        "Cloudflare DB binding not found. Ensure the project is configured correctly for Cloudflare Pages/Workers."
+      );
+      return new Response(
+        JSON.stringify({ error: "Database binding not available" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Example: Querying the D1 database
     // The following line will likely fail at runtime if env.DB is not a valid D1 instance
     // but this resolves the TypeScript build error    const { results } = await (env.DB as unknown as { prepare: (query: string) => { bind: (...args: unknown[]) => { all: () => Promise<{ results: unknown[] }> } } }).prepare("SELECT name FROM sqlite_master WHERE type=\'table\'").all();
-    return new Response(JSON.stringify({ tables: [] }), { // FIX: Use empty array as placeholder since results are not fetched
+    return new Response(JSON.stringify({ tables: [] }), {
+      // FIX: Use empty array as placeholder since results are not fetched
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-
   } catch (error) {
     console.error("Error accessing Cloudflare bindings or DB:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    return new Response(JSON.stringify({ 
-      error: "Failed to access Cloudflare resources", 
-      details: errorMessage 
-    }), { 
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Failed to access Cloudflare resources",
+        details: errorMessage,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }
 
 // Note: The previous implementation used `import { DB } from \'@/lib/db\';`
-// This likely needs to be refactored. The `@/lib/db` should probably initialize 
-// and export the D1 binding obtained from the Cloudflare environment context, 
+// This likely needs to be refactored. The `@/lib/db` should probably initialize
+// and export the D1 binding obtained from the Cloudflare environment context,
 // rather than trying to import it directly.
 
 // Example refactor for @/lib/db.ts (conceptual):
@@ -107,4 +118,3 @@ export function getDb(): D1Database {
 //   ...
 // }
 */
-

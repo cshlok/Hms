@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDB } from "@/lib/db"; // Using mock DB
+import { getDB } from "@/lib/database"; // Using mock DB
 import { getSession } from "@/lib/session"; // Using mock session
 
 // --- Interfaces ---
@@ -20,7 +20,13 @@ interface LabOrderInput {
 }
 
 interface LabOrderUpdateInput {
-  status?: "pending" | "sample_collected" | "processing" | "completed" | "verified" | "cancelled";
+  status?:
+    | "pending"
+    | "sample_collected"
+    | "processing"
+    | "completed"
+    | "verified"
+    | "cancelled";
   priority?: "routine" | "urgent" | "stat";
   sample_collected_at?: string | null;
   sample_collected_by?: string | null; // Could be user ID or name
@@ -37,24 +43,29 @@ interface LabOrder {
   id: number;
   order_number: string;
   patient_id: number | string;
-  patient_name?: string; 
+  patient_name?: string;
   ordering_doctor_id: number | string;
-  ordering_doctor_name?: string; 
+  ordering_doctor_name?: string;
   order_date: string;
   priority: "routine" | "urgent" | "stat";
-  status: "pending" | "sample_collected" | "processing" | "completed" | "verified" | "cancelled";
+  status:
+    | "pending"
+    | "sample_collected"
+    | "processing"
+    | "completed"
+    | "verified"
+    | "cancelled";
   sample_collected_at: string | null;
   sample_collected_by: string | null;
   result_entry_at: string | null;
   result_verified_at: string | null;
-  notes?: string | null; 
-  tests: { test_id: number | string; status: string; name?: string }[]; 
-  created_at?: string; 
-  updated_at?: string; 
-  patient_details?: unknown; 
-  results?: unknown[]; 
+  notes?: string | null;
+  tests: { test_id: number | string; status: string; name?: string }[];
+  created_at?: string;
+  updated_at?: string;
+  patient_details?: unknown;
+  results?: unknown[];
 }
-
 
 // Interface for Lab Order Filters
 interface LabOrderFilters {
@@ -69,31 +80,38 @@ interface LabOrderFilters {
 
 // --- Mock Database Functions (Keep for now, replace later) ---
 
-async function getLabOrdersFromDB(filters: LabOrderFilters): Promise<LabOrder[]> { // Added return type
+async function getLabOrdersFromDB(
+  filters: LabOrderFilters
+): Promise<LabOrder[]> {
+  // Added return type
   console.warn("Mock getLabOrdersFromDB called with filters:", filters);
-  const db = await getDB();
+  const database = await getDB();
   let query = "SELECT * FROM lab_orders";
-  const params: string[] = [];
+  const parameters: string[] = [];
   if (filters.status) {
     query += " WHERE status = ?";
-    params.push(filters.status);
+    parameters.push(filters.status);
   }
-  query += " ORDER BY order_date DESC LIMIT 20"; 
-  const result = await db.query(query, params);
+  query += " ORDER BY order_date DESC LIMIT 20";
+  const result = await database.query(query, parameters);
   return (result.rows || []) as LabOrder[]; // Cast to return type
 }
 
-async function createLabOrderInDB(orderData: LabOrderInput): Promise<LabOrder> { // Added return type
+async function createLabOrderInDB(orderData: LabOrderInput): Promise<LabOrder> {
+  // Added return type
   console.warn("Mock createLabOrderInDB called with data:", orderData);
-  const db = await getDB();
-  const newId = Math.floor(Math.random() * 10000) + 1;
-  const orderNumber = `LAB-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(newId).padStart(3, "0")}`;
+  const database = await getDB();
+  const newId = Math.floor(Math.random() * 10_000) + 1;
+  const orderNumber = `LAB-${new Date().toISOString().split("T")[0].replaceAll("-", "")}-${String(newId).padStart(3, "0")}`;
 
-  await db.query("INSERT INTO lab_orders (...) VALUES (...)", []);
+  await database.query("INSERT INTO lab_orders (...) VALUES (...)", []);
   if (orderData.tests) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const _ of orderData.tests) {
-      await db.query("INSERT INTO lab_order_tests (...) VALUES (...)", []);
+      await database.query(
+        "INSERT INTO lab_order_tests (...) VALUES (...)",
+        []
+      );
     }
   }
 
@@ -106,51 +124,74 @@ async function createLabOrderInDB(orderData: LabOrderInput): Promise<LabOrder> {
     order_date: orderData.order_date || new Date().toISOString(),
     priority: orderData.priority || "routine",
     status: "pending",
-    sample_collected_at: null,
-    sample_collected_by: null,
-    result_entry_at: null,
-    result_verified_at: null,
+    sample_collected_at: undefined,
+    sample_collected_by: undefined,
+    result_entry_at: undefined,
+    result_verified_at: undefined,
     notes: orderData.notes,
     created_at: new Date().toISOString(),
     tests: (orderData.tests || []).map((test: LabTestInput) => ({
       test_id: test.test_id,
-      status: "pending"
-    }))
+      status: "pending",
+    })),
   };
   return newOrder;
 }
 
-async function getLabOrderByIdFromDB(id: number): Promise<LabOrder | null> { // Added return type
+async function getLabOrderByIdFromDB(id: number): Promise<LabOrder | null> {
+  // Added return type
   console.warn(`Mock getLabOrderByIdFromDB called with ID: ${id}`);
-  const db = await getDB();
-  const result = await db.query("SELECT * FROM lab_orders WHERE id = ?", [id]);
-  const order = result.rows && result.rows.length > 0 ? result.rows[0] : null;
+  const database = await getDB();
+  const result = await database.query("SELECT * FROM lab_orders WHERE id = ?", [
+    id,
+  ]);
+  const order = result.rows && result.rows.length > 0 ? result.rows[0] : undefined;
 
   if (order) {
-    const testsResult = await db.query("SELECT * FROM lab_order_tests WHERE order_id = ?", [id]);
+    const testsResult = await database.query(
+      "SELECT * FROM lab_order_tests WHERE order_id = ?",
+      [id]
+    );
     // Assuming testsResult.rows contains objects matching the tests structure in LabOrder
-    (order as LabOrder).tests = (testsResult.rows || []) as { test_id: number | string; status: string; name?: string }[];
-    if ((order as LabOrder).status === "completed" || (order as LabOrder).status === "verified") {
-        const resultsResult = await db.query("SELECT * FROM lab_results WHERE order_id = ?", [id]);
-        // Assuming resultsResult.rows contains objects matching the results structure
-        (order as LabOrder).results = (resultsResult.rows || []) as unknown[];
+    (order as LabOrder).tests = (testsResult.rows || []) as {
+      test_id: number | string;
+      status: string;
+      name?: string;
+    }[];
+    if (
+      (order as LabOrder).status === "completed" ||
+      (order as LabOrder).status === "verified"
+    ) {
+      const resultsResult = await database.query(
+        "SELECT * FROM lab_results WHERE order_id = ?",
+        [id]
+      );
+      // Assuming resultsResult.rows contains objects matching the results structure
+      (order as LabOrder).results = (resultsResult.rows || []) as unknown[];
     }
   }
   return order as LabOrder | null; // Cast to return type
 }
 
-async function updateLabOrderInDB(id: number, updateData: LabOrderUpdateInput): Promise<LabOrder | null> { // Added return type
-  console.warn(`Mock updateLabOrderInDB called for ID ${id} with data:`, updateData);
-  const db = await getDB();
-  await db.query("UPDATE lab_orders SET ... WHERE id = ?", [id]);
+async function updateLabOrderInDB(
+  id: number,
+  updateData: LabOrderUpdateInput
+): Promise<LabOrder | null> {
+  // Added return type
+  console.warn(
+    `Mock updateLabOrderInDB called for ID ${id} with data:`,
+    updateData
+  );
+  const database = await getDB();
+  await database.query("UPDATE lab_orders SET ... WHERE id = ?", [id]);
 
   // Return mock updated data
   const existing: LabOrder | null = await getLabOrderByIdFromDB(id); // Added type annotation
   // Fixed: Check if existing is an object before spreading
-  if (existing && typeof existing === 'object') {
-      return { ...existing, ...updateData, updated_at: new Date().toISOString() };
+  if (existing && typeof existing === "object") {
+    return { ...existing, ...updateData, updated_at: new Date().toISOString() };
   }
-  return null; // Return null if existing is null or not an object
+  return undefined; // Return null if existing is null or not an object
 }
 
 // --- API Route Handlers ---
@@ -163,18 +204,24 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const orderId = searchParams.get("id"); 
+    const orderId = searchParams.get("id");
 
     if (orderId) {
-        const id = parseInt(orderId);
-        if (isNaN(id) || id <= 0) {
-            return NextResponse.json({ error: "Invalid lab order ID provided" }, { status: 400 });
-        }
-        const order = await getLabOrderByIdFromDB(id);
-        if (!order) {
-            return NextResponse.json({ error: "Lab order not found" }, { status: 404 });
-        }
-        return NextResponse.json({ order });
+      const id = Number.parseInt(orderId);
+      if (Number.isNaN(id) || id <= 0) {
+        return NextResponse.json(
+          { error: "Invalid lab order ID provided" },
+          { status: 400 }
+        );
+      }
+      const order = await getLabOrderByIdFromDB(id);
+      if (!order) {
+        return NextResponse.json(
+          { error: "Lab order not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({ order });
     }
 
     const status = searchParams.get("status");
@@ -185,14 +232,22 @@ export async function GET(request: NextRequest) {
     const patientId = searchParams.get("patientId");
     const search = searchParams.get("search");
 
-    const filters = { status, priority, startDate, endDate, doctorId, patientId, search };
+    const filters = {
+      status,
+      priority,
+      startDate,
+      endDate,
+      doctorId,
+      patientId,
+      search,
+    };
     const orders = await getLabOrdersFromDB(filters);
 
     return NextResponse.json({ orders });
-
   } catch (error) {
     console.error("Error fetching lab orders:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
       { error: "Failed to fetch lab orders", details: errorMessage },
       { status: 500 }
@@ -207,11 +262,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const orderData = await request.json() as LabOrderInput;
+    const orderData = (await request.json()) as LabOrderInput;
 
-    if (!orderData.patient_id || !orderData.ordering_doctor_id || !orderData.tests || orderData.tests.length === 0) {
+    if (
+      !orderData.patient_id ||
+      !orderData.ordering_doctor_id ||
+      !orderData.tests ||
+      orderData.tests.length === 0
+    ) {
       return NextResponse.json(
-        { error: "Missing required fields (patient_id, ordering_doctor_id, tests)" },
+        {
+          error:
+            "Missing required fields (patient_id, ordering_doctor_id, tests)",
+        },
         { status: 400 }
       );
     }
@@ -221,7 +284,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ order: newOrder }, { status: 201 });
   } catch (error) {
     console.error("Error creating lab order:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
       { error: "Failed to create lab order", details: errorMessage },
       { status: 500 }
@@ -229,34 +293,43 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getSession();
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const id = parseInt(params.id);
-    if (isNaN(id) || id <= 0) {
-      return NextResponse.json({ error: "Invalid lab order ID" }, { status: 400 });
+    const id = Number.parseInt(params.id);
+    if (Number.isNaN(id) || id <= 0) {
+      return NextResponse.json(
+        { error: "Invalid lab order ID" },
+        { status: 400 }
+      );
     }
-    
-    const updateData = await request.json() as LabOrderUpdateInput;
-    
+
+    const updateData = (await request.json()) as LabOrderUpdateInput;
+
     const updatedOrder = await updateLabOrderInDB(id, updateData);
 
     if (!updatedOrder) {
-        return NextResponse.json({ error: "Lab order not found or update failed" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Lab order not found or update failed" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({ order: updatedOrder });
   } catch (error) {
     console.error("Error updating lab order:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
       { error: "Failed to update lab order", details: errorMessage },
       { status: 500 }
     );
   }
 }
-

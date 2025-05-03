@@ -37,15 +37,22 @@ export async function GET(
     };
 
     if (!booking) {
-      return NextResponse.json({ message: "OT Booking not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "OT Booking not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(booking);
-  } catch (error) { // FIX: Remove explicit any
+  } catch (error) {
+    // FIX: Remove explicit any
     console.error("Error fetching OT booking:", error);
     // FIX: Handle error type
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ message: "Error fetching OT booking", details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error fetching OT booking", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
@@ -62,7 +69,10 @@ export async function PUT(
 
     // Validate required fields
     if (!updateData) {
-      return NextResponse.json({ message: "No update data provided" }, { status: 400 });
+      return NextResponse.json(
+        { message: "No update data provided" },
+        { status: 400 }
+      );
     }
 
     // Placeholder for database update
@@ -97,15 +107,19 @@ export async function PUT(
     const updatedBooking = {
       id: bookingId,
       ...updateData,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     return NextResponse.json(updatedBooking);
-  } catch (error) { // FIX: Remove explicit any
+  } catch (error) {
+    // FIX: Remove explicit any
     console.error("Error updating OT booking:", error);
     // FIX: Handle error type
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ message: "Error updating OT booking", details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error updating OT booking", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
@@ -126,15 +140,20 @@ export async function DELETE(
     // Option 2: Soft delete (update status to 'cancelled')
     // Mock implementation for development
     console.log(`Cancelling booking ${bookingId}`);
-    
-    // Return success response
-    return NextResponse.json({ message: "OT Booking cancelled successfully" }, { status: 200 });
 
-  } catch (error) { // FIX: Remove explicit any
+    // Return success response
+    return NextResponse.json(
+      { message: "OT Booking cancelled successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    // FIX: Remove explicit any
     console.error("Error cancelling OT booking:", error);
     // FIX: Handle error type
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ message: "Error cancelling OT booking", details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error cancelling OT booking", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
-

@@ -34,7 +34,6 @@ interface D1ExecResult {
   duration: number;
 }
 
-
 // Extend the default CloudflareEnv type
 declare module "@cloudflare/next-on-pages" {
   interface CloudflareEnv {
@@ -57,4 +56,3 @@ declare module "@cloudflare/next-on-pages" {
 
 // Export something to make it a module (even if empty)
 export {};
-

@@ -35,10 +35,10 @@ const mockVisits: ERVisit[] = [
     triage_level: 2, // ESI level (if available early)
     current_status: "Pending Triage",
     current_location: "Waiting Room",
-    assigned_physician_id: null,
-    assigned_nurse_id: null,
-    disposition: null,
-    discharge_timestamp: null,
+    assigned_physician_id: undefined,
+    assigned_nurse_id: undefined,
+    disposition: undefined,
+    discharge_timestamp: undefined,
     created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
   },
@@ -55,8 +55,8 @@ const mockVisits: ERVisit[] = [
     current_location: "Triage Room 1",
     assigned_physician_id: 201, // Example physician ID
     assigned_nurse_id: 301, // Example nurse ID
-    disposition: null,
-    discharge_timestamp: null,
+    disposition: undefined,
+    discharge_timestamp: undefined,
     created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // Updated 30 mins ago
   },
@@ -97,19 +97,28 @@ async function getERVisitsFromDB(filters: ERVisitFilters = {}) {
   // Apply filters if implemented (example)
   let filtered = [...mockVisits];
   if (filters.status) {
-    filtered = filtered.filter(v => v.current_status?.toLowerCase() === filters.status!.toLowerCase());
+    filtered = filtered.filter(
+      (v) => v.current_status?.toLowerCase() === filters.status!.toLowerCase()
+    );
   }
   if (filters.location) {
-    filtered = filtered.filter(v => v.current_location?.toLowerCase() === filters.location!.toLowerCase());
+    filtered = filtered.filter(
+      (v) =>
+        v.current_location?.toLowerCase() === filters.location!.toLowerCase()
+    );
   }
   // Add date filtering if needed
 
-  return filtered.sort((a, b) => new Date(b.arrival_timestamp).getTime() - new Date(a.arrival_timestamp).getTime());
+  return filtered.sort(
+    (a, b) =>
+      new Date(b.arrival_timestamp).getTime() -
+      new Date(a.arrival_timestamp).getTime()
+  );
 }
 
-
 // Helper function to simulate DB interaction (POST)
-async function createERVisitInDB(data: ERVisitInput): Promise<ERVisit> { // Added return type
+async function createERVisitInDB(data: ERVisitInput): Promise<ERVisit> {
+  // Added return type
   console.log("Simulating DB create for ER visit:", data);
   const now = new Date().toISOString();
   // FIX: Ensure newVisit matches the ERVisit interface
@@ -121,20 +130,19 @@ async function createERVisitInDB(data: ERVisitInput): Promise<ERVisit> { // Adde
     arrival_timestamp: data.arrival_timestamp || now,
     chief_complaint: data.chief_complaint,
     mode_of_arrival: data.mode_of_arrival || "Unknown",
-    triage_level: null,
+    triage_level: undefined,
     current_status: "Pending Triage",
     current_location: "Waiting Room",
-    assigned_physician_id: null,
-    assigned_nurse_id: null,
-    disposition: null,
-    discharge_timestamp: null,
+    assigned_physician_id: undefined,
+    assigned_nurse_id: undefined,
+    disposition: undefined,
+    discharge_timestamp: undefined,
     created_at: now,
     updated_at: now,
   };
   mockVisits.push(newVisit); // This should now be type-compatible
   return newVisit;
 }
-
 
 /**
  * GET /api/er/visits
@@ -200,4 +208,3 @@ export async function POST(request: NextRequest) {
 }
 
 // Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
-

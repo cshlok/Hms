@@ -77,7 +77,10 @@ export async function GET(
     return NextResponse.json(visit);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error({ message: "Error fetching ER visit details", error: errorMessage });
+    console.error({
+      message: "Error fetching ER visit details",
+      error: errorMessage,
+    });
     return NextResponse.json(
       { error: "Failed to fetch ER visit details", details: errorMessage },
       { status: 500 }
@@ -107,11 +110,14 @@ export async function PUT(
       "disposition",
       "discharge_timestamp",
     ]);
-    
+
     // FIX: Use keyof ERVisitUpdateInput for better type safety
-    const updateFields = (Object.keys(updateData) as (keyof ERVisitUpdateInput)[])
-      .filter(field => allowedFields.has(field) && updateData[field] !== undefined);
-    
+    const updateFields = (
+      Object.keys(updateData) as (keyof ERVisitUpdateInput)[]
+    ).filter(
+      (field) => allowedFields.has(field) && updateData[field] !== undefined
+    );
+
     if (updateFields.length === 0) {
       return NextResponse.json(
         { error: "No valid fields to update" },
@@ -133,9 +139,12 @@ export async function PUT(
     // Mock implementation
     const visitIndex = mockVisits.findIndex((v) => v.id === visitId);
     if (visitIndex === -1) {
-      return NextResponse.json({ error: "ER visit not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "ER visit not found" },
+        { status: 404 }
+      );
     }
-    
+
     // FIX: Update mock data with better type safety
     const updatedVisit: ERVisit = { ...mockVisits[visitIndex] };
     for (const field of updateFields) {
@@ -161,7 +170,7 @@ export async function PUT(
         status: updateData.current_status,
         location: updateData.current_location,
         updated_by_id: updateData.updated_by_id, // Assuming updated_by_id is passed
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
       console.log("Mock Status Log:", logEntry);
     }
@@ -227,9 +236,12 @@ export async function DELETE(
 
     // Mock implementation
     const initialLength = mockVisits.length;
-    mockVisits = mockVisits.filter(v => v.id !== visitId);
+    mockVisits = mockVisits.filter((v) => v.id !== visitId);
     if (mockVisits.length === initialLength) {
-       return NextResponse.json({ error: "ER visit not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "ER visit not found" },
+        { status: 404 }
+      );
     }
 
     console.log("Mock Delete ER Visit:", visitId);
@@ -247,4 +259,3 @@ export async function DELETE(
     );
   }
 }
-

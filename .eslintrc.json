@@ -36,8 +36,10 @@
   "rules": {
     // Add or override rules here if needed
     "react/react-in-jsx-scope": "off", // Not needed with Next.js >= 11 and React >= 17
-    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }], // Warn about unused vars, ignore if prefixed with _
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_" }
+    ], // Warn about unused vars, ignore if prefixed with _
     "@typescript-eslint/no-explicit-any": "warn" // Warn about explicit any types
   }
 }
-

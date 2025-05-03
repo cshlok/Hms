@@ -138,11 +138,17 @@ async function getAppointmentsFromDB(filters: AppointmentFilters) {
     if (filters.status && appointment.status !== filters.status) return false;
 
     // Apply doctor filter
-    if (filters.doctorId && appointment.doctor_id.toString() !== filters.doctorId)
+    if (
+      filters.doctorId &&
+      appointment.doctor_id.toString() !== filters.doctorId
+    )
       return false;
 
     // Apply patient filter
-    if (filters.patientId && appointment.patient_id.toString() !== filters.patientId)
+    if (
+      filters.patientId &&
+      appointment.patient_id.toString() !== filters.patientId
+    )
       return false;
 
     // Apply search filter
@@ -184,7 +190,7 @@ async function createAppointmentInDB(appointmentData: AppointmentCreateBody) {
   const appointmentNumber = `OPD-${new Date()
     .toISOString()
     .slice(0, 10)
-    .replace(/-/g, "")}-${newId.toString().padStart(3, "0")}`;
+    .replaceAll("-", "")}-${newId.toString().padStart(3, "0")}`;
   return {
     id: newId,
     appointment_number: appointmentNumber,
@@ -254,11 +260,14 @@ async function getAppointmentByIdFromDB(id: number) {
     },
   ];
 
-  return mockAppointments.find((appointment) => appointment.id === id) || null;
+  return mockAppointments.find((appointment) => appointment.id === id) || undefined;
 }
 
 // Placeholder function to simulate updating an appointment
-async function updateAppointmentInDB(id: number, updateData: AppointmentUpdateBody) {
+async function updateAppointmentInDB(
+  id: number,
+  updateData: AppointmentUpdateBody
+) {
   console.log("Simulating updating appointment:", id, updateData);
   // Replace with actual D1 update query when DB is configured
   // const { env } = getRequestContext();
@@ -294,12 +303,19 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
     // Add other filters as needed
 
-    const filters: AppointmentFilters = { startDate, endDate, status, doctorId, patientId, search };
+    const filters: AppointmentFilters = {
+      startDate,
+      endDate,
+      status,
+      doctorId,
+      patientId,
+      search,
+    };
 
     // Check if this is a request for a specific appointment
     const path = request.nextUrl.pathname;
-    if (path.match(/\/api\/opd\/appointments\/\d+$/)) {
-      const id = parseInt(path.split("/").pop() || "0");
+    if (/\/api\/opd\/appointments\/\d+$/.test(path)) {
+      const id = Number.parseInt(path.split("/").pop() || "0");
       if (id > 0) {
         const appointment = await getAppointmentByIdFromDB(id);
         if (!appointment) {
@@ -335,7 +351,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const appointmentData = await request.json() as AppointmentCreateBody;
+    const appointmentData = (await request.json()) as AppointmentCreateBody;
 
     // Basic validation (add more comprehensive validation)
     if (
@@ -377,13 +393,16 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const path = request.nextUrl.pathname;
-    const id = parseInt(path.split("/").pop() || "0");
+    const id = Number.parseInt(path.split("/").pop() || "0");
 
     if (id <= 0) {
-      return NextResponse.json({ error: "Invalid appointment ID" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid appointment ID" },
+        { status: 400 }
+      );
     }
 
-    const updateData = await request.json() as AppointmentUpdateBody;
+    const updateData = (await request.json()) as AppointmentUpdateBody;
 
     // Simulate updating the appointment in the database
     const updatedAppointment = await updateAppointmentInDB(id, updateData);
@@ -401,4 +420,3 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
-

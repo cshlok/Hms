@@ -27,16 +27,16 @@ const mockClaims: InsuranceClaim[] = [
     id: 1,
     patient_insurance_id: 101,
     invoice_id: 201,
-    claim_amount: 5000.00,
+    claim_amount: 5000,
     status: "Submitted", // Renamed from claim_status
     claim_number: "CLM001",
     claim_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Renamed from submission_date
-    approval_date: null,
-    rejection_date: null,
-    rejection_reason: null,
+    approval_date: undefined,
+    rejection_date: undefined,
+    rejection_reason: undefined,
     approved_amount: undefined, // Changed from null
-    payment_date: null,
-    payment_reference: null,
+    payment_date: undefined,
+    payment_reference: undefined,
     notes: "Initial claim submission",
     created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -45,14 +45,14 @@ const mockClaims: InsuranceClaim[] = [
     id: 2,
     patient_insurance_id: 102,
     invoice_id: 202,
-    claim_amount: 8500.00,
+    claim_amount: 8500,
     status: "Approved", // Renamed from claim_status
     claim_number: "CLM002",
     claim_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // Renamed from submission_date
     approval_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    rejection_date: null,
-    rejection_reason: null,
-    approved_amount: 8000.00,
+    rejection_date: undefined,
+    rejection_reason: undefined,
+    approved_amount: 8000,
     payment_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     payment_reference: "PAY123456",
     notes: "Partial approval due to policy limits",
@@ -95,33 +95,47 @@ interface InsuranceClaimFilters {
 
 // Helper function to simulate DB interaction (GET)
 async function getInsuranceClaimsFromDB(filters: InsuranceClaimFilters = {}) {
-  console.log("Simulating DB fetch for insurance claims with filters:", filters);
+  console.log(
+    "Simulating DB fetch for insurance claims with filters:",
+    filters
+  );
   let filteredClaims = [...mockClaims];
-  
+
   // FIX: Check if filters.status exists before using it (TS18049)
   if (filters.status) {
     // FIX: Use status field, check filters.status before toLowerCase (TS2339)
-    filteredClaims = filteredClaims.filter(c => c.status.toLowerCase() === filters.status!.toLowerCase());
+    filteredClaims = filteredClaims.filter(
+      (c) => c.status.toLowerCase() === filters.status!.toLowerCase()
+    );
   }
-  
+
   // FIX: Check if filters.patient_insurance_id exists before parsing (TS2345)
   if (filters.patient_insurance_id) {
-    const patientInsuranceId = parseInt(filters.patient_insurance_id);
-    if (!isNaN(patientInsuranceId)) {
-      filteredClaims = filteredClaims.filter(c => c.patient_insurance_id === patientInsuranceId);
+    const patientInsuranceId = Number.parseInt(filters.patient_insurance_id);
+    if (!Number.isNaN(patientInsuranceId)) {
+      filteredClaims = filteredClaims.filter(
+        (c) => c.patient_insurance_id === patientInsuranceId
+      );
     }
   }
 
   // Add date filtering if needed (using claim_date)
   if (filters.date_from) {
-    filteredClaims = filteredClaims.filter(c => new Date(c.claim_date) >= new Date(filters.date_from!));
+    filteredClaims = filteredClaims.filter(
+      (c) => new Date(c.claim_date) >= new Date(filters.date_from!)
+    );
   }
   if (filters.date_to) {
-    filteredClaims = filteredClaims.filter(c => new Date(c.claim_date) <= new Date(filters.date_to!));
+    filteredClaims = filteredClaims.filter(
+      (c) => new Date(c.claim_date) <= new Date(filters.date_to!)
+    );
   }
-  
+
   // FIX: Sort using claim_date (TS2339)
-  return filteredClaims.sort((a, b) => new Date(b.claim_date).getTime() - new Date(a.claim_date).getTime());
+  return filteredClaims.sort(
+    (a, b) =>
+      new Date(b.claim_date).getTime() - new Date(a.claim_date).getTime()
+  );
 }
 
 // Helper function to simulate DB interaction (GET by ID) - Likely belongs in [id]/route.ts
@@ -135,7 +149,10 @@ async function getInsuranceClaimsFromDB(filters: InsuranceClaimFilters = {}) {
 // }
 
 // Helper function to simulate DB interaction (POST)
-async function createInsuranceClaimInDB(data: InsuranceClaimInput): Promise<InsuranceClaim> { // Added return type
+async function createInsuranceClaimInDB(
+  data: InsuranceClaimInput
+): Promise<InsuranceClaim> {
+  // Added return type
   console.log("Simulating DB create for insurance claim:", data);
   const now = new Date().toISOString();
   // FIX: Ensure created object matches InsuranceClaim interface (TS2345)
@@ -145,10 +162,11 @@ async function createInsuranceClaimInDB(data: InsuranceClaimInput): Promise<Insu
     invoice_id: data.invoice_id,
     claim_amount: data.claim_amount,
     status: data.status || "Submitted", // Use status
-    claim_number: data.claim_number || `CLM${String(nextClaimId-1).padStart(3, "0")}`,
+    claim_number:
+      data.claim_number || `CLM${String(nextClaimId - 1).padStart(3, "0")}`,
     claim_date: data.claim_date || now, // Use claim_date
     // Initialize optional fields explicitly if needed, otherwise they are undefined
-    // approval_date: null, 
+    // approval_date: null,
     // rejection_date: null,
     // rejection_reason: null,
     // approved_amount: undefined,
@@ -171,17 +189,16 @@ async function createInsuranceClaimInDB(data: InsuranceClaimInput): Promise<Insu
 //   }
 //   const now = new Date().toISOString();
 //   // FIX: Ensure updated object matches InsuranceClaim interface
-//   const updatedClaim = { 
-//     ...mockClaims[claimIndex], 
-//     ...data, 
+//   const updatedClaim = {
+//     ...mockClaims[claimIndex],
+//     ...data,
 //     // Ensure null is allowed for optional number fields if needed, or handle conversion
-//     approved_amount: data.approved_amount === null ? undefined : data.approved_amount, 
-//     updated_at: now 
+//     approved_amount: data.approved_amount === undefined ? undefined : data.approved_amount,
+//     updated_at: now
 //   };
 //   mockClaims[claimIndex] = updatedClaim;
 //   return updatedClaim;
 // }
-
 
 /**
  * GET /api/insurance/claims
@@ -223,9 +240,16 @@ export async function POST(request: NextRequest) {
     const claimData = body as InsuranceClaimInput;
 
     // Basic validation (add more comprehensive validation)
-    if (!claimData.patient_insurance_id || !claimData.invoice_id || !claimData.claim_amount) {
+    if (
+      !claimData.patient_insurance_id ||
+      !claimData.invoice_id ||
+      !claimData.claim_amount
+    ) {
       return NextResponse.json(
-        { error: "Missing required fields (patient_insurance_id, invoice_id, claim_amount)" },
+        {
+          error:
+            "Missing required fields (patient_insurance_id, invoice_id, claim_amount)",
+        },
         { status: 400 }
       );
     }
@@ -248,4 +272,3 @@ export async function POST(request: NextRequest) {
 }
 
 // Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
-

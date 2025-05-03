@@ -15,8 +15,24 @@ interface InsuranceProvider {
 // Mock data store for insurance providers (replace with actual DB interaction)
 // FIX: Changed let to const for prefer-const rule
 const mockProviders: InsuranceProvider[] = [
-  { id: 1, name: "MediCare Insurance", contact_person: "Alice Brown", contact_email: "alice@medicare.com", contact_phone: "555-1111", address: "123 Insurance St", is_active: 1 },
-  { id: 2, name: "HealthGuard Plus", contact_person: "Bob White", contact_email: "bob@healthguard.com", contact_phone: "555-2222", address: "456 Provider Ave", is_active: 1 },
+  {
+    id: 1,
+    name: "MediCare Insurance",
+    contact_person: "Alice Brown",
+    contact_email: "alice@medicare.com",
+    contact_phone: "555-1111",
+    address: "123 Insurance St",
+    is_active: 1,
+  },
+  {
+    id: 2,
+    name: "HealthGuard Plus",
+    contact_person: "Bob White",
+    contact_email: "bob@healthguard.com",
+    contact_phone: "555-2222",
+    address: "456 Provider Ave",
+    is_active: 1,
+  },
 ];
 let nextProviderId = 3;
 
@@ -46,13 +62,20 @@ interface InsuranceProviderFilters {
 }
 
 // Helper function to simulate DB interaction (GET)
-async function getInsuranceProvidersFromDB(filters: InsuranceProviderFilters = {}) {
-  console.log("Simulating DB fetch for insurance providers with filters:", filters);
+async function getInsuranceProvidersFromDB(
+  filters: InsuranceProviderFilters = {}
+) {
+  console.log(
+    "Simulating DB fetch for insurance providers with filters:",
+    filters
+  );
   let filteredProviders = [...mockProviders];
   // FIX: Check filters.is_active before using (TS18049)
-  if (filters.is_active !== null && filters.is_active !== undefined) {
+  if (filters.is_active !== undefined && filters.is_active !== undefined) {
     const activeBool = String(filters.is_active).toLowerCase() === "true";
-    filteredProviders = filteredProviders.filter(p => (p.is_active === 1) === activeBool);
+    filteredProviders = filteredProviders.filter(
+      (p) => (p.is_active === 1) === activeBool
+    );
   }
   return filteredProviders.sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -68,18 +91,21 @@ async function getInsuranceProvidersFromDB(filters: InsuranceProviderFilters = {
 // }
 
 // Helper function to simulate DB interaction (POST)
-async function createInsuranceProviderInDB(data: InsuranceProviderInput): Promise<InsuranceProvider> { // Added return type
+async function createInsuranceProviderInDB(
+  data: InsuranceProviderInput
+): Promise<InsuranceProvider> {
+  // Added return type
   console.log("Simulating DB create for insurance provider:", data);
   // const now = new Date().toISOString(); // Unused variable
   // FIX: Ensure created object matches InsuranceProvider interface
   const newProvider: InsuranceProvider = {
     id: nextProviderId++,
     name: data.name,
-    contact_person: data.contact_person || null,
-    contact_email: data.contact_email || null,
-    contact_phone: data.contact_phone || null,
-    address: data.address || null,
-    is_active: data.is_active !== undefined ? (data.is_active ? 1 : 0) : 1, // Default active
+    contact_person: data.contact_person || undefined,
+    contact_email: data.contact_email || undefined,
+    contact_phone: data.contact_phone || undefined,
+    address: data.address || undefined,
+    is_active: data.is_active === undefined ? 1 : data.is_active ? 1 : 0, // Default active
     // created_at: now, // Add if needed
     // updated_at: now, // Add if needed
   };
@@ -94,15 +120,15 @@ async function createInsuranceProviderInDB(data: InsuranceProviderInput): Promis
 //   if (providerIndex === -1) {
 //     throw new Error("Insurance provider not found");
 //   }
-  
+
 //   // Handle boolean conversion if necessary
 //   const updatePayload: Partial<InsuranceProvider> = { ...data };
 //   if (data.is_active !== undefined) {
 //     updatePayload.is_active = data.is_active ? 1 : 0;
 //   }
-  
-//   const updatedProvider = { 
-//     ...mockProviders[providerIndex], 
+
+//   const updatedProvider = {
+//     ...mockProviders[providerIndex],
 //     ...updatePayload, // Apply updates
 //     // updated_at: new Date().toISOString(), // Add if needed
 //   };
@@ -172,4 +198,3 @@ export async function POST(request: NextRequest) {
 }
 
 // Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
-

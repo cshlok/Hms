@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getDB } from '@/lib/db'; // Using mock DB
-import { getSession } from '@/lib/session';
+import { NextRequest, NextResponse } from "next/server";
+import { getDB } from "@/lib/database"; // Using mock DB
+import { getSession } from "@/lib/session";
 
 // Define interface for POST request body
 interface NursingNoteInput {
@@ -19,59 +19,75 @@ export async function GET(
 ) {
   try {
     const session = await getSession(); // Removed request argument
-    
+
     // Check authentication
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     const admissionId = params.id;
-    
-    const db = await getDB(); // Fixed: Await the promise returned by getDB()
-    
+
+    const database = await getDB(); // Fixed: Await the promise returned by getDB()
+
     // Check if admission exists using db.query
     // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
-    const admissionResult = await db.query(`
+    const admissionResult = await database.query(
+      `
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
       FROM admissions a
       JOIN patients p ON a.patient_id = p.id
       WHERE a.id = ?
-    `, [admissionId]);
-    const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] : null;
-    
+    `,
+      [admissionId]
+    );
+    const admission =
+      admissionResult.rows && admissionResult.rows.length > 0
+        ? admissionResult.rows[0]
+        : undefined;
+
     if (!admission) {
-      return NextResponse.json({ error: 'Admission not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Admission not found" },
+        { status: 404 }
+      );
     }
-    
+
     // Check permissions (using mock session data)
-    const isNurse = session.user.roleName === 'Nurse';
-    const isDoctor = session.user.roleName === 'Doctor';
-    const isAdmin = session.user.roleName === 'Admin';
+    const isNurse = session.user.roleName === "Nurse";
+    const isDoctor = session.user.roleName === "Doctor";
+    const isAdmin = session.user.roleName === "Admin";
     // Assuming permissions are correctly populated in the mock session
-    const canViewNotes = session.user.permissions?.includes('nursing_notes:view') ?? false;
-    
+    const canViewNotes =
+      session.user.permissions?.includes("nursing_notes:view") ?? false;
+
     if (!isNurse && !isDoctor && !isAdmin && !canViewNotes) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    
+
     // Get nursing notes using db.query
     // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
-    const nursingNotesResult = await db.query(`
+    const nursingNotesResult = await database.query(
+      `
       SELECT nn.*, u.first_name as nurse_first_name, u.last_name as nurse_last_name
       FROM nursing_notes nn
       JOIN users u ON nn.nurse_id = u.id
       WHERE nn.admission_id = ?
       ORDER BY nn.note_date DESC
-    `, [admissionId]);
-    
+    `,
+      [admissionId]
+    );
+
     return NextResponse.json({
       admission,
-      nursing_notes: nursingNotesResult.rows || []
+      nursing_notes: nursingNotesResult.rows || [],
     });
   } catch (error) {
-    console.error('Error fetching nursing notes:', error);
+    console.error("Error fetching nursing notes:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: 'Failed to fetch nursing notes', details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch nursing notes", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
@@ -82,69 +98,92 @@ export async function POST(
 ) {
   try {
     const session = await getSession(); // Removed request argument
-    
+
     // Check authentication
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     // Check permissions (using mock session data)
-    const isNurse = session.user.roleName === 'Nurse';
+    const isNurse = session.user.roleName === "Nurse";
     // Assuming permissions are correctly populated in the mock session
-    const canCreateNotes = session.user.permissions?.includes('nursing_notes:create') ?? false;
+    const canCreateNotes =
+      session.user.permissions?.includes("nursing_notes:create") ?? false;
 
     if (!isNurse && !canCreateNotes) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    
+
     const admissionId = params.id;
     // Fixed: Apply type assertion
-    const data = await request.json() as NursingNoteInput;
-    
+    const data = (await request.json()) as NursingNoteInput;
+
     // Basic validation (using typed data)
     if (!data.notes) {
-      return NextResponse.json({ error: 'Missing required field: notes' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required field: notes" },
+        { status: 400 }
+      );
     }
-    
-    const db = await getDB(); // Fixed: Await the promise returned by getDB()
-    
+
+    const database = await getDB(); // Fixed: Await the promise returned by getDB()
+
     // Check if admission exists and is active using db.query
     // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
-    const admissionResult = await db.query('SELECT id, status FROM admissions WHERE id = ?', [admissionId]);
-    const admission = admissionResult.rows && admissionResult.rows.length > 0 ? admissionResult.rows[0] as { id: string; status: string } : null;
-      
+    const admissionResult = await database.query(
+      "SELECT id, status FROM admissions WHERE id = ?",
+      [admissionId]
+    );
+    const admission =
+      admissionResult.rows && admissionResult.rows.length > 0
+        ? (admissionResult.rows[0] as { id: string; status: string })
+        : undefined;
+
     if (!admission) {
-      return NextResponse.json({ error: 'Admission not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Admission not found" },
+        { status: 404 }
+      );
     }
-    
-    if (admission.status !== 'active') {
-      return NextResponse.json({ error: 'Cannot add nursing notes to a non-active admission' }, { status: 409 }); // Updated error message
+
+    if (admission.status !== "active") {
+      return NextResponse.json(
+        { error: "Cannot add nursing notes to a non-active admission" },
+        { status: 409 }
+      ); // Updated error message
     }
-    
+
     // Insert new nursing note using db.query
     // Mock query doesn't return last_row_id
-    await db.query(`
+    await database.query(
+      `
       INSERT INTO nursing_notes (
         admission_id, nurse_id, note_date, vital_signs, intake_output, medication_given, procedures, notes
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      admissionId,
-      session.user.userId, // Ensure userId exists on session.user
-      data.note_date || new Date().toISOString(),
-      data.vital_signs || null,
-      data.intake_output || null,
-      data.medication_given || null,
-      data.procedures || null,
-      data.notes
-    ]);
-    
-    // Cannot reliably get the new record from mock DB
-    return NextResponse.json({ message: 'Nursing note created (mock operation)' }, { status: 201 });
+    `,
+      [
+        admissionId,
+        session.user.userId, // Ensure userId exists on session.user
+        data.note_date || new Date().toISOString(),
+        data.vital_signs || undefined,
+        data.intake_output || undefined,
+        data.medication_given || undefined,
+        data.procedures || undefined,
+        data.notes,
+      ]
+    );
 
+    // Cannot reliably get the new record from mock DB
+    return NextResponse.json(
+      { message: "Nursing note created (mock operation)" },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error('Error creating nursing note:', error);
+    console.error("Error creating nursing note:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: 'Failed to create nursing note', details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create nursing note", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
-

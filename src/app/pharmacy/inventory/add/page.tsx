@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
@@ -20,7 +19,7 @@ interface InventoryFormData {
   manufacturing_date: string;
   purchase_date: string;
   purchase_price: string; // Keep as string for input
-  selling_price: string;  // Keep as string for input
+  selling_price: string; // Keep as string for input
   initial_quantity: string; // Keep as string for input
   supplier: string;
   invoice_number: string;
@@ -28,7 +27,11 @@ interface InventoryFormData {
   notes: string;
 }
 
-interface InventorySubmitData extends Omit<InventoryFormData, "purchase_price" | "selling_price" | "initial_quantity"> {
+interface InventorySubmitData
+  extends Omit<
+    InventoryFormData,
+    "purchase_price" | "selling_price" | "initial_quantity"
+  > {
   purchase_price: number;
   selling_price: number;
   initial_quantity: number;
@@ -69,8 +72,20 @@ const AddInventoryPage: React.FC = () => {
         // const data = await response.json();
         // setMedications(data.medications || []);
         const simulatedMedications: Medication[] = [
-          { id: "med_001", generic_name: "Paracetamol", brand_name: "Calpol", strength: "500mg", dosage_form: "Tablet" },
-          { id: "med_002", generic_name: "Amoxicillin", brand_name: "Amoxil", strength: "250mg", dosage_form: "Capsule" },
+          {
+            id: "med_001",
+            generic_name: "Paracetamol",
+            brand_name: "Calpol",
+            strength: "500mg",
+            dosage_form: "Tablet",
+          },
+          {
+            id: "med_002",
+            generic_name: "Amoxicillin",
+            brand_name: "Amoxil",
+            strength: "250mg",
+            dosage_form: "Capsule",
+          },
           // Add more mock medications as needed
         ];
         setMedications(simulatedMedications);
@@ -83,13 +98,15 @@ const AddInventoryPage: React.FC = () => {
     fetchMedications();
   }, []);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>): void => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ): void => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((previous) => ({ ...previous, [name]: value }));
 
     // Clear error for this field when user starts typing
     if (errors[name as keyof InventoryFormData]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((previous) => ({ ...previous, [name]: "" }));
     }
   };
 
@@ -107,11 +124,11 @@ const AddInventoryPage: React.FC = () => {
       "initial_quantity",
     ];
 
-    requiredFields.forEach((field) => {
+    for (const field of requiredFields) {
       if (!formData[field]) {
         newErrors[field] = "This field is required";
       }
-    });
+    }
 
     // Validate expiry date is in the future
     if (formData.expiry_date) {
@@ -124,19 +141,26 @@ const AddInventoryPage: React.FC = () => {
     }
 
     // Validate prices and quantity are positive numbers
-    const purchasePrice = parseFloat(formData.purchase_price);
-    if (formData.purchase_price && (isNaN(purchasePrice) || purchasePrice <= 0)) {
+    const purchasePrice = Number.parseFloat(formData.purchase_price);
+    if (
+      formData.purchase_price &&
+      (Number.isNaN(purchasePrice) || purchasePrice <= 0)
+    ) {
       newErrors.purchase_price = "Purchase price must be a positive number";
     }
 
-    const sellingPrice = parseFloat(formData.selling_price);
-    if (formData.selling_price && (isNaN(sellingPrice) || sellingPrice <= 0)) {
+    const sellingPrice = Number.parseFloat(formData.selling_price);
+    if (formData.selling_price && (Number.isNaN(sellingPrice) || sellingPrice <= 0)) {
       newErrors.selling_price = "Selling price must be a positive number";
     }
 
-    const initialQuantity = parseInt(formData.initial_quantity, 10);
-    if (formData.initial_quantity && (isNaN(initialQuantity) || initialQuantity <= 0)) {
-      newErrors.initial_quantity = "Initial quantity must be a positive integer";
+    const initialQuantity = Number.parseInt(formData.initial_quantity, 10);
+    if (
+      formData.initial_quantity &&
+      (Number.isNaN(initialQuantity) || initialQuantity <= 0)
+    ) {
+      newErrors.initial_quantity =
+        "Initial quantity must be a positive integer";
     }
 
     setErrors(newErrors);
@@ -157,9 +181,9 @@ const AddInventoryPage: React.FC = () => {
     try {
       const submitData: InventorySubmitData = {
         ...formData,
-        purchase_price: parseFloat(formData.purchase_price),
-        selling_price: parseFloat(formData.selling_price),
-        initial_quantity: parseInt(formData.initial_quantity, 10),
+        purchase_price: Number.parseFloat(formData.purchase_price),
+        selling_price: Number.parseFloat(formData.selling_price),
+        initial_quantity: Number.parseInt(formData.initial_quantity, 10),
       };
 
       // Simulate API call
@@ -175,9 +199,9 @@ const AddInventoryPage: React.FC = () => {
       //   const errorData = await response.json().catch(() => ({}));
       //   throw new Error(errorData.error || "Failed to add inventory batch");
       // }
-      
+
       console.log("Simulating inventory save:", submitData);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
 
       setSubmitSuccess(true);
 
@@ -202,9 +226,9 @@ const AddInventoryPage: React.FC = () => {
       setTimeout(() => {
         router.push("/pharmacy/inventory");
       }, 2000);
-
     } catch (error) {
-      const message = error instanceof Error ? error.message : "An unknown error occurred.";
+      const message =
+        error instanceof Error ? error.message : "An unknown error occurred.";
       setSubmitError(message);
     } finally {
       setLoading(false);
@@ -214,7 +238,9 @@ const AddInventoryPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Add New Inventory Batch</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Add New Inventory Batch
+        </h1>
         <button
           className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
           onClick={() => router.push("/pharmacy/inventory")}
@@ -240,7 +266,10 @@ const AddInventoryPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Medication Selection */}
             <div>
-              <label htmlFor="medication_id" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="medication_id"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Medication <span className="text-red-500">*</span>
               </label>
               <select
@@ -252,21 +281,35 @@ const AddInventoryPage: React.FC = () => {
                 disabled={loading}
                 required
                 aria-invalid={!!errors.medication_id}
-                aria-describedby={errors.medication_id ? "medication_id-error" : undefined}
+                aria-describedby={
+                  errors.medication_id ? "medication_id-error" : undefined
+                }
               >
                 <option value="">Select a medication</option>
                 {medications.map((med) => (
                   <option key={med.id} value={med.id}>
-                    {med.generic_name} {med.brand_name ? `(${med.brand_name})` : ""} - {med.strength} {med.dosage_form}
+                    {med.generic_name}{" "}
+                    {med.brand_name ? `(${med.brand_name})` : ""} -{" "}
+                    {med.strength} {med.dosage_form}
                   </option>
                 ))}
               </select>
-              {errors.medication_id && <p id="medication_id-error" className="mt-1 text-sm text-red-500">{errors.medication_id}</p>}
+              {errors.medication_id && (
+                <p
+                  id="medication_id-error"
+                  className="mt-1 text-sm text-red-500"
+                >
+                  {errors.medication_id}
+                </p>
+              )}
             </div>
 
             {/* Batch Number */}
             <div>
-              <label htmlFor="batch_number" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="batch_number"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Batch Number <span className="text-red-500">*</span>
               </label>
               <input
@@ -279,14 +322,26 @@ const AddInventoryPage: React.FC = () => {
                 disabled={loading}
                 required
                 aria-invalid={!!errors.batch_number}
-                aria-describedby={errors.batch_number ? "batch_number-error" : undefined}
+                aria-describedby={
+                  errors.batch_number ? "batch_number-error" : undefined
+                }
               />
-              {errors.batch_number && <p id="batch_number-error" className="mt-1 text-sm text-red-500">{errors.batch_number}</p>}
+              {errors.batch_number && (
+                <p
+                  id="batch_number-error"
+                  className="mt-1 text-sm text-red-500"
+                >
+                  {errors.batch_number}
+                </p>
+              )}
             </div>
 
             {/* Expiry Date */}
             <div>
-              <label htmlFor="expiry_date" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="expiry_date"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Expiry Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -299,14 +354,23 @@ const AddInventoryPage: React.FC = () => {
                 disabled={loading}
                 required
                 aria-invalid={!!errors.expiry_date}
-                aria-describedby={errors.expiry_date ? "expiry_date-error" : undefined}
+                aria-describedby={
+                  errors.expiry_date ? "expiry_date-error" : undefined
+                }
               />
-              {errors.expiry_date && <p id="expiry_date-error" className="mt-1 text-sm text-red-500">{errors.expiry_date}</p>}
+              {errors.expiry_date && (
+                <p id="expiry_date-error" className="mt-1 text-sm text-red-500">
+                  {errors.expiry_date}
+                </p>
+              )}
             </div>
 
             {/* Manufacturing Date */}
             <div>
-              <label htmlFor="manufacturing_date" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="manufacturing_date"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Manufacturing Date
               </label>
               <input
@@ -322,7 +386,10 @@ const AddInventoryPage: React.FC = () => {
 
             {/* Purchase Date */}
             <div>
-              <label htmlFor="purchase_date" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="purchase_date"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Purchase Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -335,14 +402,26 @@ const AddInventoryPage: React.FC = () => {
                 disabled={loading}
                 required
                 aria-invalid={!!errors.purchase_date}
-                aria-describedby={errors.purchase_date ? "purchase_date-error" : undefined}
+                aria-describedby={
+                  errors.purchase_date ? "purchase_date-error" : undefined
+                }
               />
-              {errors.purchase_date && <p id="purchase_date-error" className="mt-1 text-sm text-red-500">{errors.purchase_date}</p>}
+              {errors.purchase_date && (
+                <p
+                  id="purchase_date-error"
+                  className="mt-1 text-sm text-red-500"
+                >
+                  {errors.purchase_date}
+                </p>
+              )}
             </div>
 
             {/* Purchase Price */}
             <div>
-              <label htmlFor="purchase_price" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="purchase_price"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Purchase Price (₹) <span className="text-red-500">*</span>
               </label>
               <input
@@ -357,14 +436,26 @@ const AddInventoryPage: React.FC = () => {
                 disabled={loading}
                 required
                 aria-invalid={!!errors.purchase_price}
-                aria-describedby={errors.purchase_price ? "purchase_price-error" : undefined}
+                aria-describedby={
+                  errors.purchase_price ? "purchase_price-error" : undefined
+                }
               />
-              {errors.purchase_price && <p id="purchase_price-error" className="mt-1 text-sm text-red-500">{errors.purchase_price}</p>}
+              {errors.purchase_price && (
+                <p
+                  id="purchase_price-error"
+                  className="mt-1 text-sm text-red-500"
+                >
+                  {errors.purchase_price}
+                </p>
+              )}
             </div>
 
             {/* Selling Price */}
             <div>
-              <label htmlFor="selling_price" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="selling_price"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Selling Price (₹) <span className="text-red-500">*</span>
               </label>
               <input
@@ -379,14 +470,26 @@ const AddInventoryPage: React.FC = () => {
                 disabled={loading}
                 required
                 aria-invalid={!!errors.selling_price}
-                aria-describedby={errors.selling_price ? "selling_price-error" : undefined}
+                aria-describedby={
+                  errors.selling_price ? "selling_price-error" : undefined
+                }
               />
-              {errors.selling_price && <p id="selling_price-error" className="mt-1 text-sm text-red-500">{errors.selling_price}</p>}
+              {errors.selling_price && (
+                <p
+                  id="selling_price-error"
+                  className="mt-1 text-sm text-red-500"
+                >
+                  {errors.selling_price}
+                </p>
+              )}
             </div>
 
             {/* Initial Quantity */}
             <div>
-              <label htmlFor="initial_quantity" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="initial_quantity"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Initial Quantity <span className="text-red-500">*</span>
               </label>
               <input
@@ -401,14 +504,26 @@ const AddInventoryPage: React.FC = () => {
                 disabled={loading}
                 required
                 aria-invalid={!!errors.initial_quantity}
-                aria-describedby={errors.initial_quantity ? "initial_quantity-error" : undefined}
+                aria-describedby={
+                  errors.initial_quantity ? "initial_quantity-error" : undefined
+                }
               />
-              {errors.initial_quantity && <p id="initial_quantity-error" className="mt-1 text-sm text-red-500">{errors.initial_quantity}</p>}
+              {errors.initial_quantity && (
+                <p
+                  id="initial_quantity-error"
+                  className="mt-1 text-sm text-red-500"
+                >
+                  {errors.initial_quantity}
+                </p>
+              )}
             </div>
 
             {/* Supplier */}
             <div>
-              <label htmlFor="supplier" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="supplier"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Supplier
               </label>
               <input
@@ -424,7 +539,10 @@ const AddInventoryPage: React.FC = () => {
 
             {/* Invoice Number */}
             <div>
-              <label htmlFor="invoice_number" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="invoice_number"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Invoice Number
               </label>
               <input
@@ -440,7 +558,10 @@ const AddInventoryPage: React.FC = () => {
 
             {/* Storage Location */}
             <div>
-              <label htmlFor="storage_location" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="storage_location"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Storage Location
               </label>
               <input
@@ -457,7 +578,10 @@ const AddInventoryPage: React.FC = () => {
 
           {/* Notes */}
           <div className="mt-6">
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="notes"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Notes
             </label>
             <textarea
@@ -495,4 +619,3 @@ const AddInventoryPage: React.FC = () => {
 };
 
 export default AddInventoryPage;
-

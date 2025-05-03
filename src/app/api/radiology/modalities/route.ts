@@ -14,7 +14,16 @@ interface ModalityInput {
 // GET all Radiology Modalities
 export async function GET(request: NextRequest) {
   const session = await getSession();
-  if (!session?.user || !await checkUserRole(request, ["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"])) {
+  if (
+    !session?.user ||
+    !(await checkUserRole(request, [
+      "Admin",
+      "Doctor",
+      "Receptionist",
+      "Technician",
+      "Radiologist",
+    ]))
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -24,32 +33,50 @@ export async function GET(request: NextRequest) {
       "SELECT * FROM RadiologyModalities ORDER BY name ASC"
     ).all();
     return NextResponse.json(results);
-  } catch (e: unknown) { // FIX: Use unknown instead of any
-    const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error({ message: "Error fetching radiology modalities", error: errorMessage });
-    return NextResponse.json({ error: "Failed to fetch radiology modalities", details: errorMessage }, { status: 500 });
+  } catch (error: unknown) {
+    // FIX: Use unknown instead of any
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error({
+      message: "Error fetching radiology modalities",
+      error: errorMessage,
+    });
+    return NextResponse.json(
+      { error: "Failed to fetch radiology modalities", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
 // POST a new Radiology Modality (Admin only)
 export async function POST(request: NextRequest) {
   const session = await getSession();
-  if (!session?.user || !await checkUserRole(request, ["Admin"])) {
+  if (!session?.user || !(await checkUserRole(request, ["Admin"]))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   const DB = process.env.DB as unknown as D1Database;
   try {
-    const { name, description, location } = await request.json() as ModalityInput; // Cast to ModalityInput
+    const { name, description, location } =
+      (await request.json()) as ModalityInput; // Cast to ModalityInput
 
     if (!name) {
-      return NextResponse.json({ error: "Missing required field: name" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required field: name" },
+        { status: 400 }
+      );
     }
 
     // Check if name already exists
-    const existingModality = await DB.prepare("SELECT id FROM RadiologyModalities WHERE name = ?").bind(name).first();
+    const existingModality = await DB.prepare(
+      "SELECT id FROM RadiologyModalities WHERE name = ?"
+    )
+      .bind(name)
+      .first();
     if (existingModality) {
-        return NextResponse.json({ error: "Modality with this name already exists" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Modality with this name already exists" },
+        { status: 409 }
+      );
     }
 
     const id = nanoid();
@@ -57,24 +84,30 @@ export async function POST(request: NextRequest) {
 
     await DB.prepare(
       "INSERT INTO RadiologyModalities (id, name, description, location, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-    ).bind(
-      id,
-      name,
-      description || null,
-      location || null,
-      now,
-      now
-    ).run();
+    )
+      .bind(id, name, description || undefined, location || undefined, now, now)
+      .run();
 
-    return NextResponse.json({ id, status: "Radiology modality created" }, { status: 201 });
-
-  } catch (e: unknown) { // FIX: Use unknown instead of any
-    const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error({ message: "Error creating radiology modality", error: errorMessage });
+    return NextResponse.json(
+      { id, status: "Radiology modality created" },
+      { status: 201 }
+    );
+  } catch (error: unknown) {
+    // FIX: Use unknown instead of any
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error({
+      message: "Error creating radiology modality",
+      error: errorMessage,
+    });
     if (errorMessage?.includes("UNIQUE constraint failed")) {
-        return NextResponse.json({ error: "Modality with this name already exists" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Modality with this name already exists" },
+        { status: 409 }
+      );
     }
-    return NextResponse.json({ error: "Failed to create radiology modality", details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create radiology modality", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
-

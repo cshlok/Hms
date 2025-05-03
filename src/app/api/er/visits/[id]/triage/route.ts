@@ -44,13 +44,21 @@ export async function GET(
     */
 
     // Mock implementation
-    const assessments = mockTriageAssessments.filter((t) => t.visit_id === visitId)
-                                          .sort((a, b) => new Date(b.triage_timestamp).getTime() - new Date(a.triage_timestamp).getTime());
+    const assessments = mockTriageAssessments
+      .filter((t) => t.visit_id === visitId)
+      .sort(
+        (a, b) =>
+          new Date(b.triage_timestamp).getTime() -
+          new Date(a.triage_timestamp).getTime()
+      );
 
     return NextResponse.json(assessments);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error({ message: "Error fetching triage assessments", error: errorMessage });
+    console.error({
+      message: "Error fetching triage assessments",
+      error: errorMessage,
+    });
     return NextResponse.json(
       { error: "Failed to fetch triage assessments", details: errorMessage },
       { status: 500 }
@@ -73,16 +81,26 @@ export async function POST(
     const triageId = uuidv4();
 
     // Basic validation
-    if (!triageData.triage_nurse_id || !triageData.esi_level || !triageData.vital_signs) {
+    if (
+      !triageData.triage_nurse_id ||
+      !triageData.esi_level ||
+      !triageData.vital_signs
+    ) {
       return NextResponse.json(
-        { error: "Missing required fields (triage_nurse_id, esi_level, vital_signs)" },
+        {
+          error:
+            "Missing required fields (triage_nurse_id, esi_level, vital_signs)",
+        },
         { status: 400 }
       );
     }
 
     // Validate ESI level
     if (triageData.esi_level < 1 || triageData.esi_level > 5) {
-        return NextResponse.json({ error: "Invalid ESI level (must be 1-5)" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid ESI level (must be 1-5)" },
+        { status: 400 }
+      );
     }
 
     // Placeholder for database insert
@@ -123,11 +141,13 @@ export async function POST(
     return NextResponse.json(newTriage, { status: 201 });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error({ message: "Error creating triage assessment", error: errorMessage });
+    console.error({
+      message: "Error creating triage assessment",
+      error: errorMessage,
+    });
     return NextResponse.json(
       { error: "Failed to create triage assessment", details: errorMessage },
       { status: 500 }
     );
   }
 }
-
