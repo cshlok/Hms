@@ -6,16 +6,16 @@ interface PreAuthorization {
   id: number | string;
   patient_insurance_id: number | string;
   requested_procedure: string;
-  estimated_cost?: number | null;
+  estimated_cost?: number | undefined;
   request_date: string; // ISO string
   status: string; // e.g., "Pending", "Approved", "Rejected", "More Info Required"
-  authorization_number?: string | null;
-  approved_amount?: number | null;
-  expiry_date?: string | null; // ISO string
-  notes?: string | null;
-  referring_doctor_id?: number | string | null;
-  diagnosis_code?: string | null;
-  rejection_reason?: string | null;
+  authorization_number?: string | undefined;
+  approved_amount?: number | undefined;
+  expiry_date?: string | undefined; // ISO string
+  notes?: string | undefined;
+  referring_doctor_id?: number | string | undefined;
+  diagnosis_code?: string | undefined;
+  rejection_reason?: string | undefined;
   created_at?: string; // ISO string
   updated_at?: string; // ISO string
 }
@@ -77,10 +77,10 @@ interface PreAuthorizationInput {
 
 // Define interface for pre-authorization filters
 interface PreAuthorizationFilters {
-  status?: string | null;
-  patient_insurance_id?: string | null;
-  date_from?: string | null;
-  date_to?: string | null;
+  status?: string | undefined;
+  patient_insurance_id?: string | undefined;
+  date_from?: string | undefined;
+  date_to?: string | undefined;
 }
 
 // Helper function to simulate DB interaction (GET)
@@ -101,7 +101,7 @@ async function getPreAuthorizationsFromDB(
   }
   // FIX: Check filters.patient_insurance_id before parsing (TS2345)
   if (filters.patient_insurance_id) {
-    const patientInsuranceId = Number.parseInt(filters.patient_insurance_id);
+       const patientInsuranceId = Number.parseInt(filters.patient_insurance_id);
     if (!Number.isNaN(patientInsuranceId)) {
       filteredPreAuths = filteredPreAuths.filter(
         (pa) => pa.patient_insurance_id === patientInsuranceId

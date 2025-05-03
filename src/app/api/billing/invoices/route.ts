@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
 
     // Fixed: Use DB.query instead of prepare/bind/first
     // Assuming DB.query returns { rows: T[] } and we take the first row
-    const countResult = await DB.query(countQuery, countParams);
+    const countResult = await DB.query(countQuery, countParameters);
     const total =
       countResult.rows && countResult.rows.length > 0
         ? (countResult.rows[0] as { total: number }).total
@@ -254,7 +254,7 @@ export async function PUT(
 
 // DELETE /api/ot/bookings/[id] - Cancel an OT booking (soft delete or status update)
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {

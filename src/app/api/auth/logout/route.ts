@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     clearAuthCookie(response);
 
     return response;
-  } catch {
+  } catch (error: unknown) {
     console.error("Logout error:", error);
 
     // Even if there's an error, attempt to clear the cookie

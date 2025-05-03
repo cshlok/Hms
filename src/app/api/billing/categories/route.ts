@@ -25,7 +25,7 @@ export async function GET(_request: Request) {
     ];
 
     return NextResponse.json({ categories: mockCategories });
-  } catch {
+  } catch (error) {
     console.error("Error fetching service item categories:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

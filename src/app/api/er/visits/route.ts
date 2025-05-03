@@ -9,14 +9,14 @@ interface ERVisit {
   arrival_timestamp: string; // ISO string
   chief_complaint: string;
   mode_of_arrival?: string; // Added based on mock data
-  triage_level?: number | null; // Added based on mock data, allow null
-  // FIX: Allow null for optional fields based on usage
-  assigned_physician_id?: string | number | null;
-  assigned_nurse_id?: string | number | null;
-  current_location?: string | null;
-  current_status?: string | null;
-  disposition?: string | null;
-  discharge_timestamp?: string | null;
+  triage_level?: number | undefined; // Added based on mock data, allow undefined
+  // FIX: Allow undefined for optional fields based on usage
+  assigned_physician_id?: string | number | undefined;
+  assigned_nurse_id?: string | number | undefined;
+  current_location?: string | undefined;
+  current_status?: string | undefined;
+  disposition?: string | undefined;
+  discharge_timestamp?: string | undefined;
   created_at?: string; // ISO string
   updated_at?: string; // ISO string
   // Add other relevant fields based on your schema
@@ -86,9 +86,9 @@ interface ERVisitInput {
 
 // Define interface for ER Visit filters
 interface ERVisitFilters {
-  status?: string | null;
-  location?: string | null;
-  date?: string | null;
+  status?: string | undefined;
+  location?: string | undefined;
+  date?: string | undefined;
 }
 
 // Helper function to simulate DB interaction (GET)

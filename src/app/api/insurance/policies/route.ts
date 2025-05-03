@@ -18,18 +18,18 @@ interface InsurancePolicy {
   patient_id: number | string;
   provider_id: number | string;
   policy_number: string;
-  group_number?: string | null;
-  subscriber_name?: string | null;
-  subscriber_dob?: string | null; // YYYY-MM-DD
+  group_number?: string | undefined;
+  subscriber_name?: string | undefined;
+  subscriber_dob?: string | undefined; // YYYY-MM-DD
   relationship_to_patient?: string;
   effective_date: string; // YYYY-MM-DD
   expiry_date: string; // YYYY-MM-DD
-  coverage_details?: string | null;
+  coverage_details?: string | undefined;
   is_primary: number; // Assuming 1 for primary, 0 for secondary
   is_active: number; // Assuming 1 for active, 0 for inactive
-  verification_status?: string | null; // e.g., "Verified", "Pending", "Rejected"
-  verified_by_id?: number | string | null;
-  verified_at?: string | null; // ISO string
+  verification_status?: string | undefined; // e.g., "Verified", "Pending", "Rejected"
+  verified_by_id?: number | string | undefined;
+  verified_at?: string | undefined; // ISO string
   created_at?: string; // ISO string
   updated_at?: string; // ISO string
 }
@@ -122,9 +122,9 @@ interface InsurancePolicyInput {
 
 // Define interface for patient insurance policy filters
 interface InsurancePolicyFilters {
-  patient_id?: string | null;
-  provider_id?: string | null;
-  is_active?: string | null; // Expecting "true" or "false"
+  patient_id?: string | undefined;
+  provider_id?: string | undefined;
+  is_active?: string | undefined; // Expecting "true" or "false"
 }
 
 // Helper function to simulate DB interaction (GET Policies)
@@ -139,7 +139,7 @@ async function getPatientInsurancePoliciesFromDB(
 
   // FIX: Check filters.patient_id before parsing (TS2345)
   if (filters.patient_id) {
-    const patientId = Number.parseInt(filters.patient_id);
+      const patientId = Number.parseInt(filters.patient_id);
     if (!Number.isNaN(patientId)) {
       filteredPolicies = filteredPolicies.filter(
         (p) => p.patient_id === patientId
@@ -202,7 +202,7 @@ async function createPatientInsurancePolicyInDB(
     expiry_date: data.expiry_date,
     coverage_details: data.coverage_details || undefined,
     is_primary: data.is_primary ? 1 : 0,
-    is_active: data.is_active === undefined ? 1 : data.is_active ? 1 : 0, // Default active
+    is_active: data.is_active === false ? 0 : 1, // Default active
     verification_status: "Pending",
     verified_by_id: undefined,
     verified_at: undefined,

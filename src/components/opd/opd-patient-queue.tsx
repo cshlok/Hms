@@ -41,201 +41,7 @@ interface OPDPatientQueueProperties {
   date: Date;
 }
 
-export default function OPDPatientQueue({ date }: OPDPatientQueueProperties) {
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>();
-  const [canCallPatient, setCanCallPatient] = useState(false);
-  const [canMarkComplete, setCanMarkComplete] = useState(false);
-  const [loadingPermissions, setLoadingPermissions] = useState(true);
-
-  useEffect(() => {
-    // Check permissions via API route
-    const checkPermissions = async () => {
-      setLoadingPermissions(true);
-      try {
-        const [callResponse, completeResponse] = await Promise.all([
-          fetch("/api/auth/check-permission?permission=patient:call"),
-          fetch("/api/auth/check-permission?permission=consultation:complete"),
-        ]);
-
-        if (!callResponse.ok || !completeResponse.ok) {
-          console.error("Failed to fetch permissions");
-          setCanCallPatient(false);
-          setCanMarkComplete(false);
-          return;
-        }
-
-        // FIX: Type the response data
-        const callData: PermissionApiResponse = await callResponse.json();
-        const completeData: PermissionApiResponse = await completeResponse.json();
-
-        setCanCallPatient(callData.hasPermission || false);
-        setCanMarkComplete(completeData.hasPermission || false);
-      } catch {
-        console.error("Error fetching permissions:", error);
-        setCanCallPatient(false);
-        setCanMarkComplete(false);
-      } finally {
-        setLoadingPermissions(false);
-      }
-    };
-
-    checkPermissions();
-  }, []);
-
-  useEffect(() => {
-    const fetchPatientQueue = async () => {
-      // Don't set loading to true on interval refresh to avoid flicker
-      // setLoading(true);
-      setError(undefined);
-
-      try {
-        const formattedDate = date.toISOString().split("T")[0];
-        const response = await fetch(`/api/opd/queue?date=${formattedDate}`);
-
-        if (!response.ok) {
-          let errorMessage = "Failed to fetch patient queue";
-          try {
-            const errorData: ApiErrorResponse = await response.json();
-            errorMessage = errorData.error || errorMessage;
-          } catch {
-            /* Ignore */
-          }
-          throw new Error(errorMessage);
-        }
-
-        // FIX: Type the response data and ensure it's an array
-        const data: PatientQueueApiResponse = await response.json();
-        if (Array.isArray(data)) {
-          setPatients(data);
-        } else {
-          console.warn(
-            "Unexpected API response format for patient queue:",
-            data
-          );
-          setPatients([]);
-        }
-      } catch (error_: unknown) {
-        // FIX: Use unknown
-        const messageText =
-          error_ instanceof Error
-            ? error_.message
-            : "An unknown error occurred";
-        setError(messageText);
-        console.error("Error fetching patient queue:", error_);
-      } finally {
-        // Only set loading false on initial fetch
-        if (loading) setLoading(false);
-      }
-    };
-
-    fetchPatientQueue();
-
-    // Set up polling to refresh the queue every minute
-    const intervalId = setInterval(fetchPatientQueue, 60_000);
-
-    return () => clearInterval(intervalId);
-  }, [date, loading]); // Added loading dependency to manage initial load state
-
-  const handleCallPatient = async (patientId: number) => {
-    try {
-      const response = await fetch(`/api/opd/queue/${patientId}/call`, {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        let errorMessage = "Failed to call patient";
-        try {
-          const errorData: ApiErrorResponse = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          /* Ignore */
-        }
-        throw new Error(errorMessage);
-      }
-
-      // Update the patient status in the local state
-      setPatients(
-        patients.map((patient) =>
-          patient.id === patientId
-            ? { ...patient, status: "in-progress" }
-            : patient
-        )
-      );
-    } catch (error_: unknown) {
-      // FIX: Use unknown
-      const messageText =
-        error_ instanceof Error ? error_.message : "An unknown error occurred";
-      console.error("Error calling patient:", error_);
-      // TODO: Show error notification
-      alert(`Error: ${messageText}`); // Placeholder alert
-    }
-  };
-
-  const handleCompleteConsultation = async (patientId: number) => {
-    try {
-      const response = await fetch(`/api/opd/queue/${patientId}/complete`, {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        let errorMessage = "Failed to complete consultation";
-        try {
-          const errorData: ApiErrorResponse = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          /* Ignore */
-        }
-        throw new Error(errorMessage);
-      }
-
-      // Update the patient status in the local state
-      setPatients(
-        patients.map((patient) =>
-          patient.id === patientId
-            ? { ...patient, status: "completed" }
-            : patient
-        )
-      );
-    } catch (error_: unknown) {
-      // FIX: Use unknown
-      const messageText =
-        error_ instanceof Error ? error_.message : "An unknown error occurred";
-      console.error("Error completing consultation:", error_);
-      // TODO: Show error notification
-      alert(`Error: ${messageText}`); // Placeholder alert
-    }
-  };
-
-  const getStatusBadge = (status: Patient["status"]) => {
-    switch (status) {
-      case "waiting": {
-        return <Badge variant="outline">Waiting</Badge>;
-      }
-      case "in-progress": {
-        return <Badge variant="default">In Progress</Badge>;
-      }
-      case "completed": {
-        // Assuming a 'success' variant exists or is styled globally
-        return (
-          <Badge
-            variant="default"
-            className="bg-green-500 text-white hover:bg-green-600"
-          >
-            Completed
-          </Badge>
-        );
-      }
-      case "cancelled": {
-        return <Badge variant="destructive">Cancelled</Badge>;
-      }
-      default: {
-        return <Badge variant="outline">{status}</Badge>;
-      }
-    }
-  };
-
+// Helper function to format waiting time
 const formatWaitingTime = (minutes: number) => {
   if (minutes < 60) {
     return `${minutes} min`;
@@ -245,6 +51,35 @@ const formatWaitingTime = (minutes: number) => {
   const remainingMinutes = minutes % 60;
 
   return `${hours}h ${remainingMinutes}m`;
+};
+
+// Helper function to get status badge
+const getStatusBadge = (status: Patient["status"]) => {
+  switch (status) {
+    case "waiting": {
+      return <Badge variant="outline">Waiting</Badge>;
+    }
+    case "in-progress": {
+      return <Badge variant="default">In Progress</Badge>;
+    }
+    case "completed": {
+      // Assuming a 'success' variant exists or is styled globally
+      return (
+        <Badge
+          variant="default"
+          className="bg-green-500 text-white hover:bg-green-600"
+        >
+          Completed
+        </Badge>
+      );
+    }
+    case "cancelled": {
+      return <Badge variant="destructive">Cancelled</Badge>;
+    }
+    default: {
+      return <Badge variant="outline">{status}</Badge>;
+    }
+  }
 };
 
 export default function OPDPatientQueue({ date }: OPDPatientQueueProperties) {

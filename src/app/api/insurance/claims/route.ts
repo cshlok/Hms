@@ -11,11 +11,11 @@ interface InsuranceClaim {
   claim_amount: number;
   approved_amount?: number; // Use undefined for optional numbers
   status: string; // e.g., "Submitted", "Approved", "Rejected", "Pending Information"
-  approval_date?: string | null; // ISO string or null
-  rejection_date?: string | null; // ISO string or null
-  rejection_reason?: string | null;
-  payment_date?: string | null; // ISO string or null
-  payment_reference?: string | null;
+  approval_date?: string | undefined; // ISO string or undefined
+  rejection_date?: string | undefined; // ISO string or undefined
+  rejection_reason?: string | undefined;
+  payment_date?: string | undefined; // ISO string or undefined
+  payment_reference?: string | undefined;
   notes?: string;
   created_at?: string; // ISO string
   updated_at?: string; // ISO string
@@ -87,10 +87,10 @@ interface InsuranceClaimInput {
 
 // Define interface for insurance claim filters
 interface InsuranceClaimFilters {
-  status?: string | null;
-  patient_insurance_id?: string | null;
-  date_from?: string | null;
-  date_to?: string | null;
+  status?: string | undefined;
+  patient_insurance_id?: string | undefined;
+  date_from?: string | undefined;
+  date_to?: string | undefined;
 }
 
 // Helper function to simulate DB interaction (GET)

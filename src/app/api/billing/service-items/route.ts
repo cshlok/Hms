@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (isActive !== undefined && isActive !== undefined) {
+    if (isActive !== undefined && isActive !== null) {
       const activeBool = isActive.toLowerCase() === "true";
       filteredItems = filteredItems.filter(
         (item) => (item.is_active === 1) === activeBool
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
       page,
       limit,
     });
-  } catch {
+  } catch (error) {
     console.error("Error fetching service items:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
