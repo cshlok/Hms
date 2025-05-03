@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, FileText } from "lucide-react";
 import CreateRadiologyReportModal, {
   ReportFormData as ModalReportFormData,
-} from "./CreateRadiologyReportModal"; // Import the form data type
+} from "./create-radiology-report-modal"; // Import the form data type
 // import RadiologyReportsList from "./RadiologyReportsList"; // Assuming this exists
 
 // Define interfaces

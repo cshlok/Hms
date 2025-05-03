@@ -2,10 +2,10 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import RadiologyOrderList from "@/components/radiology/RadiologyOrderList";
-import RadiologyStudiesList from "@/components/radiology/RadiologyStudiesList";
-import RadiologyReportsList from "@/components/radiology/RadiologyReportsList";
-import RadiologySettings from "@/components/radiology/RadiologySettings";
+import RadiologyOrderList from "@/components/radiology/radiology-order-list";
+import RadiologyStudiesList from "@/components/radiology/radiology-studies-list";
+import RadiologyReportsList from "@/components/radiology/radiology-reports-list";
+import RadiologySettings from "@/components/radiology/radiology-settings";
 
 export default function RadiologyPage() {
   return (

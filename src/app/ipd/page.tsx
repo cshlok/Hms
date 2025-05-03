@@ -12,14 +12,14 @@ import {
   TabsContent,
 } from "@/components/ui"; // Assuming all these are from @/components/ui
 import { Button } from "@/components/ui/button"; // FIX: Add missing Button import
-import BedManagementDashboard from "@/components/ipd/BedManagementDashboard";
-import IPDPatientList from "@/components/ipd/IPDPatientList";
-import AdmissionForm from "@/components/ipd/AdmissionForm";
-import PatientProgressNotes from "@/components/ipd/PatientProgressNotes";
-import NursingNotes from "@/components/ipd/NursingNotes";
-import VitalSigns from "@/components/ipd/VitalSigns";
-import MedicationAdministration from "@/components/ipd/MedicationAdministration";
-import DischargeSummary from "@/components/ipd/DischargeSummary";
+import BedManagementDashboard from "@/components/ipd/bed-management-dashboard";
+import IPDPatientList from "@/components/ipd/ipd-patient-list";
+import AdmissionForm from "@/components/ipd/admission-form";
+import PatientProgressNotes from "@/components/ipd/patient-progress-notes";
+import NursingNotes from "@/components/ipd/nursing-notes";
+import VitalSigns from "@/components/ipd/vital-signs";
+import MedicationAdministration from "@/components/ipd/medication-administration";
+import DischargeSummary from "@/components/ipd/discharge-summary";
 
 // --- INTERFACES ---
 

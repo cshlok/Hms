@@ -1,7 +1,7 @@
 // lib/session.ts
 import { cookies } from "next/headers";
 import { jwtVerify, SignJWT } from "jose";
-import { getDB } from "./db"; // FIX: Corrected import path
+import { getDatabase } from "./database"; // FIX: Corrected import path
 
 // Secret key for JWT signing - in production, this should be an environment variable
 const JWT_SECRET = new TextEncoder().encode(

@@ -15,8 +15,8 @@ import {
 import { Loader2, Plus } from "lucide-react";
 import CreateProcedureTypeModal, {
   ProcedureTypeFormData,
-} from "./CreateProcedureTypeModal"; // Assuming modal exports form data type
-import CreateModalityModal, { ModalityFormData } from "./CreateModalityModal"; // Assuming modal exports form data type
+} from "./create-procedure-type-modal"; // Assuming modal exports form data type
+import CreateModalityModal, { ModalityFormData } from "./create-modality-modal"; // Assuming modal exports form data type
 
 // Define interfaces
 interface ProcedureType {
