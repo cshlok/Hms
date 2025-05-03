@@ -99,7 +99,7 @@ const AddInventoryPage: React.FC = () => {
   }, []);
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ): void => {
     const { name, value } = e.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
@@ -167,8 +167,8 @@ const AddInventoryPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
 
     if (!validateForm()) {
       return;

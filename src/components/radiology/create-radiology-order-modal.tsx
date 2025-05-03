@@ -138,8 +138,8 @@ export default function CreateRadiologyOrderModal({
     fetchData();
   }, [isOpen]); // Re-fetch when modal opens
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!patientId || !procedureTypeId || !clinicalIndication) {
       // Consider using a toast notification instead of alert
       alert(
@@ -262,8 +262,8 @@ export default function CreateRadiologyOrderModal({
                 <Textarea
                   id="clinicalIndication"
                   value={clinicalIndication}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setClinicalIndication(e.target.value)
+                  onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setClinicalIndication(event.target.value)
                   }
                   className="col-span-3"
                   required

@@ -195,7 +195,7 @@ const MedicationAdministration: React.FC<
   }, []);
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ): void => {
     const { name, value } = e.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
@@ -204,8 +204,8 @@ const MedicationAdministration: React.FC<
   // Note: If using shadcn/ui Select, the onChange is handled differently (onValueChange)
   // This example assumes standard HTML select or a compatible custom component
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
     if (!admissionId) {
       setSubmitError("Admission ID is missing.");
       return;

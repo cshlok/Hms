@@ -90,7 +90,7 @@ export default function OTChecklistTemplateModal({
     }
   }, [template, isOpen]);
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
@@ -117,8 +117,8 @@ export default function OTChecklistTemplateModal({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setIsSaving(true);
     try {
       // Validate items are not empty

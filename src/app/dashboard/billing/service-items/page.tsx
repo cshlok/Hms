@@ -109,11 +109,11 @@ const ServiceItemForm: React.FC<ServiceItemFormProperties> = ({
   }, [item]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type } = e.target;
+    const { name, value, type } = event.target;
     if (type === "checkbox") {
-      const { checked } = e.target as HTMLInputElement;
+      const { checked } = event.target as HTMLInputElement;
       setFormData((previous) => ({ ...previous, [name]: checked }));
     } else if (type === "number") {
       setFormData((previous) => ({
@@ -129,8 +129,8 @@ const ServiceItemForm: React.FC<ServiceItemFormProperties> = ({
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setIsSubmitting(true);
     try {
       await onSubmit(formData);

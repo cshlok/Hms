@@ -183,13 +183,13 @@ const VitalSigns: React.FC<VitalSignsProperties> = ({ admissionId }) => {
     fetchData();
   }, [admissionId]);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
     if (!admissionId) {
       toast({
         title: "Error",

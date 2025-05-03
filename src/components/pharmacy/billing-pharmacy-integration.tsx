@@ -195,8 +195,8 @@ const BillingPharmacyIntegration: React.FC<
     }
   };
 
-  const handleSelectAllChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    if (e.target.checked) {
+  const handleSelectAllChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    if (event.target.checked) {
       setSelectedItems([...unbilledItems]);
     } else {
       setSelectedItems([]);
@@ -303,8 +303,8 @@ const BillingPharmacyIntegration: React.FC<
                           checked={selectedItems.some(
                             (index) => index.id === item.id
                           )}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            handleItemSelection(item, e.target.checked)
+                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                            handleItemSelection(item, event.target.checked)
                           }
                           className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           aria-label={`Select item ${item.generic_name}`}

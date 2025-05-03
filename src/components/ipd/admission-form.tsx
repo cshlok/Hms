@@ -90,7 +90,7 @@ const AdmissionForm = () => {
 
   // Handler for standard input/textarea changes
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
@@ -110,8 +110,8 @@ const AdmissionForm = () => {
   };
 
   // Handler for form submission
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setLoading(true);
 
     // Basic validation (consider more robust validation)

@@ -429,8 +429,8 @@ const SampleManagement: React.FC = () => {
             placeholder="Search by barcode or patient..."
             prefix={<SearchOutlined />}
             value={searchText}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setSearchText(e.target.value)
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              setSearchText(event.target.value)
             }
             onPressEnter={handleSearch}
             style={{ width: 250 }}

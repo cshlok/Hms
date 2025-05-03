@@ -48,6 +48,33 @@ interface OTBillingItemsProperties {
   readOnly?: boolean; // If true, just displays items without selection capability
 }
 
+// Helper function to format currency
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+// Helper function to get status badge
+const getStatusBadge = (status: BillingItem["status"]) => {
+  switch (status) {
+    case "billed": {
+      return <Badge className="bg-green-100 text-green-800">Billed</Badge>;
+    }
+    case "unbilled": {
+      return <Badge variant="secondary">Unbilled</Badge>;
+    }
+    case "cancelled": {
+      return <Badge variant="destructive">Cancelled</Badge>;
+    }
+    default: {
+      return <Badge>{status}</Badge>;
+    }
+  }
+};
+
 export default function OTBillingItems({
   patientId,
   invoiceId,
@@ -158,33 +185,6 @@ export default function OTBillingItems({
     }
   };
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
-
-const getStatusBadge = (status: BillingItem["status"]) => {
-  switch (status) {
-    case "billed": {
-      return <Badge className="bg-green-100 text-green-800">Billed</Badge>;
-    }
-    case "unbilled": {
-      return <Badge variant="secondary">Unbilled</Badge>;
-    }
-    case "cancelled": {
-      return <Badge variant="destructive">Cancelled</Badge>;
-    }
-    default: {
-      return <Badge>{status}</Badge>;
-    }
-  }
-};
-
-export default function OTBillingItems({
-
   return (
     <Card>
       <CardHeader>
@@ -271,3 +271,4 @@ export default function OTBillingItems({
     </Card>
   );
 }
+

@@ -128,8 +128,8 @@ export default function CreateRadiologyReportModal({
     fetchRadiologists();
   }, [isOpen, currentUser]); // Depend on isOpen and currentUser
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!radiologistId || !impression) {
       toast({
         title: "Missing Information",
@@ -244,8 +244,8 @@ export default function CreateRadiologyReportModal({
                 <Textarea
                   id="findings"
                   value={findings}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setFindings(e.target.value)
+                  onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setFindings(event.target.value)
                   }
                   className="col-span-3 min-h-[100px]"
                   disabled={isSubmitting}
@@ -261,8 +261,8 @@ export default function CreateRadiologyReportModal({
                 <Textarea
                   id="impression"
                   value={impression}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setImpression(e.target.value)
+                  onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setImpression(event.target.value)
                   }
                   className="col-span-3 min-h-[100px]"
                   required
@@ -279,8 +279,8 @@ export default function CreateRadiologyReportModal({
                 <Textarea
                   id="recommendations"
                   value={recommendations}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setRecommendations(e.target.value)
+                  onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setRecommendations(event.target.value)
                   }
                   className="col-span-3 min-h-[80px]"
                   disabled={isSubmitting}

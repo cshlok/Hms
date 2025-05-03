@@ -256,9 +256,9 @@ export default function MedicationsListPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setPageSize]); // Dependency array includes setPageSize
 
-  const handleGlobalFilterChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleGlobalFilterChange = (event: ChangeEvent<HTMLInputElement>) => {
     // Type the event
-    const value = e.target.value || undefined;
+    const value = event.target.value || undefined;
     setGlobalFilter(value || ""); // Update local state
     setTableGlobalFilter(value); // Update table state
   };

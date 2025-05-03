@@ -541,7 +541,7 @@ const ResultManagement: React.FC = () => {
             placeholder="Search results..."
             prefix={<SearchOutlined />}
             value={searchText}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               setSearchText(e.target.value)
             }
             // onPressEnter={fetchResults} // fetchResults is called via useEffect

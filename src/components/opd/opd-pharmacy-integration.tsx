@@ -255,8 +255,8 @@ const OPDPharmacyIntegration: React.FC = () => {
     setSelectedMedications(updatedMeds);
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
 
     if (selectedMedications.length === 0) {
       alert("Please add at least one medication to the prescription");
@@ -445,11 +445,11 @@ const OPDPharmacyIntegration: React.FC = () => {
                           <input
                             type="text"
                             value={med.dosage}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
                               handleMedicationChange(
                                 index,
                                 "dosage",
-                                e.target.value
+                                event.target.value
                               )
                             }
                             placeholder="e.g., 1 tablet"
@@ -459,11 +459,11 @@ const OPDPharmacyIntegration: React.FC = () => {
                         <td className="px-3 py-2 whitespace-nowrap">
                           <select
                             value={med.frequency}
-                            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                            onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                               handleMedicationChange(
                                 index,
                                 "frequency",
-                                e.target.value
+                                event.target.value
                               )
                             }
                             className="w-full p-1 text-sm border border-gray-300 rounded-md"
@@ -482,11 +482,11 @@ const OPDPharmacyIntegration: React.FC = () => {
                           <input
                             type="text"
                             value={med.duration}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
                               handleMedicationChange(
                                 index,
                                 "duration",
-                                e.target.value
+                                event.target.value
                               )
                             }
                             placeholder="e.g., 7 days"
@@ -497,11 +497,11 @@ const OPDPharmacyIntegration: React.FC = () => {
                           <input
                             type="number"
                             value={med.quantity}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            onChange={(event: ChangeEvent<HTMLInputElement>) =>
                               handleMedicationChange(
                                 index,
                                 "quantity",
-                                e.target.value
+                                event.target.value
                               )
                             }
                             placeholder="Qty"
@@ -511,11 +511,11 @@ const OPDPharmacyIntegration: React.FC = () => {
                         <td className="px-3 py-2 whitespace-nowrap">
                           <textarea
                             value={med.instructions}
-                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                            onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
                               handleMedicationChange(
                                 index,
                                 "instructions",
-                                e.target.value
+                                event.target.value
                               )
                             }
                             placeholder="e.g., Take with food"
@@ -553,10 +553,10 @@ const OPDPharmacyIntegration: React.FC = () => {
               name="notes"
               rows={3}
               value={formData.notes}
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+              onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
                 setFormData((previous) => ({
                   ...previous,
-                  notes: e.target.value,
+                  notes: event.target.value,
                 }))
               }
               className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"

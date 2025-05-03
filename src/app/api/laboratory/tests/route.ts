@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { database } from "@/lib/database"; // Using mock DB
+import { db } from "@/lib/database"; // Using mock DB
 import { getSession } from "@/lib/session";
 
 // Interface for the request body when creating a lab test

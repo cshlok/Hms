@@ -584,7 +584,7 @@ export const DialogTrigger = ({
       children as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
       {
         ...properties,
-        onClick: (e: React.MouseEvent<HTMLElement>) => {
+        onClick: (event: React.MouseEvent<HTMLElement>) => {
           childOnClick?.(e);
           handleClick();
         },
@@ -754,7 +754,7 @@ export const DialogClose = ({
       children as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
       {
         ...properties,
-        onClick: (e: React.MouseEvent<HTMLElement>) => {
+        onClick: (event: React.MouseEvent<HTMLElement>) => {
           childOnClick?.(e);
           handleClick();
         },

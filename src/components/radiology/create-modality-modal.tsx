@@ -41,7 +41,7 @@ export default function CreateModalityModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // FIX: Type event parameter
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name) {
       alert("Please enter a modality name.");

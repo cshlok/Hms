@@ -106,7 +106,7 @@ export default function CreateRadiologyStudyModal({
   }, []);
 
   // FIX: Type the event parameter
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!studyDatetime || !technicianId) {
       alert(

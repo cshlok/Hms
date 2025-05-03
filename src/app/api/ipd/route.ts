@@ -1,6 +1,6 @@
 // Example API route for IPD (Inpatient Department) Management
 import { NextRequest } from "next/server";
-import { getDatabase, initializeDatabase } from "@/lib/database"; // Using mock DB
+import { getDb } from "@/lib/database"; // Using mock DB
 import { z } from "zod";
 
 // Schema for IPD Admission

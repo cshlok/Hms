@@ -39,7 +39,7 @@ export default function CreateProcedureTypeModal({
   const [modalityType, setModalityType] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name) {
       alert("Please enter a procedure type name.");

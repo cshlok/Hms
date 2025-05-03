@@ -90,14 +90,14 @@ export default function OTSurgeryTypeModal({
   }, [surgeryType, isOpen]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setIsSaving(true);
     try {
       // Parse JSON fields before sending

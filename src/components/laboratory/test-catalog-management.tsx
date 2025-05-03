@@ -487,7 +487,7 @@ const TestCatalogManagement: React.FC = () => {
             placeholder="Search tests (Code, Name, Desc)..."
             prefix={<SearchOutlined />}
             value={searchText}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               setSearchText(e.target.value)
             }
             style={{ width: 250 }}
