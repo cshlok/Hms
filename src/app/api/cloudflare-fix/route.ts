@@ -21,7 +21,7 @@ interface Environment {
 // In Next.js on Cloudflare, this might need a custom server setup or adapter.
 
 // Placeholder for accessing bindings - Actual implementation depends on deployment specifics
-function getCloudflareBindings(_request: NextRequest): Environment | undefined {
+function getCloudflareBindings(): Environment | undefined {
   // Parameter prefixed as unused in this placeholder
   // Cloudflare Pages passes bindings via the `request.cf` object or context
   // This is a simplified example; the actual access method might differ.
@@ -36,7 +36,7 @@ function getCloudflareBindings(_request: NextRequest): Environment | undefined {
 }
 
 // FIX: Renamed 'request' to '_request' to satisfy @typescript-eslint/no-unused-vars
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     // Attempt to get Cloudflare bindings (replace with actual method)
     const environment = getCloudflareBindings(_request);

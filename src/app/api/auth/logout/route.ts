@@ -1,48 +1,24 @@
-// src/app/api/auth/logout/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { clearAuthCookie, getCurrentUser } from "@/lib/auth";
-// FIX: Remove commented out import
-// import { getRequestContext } from '@cloudflare/next-on-pages';
+// app/api/auth/logout/route.ts
+import { sessionOptions } from "@/lib/session";
+import { getIronSession } from "iron-session";
+import { cookies } from "next/headers";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const user = await getCurrentUser(request);
-    // const { env } = getRequestContext();
+    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    session.destroy(); // Clear the session data
 
-    // Log logout if user is authenticated
-    if (user && user.id) {
-      // Log logout attempt would go here in production
-      // await env.DB.prepare(
-      //   `INSERT INTO login_logs (user_id, ip_address, user_agent, status)
-      //    VALUES (?, ?, ?, ?)`
-      // ).bind(
-      //   user.id,
-      //   request.headers.get("x-forwarded-for") || request.ip || "unknown",
-      //   request.headers.get("user-agent") || "unknown",
-      //   "logout"
-      // ).run();
-    }
-
-    // Create response
-    const response = NextResponse.json({
-      message: "Logout successful",
+    return new Response(JSON.stringify({ message: "Logout successful" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
 
-    // Clear auth cookie
-    clearAuthCookie(response);
-
-    return response;
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Logout error:", error);
-
-    // Even if there's an error, attempt to clear the cookie
-    const response = NextResponse.json(
-      { error: "Logout failed" },
-      { status: 500 }
-    );
-
-    clearAuthCookie(response);
-
-    return response;
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }

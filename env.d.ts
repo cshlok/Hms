@@ -34,14 +34,18 @@ interface D1ExecResult {
   duration: number;
 }
 
-// Extend the default CloudflareEnv type
-declare module "@cloudflare/next-on-pages" {
-  interface CloudflareEnv {
-    DB: D1Database; // Add the DB binding
-    // Add other bindings (KV, R2, etc.) here if needed
-    // MY_KV_NAMESPACE: KVNamespace;
-    // MY_R2_BUCKET: R2Bucket;
-  }
+// Define the type for Cloudflare Fetcher binding (assuming standard type)
+interface Fetcher {
+  fetch(request: Request | string, requestInit?: RequestInit | Request): Promise<Response>;
+}
+
+// Define the Cloudflare environment bindings
+interface CloudflareEnv {
+  DB: D1Database;
+  ASSETS: Fetcher;
+  // Add other bindings (KV, R2, etc.) here if needed
+  // MY_KV_NAMESPACE: KVNamespace;
+  // MY_R2_BUCKET: R2Bucket;
 }
 
 // It might also be necessary to declare the types for process.env if used
@@ -56,3 +60,4 @@ declare module "@cloudflare/next-on-pages" {
 
 // Export something to make it a module (even if empty)
 export {};
+

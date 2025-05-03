@@ -1,186 +1,189 @@
-// src/app/api/patients/route.ts
-import { NextRequest, NextResponse } from "next/server";
-// import { getRequestContext } from "@cloudflare/next-on-pages";
+// app/api/patients/route.ts
+import { getCloudflareContext } from "@opennextjs/cloudflare/context";
+import { sessionOptions } from "@/lib/session";
+import { getIronSession } from "iron-session";
+import { cookies } from "next/headers";
+import { User } from "@/types/user";
+import { Patient } from "@/types/patient";
+import { z } from "zod"; // Import zod for POST validation
 
-// Interface for Patient data (adjust based on actual schema)
-interface Patient {
-  id: string;
-  mrn: string;
-  first_name: string;
-  last_name: string;
-  date_of_birth: string;
-  gender: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  emergency_contact?: string;
-  blood_group?: string;
-  allergies?: string;
-}
+// Define roles allowed to view patient lists
+const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Nurse", "Doctor"];
+// Define roles allowed to create patients
+const ALLOWED_ROLES_CREATE = ["Admin", "Receptionist"];
 
-// Interface for POST request body
-interface PatientCreateBody {
-  first_name: string;
-  last_name: string;
-  date_of_birth: string;
-  gender: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  emergency_contact?: string;
-  blood_group?: string;
-  allergies?: string;
-}
-
-// Mock data for development
-const mockPatients: Patient[] = [
-  {
-    id: "pat_001",
-    mrn: "P00001",
-    first_name: "John",
-    last_name: "Doe",
-    date_of_birth: "1985-05-15",
-    gender: "Male",
-    phone: "555-1234",
-    email: "john.doe@example.com",
-    address: "123 Main St",
-    emergency_contact: "Jane Doe 555-5678",
-    blood_group: "O+",
-    allergies: "Penicillin",
-  },
-  {
-    id: "pat_002",
-    mrn: "P00002",
-    first_name: "Jane",
-    last_name: "Smith",
-    date_of_birth: "1992-08-22",
-    gender: "Female",
-    phone: "555-9876",
-    email: "jane.smith@example.com",
-    address: "456 Oak Ave",
-    emergency_contact: "John Smith 555-1122",
-    blood_group: "A-",
-    allergies: "None",
-  },
-  {
-    id: "pat_003",
-    mrn: "P00003",
-    first_name: "Alice",
-    last_name: "Johnson",
-    date_of_birth: "1978-12-01",
-    gender: "Female",
-    phone: "555-3456",
-    email: "alice.j@example.com",
-    address: "789 Pine Ln",
-    emergency_contact: "Bob Johnson 555-7788",
-    blood_group: "B+",
-    allergies: "Peanuts",
-  },
-];
-let nextPatientId = 4;
+// Zod schema for patient creation (based on HEAD version and DB schema)
+const PatientCreateSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  date_of_birth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
+  gender: z.enum(["Male", "Female", "Other", "Prefer not to say"]),
+  phone_number: z.string().min(1, "Phone number is required"), // Made required based on DB schema
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  address_line1: z.string().optional(),
+  address_line2: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  postal_code: z.string().optional(),
+  country: z.string().optional(),
+  emergency_contact_name: z.string().optional(),
+  emergency_contact_relation: z.string().optional(),
+  emergency_contact_phone: z.string().optional(),
+  blood_group: z.string().optional(),
+  allergies: z.string().optional(),
+  past_medical_history: z.string().optional(),
+  current_medications: z.string().optional(),
+  insurance_provider: z.string().optional(),
+  insurance_policy_number: z.string().optional(),
+});
 
 /**
  * GET /api/patients
- * Retrieves a list of patients, potentially filtered by search term.
+ * Retrieves a list of active patients.
+ * Requires authentication and specific roles.
  */
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
+  const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+
+  // 1. Check Authentication & Authorization
+  if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   try {
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search")?.toLowerCase() || "";
-    const limit = Number.parseInt(searchParams.get("limit") || "20");
-    const offset = Number.parseInt(searchParams.get("offset") || "0");
+    const { env } = getCloudflareContext();
+    const { DB } = env;
 
-    // const { env } = getRequestContext(); // Cloudflare specific
+    // 2. Retrieve all active patients (consider pagination for large datasets)
+    // For simplicity, fetching all active patients here.
+    const patientsResult = await DB.prepare(
+        "SELECT patient_id, first_name, last_name, date_of_birth, gender, phone_number, email, registration_date " +
+        "FROM Patients WHERE is_active = TRUE ORDER BY registration_date DESC"
+    ).all<Omit<Patient, "is_active" | "updated_at">>(); // Select specific fields for listing
 
-    // Mock implementation for development without Cloudflare
-    let filteredPatients = mockPatients;
-
-    if (search) {
-      filteredPatients = mockPatients.filter(
-        (patient) =>
-          patient.first_name.toLowerCase().includes(search) ||
-          patient.last_name.toLowerCase().includes(search) ||
-          patient.mrn.toLowerCase().includes(search) ||
-          (patient.phone && patient.phone.includes(search))
-      );
+    if (!patientsResult.results) {
+        // Even if results array is empty, it's not an error, just no patients found.
+        // Return empty array.
+        return new Response(JSON.stringify([]), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+        });
     }
 
-    // Apply pagination
-    const paginatedPatients = filteredPatients.slice(offset, offset + limit);
+    // 3. Return patient list
+    return new Response(JSON.stringify(patientsResult.results), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
 
-    // Format the results to include full name
-    const formattedResults = paginatedPatients.map((patient) => ({
-      ...patient,
-      name: `${patient.first_name} ${patient.last_name}`,
-    }));
-
-    return NextResponse.json({ patients: formattedResults });
-  } catch (error: any) {
-    console.error("Error fetching patients:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json(
-      { error: "Failed to fetch patients", details: errorMessage },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("Get patients error:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
 
 /**
  * POST /api/patients
  * Creates a new patient.
+ * Requires authentication and specific roles.
  */
-export async function POST(request: NextRequest) {
-  try {
-    const patientData = (await request.json()) as PatientCreateBody;
+export async function POST(request: Request) {
+  const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
 
-    // Basic validation
-    if (
-      !patientData.first_name ||
-      !patientData.last_name ||
-      !patientData.date_of_birth ||
-      !patientData.gender
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Missing required fields (first_name, last_name, date_of_birth, gender)",
-        },
-        { status: 400 }
-      );
+  // 1. Check Authentication & Authorization
+  if (!session.user || !ALLOWED_ROLES_CREATE.includes(session.user.roleName)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const body = await request.json();
+    const validation = PatientCreateSchema.safeParse(body);
+
+    if (!validation.success) {
+      return new Response(JSON.stringify({ error: "Invalid input", details: validation.error.errors }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // const { env } = getRequestContext(); // Cloudflare specific
+    const patientData = validation.data;
+    const { env } = getCloudflareContext();
+    const { DB } = env;
 
-    // Mock implementation for development without Cloudflare
-    // Generate a unique MRN (Medical Record Number)
-    const count = mockPatients.length + 1;
-    const mrn = `P${count.toString().padStart(5, "0")}`;
+    // 2. Insert new patient into the database
+    const insertResult = await DB.prepare(
+      "INSERT INTO Patients (first_name, last_name, date_of_birth, gender, phone_number, email, address_line1, address_line2, city, state, postal_code, country, emergency_contact_name, emergency_contact_relation, emergency_contact_phone, blood_group, allergies, past_medical_history, current_medications, insurance_provider, insurance_policy_number, registered_by_user_id) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).bind(
+      patientData.first_name,
+      patientData.last_name,
+      patientData.date_of_birth,
+      patientData.gender,
+      patientData.phone_number,
+      patientData.email || null,
+      patientData.address_line1 || null,
+      patientData.address_line2 || null,
+      patientData.city || null,
+      patientData.state || null,
+      patientData.postal_code || null,
+      patientData.country || null,
+      patientData.emergency_contact_name || null,
+      patientData.emergency_contact_relation || null,
+      patientData.emergency_contact_phone || null,
+      patientData.blood_group || null,
+      patientData.allergies || null,
+      patientData.past_medical_history || null,
+      patientData.current_medications || null,
+      patientData.insurance_provider || null,
+      patientData.insurance_policy_number || null,
+      session.user.userId // Log who registered the patient
+    ).run();
 
-    // Create the new patient in mock data
-    const newPatient: Patient = {
-      id: `pat_${String(nextPatientId++).padStart(3, "0")}`,
-      mrn: mrn,
-      first_name: patientData.first_name,
-      last_name: patientData.last_name,
-      date_of_birth: patientData.date_of_birth,
-      gender: patientData.gender,
-      address: patientData.address || "",
-      phone: patientData.phone || "",
-      email: patientData.email || "",
-      emergency_contact: patientData.emergency_contact || "",
-      blood_group: patientData.blood_group || "",
-      allergies: patientData.allergies || "",
-    };
+    if (!insertResult.success || !insertResult.meta || insertResult.meta.last_row_id === undefined) {
+      throw new Error("Failed to insert patient into database");
+    }
 
-    mockPatients.push(newPatient);
+    const newPatientId = insertResult.meta.last_row_id;
 
-    return NextResponse.json({ patient: newPatient }, { status: 201 });
-  } catch (error: any) {
-    console.error("Error creating patient:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json(
-      { error: "Failed to create patient", details: errorMessage },
-      { status: 500 }
-    );
+    // 3. Retrieve the newly created patient data (optional, but good practice)
+    const newPatient = await DB.prepare(
+        "SELECT * FROM Patients WHERE patient_id = ?"
+    ).bind(newPatientId).first<Patient>();
+
+    if (!newPatient) {
+        // This shouldn't happen if insert succeeded, but handle defensively
+        throw new Error("Failed to retrieve newly created patient");
+    }
+
+    // 4. Return success response
+    return new Response(JSON.stringify({ message: "Patient created successfully", patient: newPatient }), {
+      status: 201, // Created
+      headers: { "Content-Type": "application/json" },
+    });
+
+  } catch (error) {
+    console.error("Create patient error:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    // Check for unique constraint violation (e.g., email)
+    if (errorMessage.includes("UNIQUE constraint failed")) {
+        return new Response(JSON.stringify({ error: "Patient creation failed", details: "Email or another unique field already exists." }), {
+            status: 409, // Conflict
+            headers: { "Content-Type": "application/json" },
+        });
+    }
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
