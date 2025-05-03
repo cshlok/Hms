@@ -66,8 +66,7 @@ interface ServiceItemFormProperties {
   onCancel: () => void; // Function to handle cancellation
 }
 
-// FIX: Define allowed badge variants type based on BadgeProps
-type AllowedBadgeVariant = BadgeProps["variant"];
+
 
 // --- ServiceItemForm Component ---
 const ServiceItemForm: React.FC<ServiceItemFormProperties> = ({

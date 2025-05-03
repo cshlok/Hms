@@ -99,7 +99,7 @@ export default function ERTriageForm() {
     const filteredVitalSigns = Object.fromEntries(
       Object.entries(vitalSigns)
         .filter(
-          ([_, value]) => value !== undefined && value !== undefined && value !== ""
+          ([, value]) => value !== undefined && value !== undefined && value !== ""
         )
         .map(([key, value]) => [key, value])
     );

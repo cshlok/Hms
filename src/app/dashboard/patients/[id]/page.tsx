@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label"; // Added import for Label
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/types/patient";
-import { AlertTriangle, Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,

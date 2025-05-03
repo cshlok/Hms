@@ -250,7 +250,8 @@ const OPDPharmacyIntegration: React.FC = () => {
     const updatedMeds = [...selectedMedications];
     // Ensure the field exists on the object before assignment (though TS should catch this)
     if (field in updatedMeds[index]) {
-      (updatedMeds[index] as any)[field] = value; // Use 'as any' to bypass strict type checking for dynamic assignment
+      // Assuming value is always string and the target property accepts string
+      updatedMeds[index][field] = value;
     }
     setSelectedMedications(updatedMeds);
   };

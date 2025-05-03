@@ -90,8 +90,8 @@ const AddMedicationPage: React.FC = () => {
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ): void => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked; // Type assertion for checked property
+    const { name, value, type } = event.target;
+    const checked = (event.target as HTMLInputElement).checked; // Type assertion for checked property
 
     setFormData((previous) => ({
       ...previous,

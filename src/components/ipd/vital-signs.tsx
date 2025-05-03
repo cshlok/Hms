@@ -184,7 +184,7 @@ const VitalSigns: React.FC<VitalSignsProperties> = ({ admissionId }) => {
   }, [admissionId]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 

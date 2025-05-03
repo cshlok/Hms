@@ -94,7 +94,7 @@ const OrderManagement: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [viewingOrder, setViewingOrder] = useState<Order | null>();
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [_tests, setTests] = useState<Test[]>([]); // FIX: Prefix unused variable if tests are not used directly
+  // const [_tests, setTests] = useState<Test[]>([]); // FIX: Removed unused state variable
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loadingOrderItems, setLoadingOrderItems] = useState<boolean>(false);
   const [error, setError] = useState<string | null>();
@@ -247,8 +247,8 @@ const OrderManagement: React.FC = () => {
       setOrderItems(data.results || []);
     } catch (error_: unknown) {
       // FIX: Use unknown
-      const messageText =
-        error_ instanceof Error ? error_.message : "An unknown error occurred";
+      // const messageText = // FIX: Removed unused variable
+      //   error_ instanceof Error ? error_.message : "An unknown error occurred";
       console.error("Error fetching order items:", error_);
       message.error("Failed to load order items");
     } finally {

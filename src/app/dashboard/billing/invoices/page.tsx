@@ -30,11 +30,11 @@ interface Invoice {
   status: string; // e.g., draft, finalized, paid, partially_paid, void
 }
 
-// FIX: Define interface for API response
-interface InvoicesApiResponse {
-  invoices: Invoice[];
-  // Add other potential properties if the API returns more data
-}
+// FIX: Define interface for API response (commented out as unused for now)
+// interface InvoicesApiResponse {
+//   invoices: Invoice[];
+//   // Add other potential properties if the API returns more data
+// }
 
 // FIX: Define allowed badge variants type based on BadgeProps
 type AllowedBadgeVariant = BadgeProps["variant"];
@@ -63,6 +63,37 @@ const getStatusBadgeVariant = (status: string): AllowedBadgeVariant => {
 
 // --- COMPONENT ---
 export default function InvoicesListPage() {
+  // Add state variables to fix undefined errors
+  const [searchTerm, setSearchTerm] = useState("");
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [isLoading, setIsLoading] = useState(true); // Start loading initially
+  const [error, setError] = useState<string | null>(null);
+
+  // Basic fetch function (replace with actual implementation)
+  const fetchInvoices = useCallback(async (term: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Simulate API call
+      console.log(`Fetching invoices with search term: ${term}`);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+      // Replace with actual API call: const response = await fetch(`/api/billing/invoices?search=${encodeURIComponent(term)}`);
+      // const data = await response.json();
+      // setInvoices(data.invoices || []);
+      setInvoices([]); // Set empty for now
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch invoices");
+      setInvoices([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Fetch invoices on initial load and when search term changes
+  useEffect(() => {
+    fetchInvoices(searchTerm);
+  }, [searchTerm, fetchInvoices]);
+
   return (
     <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
       {" "}
@@ -88,7 +119,7 @@ export default function InvoicesListPage() {
             type="search"
             placeholder="Search by Invoice #, Patient Name..."
             value={searchTerm}
-            onChange={(_event_) => setSearchTerm(_event_.target.value)}
+            onChange={(event) => setSearchTerm(event.target.value)} // Use setSearchTerm
             className="pl-10" // Increased padding for icon
           />
         </div>
@@ -217,3 +248,4 @@ export default function InvoicesListPage() {
     </div>
   );
 }
+

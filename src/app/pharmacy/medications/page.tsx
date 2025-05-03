@@ -401,7 +401,7 @@ export default function MedicationsListPage() {
               <select
                 value={pageSize}
                 onChange={(_event_) => {
-                  setPageSize(Number(e.target.value));
+                  setPageSize(Number(_event_.target.value));
                 }}
                 className="p-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
               >

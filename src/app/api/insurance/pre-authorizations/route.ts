@@ -239,9 +239,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Simulate creating the pre-authorization request in the database
-    // const newPreAuth = await createPreAuthorizationInDB(preAuthData); // Commented out: Unused variable
+    const newPreAuth = await createPreAuthorizationInDB(preAuthData);
 
-    return NextResponse.json({ preAuthorization: newRequest }, { status: 201 });
+    return NextResponse.json({ preAuthorization: newPreAuth }, { status: 201 });
   } catch (error: unknown) {
     console.error("Error creating pre-authorization request:", error);
     let errorMessage = "An unknown error occurred";

@@ -17,14 +17,14 @@ import {
   PlusOutlined,
   SearchOutlined,
   CheckOutlined,
-  CloseOutlined,
+  // CloseOutlined, // FIX: Removed unused import
   EditOutlined,
 } from "@ant-design/icons";
-import dayjs from "dayjs"; // FIX: Use dayjs instead of moment
-import type { Dayjs } from "dayjs";
+// import dayjs from "dayjs"; // FIX: Removed unused import
+// import type { Dayjs } from "dayjs"; // FIX: Removed unused import
 
 const { Option } = Select;
-const { TabPane } = Tabs;
+// const { TabPane } = Tabs; // FIX: Removed unused import
 
 // Define interfaces for data types
 interface LabResult {
@@ -115,7 +115,7 @@ const ResultManagement: React.FC = () => {
   const [form] = Form.useForm<UpdateResultValues>();
   const [entryForm] = Form.useForm<CreateResultValues>();
   const [orders, setOrders] = useState<LabOrder[]>([]); // For order selection
-  const [orderItems, setOrderItems] = useState<LabOrderItem[]>([]); // For result entry
+  // const [orderItems, setOrderItems] = useState<LabOrderItem[]>([]); // FIX: Removed unused state variable (for result entry)
   const [parameters, setParameters] = useState<LabParameter[]>([]); // For parameter selection
 
   // Fetch results with optional filters
@@ -199,30 +199,30 @@ const ResultManagement: React.FC = () => {
   }, []);
 
   // Fetch order items for a specific order
-  const fetchOrderItems = async (orderId: string): Promise<void> => {
-    try {
-      const response = await fetch(`/api/laboratory/orders/${orderId}/items`);
-      if (!response.ok) {
-        let errorMessage = "Failed to fetch order items";
-        try {
-          const errorData: ApiErrorResponse = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          /* Ignore */
-        }
-        throw new Error(errorMessage);
-      }
-      // FIX: Type the response data
-      const data: OrderItemsApiResponse = await response.json();
-      setOrderItems(data.results || []);
-    } catch (error: unknown) {
-      // FIX: Use unknown
-      const messageText =
-        error instanceof Error ? error.message : "An unknown error occurred";
-      console.error("Error fetching order items:", error);
-      message.error(`Failed to load order items: ${messageText}`);
-    }
-  };
+  // const fetchOrderItems = async (orderId: string): Promise<void> => { // FIX: Removed unused function
+  //   try {
+  //     const response = await fetch(`/api/laboratory/orders/${orderId}/items`);
+  //     if (!response.ok) {
+  //       let errorMessage = "Failed to fetch order items";
+  //       try {
+  //         const errorData: ApiErrorResponse = await response.json();
+  //         errorMessage = errorData.error || errorMessage;
+  //       } catch {
+  //         /* Ignore */
+  //       }
+  //       throw new Error(errorMessage);
+  //     }
+  //     // FIX: Type the response data
+  //     const data: OrderItemsApiResponse = await response.json();
+  //     setOrderItems(data.results || []);
+  //   } catch (error: unknown) {
+  //     // FIX: Use unknown
+  //     const messageText =
+  //       error instanceof Error ? error.message : "An unknown error occurred";
+  //     console.error("Error fetching order items:", error);
+  //     message.error(`Failed to load order items: ${messageText}`);
+  //   }
+  // };
 
   // Fetch parameters for a specific test
   const fetchParameters = async (testId: string): Promise<void> => {
@@ -385,18 +385,18 @@ const ResultManagement: React.FC = () => {
   };
 
   // Show result entry modal
-  const showResultEntryModal = (orderItem: LabOrderItem): void => {
-    setSelectedOrderItem(orderItem);
-    entryForm.resetFields();
-    setParameters([]); // Reset parameters
-
-    // If the test has parameters, fetch them
-    if (orderItem.test_id) {
-      fetchParameters(orderItem.test_id);
-    }
-
-    setIsEntryModalVisible(true);
-  };
+  // const showResultEntryModal = (orderItem: LabOrderItem): void => { // FIX: Removed unused function
+  //   setSelectedOrderItem(orderItem);
+  //   entryForm.resetFields();
+  //   setParameters([]); // Reset parameters
+  //
+  //   // If the test has parameters, fetch them
+  //   if (orderItem.test_id) {
+  //     fetchParameters(orderItem.test_id);
+  //   }
+  //
+  //   setIsEntryModalVisible(true);
+  // };
 
   // Show result update modal
   const showResultUpdateModal = (result: LabResult): void => {
@@ -542,7 +542,7 @@ const ResultManagement: React.FC = () => {
             prefix={<SearchOutlined />}
             value={searchText}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-              setSearchText(e.target.value)
+              setSearchText(event.target.value)
             }
             // onPressEnter={fetchResults} // fetchResults is called via useEffect
             style={{ width: 250 }}

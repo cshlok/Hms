@@ -3,7 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { PrescriptionItem } from "@/types/opd";
+// import { PrescriptionItem } from "@/types/opd"; // Removed unused import
 import { z } from "zod";
 
 // Define roles allowed to add items to prescriptions (adjust as needed)
@@ -114,6 +114,7 @@ export async function POST(request: Request) {
 
         // Basic check for success (D1 batch doesn't guarantee rollback)
         // A more robust approach might check each result in insertResults
+        console.log("Batch insert results:", insertResults); // Log results for debugging
 
         // 7. Return success response
         return new Response(JSON.stringify({ message: `${itemsData.length} item(s) added to prescription successfully` }), {

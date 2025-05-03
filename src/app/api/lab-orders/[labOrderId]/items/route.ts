@@ -106,9 +106,10 @@ export async function POST(request: Request) {
         });
 
         // 6. Execute the batch insert
-        // const insertResults = await DB.batch(batchActions); // Commented out: Unused variable
+        const insertResults = await DB.batch(batchActions);
 
-        // Basic check for success
+        // Basic check for success (optional: check insertResults)
+        console.log("Batch insert results:", insertResults); // Log results for debugging
 
         // 7. Return success response
         return new Response(JSON.stringify({ message: `${itemsData.length} test(s) added to lab order successfully` }), {

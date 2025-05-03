@@ -12,7 +12,7 @@ export default function Home() {
     recentAccess: []
   })
   const [optimisticStats, setOptimisticStats] = useOptimistic(stats)
-  const [_, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
   useEffect(() => {
     getStats().then(setStats)

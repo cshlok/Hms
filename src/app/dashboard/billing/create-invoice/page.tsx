@@ -345,8 +345,8 @@ export default function CreateInvoicePage() {
                 {selectedPatient ? (
                   (<X
                     className="ml-2 h-4 w-4 shrink-0 opacity-50 cursor-pointer"
-                    onClick={(_event_) => {
-                      e.stopPropagation();
+                    onClick={(event) => {
+                      event.stopPropagation(); // Use the correct event variable
                       setSelectedPatient(undefined);
                       setPatientSearchTerm("");
                     }}
@@ -561,10 +561,10 @@ export default function CreateInvoicePage() {
                           type="number"
                           min="1"
                           value={item.quantity}
-                          onChange={(_event_) =>
+                          onChange={(event) => // Use event parameter
                             updateItemQuantity(
                               item.id,
-                              Number.parseInt(e.target.value) || 1
+                              Number.parseInt(event.target.value) || 1 // Use event.target.value
                             )
                           }
                           className="w-16 h-8 text-center mx-auto" // Centered input

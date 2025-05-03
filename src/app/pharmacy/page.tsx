@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
+
 // Removed unused Image import
 // import Image from 'next/image';
 
@@ -14,12 +14,7 @@ interface StatCardProperties {
   onClick?: () => void;
 }
 
-interface PharmacyStats {
-  totalMedications: number;
-  lowStockItems: number;
-  pendingPrescriptions: number;
-  expiringItems: number;
-}
+
 
 interface RecentPrescription {
   id: string;
@@ -37,12 +32,7 @@ interface ExpiringMedication {
   stock: number;
 }
 
-// Helper function moved outside the component
-const getThirtyDaysFromNow = (): string => {
-  const date = new Date();
-  date.setDate(date.getDate() + 30);
-  return date.toISOString().split("T")[0];
-};
+
 
 // Main Pharmacy Dashboard Page
 export default function PharmacyPage() {
@@ -147,23 +137,7 @@ export default function PharmacyPage() {
   );
 }
 
-// Stat Card Component - Typed props
-function StatCard({ title, value, icon, color, onClick }: StatCardProperties) {
-  return (
-    <div
-      className={`${color} rounded-lg shadow-md p-6 cursor-pointer transition-transform hover:scale-105`}
-      onClick={onClick}
-    >
-      <div className="flex justify-between items-center">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-800 mt-2">{value}</p>
-        </div>
-        <div className="text-3xl">{icon}</div>
-      </div>
-    </div>
-  );
-}
+
 
 // Recent Prescriptions List Component
 function RecentPrescriptionsList() {

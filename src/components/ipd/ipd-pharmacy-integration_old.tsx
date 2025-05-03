@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 // import { useRouter } from "next/navigation"; // FIX: Removed unused import
-
+import { Loader2 } from "lucide-react";
 
 // Define interfaces for data structures
 interface PrescriptionItem {
@@ -254,33 +254,31 @@ const IPDPharmacyIntegration: React.FC<IPDPharmacyIntegrationProperties> = ({
       }
     }
     return "N/A";
-  }
-};
+  };
 
-// Format date for display - moved outside component
-const formatDate = (dateString: string): string => {
-  try {
-    const options: Intl.DateTimeFormatOptions = {
-      // year: "numeric",
-      // month: "short",
-      // day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    };
-    return new Intl.DateTimeFormat(undefined, options).format(
-      new Date(dateString)
-    );
-  } catch {
-    return "Invalid Date";
-  }
-};
+  // Format date for display
+  const formatDate = (dateString: string): string => {
+    try {
+      const options: Intl.DateTimeFormatOptions = {
+        // year: "numeric",
+        // month: "short",
+        // day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      };
+      return new Intl.DateTimeFormat(undefined, options).format(
+        new Date(dateString)
+      );
+    } catch {
+      return "Invalid Date";
+    }
+  };
 
-export default IPDPharmacyIntegration;
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        {/* <Loader2 className="h-8 w-8 animate-spin text-primary" /> */} Loading
+        <Loader2 className="h-8 w-8 animate-spin text-primary" /> Loading
         medication schedule...
       </div>
     );
@@ -293,22 +291,6 @@ export default IPDPharmacyIntegration;
       </div>
     );
   }
-
-  // Format date function specific to this component's needs
-  const formatDate = (dateString: string): string => {
-    try {
-      const options: Intl.DateTimeFormatOptions = {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      };
-      return new Intl.DateTimeFormat(undefined, options).format(
-        new Date(dateString)
-      );
-    } catch {
-      return "Invalid Date";
-    }
-  };
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden mt-6">
@@ -389,7 +371,9 @@ export default IPDPharmacyIntegration;
                             disabled={loading} // Consider a more specific loading state
                             className="px-3 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {/* {loading ? ( <Loader2 className="h-3 w-3 animate-spin inline mr-1" /> ) : undefined} */}
+                            {loading ? (
+                              <Loader2 className="h-3 w-3 animate-spin inline mr-1" />
+                            ) : undefined}
                             Administer
                           </button>
                         )}
@@ -456,4 +440,6 @@ export default IPDPharmacyIntegration;
       </div>
     </div>
   );
-}
+};
+
+export default IPDPharmacyIntegration;

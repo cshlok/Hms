@@ -262,7 +262,7 @@ export default function ERPatientTrackingBoard() {
           <Input
             placeholder="Filter by Name/MRN..."
             value={filterName}
-            onChange={(_event_) => setFilterName(e.target.value)}
+            onChange={(_event_) => setFilterName(_event_.target.value)}
             className="max-w-full sm:max-w-sm"
           />
           <Select value={filterLocation} onValueChange={setFilterLocation}>
