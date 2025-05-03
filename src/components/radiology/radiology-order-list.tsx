@@ -16,7 +16,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CreateRadiologyOrderModal, {
   OrderPayload,
-} from "./CreateRadiologyOrderModal"; // Import OrderPayload
+} from "./create-radiology-order-modal"; // Import OrderPayload
 import { toast } from "@/components/ui/use-toast"; // Import toast for notifications
 
 // Define interface for the order data

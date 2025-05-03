@@ -5,15 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import OTTheatreList from "@/components/ot/OTTheatreList";
-import OTBookingList from "@/components/ot/OTBookingList";
-import OTSurgeryTypeList from "@/components/ot/OTSurgeryTypeList";
-import OTChecklistTemplateList from "@/components/ot/OTChecklistTemplateList";
-import OTDashboardStats from "@/components/ot/OTDashboardStats";
-import OTBookingModal from "@/components/ot/OTBookingModal";
-import OTTheatreModal from "@/components/ot/OTTheatreModal";
-import OTSurgeryTypeModal from "@/components/ot/OTSurgeryTypeModal";
-import OTChecklistTemplateModal from "@/components/ot/OTChecklistTemplateModal";
+import OTTheatreList from "@/components/ot/ot-theatre-list";
+import OTBookingList from "@/components/ot/ot-booking-list";
+import OTSurgeryTypeList from "@/components/ot/ot-surgery-type-list";
+import OTChecklistTemplateList from "@/components/ot/ot-checklist-template-list";
+import OTDashboardStats from "@/components/ot/ot-dashboard-stats";
+import OTBookingModal from "@/components/ot/ot-booking-modal";
+import OTTheatreModal from "@/components/ot/ot-theatre-modal";
+import OTSurgeryTypeModal from "@/components/ot/ot-surgery-type-modal";
+import OTChecklistTemplateModal from "@/components/ot/ot-checklist-template-modal";
 
 export default function OTDashboardPage() {
   const [activeTab, setActiveTab] = useState("dashboard");

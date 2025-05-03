@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, ArrowLeft, Trash2, FilePlus } from "lucide-react";
 import CreateRadiologyStudyModal, {
   StudyPayload,
-} from "./CreateRadiologyStudyModal"; // FIX: Import StudyPayload
+} from "./create-radiology-study-modal"; // FIX: Import StudyPayload
 // Import list components if they are to be embedded and filtered
 // import RadiologyStudiesList from "./RadiologyStudiesList";
 // import RadiologyReportsList from "./RadiologyReportsList";

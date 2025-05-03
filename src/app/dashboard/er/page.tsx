@@ -10,11 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import ERDashboardStats from "@/components/er/ERDashboardStats";
-import ERPatientTrackingBoard from "@/components/er/ERPatientTrackingBoard";
-import ERTriageForm from "@/components/er/ERTriageForm";
-import ERCriticalAlerts from "@/components/er/ERCriticalAlerts";
-import ERRegistrationModal from "@/components/er/ERRegistrationModal";
+import ERDashboardStats from "@/components/er/er-dashboard-stats";
+import ERPatientTrackingBoard from "@/components/er/er-patient-tracking-board";
+import ERTriageForm from "@/components/er/er-triage-form";
+import ERCriticalAlerts from "@/components/er/er-critical-alerts";
+import ERRegistrationModal from "@/components/er/er-registration-modal";
 import { Button } from "@/components/ui/button";
 
 export default function ERDashboardPage() {

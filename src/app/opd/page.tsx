@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import OPDAppointmentList from "@/components/opd/OPDAppointmentList";
-import OPDPatientQueue from "@/components/opd/OPDPatientQueue";
-import OPDConsultationForm from "@/components/opd/OPDConsultationForm";
-import OPDStatistics from "@/components/opd/OPDStatistics";
+import OPDAppointmentList from "@/components/opd/opd-appointment-list";
+import OPDPatientQueue from "@/components/opd/opd-patient-queue";
+import OPDConsultationForm from "@/components/opd/opd-consultation-form";
+import OPDStatistics from "@/components/opd/opd-statistics";
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton for loading states
 // import { hasPermission } from "@/lib/session"; // Direct permission check might be better done server-side or via dedicated hook
 

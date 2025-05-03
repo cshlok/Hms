@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth"; // Changed from getSession
-import { ProgressNoteSchema } from "@/lib/schemas/ipdSchemas";
+import { ProgressNoteSchema } from "@/lib/schemas/ipd-schemas";
 
 // Define interface for the result of the admission check query
 interface AdmissionCheck {
