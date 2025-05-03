@@ -86,7 +86,7 @@ export async function GET(
       admission,
       medication_administration: medicationRecordsResult.rows || [],
     });
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching medication administration records:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -215,7 +215,7 @@ export async function POST(
       { message: "Medication administration recorded (mock operation)" },
       { status: 201 }
     );
-  } catch {
+  } catch (error: any) {
     console.error("Error creating medication administration record:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

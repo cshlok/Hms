@@ -100,7 +100,7 @@ export async function GET(
       admission,
       progress_notes: progressNotesResult.rows || [],
     });
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching progress notes:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -233,7 +233,7 @@ export async function POST(
       { message: "Progress note created (mock operation)" },
       { status: 201 }
     );
-  } catch {
+  } catch (error: any) {
     console.error("Error creating progress note:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

@@ -60,7 +60,7 @@ export async function GET(
           if (typeof result.responses === "string") {
             result.responses = JSON.parse(result.responses);
           }
-        } catch {
+        } catch (error: any) {
           console.error(
             "Failed to parse responses JSON for result:",
             result.id,
@@ -72,7 +72,7 @@ export async function GET(
       }) || [];
 
     return NextResponse.json(parsedResults);
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching checklist responses:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -203,7 +203,7 @@ export async function POST(
         if (typeof finalResult[0].responses === "string") {
           finalResult[0].responses = JSON.parse(finalResult[0].responses);
         }
-      } catch {
+      } catch (error: any) {
         console.error(
           "Failed to parse responses JSON for final result:",
           responseId,
@@ -220,7 +220,7 @@ export async function POST(
         { status: 201 }
       );
     }
-  } catch {
+  } catch (error: any) {
     console.error("Error saving checklist response:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

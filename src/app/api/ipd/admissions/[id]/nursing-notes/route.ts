@@ -81,7 +81,7 @@ export async function GET(
       admission,
       nursing_notes: nursingNotesResult.rows || [],
     });
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching nursing notes:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -178,7 +178,7 @@ export async function POST(
       { message: "Nursing note created (mock operation)" },
       { status: 201 }
     );
-  } catch {
+  } catch (error: any) {
     console.error("Error creating nursing note:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

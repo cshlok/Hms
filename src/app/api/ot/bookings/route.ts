@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
       .all();
 
     return NextResponse.json(results);
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching OT bookings:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
           { message: "Booking created, but failed to fetch details" },
           { status: 201 }
         );
-  } catch {
+  } catch (error: any) {
     // FIX: Remove explicit any
     console.error("Error creating OT booking:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

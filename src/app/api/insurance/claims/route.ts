@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
 
     const claims = await getInsuranceClaimsFromDB(filters);
     return NextResponse.json({ claims });
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching insurance claims:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
@@ -258,7 +258,7 @@ export async function POST(request: NextRequest) {
     const newClaim = await createInsuranceClaimInDB(claimData);
 
     return NextResponse.json({ claim: newClaim }, { status: 201 });
-  } catch {
+  } catch (error: any) {
     console.error("Error creating insurance claim:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

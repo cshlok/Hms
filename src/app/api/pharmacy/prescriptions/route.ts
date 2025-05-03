@@ -176,7 +176,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       prescriptions: result.results || [],
     });
-  } catch {
+  } catch (error: any) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error("Error fetching prescriptions:", error);
@@ -420,11 +420,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       };
 
       return NextResponse.json(responseData, { status: 201 });
-    } catch {
+    } catch (error: any) {
       await database.exec("ROLLBACK");
       throw error; // Rethrow to be caught by the outer catch block
     }
-  } catch {
+  } catch (error: any) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error("Error creating prescription:", error);

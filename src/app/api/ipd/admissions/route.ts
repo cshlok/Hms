@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     const admissions = await getAdmissionsFromDB(filters);
 
     return NextResponse.json({ admissions });
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching admissions:", error);
     // Fixed: Safely access error message
     const errorMessage =
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     const newAdmission = await createAdmissionInDB(admissionData);
 
     return NextResponse.json({ admission: newAdmission }, { status: 201 });
-  } catch {
+  } catch (error: any) {
     console.error("Error creating admission:", error);
     // Fixed: Safely access error message
     const errorMessage =
@@ -166,7 +166,7 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ admission: updatedAdmission });
-  } catch {
+  } catch (error: any) {
     console.error("Error updating admission:", error);
     // Fixed: Safely access error message
     const errorMessage =

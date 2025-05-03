@@ -30,10 +30,9 @@ const AdmissionSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Initialize DB (mock function)
-    await initializeDb(); // Removed env argument
 
     // Get DB instance
-    const database = await getDb(); // Fixed: Await the promise returned by getDb()
+    const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     // Get query parameters
     const { searchParams } = new URL(request.url);
@@ -120,7 +119,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching IPD admissions:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
@@ -139,10 +138,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Initialize DB (mock function)
-    await initializeDb(); // Removed env argument
 
     // Get DB instance
-    const database = await getDb(); // Fixed: Await the promise returned by getDb()
+    const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     const data = await request.json();
 
@@ -269,7 +267,7 @@ export async function POST(request: NextRequest) {
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
-  } catch {
+  } catch (error: any) {
     console.error("Error creating IPD admission:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(

@@ -138,7 +138,7 @@ export async function GET(
       );
     }
     return NextResponse.json(study);
-  } catch {
+  } catch (error: any) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({
@@ -327,7 +327,7 @@ export async function PUT(
       // Re-throw other DB errors to be caught by the outer catch block
       throw databaseError;
     }
-  } catch {
+  } catch (error: any) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({
@@ -405,7 +405,7 @@ export async function DELETE(
       id: studyId,
       status: "Radiology study deleted",
     });
-  } catch {
+  } catch (error: any) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({

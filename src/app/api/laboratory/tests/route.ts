@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/database"; // Using mock DB
+import { DB } from "@/lib/database"; // Using mock DB
 import { getSession } from "@/lib/session";
 
 // Interface for the request body when creating a lab test
@@ -55,11 +55,11 @@ export async function GET(request: NextRequest) {
 
     query += " ORDER BY t.name ASC";
 
-    // Execute query using db.query
-    const testsResult = await db.query(query, parameters);
+    // Execute query using DB.query
+    const testsResult = await DB.query(query, parameters);
 
     return NextResponse.json(testsResult.rows || []); // Return rows from the result
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching laboratory tests:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Insert new test using db.query
+    // Insert new test using DB.query
     const insertQuery = `
       INSERT INTO lab_tests (
         category_id, code, name, description, sample_type, 
@@ -128,9 +128,9 @@ export async function POST(request: NextRequest) {
       body.is_active === undefined ? true : body.is_active,
     ];
 
-    await db.query(insertQuery, insertParameters);
+    await DB.query(insertQuery, insertParameters);
 
-    // Mock response as we cannot get last_row_id from mock db.query
+    // Mock response as we cannot get last_row_id from mock DB.query
     const mockTestId = Math.floor(Math.random() * 10_000);
     const mockCreatedTest = {
       id: mockTestId,
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(mockCreatedTest, { status: 201 });
-  } catch {
+  } catch (error: any) {
     console.error("Error creating laboratory test:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

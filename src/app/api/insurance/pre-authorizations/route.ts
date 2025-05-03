@@ -201,7 +201,7 @@ export async function GET(request: NextRequest) {
 
     const preAuthorizations = await getPreAuthorizationsFromDB(filters);
     return NextResponse.json({ preAuthorizations });
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching pre-authorization requests:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
     const newPreAuth = await createPreAuthorizationInDB(preAuthData);
 
     return NextResponse.json({ preAuthorization: newPreAuth }, { status: 201 });
-  } catch {
+  } catch (error: any) {
     console.error("Error creating pre-authorization request:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

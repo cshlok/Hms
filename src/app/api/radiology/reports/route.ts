@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
       .bind(...parameters)
       .all<RadiologyReportListItem>();
     return NextResponse.json(result.results || []);
-  } catch {
+  } catch (error: any) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
       createdReport || { id, message: "Radiology report created" },
       { status: 201 }
     );
-  } catch {
+  } catch (error: any) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({

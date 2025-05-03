@@ -69,7 +69,7 @@ export async function GET(
       ) {
         record.specimens_collected = JSON.parse(record.specimens_collected);
       }
-    } catch {
+    } catch (error: any) {
       console.error(
         "Failed to parse JSON fields for record:",
         record.id,
@@ -78,7 +78,7 @@ export async function GET(
     }
 
     return NextResponse.json(record);
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching operation record:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -285,7 +285,7 @@ export async function POST(
             finalRecord.specimens_collected
           );
         }
-      } catch {
+      } catch (error: any) {
         console.error(
           "Failed to parse JSON fields for final record:",
           recordId,
@@ -303,7 +303,7 @@ export async function POST(
         { status: isNewRecord ? 201 : 200 }
       );
     }
-  } catch {
+  } catch (error: any) {
     console.error("Error saving operation record:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

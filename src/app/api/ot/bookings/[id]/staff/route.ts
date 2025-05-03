@@ -39,7 +39,7 @@ export async function GET(
       .all();
 
     return NextResponse.json(results || []);
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching OT staff assignments:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -161,7 +161,7 @@ export async function POST(
           { id, booking_id: bookingId, user_id, role, assigned_at: now },
           { status: 201 }
         );
-  } catch {
+  } catch (error: any) {
     console.error("Error assigning staff to OT booking:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -198,7 +198,7 @@ export async function DELETE(
       },
       { status: 200 }
     );
-  } catch {
+  } catch (error: any) {
     console.error("Error removing staff assignments:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(

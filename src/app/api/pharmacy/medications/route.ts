@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
       .all();
 
     return NextResponse.json(results);
-  } catch {
+  } catch (error: any) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({ message: "Error fetching medications", error: message });
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
       .first();
 
     return NextResponse.json(newMedication, { status: 201 });
-  } catch {
+  } catch (error: any) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({ message: "Error creating medication", error: message });

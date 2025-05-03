@@ -62,7 +62,7 @@ export async function GET(_request: NextRequest) {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch {
+  } catch (error: any) {
     console.error("Error accessing Cloudflare bindings or DB:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

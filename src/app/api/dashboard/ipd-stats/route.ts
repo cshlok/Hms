@@ -112,7 +112,7 @@ export async function GET(_request: NextRequest) {
       occupancyRate: occupancyRate,
       recentAdmissions: recentAdmissions, // Use the correctly typed variable
     });
-  } catch {
+  } catch (error: any) {
     console.error("Error fetching IPD stats:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
