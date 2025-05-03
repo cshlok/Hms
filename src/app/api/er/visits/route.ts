@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
 
     const visits = await getERVisitsFromDB(filters);
     return NextResponse.json({ visits });
-  } catch (error) {
+  } catch {
     console.error("Error fetching ER visits:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
     const newVisit = await createERVisitInDB(visitData);
 
     return NextResponse.json({ visit: newVisit }, { status: 201 });
-  } catch (error) {
+  } catch {
     console.error("Error creating ER visit:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {

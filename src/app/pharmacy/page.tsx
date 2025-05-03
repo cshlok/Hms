@@ -37,98 +37,15 @@ interface ExpiringMedication {
   stock: number;
 }
 
+// Helper function moved outside the component
+const getThirtyDaysFromNow = (): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + 30);
+  return date.toISOString().split("T")[0];
+};
+
 // Main Pharmacy Dashboard Page
 export default function PharmacyPage() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState<PharmacyStats>({
-    totalMedications: 0,
-    lowStockItems: 0,
-    pendingPrescriptions: 0,
-    expiringItems: 0,
-  });
-
-  useEffect(() => {
-    // Fetch pharmacy dashboard statistics
-    const fetchStats = async () => {
-      setLoading(true);
-      try {
-        // In a real implementation, these would be separate API calls
-        // For now, we'll simulate the data
-        // TODO: Replace with actual API calls and error handling
-        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-        setStats({
-          totalMedications: 125,
-          lowStockItems: 8,
-          pendingPrescriptions: 12,
-          expiringItems: 5,
-        });
-      } catch (error) {
-        console.error("Error fetching pharmacy stats:", error);
-        // Optionally set an error state to display to the user
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "dashboard": {
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard
-              title="Total Medications"
-              value={stats.totalMedications}
-              icon="📦"
-              color="bg-blue-100"
-              onClick={() => router.push("/pharmacy/medications")}
-            />
-            <StatCard
-              title="Low Stock Items"
-              value={stats.lowStockItems}
-              icon="⚠️"
-              color="bg-yellow-100"
-              onClick={() => router.push("/pharmacy/inventory?low_stock=true")}
-            />
-            <StatCard
-              title="Pending Prescriptions"
-              value={stats.pendingPrescriptions}
-              icon="📋"
-              color="bg-green-100"
-              onClick={() =>
-                router.push("/pharmacy/prescriptions?status=pending")
-              }
-            />
-            <StatCard
-              title="Expiring Soon"
-              value={stats.expiringItems}
-              icon="⏱️"
-              color="bg-red-100"
-              onClick={() =>
-                router.push(
-                  "/pharmacy/inventory?expiry_before=" + getThirtyDaysFromNow()
-                )
-              }
-            />
-          </div>
-        );
-      }
-      default: {
-        // Should not happen if tabs are managed correctly, but good for safety
-        return <div>Select a tab to view content</div>;
-      }
-    }
-  };
-
-  const getThirtyDaysFromNow = (): string => {
-    const date = new Date();
-    date.setDate(date.getDate() + 30);
-    return date.toISOString().split("T")[0];
-  };
 
   return (
     <div className="container mx-auto px-4 py-8">

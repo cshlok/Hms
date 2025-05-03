@@ -53,7 +53,7 @@ export default function OTDashboardStats() {
         });
 
         setLoading(false);
-      } catch (error) {
+      } catch {
         console.error("Error fetching OT dashboard stats:", error);
         setLoading(false);
       }

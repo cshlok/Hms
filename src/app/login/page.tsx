@@ -82,7 +82,7 @@ function Dashboard() {
             ipdResponse,
             billingResponse,
             pharmacyResponse,
-          ].find((res) => !response.ok);
+          ].find((_res) => !response.ok);
           throw new Error(
             `Failed to fetch dashboard data: ${failedResponse?.statusText || "Unknown error"} (status: ${failedResponse?.status || "N/A"})`
           );

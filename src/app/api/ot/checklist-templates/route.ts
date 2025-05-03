@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       .all();
 
     return NextResponse.json(results || []);
-  } catch (error) {
+  } catch {
     console.error("Error fetching checklist templates:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         { status: 201 }
       );
     }
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error creating checklist template:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

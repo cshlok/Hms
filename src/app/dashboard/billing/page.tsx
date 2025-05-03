@@ -46,71 +46,33 @@ interface BillingDashboardApiResponse {
 // FIX: Define allowed badge variants type based on BadgeProps
 type AllowedBadgeVariant = BadgeProps["variant"];
 
+// FIX: Ensure returned variant is one of the allowed types
+const getStatusBadgeVariant = (status: string): AllowedBadgeVariant => {
+  switch (status.toLowerCase()) {
+    case "paid": {
+      return "default";
+    } // Map "success" to "default"
+    case "partially_paid": {
+      return "secondary";
+    } // Map "warning" to "secondary"
+    case "draft": {
+      return "secondary";
+    }
+    case "void": {
+      return "destructive";
+    }
+    case "finalized": {
+      // Assuming finalized is a valid status
+      return "outline";
+    } // Map "finalized" to "outline"
+    default: {
+      return "secondary";
+    } // Default for unknown statuses
+  }
+};
+
 // --- COMPONENT ---
 export default function BillingDashboardPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>();
-  const [totalCount, setTotalCount] = useState(0);
-  // Add pagination state if needed: const [page, setPage] = useState(1); const [limit, setLimit] = useState(10);
-
-  const fetchInvoices = useCallback(async () => {
-    setLoading(true);
-    setError(undefined);
-    try {
-      // Add pagination params if implemented: ?limit=${limit}&offset=${(page - 1) * limit}
-      const response = await fetch("/api/billing/invoices?limit=10"); // Fetch only recent 10 for dashboard
-      if (!response.ok) {
-        throw new Error(`Failed to fetch invoices: ${response.statusText}`);
-      }
-      // FIX: Cast response JSON to defined type
-      const data = (await response.json()) as BillingDashboardApiResponse;
-      // FIX: Safely access data properties and ensure invoices is an array
-      setInvoices(Array.isArray(data?.invoices) ? data.invoices : []);
-      setTotalCount(
-        data?.totalCount ??
-          (Array.isArray(data?.invoices) ? data.invoices.length : 0)
-      ); // Use length as fallback if totalCount missing
-    } catch (error_) {
-      console.error("Error fetching invoices:", error_);
-      setError(
-        error_ instanceof Error ? error_.message : "An unknown error occurred."
-      );
-      setInvoices([]); // Clear invoices on error
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  }, []); // Add page, limit dependencies if pagination is added
-
-  useEffect(() => {
-    fetchInvoices();
-  }, [fetchInvoices]);
-
-  // FIX: Ensure returned variant is one of the allowed types
-  const getStatusBadgeVariant = (status: string): AllowedBadgeVariant => {
-    switch (status.toLowerCase()) {
-      case "paid": {
-        return "default";
-      } // Map "success" to "default"
-      case "partially_paid": {
-        return "secondary";
-      } // Map "warning" to "secondary"
-      case "draft": {
-        return "secondary";
-      }
-      case "void": {
-        return "destructive";
-      }
-      case "finalized": {
-        // Assuming finalized is a valid status
-        return "outline";
-      } // Map "finalized" to "outline"
-      default: {
-        return "secondary";
-      } // Default for unknown statuses
-    }
-  };
 
   // --- JSX ---
   return (

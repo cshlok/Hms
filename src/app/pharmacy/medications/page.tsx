@@ -400,7 +400,7 @@ export default function MedicationsListPage() {
               </span>
               <select
                 value={pageSize}
-                onChange={(e) => {
+                onChange={(_event_) => {
                   setPageSize(Number(e.target.value));
                 }}
                 className="p-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"

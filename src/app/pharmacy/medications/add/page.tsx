@@ -78,7 +78,7 @@ const AddMedicationPage: React.FC = () => {
         ];
         setCategories(simulatedCategories);
         setManufacturers(simulatedManufacturers);
-      } catch (error) {
+      } catch {
         console.error("Error fetching categories/manufacturers:", error);
         // Handle error appropriately, e.g., set an error state
       }
@@ -177,7 +177,7 @@ const AddMedicationPage: React.FC = () => {
       setTimeout(() => {
         router.push("/pharmacy/medications"); // Assuming this is the correct path
       }, 2000);
-    } catch (error) {
+    } catch {
       const message =
         error instanceof Error ? error.message : "An unknown error occurred.";
       setSubmitError(message);

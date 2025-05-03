@@ -135,7 +135,7 @@ const ServiceItemForm: React.FC<ServiceItemFormProperties> = ({
     try {
       await onSubmit(formData);
       // If onSubmit is successful, the modal will be closed by the parent component
-    } catch (error) {
+    } catch {
       console.error("Form submission error:", error);
       // Error is handled in the parent component (handleFormSubmit)
       // Keep the modal open by not calling onCancel here
@@ -370,19 +370,15 @@ export default function ServiceItemsPage() {
   };
 
   // Filter items based on search term
-  const filteredItems = serviceItems.filter(
-    (item) =>
-      item.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.item_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = serviceItems.filter((item) => {
+    const searchTermLower = searchTerm.toLowerCase();
+    return (
+      item.item_name.toLowerCase().includes(searchTermLower) ||
+      item.item_code.toLowerCase().includes(searchTermLower) ||
+      item.category.toLowerCase().includes(searchTermLower)
+    );
+  });
 
-  // FIX: Function to get badge variant based on allowed types
-  const getStatusBadgeVariant = (isActive: boolean): AllowedBadgeVariant => {
-    return isActive ? "default" : "secondary"; // Map true to "default" (success-like), false to "secondary"
-  };
-
-  // --- JSX ---
   return (
     <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
       {" "}
@@ -426,7 +422,7 @@ export default function ServiceItemsPage() {
             type="search"
             placeholder="Search by name, code, or category..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(_event_) => setSearchTerm(_event_.target.value)}
             className="pl-10" // Increased padding for icon
           />
         </div>

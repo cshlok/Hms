@@ -57,7 +57,7 @@ export default function CreateProcedureTypeModal({
       setDescription("");
       setModalityType("");
       // onClose(); // Keep modal open or close based on parent logic after onSubmit completes
-    } catch (error) {
+    } catch {
       console.error("Failed to submit procedure type:", error);
       // Optionally show an error message to the user
       alert("Failed to add procedure type. Please try again.");
@@ -82,7 +82,7 @@ export default function CreateProcedureTypeModal({
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(_event_) => setName(e.target.value)}
                 className="col-span-3"
                 required
                 disabled={isSubmitting}
@@ -95,7 +95,7 @@ export default function CreateProcedureTypeModal({
               <Input
                 id="modalityType"
                 value={modalityType}
-                onChange={(e) => setModalityType(e.target.value)}
+                onChange={(_event_) => setModalityType(e.target.value)}
                 className="col-span-3"
                 placeholder="e.g., XRAY, CT, MRI, ULTRASOUND"
                 disabled={isSubmitting}
@@ -108,7 +108,7 @@ export default function CreateProcedureTypeModal({
               <Textarea
                 id="description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(_event_) => setDescription(e.target.value)}
                 className="col-span-3"
                 disabled={isSubmitting}
               />

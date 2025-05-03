@@ -243,7 +243,7 @@ export default function OTStaffAssignment({
             <Input
               id="role-input"
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
+              onChange={(_event_) => setSelectedRole(e.target.value)}
               placeholder="e.g., Lead Surgeon"
               className="mt-1"
             />

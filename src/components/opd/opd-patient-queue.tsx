@@ -72,7 +72,7 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProperties) {
 
         setCanCallPatient(callData.hasPermission || false);
         setCanMarkComplete(completeData.hasPermission || false);
-      } catch (error) {
+      } catch {
         console.error("Error fetching permissions:", error);
         setCanCallPatient(false);
         setCanMarkComplete(false);
@@ -236,17 +236,18 @@ export default function OPDPatientQueue({ date }: OPDPatientQueueProperties) {
     }
   };
 
-  const formatWaitingTime = (minutes: number) => {
-    if (minutes < 60) {
-      return `${minutes} min`;
-    }
+const formatWaitingTime = (minutes: number) => {
+  if (minutes < 60) {
+    return `${minutes} min`;
+  }
 
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
 
-    return `${hours}h ${remainingMinutes}m`;
-  };
+  return `${hours}h ${remainingMinutes}m`;
+};
 
+export default function OPDPatientQueue({ date }: OPDPatientQueueProperties) {
   if (loading || loadingPermissions) {
     return (
       <div className="flex justify-center p-4">Loading patient queue...</div>

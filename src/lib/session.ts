@@ -68,7 +68,7 @@ export async function getSession(): Promise<Session | null> {
       user: payload.user as SessionUser | undefined, // Ensure type safety
       expires,
     };
-  } catch (error) {
+  } catch {
     console.error("Error verifying session token:", error);
     deleteSession(); // Clean up invalid cookie
     return undefined;
@@ -152,7 +152,7 @@ export async function createSession(userId: number): Promise<Session | null> {
 
     console.log(`Session created for user: ${sessionUser.username}`);
     return session;
-  } catch (error) {
+  } catch {
     console.error("Error creating session:", error);
     return undefined;
   }

@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch {
     console.error("Error fetching IPD admissions:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
@@ -269,7 +269,7 @@ export async function POST(request: NextRequest) {
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
-  } catch (error) {
+  } catch {
     console.error("Error creating IPD admission:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(

@@ -59,7 +59,7 @@ export async function GET(
     }
 
     return NextResponse.json(template);
-  } catch (error) {
+  } catch {
     console.error("Error fetching checklist template details:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
@@ -190,7 +190,7 @@ export async function PUT(
     }
 
     return NextResponse.json(updatedTemplate);
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error updating checklist template:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -245,7 +245,7 @@ export async function DELETE(
       { message: "Checklist template deleted successfully" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error deleting checklist template:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

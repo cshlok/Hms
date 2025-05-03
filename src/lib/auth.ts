@@ -83,7 +83,7 @@ export const hasPermission = async (
 };
 
 // Placeholder function for API routes importing 'clearAuthCookie'
-export const clearAuthCookie = (res: NextResponse) => {
+export const clearAuthCookie = (response_: NextResponse) => {
   console.warn(
     "Authentication function 'clearAuthCookie' is not implemented yet."
   );
@@ -92,7 +92,7 @@ export const clearAuthCookie = (res: NextResponse) => {
 };
 
 // Placeholder function for API routes importing 'setAuthCookie'
-export const setAuthCookie = (res: NextResponse, token: string) => {
+export const setAuthCookie = (response_: NextResponse, token: string) => {
   console.warn(
     "Authentication function 'setAuthCookie' is not implemented yet."
   );

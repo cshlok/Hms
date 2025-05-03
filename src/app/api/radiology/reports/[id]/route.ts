@@ -113,7 +113,7 @@ export async function GET(
       );
     }
     return NextResponse.json(report);
-  } catch (error) {
+  } catch {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({
@@ -323,7 +323,7 @@ export async function PUT(
         message: "Radiology report update processed",
       }
     ); // Return updated report or confirmation
-  } catch (error) {
+  } catch {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({
@@ -396,7 +396,7 @@ export async function DELETE(
       id: reportId,
       status: "Radiology report retracted",
     });
-  } catch (error) {
+  } catch {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({

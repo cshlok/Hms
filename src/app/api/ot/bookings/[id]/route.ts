@@ -44,7 +44,7 @@ export async function GET(
     }
 
     return NextResponse.json(booking);
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error fetching OT booking:", error);
     // FIX: Handle error type
@@ -111,7 +111,7 @@ export async function PUT(
     };
 
     return NextResponse.json(updatedBooking);
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error updating OT booking:", error);
     // FIX: Handle error type
@@ -146,7 +146,7 @@ export async function DELETE(
       { message: "OT Booking cancelled successfully" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     // FIX: Remove explicit any
     console.error("Error cancelling OT booking:", error);
     // FIX: Handle error type

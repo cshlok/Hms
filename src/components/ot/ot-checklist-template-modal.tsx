@@ -236,7 +236,7 @@ export default function OTChecklistTemplateModal({
                   <div key={item.id} className="flex items-center space-x-2">
                     <Input
                       value={item.text}
-                      onChange={(e) => handleItemChange(index, e.target.value)}
+                      onChange={(_event_) => handleItemChange(index, e.target.value)}
                       placeholder={`Item ${index + 1}`}
                       className="flex-grow"
                     />

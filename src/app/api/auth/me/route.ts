@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         permissions: user.permissions || [],
       },
     });
-  } catch (error) {
+  } catch {
     console.error("Error fetching user info:", error);
     return NextResponse.json(
       { error: "Failed to fetch user information" },

@@ -39,73 +39,30 @@ interface InvoicesApiResponse {
 // FIX: Define allowed badge variants type based on BadgeProps
 type AllowedBadgeVariant = BadgeProps["variant"];
 
+// FIX: Ensure returned variant is one of the allowed types
+const getStatusBadgeVariant = (status: string): AllowedBadgeVariant => {
+  switch (status.toLowerCase()) {
+    case "paid": {
+      return "default";
+    } // Map "success" to "default"
+    case "partially_paid": {
+      return "secondary";
+    } // Map "warning" to "secondary"
+    case "finalized":
+    case "draft": {
+      return "secondary";
+    }
+    case "void": {
+      return "destructive";
+    }
+    default: {
+      return "secondary";
+    } // Default to secondary for unknown statuses
+  }
+};
+
 // --- COMPONENT ---
 export default function InvoicesListPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>();
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const fetchInvoices = useCallback(async () => {
-    setIsLoading(true);
-    setError(undefined);
-    try {
-      const queryParameters = new URLSearchParams();
-      if (searchTerm) {
-        queryParameters.append("search", searchTerm);
-      }
-
-      const response = await fetch(
-        `/api/billing/invoices?${queryParameters.toString()}`
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      // FIX: Cast response JSON to defined type
-      const data = (await response.json()) as InvoicesApiResponse;
-      // Ensure data.invoices is an array before setting state
-      setInvoices(Array.isArray(data?.invoices) ? data.invoices : []);
-    } catch (error_) {
-      console.error("Failed to fetch invoices:", error_);
-      setError(
-        error_ instanceof Error ? error_.message : "An unknown error occurred"
-      );
-      setInvoices([]); // Clear invoices on error
-    } finally {
-      setIsLoading(false);
-    }
-  }, [searchTerm]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      fetchInvoices();
-    }, 300); // Debounce search
-    return () => clearTimeout(handler);
-  }, [fetchInvoices]);
-
-  // FIX: Ensure returned variant is one of the allowed types
-  const getStatusBadgeVariant = (status: string): AllowedBadgeVariant => {
-    switch (status.toLowerCase()) {
-      case "paid": {
-        return "default";
-      } // Map "success" to "default"
-      case "partially_paid": {
-        return "secondary";
-      } // Map "warning" to "secondary"
-      case "finalized":
-      case "draft": {
-        return "secondary";
-      }
-      case "void": {
-        return "destructive";
-      }
-      default: {
-        return "secondary";
-      } // Default to secondary for unknown statuses
-    }
-  };
-
-  // --- JSX ---
   return (
     <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
       {" "}
@@ -131,7 +88,7 @@ export default function InvoicesListPage() {
             type="search"
             placeholder="Search by Invoice #, Patient Name..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(_event_) => setSearchTerm(_event_.target.value)}
             className="pl-10" // Increased padding for icon
           />
         </div>

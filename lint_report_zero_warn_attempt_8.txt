@@ -1,0 +1,214 @@
+
+> shlokam-hms@0.1.0 lint
+> next lint
+
+
+./src/app/dashboard/billing/invoices/page.tsx
+4:17  Warning: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+4:27  Warning: 'useEffect' is defined but never used.  @typescript-eslint/no-unused-vars
+4:38  Warning: 'useCallback' is defined but never used.  @typescript-eslint/no-unused-vars
+34:11  Warning: 'InvoicesApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/billing/page.tsx
+4:17  Warning: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+4:27  Warning: 'useEffect' is defined but never used.  @typescript-eslint/no-unused-vars
+4:38  Warning: 'useCallback' is defined but never used.  @typescript-eslint/no-unused-vars
+40:11  Warning: 'BillingDashboardApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/billing/service-items/page.tsx
+70:6  Warning: 'AllowedBadgeVariant' is defined but never used.  @typescript-eslint/no-unused-vars
+112:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+132:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/login/page.tsx
+85:19  Error: Please rename the variable `_res`. Suggested names are: `_resource`, `_response`, `_result`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/pharmacy/inventory/add/page.tsx
+102:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+170:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/pharmacy/medications/add/page.tsx
+91:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+128:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/pharmacy/medications/page.tsx
+259:37  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/pharmacy/page.tsx
+3:17  Warning: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+3:27  Warning: 'useEffect' is defined but never used.  @typescript-eslint/no-unused-vars
+4:10  Warning: 'useRouter' is defined but never used.  @typescript-eslint/no-unused-vars
+17:11  Warning: 'PharmacyStats' is defined but never used.  @typescript-eslint/no-unused-vars
+41:7  Warning: 'getThirtyDaysFromNow' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+151:10  Warning: 'StatCard' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/billing/billing-pharmacy-integration.tsx
+197:34  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+305:38  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ipd/admission-form.tsx
+93:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+113:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ipd/discharge-summary.tsx
+Error: Parsing error: '}' expected.
+
+./src/components/ipd/ipd-pharmacy-integration.tsx
+256:4  Error: Parsing error: Unexpected keyword or identifier.
+
+./src/components/ipd/medication-administration.tsx
+198:5  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+207:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ipd/nursing-notes.tsx
+169:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+174:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ipd/patient-progress-notes.tsx
+239:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+244:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ipd/vital-signs.tsx
+186:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+191:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/laboratory/order-management.tsx
+97:10  Warning: '_tests' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+250:13  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/laboratory/result-management.tsx
+20:3  Warning: 'CloseOutlined' is defined but never used.  @typescript-eslint/no-unused-vars
+23:8  Warning: 'dayjs' is defined but never used.  @typescript-eslint/no-unused-vars
+24:15  Warning: 'Dayjs' is defined but never used.  @typescript-eslint/no-unused-vars
+27:9  Warning: 'TabPane' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+118:10  Warning: 'orderItems' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+202:9  Warning: 'fetchOrderItems' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+388:9  Warning: 'showResultEntryModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+544:24  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/laboratory/sample-management.tsx
+12:3  Warning: 'Upload' is defined but never used.  @typescript-eslint/no-unused-vars
+17:3  Warning: 'PlusOutlined' is defined but never used.  @typescript-eslint/no-unused-vars
+26:15  Warning: 'FormInstance' is defined but never used.  @typescript-eslint/no-unused-vars
+195:5  Warning: 'values' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+432:24  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/laboratory/test-catalog-management.tsx
+490:24  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/opd/opd-appointment-list.tsx
+102:6  Warning: React Hook useEffect has a missing dependency: 'error'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/opd/opd-consultation-form.tsx
+Error: Parsing error: '}' expected.
+
+./src/components/opd/opd-patient-queue.tsx
+Error: Parsing error: '}' expected.
+
+./src/components/opd/opd-pharmacy-integration.tsx
+64:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+253:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+258:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+448:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+462:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+485:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+500:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+514:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+556:26  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/opd/opd-statistics.tsx
+5:10  Warning: 'Card' is defined but never used.  @typescript-eslint/no-unused-vars
+5:16  Warning: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+5:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+5:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ot/ot-billing-items.tsx
+188:9  Error: Parsing error: ':' expected.
+
+./src/components/ot/ot-booking-modal.tsx
+143:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+153:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/ot-checklist-template-list.tsx
+15:24  Warning: 'ListChecks' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ot/ot-checklist-template-modal.tsx
+23:10  Warning: 'Textarea' is defined but never used.  @typescript-eslint/no-unused-vars
+93:29  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+120:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/ot-patient-surgeries.tsx
+143:43  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+156:43  Error: Move arrow function 'formatTime' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/components/ot/ot-record-modal.tsx
+173:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+185:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/ot-staff-assignment.tsx
+24:37  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+60:26  Warning: 'setAvailableUsers' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+113:6  Warning: React Hook useCallback has an unnecessary dependency: 'bookingId'. Either exclude it or remove the dependency array.  react-hooks/exhaustive-deps
+136:13  Warning: 'assignmentData' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ot/ot-surgery-type-modal.tsx
+93:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+99:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/ot-theatre-modal.tsx
+86:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+96:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/pharmacy/billing-pharmacy-integration.tsx
+35:9  Warning: '_router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+198:34  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+306:38  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/pharmacy/ipd-pharmacy-integration.tsx
+260:51  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/components/pharmacy/opd-pharmacy-integration.tsx
+64:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+253:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+258:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+448:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+462:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+485:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+500:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+514:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+556:26  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/create-modality-modal.tsx
+44:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/create-procedure-type-modal.tsx
+42:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/create-radiology-order-modal.tsx
+141:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+265:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/create-radiology-report-modal.tsx
+131:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+247:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+264:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+282:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/create-radiology-study-modal.tsx
+109:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/radiology-report-detail.tsx
+68:10  Warning: 'showEditModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+165:38  Error: Move arrow function 'handlePrintReport' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/components/ui/index.tsx
+587:19  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+757:19  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/lib/auth.ts
+86:33  Warning: 'response_' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/lib/session.ts
+4:10  Warning: 'getDatabase' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
