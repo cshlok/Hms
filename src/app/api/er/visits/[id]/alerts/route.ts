@@ -48,10 +48,10 @@ export async function GET(
                                 .sort((a, b) => new Date(b.activation_timestamp).getTime() - new Date(a.activation_timestamp).getTime());
 
     return NextResponse.json(visitAlerts);
-  } catch (e: unknown) {
-    console.error({ message: "Error fetching critical alerts", error: (e instanceof Error ? e.message : String(e)) });
+  } catch (error: unknown) {
+    console.error({ message: "Error fetching critical alerts", error: (error instanceof Error ? error.message : String(error)) });
     return NextResponse.json(
-      { error: "Failed to fetch critical alerts", details: (e instanceof Error ? e.message : String(e)) },
+      { error: "Failed to fetch critical alerts", details: (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }
@@ -103,7 +103,7 @@ export async function POST(
       visit_id: visitId,
       alert_type: alertData.alert_type,
       activated_by_id: alertData.activated_by_id,
-      details: alertData.details ?? null, // Use nullish coalescing
+      details: alertData.details ?? undefined, // Use nullish coalescing
       activation_timestamp: alertData.activation_timestamp || new Date().toISOString(),
       status: alertData.status || "Active",
     };
@@ -115,10 +115,10 @@ export async function POST(
     console.log("Mock Trigger Notification:", newAlert);
 
     return NextResponse.json(newAlert, { status: 201 });
-  } catch (e: unknown) {
-    console.error({ message: "Error creating critical alert", error: (e instanceof Error ? e.message : String(e)) });
+  } catch (error: unknown) {
+    console.error({ message: "Error creating critical alert", error: (error instanceof Error ? error.message : String(error)) });
     return NextResponse.json(
-      { error: "Failed to create critical alert", details: (e instanceof Error ? e.message : String(e)) },
+      { error: "Failed to create critical alert", details: (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }

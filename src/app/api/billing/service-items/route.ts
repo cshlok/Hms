@@ -59,8 +59,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Simple pagination (optional, add if needed)
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = Number.parseInt(searchParams.get("page") || "1");
+    const limit = Number.parseInt(searchParams.get("limit") || "20");
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     const paginatedItems = filteredItems.slice(startIndex, endIndex);

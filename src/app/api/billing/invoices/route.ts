@@ -19,8 +19,8 @@ interface UpdateBookingBody {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const page = Number.parseInt(searchParams.get("page") || "1");
+    const limit = Number.parseInt(searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
     const statusFilter = searchParams.get("status");
     const dateFilter = searchParams.get("date"); // e.g., YYYY-MM-DD
@@ -44,51 +44,51 @@ export async function GET(request: NextRequest) {
       JOIN Users u ON b.lead_surgeon_id = u.id
       WHERE 1=1
     `;
-    const queryParams: (string | number)[] = [];
+    const queryParameters: (string | number)[] = [];
 
     if (statusFilter) {
       query += " AND b.status = ?";
-      queryParams.push(statusFilter);
+      queryParameters.push(statusFilter);
     }
     if (dateFilter) {
       // Assuming scheduled_start_time is stored as DATETIME or similar
       query += " AND DATE(b.scheduled_start_time) = ?";
-      queryParams.push(dateFilter);
+      queryParameters.push(dateFilter);
     }
     if (theatreFilter) {
       query += " AND b.theatre_id = ?";
-      queryParams.push(theatreFilter);
+      queryParameters.push(theatreFilter);
     }
     if (surgeonFilter) {
       query += " AND b.lead_surgeon_id = ?";
-      queryParams.push(surgeonFilter);
+      queryParameters.push(surgeonFilter);
     }
 
     query += ` ORDER BY b.scheduled_start_time ASC LIMIT ? OFFSET ?`;
-    queryParams.push(limit, offset);
+    queryParameters.push(limit, offset);
 
     // Fixed: Use DB.query instead of prepare/bind/all
-    const bookingsResult = await DB.query(query, queryParams);
+    const bookingsResult = await DB.query(query, queryParameters);
     const results = bookingsResult.rows || [];
 
     // Also fetch total count for pagination
     let countQuery = `SELECT COUNT(*) as total FROM OTBookings WHERE 1=1`;
-    const countParams: (string | number)[] = [];
+        const countParameters: (string | number)[] = [];
     if (statusFilter) {
       countQuery += " AND status = ?";
-      countParams.push(statusFilter);
+      countParameters.push(statusFilter);
     }
     if (dateFilter) {
       countQuery += " AND DATE(scheduled_start_time) = ?";
-      countParams.push(dateFilter);
+      countParameters.push(dateFilter);
     }
     if (theatreFilter) {
       countQuery += " AND theatre_id = ?";
-      countParams.push(theatreFilter);
+      countParameters.push(theatreFilter);
     }
     if (surgeonFilter) {
       countQuery += " AND lead_surgeon_id = ?";
-      countParams.push(surgeonFilter);
+      countParameters.push(surgeonFilter);
     }
 
     // Fixed: Use DB.query instead of prepare/bind/first
@@ -148,7 +148,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Construct the update query dynamically
     // FIX: Use a more specific type for values
-    const fieldsToUpdate: { [key: string]: string | number | boolean | null } = {};
+    const fieldsToUpdate: { [key: string]: string | number | boolean | undefined } = {};
     if (theatre_id !== undefined) fieldsToUpdate.theatre_id = theatre_id;
     if (lead_surgeon_id !== undefined) fieldsToUpdate.lead_surgeon_id = lead_surgeon_id;
     if (anesthesiologist_id !== undefined) fieldsToUpdate.anesthesiologist_id = anesthesiologist_id;
@@ -195,7 +195,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     `;
     // Fixed: Use DB.query instead of prepare/bind/all
     const updatedResult = await DB.query(fetchUpdatedQuery, [bookingId]);
-    const updatedBookingData = updatedResult.rows && updatedResult.rows.length > 0 ? updatedResult.rows[0] : null;
+    const updatedBookingData = updatedResult.rows && updatedResult.rows.length > 0 ? updatedResult.rows[0] : undefined;
 
     if (!updatedBookingData) {
         // Simulate returning the updated data based on input for mock if fetch fails

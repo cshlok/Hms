@@ -75,8 +75,8 @@ export async function GET(
     }
     // FIX: Return type matches ERVisit, no 'any' needed
     return NextResponse.json(visit);
-  } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error({ message: "Error fetching ER visit details", error: errorMessage });
     return NextResponse.json(
       { error: "Failed to fetch ER visit details", details: errorMessage },
@@ -99,18 +99,18 @@ export async function PUT(
     const updateData = body as ERVisitUpdateInput;
 
     // Prepare update fields and values
-    const allowedFields: (keyof ERVisitUpdateInput)[] = [
+    const allowedFields = new Set<keyof ERVisitUpdateInput>([
       "assigned_physician_id",
       "assigned_nurse_id",
       "current_location",
       "current_status",
       "disposition",
       "discharge_timestamp",
-    ];
+    ]);
     
     // FIX: Use keyof ERVisitUpdateInput for better type safety
     const updateFields = (Object.keys(updateData) as (keyof ERVisitUpdateInput)[])
-      .filter(field => allowedFields.includes(field) && updateData[field] !== undefined);
+      .filter(field => allowedFields.has(field) && updateData[field] !== undefined);
     
     if (updateFields.length === 0) {
       return NextResponse.json(
@@ -138,9 +138,9 @@ export async function PUT(
     
     // FIX: Update mock data with better type safety
     const updatedVisit: ERVisit = { ...mockVisits[visitIndex] };
-    updateFields.forEach(field => {
-      (updatedVisit as any)[field] = updateData[field]; // FIX: Use 'any' to bypass TS index signature error, safety ensured by allowedFields filter
-    });
+    for (const field of updateFields) {
+      updatedVisit[field] = updateData[field]; // Removed 'as any', types should align
+    }
     updatedVisit.updated_at = new Date().toISOString();
     mockVisits[visitIndex] = updatedVisit;
 
@@ -168,8 +168,8 @@ export async function PUT(
 
     // Return the updated visit
     return NextResponse.json(updatedVisit);
-  } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error({ message: "Error updating ER visit", error: errorMessage });
     return NextResponse.json(
       { error: "Failed to update ER visit", details: errorMessage },
@@ -238,8 +238,8 @@ export async function DELETE(
       { message: "ER visit deleted successfully" },
       { status: 200 }
     );
-  } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error({ message: "Error deleting ER visit", error: errorMessage });
     return NextResponse.json(
       { error: "Failed to delete ER visit", details: errorMessage },

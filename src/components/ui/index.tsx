@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react'; // Added import for icons
 
 // UI components barrel file
 // This file exports all UI components to make imports cleaner
@@ -562,12 +563,12 @@ DialogClose.displayName = "DialogClose";
 import { DayPicker, DayPickerProps } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 
-interface CalendarProps extends DayPickerProps {
+type CalendarProps = DayPickerProps & {
   className?: string;
-  classNames?: DayPickerProps['classNames'];
+  classNames?: DayPickerProps["classNames"];
   showOutsideDays?: boolean;
   // onDaySelect is part of DayPickerProps, no need to redefine unless overriding
-}
+};
 
 export function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
   return (
@@ -598,11 +599,15 @@ export function Calendar({ className, classNames, showOutsideDays = true, ...pro
         ...classNames,
       }}
       components={{
-        // IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        // IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
-        // Use simple arrows if icons are problematic
-        IconLeft: () => <span className="h-4 w-4">{'<'}</span>,
-        IconRight: () => <span className="h-4 w-4">{'>'}</span>,
+        Chevron: ({ orientation, ...props }) => {
+          if (orientation === "left") {
+            return <ChevronLeft className="h-4 w-4" {...props} />;
+          }
+          if (orientation === "right") {
+            return <ChevronRight className="h-4 w-4" {...props} />;
+          }
+          return <></>; // Return empty fragment instead of null
+        },
       }}
       {...props} // Pass rest of the props including onSelect, selected, etc.
     />
@@ -639,7 +644,9 @@ SelectContent.displayName = "SelectContent";
 export const SelectItem = ({ children, value }: { children: React.ReactNode, value: string }) => <div data-value={value}>{children}</div>;
 SelectItem.displayName = "SelectItem";
 
-// Export other components if they exist
-export * from './use-toast';
-export * from './toast';
+// Export toast components and types explicitly to avoid naming conflicts
+export { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction } from './toast';
+export type { ToastProps, ToastActionElement } from './toast';
+export { useToast, toast } from './use-toast';
+export type { ToasterToast, ToastContextProps, Toast as ToastType } from './use-toast';
 

@@ -37,28 +37,28 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const db = await getDB(); 
+    const database = await getDB(); 
     
     // Get active admissions count
     // FIX: Removed generic type argument from db.query
     // FIX: Use type assertion on the result rows
-    const activeAdmissionsResult = await db.query(`
+    const activeAdmissionsResult = await database.query(`
       SELECT COUNT(*) as count FROM admissions WHERE status = 'active'
     `);
-    const activeAdmissionsCount = parseInt(String((activeAdmissionsResult.rows?.[0] as CountResult | undefined)?.count ?? 0), 10);
+    const activeAdmissionsCount = Number.parseInt(String((activeAdmissionsResult.rows?.[0] as CountResult | undefined)?.count ?? 0), 10);
 
     // Get available beds count
     // FIX: Removed generic type argument from db.query
     // FIX: Use type assertion on the result rows
-    const availableBedsResult = await db.query(`
+    const availableBedsResult = await database.query(`
       SELECT COUNT(*) as count FROM beds WHERE status = 'available'
     `);
-    const availableBedsCount = parseInt(String((availableBedsResult.rows?.[0] as CountResult | undefined)?.count ?? 0), 10);
+    const availableBedsCount = Number.parseInt(String((availableBedsResult.rows?.[0] as CountResult | undefined)?.count ?? 0), 10);
     
     // Get bed occupancy rate
     // FIX: Removed generic type argument from db.query
     // FIX: Use type assertion on the result rows
-    const bedOccupancyResult = await db.query(`
+    const bedOccupancyResult = await database.query(`
       SELECT 
         (SELECT COUNT(*) FROM beds WHERE status = 'occupied') as occupied,
         (SELECT COUNT(*) FROM beds) as total
@@ -67,8 +67,8 @@ export async function GET(_request: NextRequest) {
     let occupancyRate = 0;
     const occupancyRow = bedOccupancyResult.rows?.[0] as OccupancyResult | undefined;
     if (occupancyRow) {
-        const occupied = parseInt(String(occupancyRow.occupied ?? 0), 10);
-        const total = parseInt(String(occupancyRow.total ?? 0), 10);
+        const occupied = Number.parseInt(String(occupancyRow.occupied ?? 0), 10);
+        const total = Number.parseInt(String(occupancyRow.total ?? 0), 10);
         occupancyRate = total > 0 
           ? Math.round((occupied / total) * 100) 
           : 0;
@@ -77,7 +77,7 @@ export async function GET(_request: NextRequest) {
     // Get recent admissions
     // FIX: Removed generic type argument from db.query
     // FIX: Use type assertion for rows
-    const recentAdmissionsResult = await db.query(`
+    const recentAdmissionsResult = await database.query(`
       SELECT 
         a.id, a.admission_number, a.admission_date, a.status,
         p.first_name as patient_first_name, p.last_name as patient_last_name,

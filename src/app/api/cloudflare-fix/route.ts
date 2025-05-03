@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 // Define the expected structure of the Cloudflare environment bindings
-interface Env {
+interface Environment {
   // DB: D1Database; // Commented out Cloudflare specific type
   DB: unknown; // Using 'unknown' as a placeholder
   // Add other bindings like KV namespaces, secrets, etc., here
@@ -21,7 +21,7 @@ interface Env {
 // In Next.js on Cloudflare, this might need a custom server setup or adapter.
 
 // Placeholder for accessing bindings - Actual implementation depends on deployment specifics
-function getCloudflareBindings(_request: NextRequest): Env | undefined { // Parameter prefixed as unused in this placeholder
+function getCloudflareBindings(_request: NextRequest): Environment | undefined { // Parameter prefixed as unused in this placeholder
   // Cloudflare Pages passes bindings via the `request.cf` object or context
   // This is a simplified example; the actual access method might differ.
   // Refer to Cloudflare Pages Functions documentation for the correct way.
@@ -36,9 +36,9 @@ function getCloudflareBindings(_request: NextRequest): Env | undefined { // Para
 export async function GET(_request: NextRequest) { 
   try {
     // Attempt to get Cloudflare bindings (replace with actual method)
-    const env = getCloudflareBindings(_request);
+    const environment = getCloudflareBindings(_request);
 
-    if (!env || !env.DB) {
+    if (!environment || !environment.DB) {
       console.error("Cloudflare DB binding not found. Ensure the project is configured correctly for Cloudflare Pages/Workers.");
       return new Response(JSON.stringify({ error: "Database binding not available" }), {
         status: 500,

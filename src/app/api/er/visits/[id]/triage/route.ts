@@ -48,8 +48,8 @@ export async function GET(
                                           .sort((a, b) => new Date(b.triage_timestamp).getTime() - new Date(a.triage_timestamp).getTime());
 
     return NextResponse.json(assessments);
-  } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error({ message: "Error fetching triage assessments", error: errorMessage });
     return NextResponse.json(
       { error: "Failed to fetch triage assessments", details: errorMessage },
@@ -113,7 +113,7 @@ export async function POST(
       triage_nurse_id: triageData.triage_nurse_id,
       esi_level: triageData.esi_level,
       vital_signs: triageData.vital_signs, // Assign the object directly
-      assessment_notes: triageData.assessment_notes ?? null, // Use nullish coalescing
+      assessment_notes: triageData.assessment_notes ?? undefined, // Use nullish coalescing
       triage_timestamp: triageData.triage_timestamp || new Date().toISOString(),
     };
 
@@ -121,8 +121,8 @@ export async function POST(
     mockTriageAssessments.push(newTriage); // Should now be type-compatible
 
     return NextResponse.json(newTriage, { status: 201 });
-  } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error({ message: "Error creating triage assessment", error: errorMessage });
     return NextResponse.json(
       { error: "Failed to create triage assessment", details: errorMessage },

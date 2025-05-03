@@ -16,13 +16,15 @@
   "plugins": [
     "@typescript-eslint",
     "react",
-    "react-hooks"
+    "react-hooks",
+    "unicorn" // Added eslint-plugin-unicorn
   ],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
+    "plugin:unicorn/recommended", // Added unicorn recommended rules
     "next/core-web-vitals", // Next.js specific rules
     "prettier" // Add prettier to disable conflicting rules
   ],
