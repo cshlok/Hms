@@ -6,21 +6,21 @@ Based on the provided files (`Iterative Development for Hospital Management Syst
 
 ### Completed Modules (Present in GitHub Repository & Local Files):
 
-*   **Patient Registration & Management:** Core functionalities seem present (based on file structure and previous task context).
-*   **Outpatient Department (OPD):** Components (`src/components/opd`), API routes (`src/app/api/opd`), and page routes (`src/app/opd`) are present.
-*   **Inpatient Department (IPD):** Components (`src/components/ipd`), API routes (`src/app/api/ipd`), and page routes (`src/app/ipd`) are present.
-*   **Laboratory Management (LIS):** Components (`src/components/laboratory`), API routes (`src/app/api/laboratory`), and page routes (`src/app/laboratory`) are present.
-*   **Authentication & Authorization:** Basic structure exists (`src/lib/session.ts`, `middleware.ts`, login routes).
-*   **Database Schema:** SQL migration files for initial setup, IPD, Pharmacy, and Laboratory modules are present.
-*   **Basic Frontend Structure:** Next.js setup with UI components (`src/components/ui`), layout (`layout.tsx`), etc.
+- **Patient Registration & Management:** Core functionalities seem present (based on file structure and previous task context).
+- **Outpatient Department (OPD):** Components (`src/components/opd`), API routes (`src/app/api/opd`), and page routes (`src/app/opd`) are present.
+- **Inpatient Department (IPD):** Components (`src/components/ipd`), API routes (`src/app/api/ipd`), and page routes (`src/app/ipd`) are present.
+- **Laboratory Management (LIS):** Components (`src/components/laboratory`), API routes (`src/app/api/laboratory`), and page routes (`src/app/laboratory`) are present.
+- **Authentication & Authorization:** Basic structure exists (`src/lib/session.ts`, `middleware.ts`, login routes).
+- **Database Schema:** SQL migration files for initial setup, IPD, Pharmacy, and Laboratory modules are present.
+- **Basic Frontend Structure:** Next.js setup with UI components (`src/components/ui`), layout (`layout.tsx`), etc.
 
 ### Identified Discrepancies:
 
-*   **Pharmacy Module Incomplete:**
-    *   The `Shlokam HMS.txt` file indicated that the Pharmacy module was completed, and the UI components existed locally but were missing from GitHub.
-    *   However, my analysis shows that while Pharmacy API routes (`src/app/api/pharmacy`), page routes (`src/app/pharmacy`), database schema (`0003_pharmacy_schema.sql`), documentation, and integration files (`BillingPharmacyIntegration.tsx`, `IPDPharmacyIntegration.tsx`, `OPDPharmacyIntegration.tsx`) exist in both the local files and the repository, the dedicated UI components directory (`src/components/pharmacy`) is **missing from both the cloned GitHub repository and the extracted local project files** (`/home/ubuntu/hms_project`).
-    *   The nested prototype files also do not seem to contain these specific components.
-    *   This suggests the Pharmacy UI components were either not fully developed, not included in the provided zip archive, or there's a misunderstanding reflected in the `Shlokam HMS.txt` file.
+- **Pharmacy Module Incomplete:**
+  - The `Shlokam HMS.txt` file indicated that the Pharmacy module was completed, and the UI components existed locally but were missing from GitHub.
+  - However, my analysis shows that while Pharmacy API routes (`src/app/api/pharmacy`), page routes (`src/app/pharmacy`), database schema (`0003_pharmacy_schema.sql`), documentation, and integration files (`BillingPharmacyIntegration.tsx`, `IPDPharmacyIntegration.tsx`, `OPDPharmacyIntegration.tsx`) exist in both the local files and the repository, the dedicated UI components directory (`src/components/pharmacy`) is **missing from both the cloned GitHub repository and the extracted local project files** (`/home/ubuntu/hms_project`).
+  - The nested prototype files also do not seem to contain these specific components.
+  - This suggests the Pharmacy UI components were either not fully developed, not included in the provided zip archive, or there's a misunderstanding reflected in the `Shlokam HMS.txt` file.
 
 ## 2. Remaining Modules (Based on Initial 28 Requirements)
 

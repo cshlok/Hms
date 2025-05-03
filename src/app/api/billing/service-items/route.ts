@@ -4,10 +4,50 @@ import { hasPermission, getCurrentUser } from "@/lib/auth"; // Assuming auth hel
 
 // Mock data store for service items (replace with actual DB interaction)
 const mockServiceItems = [
-  { id: "si_001", item_code: "CONSULT", item_name: "Doctor Consultation", description: "Standard consultation fee", category: "Consultation", unit_price: 500, is_taxable: 0, is_discountable: 1, is_active: 1 },
-  { id: "si_002", item_code: "XRAY_CHEST", item_name: "X-Ray Chest PA View", description: "", category: "Radiology", unit_price: 800, is_taxable: 1, is_discountable: 0, is_active: 1 },
-  { id: "si_003", item_code: "CBC", item_name: "Complete Blood Count", description: "", category: "Laboratory", unit_price: 350, is_taxable: 1, is_discountable: 0, is_active: 1 },
-  { id: "si_004", item_code: "ROOM_GEN", item_name: "General Ward Room Charge", description: "Per day charge", category: "Room Charge", unit_price: 2000, is_taxable: 0, is_discountable: 0, is_active: 1 },
+  {
+    id: "si_001",
+    item_code: "CONSULT",
+    item_name: "Doctor Consultation",
+    description: "Standard consultation fee",
+    category: "Consultation",
+    unit_price: 500,
+    is_taxable: 0,
+    is_discountable: 1,
+    is_active: 1,
+  },
+  {
+    id: "si_002",
+    item_code: "XRAY_CHEST",
+    item_name: "X-Ray Chest PA View",
+    description: "",
+    category: "Radiology",
+    unit_price: 800,
+    is_taxable: 1,
+    is_discountable: 0,
+    is_active: 1,
+  },
+  {
+    id: "si_003",
+    item_code: "CBC",
+    item_name: "Complete Blood Count",
+    description: "",
+    category: "Laboratory",
+    unit_price: 350,
+    is_taxable: 1,
+    is_discountable: 0,
+    is_active: 1,
+  },
+  {
+    id: "si_004",
+    item_code: "ROOM_GEN",
+    item_name: "General Ward Room Charge",
+    description: "Per day charge",
+    category: "Room Charge",
+    unit_price: 2000,
+    is_taxable: 0,
+    is_discountable: 0,
+    is_active: 1,
+  },
 ];
 let nextItemId = 5;
 
@@ -27,9 +67,11 @@ interface ServiceItemInput {
 export async function GET(request: NextRequest) {
   try {
     // Permission check (example: only admin or billing staff)
-    if (!await hasPermission(request, ["billing:read", "admin"])) {
+    if (!(await hasPermission(request, ["billing:read", "admin"]))) {
       return NextResponse.json(
-        { error: "Forbidden: You do not have permission to view service items." },
+        {
+          error: "Forbidden: You do not have permission to view service items.",
+        },
         { status: 403 }
       );
     }
@@ -50,12 +92,16 @@ export async function GET(request: NextRequest) {
     }
 
     if (category) {
-      filteredItems = filteredItems.filter((item) => item.category === category);
+      filteredItems = filteredItems.filter(
+        (item) => item.category === category
+      );
     }
 
-    if (isActive !== null && isActive !== undefined) {
+    if (isActive !== undefined && isActive !== undefined) {
       const activeBool = isActive.toLowerCase() === "true";
-      filteredItems = filteredItems.filter((item) => (item.is_active === 1) === activeBool);
+      filteredItems = filteredItems.filter(
+        (item) => (item.is_active === 1) === activeBool
+      );
     }
 
     // Simple pagination (optional, add if needed)
@@ -88,17 +134,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Permission check (example: only admin or billing manager)
-    if (!await hasPermission(request, ["billing:manage", "admin"])) {
+    if (!(await hasPermission(request, ["billing:manage", "admin"]))) {
       return NextResponse.json(
-        { error: "Forbidden: You do not have permission to create service items." },
+        {
+          error:
+            "Forbidden: You do not have permission to create service items.",
+        },
         { status: 403 }
       );
     }
-    
+
     // Get user ID after permission check for logging/audit
     const user = await getCurrentUser(request);
-    if (!user) { // Should not happen if hasPermission passed, but good practice
-        return NextResponse.json({ error: "Authentication failed after permission check" }, { status: 500 });
+    if (!user) {
+      // Should not happen if hasPermission passed, but good practice
+      return NextResponse.json(
+        { error: "Authentication failed after permission check" },
+        { status: 500 }
+      );
     }
 
     const body = await request.json();
@@ -106,29 +159,43 @@ export async function POST(request: NextRequest) {
     const itemData = body as ServiceItemInput;
 
     // Enhanced validation
-    if (!itemData.item_code || !itemData.item_name || !itemData.category || itemData.unit_price === undefined) {
+    if (
+      !itemData.item_code ||
+      !itemData.item_name ||
+      !itemData.category ||
+      itemData.unit_price === undefined
+    ) {
       return NextResponse.json(
-        { error: "Missing required fields (item_code, item_name, category, unit_price)" },
+        {
+          error:
+            "Missing required fields (item_code, item_name, category, unit_price)",
+        },
         { status: 400 }
       );
     }
 
     // Validate data types and formats
-    if (typeof itemData.item_code !== 'string' || itemData.item_code.length > 50) {
+    if (
+      typeof itemData.item_code !== "string" ||
+      itemData.item_code.length > 50
+    ) {
       return NextResponse.json(
         { error: "Invalid item_code format" },
         { status: 400 }
       );
     }
 
-    if (typeof itemData.item_name !== 'string' || itemData.item_name.length > 255) {
+    if (
+      typeof itemData.item_name !== "string" ||
+      itemData.item_name.length > 255
+    ) {
       return NextResponse.json(
         { error: "Invalid item_name format" },
         { status: 400 }
       );
     }
 
-    if (typeof itemData.unit_price !== 'number' || itemData.unit_price < 0) {
+    if (typeof itemData.unit_price !== "number" || itemData.unit_price < 0) {
       return NextResponse.json(
         { error: "Unit price must be a positive number" },
         { status: 400 }
@@ -136,21 +203,23 @@ export async function POST(request: NextRequest) {
     }
 
     // const { env } = getRequestContext(); // Cloudflare specific
-    
+
     // Mock implementation for development without Cloudflare
     // Check if item_code already exists in mock data
-    const existingItem = mockServiceItems.find(item => item.item_code === itemData.item_code);
-    
+    const existingItem = mockServiceItems.find(
+      (item) => item.item_code === itemData.item_code
+    );
+
     if (existingItem) {
       return NextResponse.json(
         { error: "Item code already exists" },
         { status: 400 }
       );
     }
-    
+
     // Create the new service item in mock data
     const newItem = {
-      id: `si_${String(nextItemId++).padStart(3, '0')}`,
+      id: `si_${String(nextItemId++).padStart(3, "0")}`,
       item_code: itemData.item_code,
       item_name: itemData.item_name,
       description: itemData.description || "",
@@ -162,11 +231,14 @@ export async function POST(request: NextRequest) {
       // created_by: user.id, // Would use user.id in real implementation
       // created_at: new Date().toISOString() // Would use current time
     };
-    
+
     mockServiceItems.push(newItem);
 
     // Log the action (mock)
-    console.log(`Audit Log: User ${user.id} CREATE service_item ${newItem.id}`, { item_code: newItem.item_code, item_name: newItem.item_name });
+    console.log(
+      `Audit Log: User ${user.id} CREATE service_item ${newItem.id}`,
+      { item_code: newItem.item_code, item_name: newItem.item_name }
+    );
 
     return NextResponse.json({ serviceItem: newItem }, { status: 201 });
   } catch (error) {
@@ -181,4 +253,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

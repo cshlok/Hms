@@ -1,0 +1,756 @@
+
+> shlokam-hms@0.1.0 lint
+> next lint
+
+
+./src/app/api/er/visits/route.ts
+38:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+39:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+40:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+41:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+58:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+59:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+133:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+136:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+137:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+138:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+139:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/insurance/claims/route.ts
+34:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+35:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+36:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+38:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+39:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+53:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+54:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/insurance/policies/route.ts
+81:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+82:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+197:40  Error: Use `undefined` instead of `null`.  unicorn/no-null
+198:46  Error: Use `undefined` instead of `null`.  unicorn/no-null
+199:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+203:48  Error: Use `undefined` instead of `null`.  unicorn/no-null
+207:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+208:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/insurance/pre-authorizations/route.ts
+47:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+48:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+49:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+152:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+155:27  Error: Use `undefined` instead of `null`.  unicorn/no-null
+156:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+157:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+158:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+159:54  Error: Use `undefined` instead of `null`.  unicorn/no-null
+160:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+161:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/insurance/providers/route.ts
+104:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+105:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+106:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+107:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/[admissionId]/progress-notes/route.ts
+168:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+206:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+275:69  Error: Use `undefined` instead of `null`.  unicorn/no-null
+278:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+284:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/discharge/route.ts
+46:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+80:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+84:46  Error: Use `undefined` instead of `null`.  unicorn/no-null
+160:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+237:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+238:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+249:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/medication-administration/route.ts
+45:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+157:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+185:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+209:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/nursing-notes/route.ts
+46:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+140:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+168:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+169:31  Error: Use `undefined` instead of `null`.  unicorn/no-null
+170:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+171:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/progress-notes/route.ts
+45:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+180:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/admissions/[id]/vital-signs/route.ts
+48:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+150:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+179:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+180:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+181:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+182:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+183:35  Error: Use `undefined` instead of `null`.  unicorn/no-null
+184:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+185:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/beds/route.ts
+128:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+151:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ipd/route.ts
+225:52  Error: Use `undefined` instead of `null`.  unicorn/no-null
+227:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+231:39  Error: Use `undefined` instead of `null`.  unicorn/no-null
+232:41  Error: Use `undefined` instead of `null`.  unicorn/no-null
+233:54  Error: Use `undefined` instead of `null`.  unicorn/no-null
+234:54  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/laboratory/orders/route.ts
+127:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+128:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+129:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+130:25  Error: Use `undefined` instead of `null`.  unicorn/no-null
+148:74  Error: Use `undefined` instead of `null`.  unicorn/no-null
+194:10  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/laboratory/results/route.ts
+166:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+234:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+260:15  Error: Use `undefined` instead of `null`.  unicorn/no-null
+291:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/laboratory/samples/route.ts
+134:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+205:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+248:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/laboratory/tests/route.ts
+126:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+142:46  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/opd/appointments/route.ts
+263:75  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ot/bookings/[id]/checklist-responses/route.ts
+143:49  Error: Use `undefined` instead of `null`.  unicorn/no-null
+164:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+185:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ot/bookings/[id]/record/route.ts
+242:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+243:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+244:36  Error: Use `undefined` instead of `null`.  unicorn/no-null
+245:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+246:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+247:31  Error: Use `undefined` instead of `null`.  unicorn/no-null
+248:39  Error: Use `undefined` instead of `null`.  unicorn/no-null
+249:59  Error: Use `undefined` instead of `null`.  unicorn/no-null
+250:71  Error: Use `undefined` instead of `null`.  unicorn/no-null
+251:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+252:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+254:15  Error: Use `undefined` instead of `null`.  unicorn/no-null
+256:48  Error: Use `undefined` instead of `null`.  unicorn/no-null
+257:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ot/bookings/[id]/staff/route.ts
+157:5  Error: This `if` statement can be replaced by a ternary expression.  unicorn/prefer-ternary
+
+./src/app/api/ot/bookings/route.ts
+149:32  Error: Use `undefined` instead of `null`.  unicorn/no-null
+155:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+156:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+184:5  Error: This `if` statement can be replaced by a ternary expression.  unicorn/prefer-ternary
+
+./src/app/api/ot/surgery-types/route.ts
+88:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+89:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+91:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+93:59  Error: Use `undefined` instead of `null`.  unicorn/no-null
+94:67  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/ot/theatres/route.ts
+72:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+73:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+74:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+88:5  Error: This `if` statement can be replaced by a ternary expression.  unicorn/prefer-ternary
+
+./src/app/api/pharmacy/inventory/route.ts
+315:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/pharmacy/medications/route.ts
+71:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+74:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+199:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+202:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+206:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+207:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+208:33  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/pharmacy/prescriptions/route.ts
+323:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+325:25  Error: Use `undefined` instead of `null`.  unicorn/no-null
+360:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/portal/patient/auth/route.ts
+60:10  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/radiology/modalities/route.ts
+88:38  Error: Use `undefined` instead of `null`.  unicorn/no-null
+88:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/radiology/orders/route.ts
+67:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+68:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+69:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+70:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+91:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+92:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+191:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+192:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+193:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+194:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+195:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/radiology/procedure-types/route.ts
+93:38  Error: Use `undefined` instead of `null`.  unicorn/no-null
+93:61  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/radiology/reports/route.ts
+194:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+196:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/api/radiology/studies/[id]/route.ts
+3:22  Warning: 'Session' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/api/radiology/studies/route.ts
+5:22  Warning: 'Session' is defined but never used.  @typescript-eslint/no-unused-vars
+223:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+225:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+227:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+228:31  Error: Use `undefined` instead of `null`.  unicorn/no-null
+229:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/dashboard/billing/create-invoice/page.tsx
+89:74  Error: Use `undefined` instead of `null`.  unicorn/no-null
+96:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+104:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+109:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+133:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+207:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+247:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+348:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+350:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+564:38  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/dashboard/billing/invoices/page.tsx
+46:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+51:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+87:71  Error: Move arrow function 'getStatusBadgeVariant' to the outer scope.  unicorn/consistent-function-scoping
+134:24  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/dashboard/billing/page.tsx
+53:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+59:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+91:71  Error: Move arrow function 'getStatusBadgeVariant' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/app/dashboard/billing/service-items/page.tsx
+112:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+132:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+278:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+281:70  Error: Use `undefined` instead of `null`.  unicorn/no-null
+285:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+317:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+345:22  Error: Use `undefined` instead of `null`.  unicorn/no-null
+363:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+381:74  Error: Move arrow function 'getStatusBadgeVariant' to the outer scope.  unicorn/consistent-function-scoping
+414:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+429:24  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/dashboard/layout.tsx
+35:59  Error: Use `undefined` instead of `null`.  unicorn/no-null
+36:59  Error: Use `undefined` instead of `null`.  unicorn/no-null
+49:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+50:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+182:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/dashboard/page.tsx
+55:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+61:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+85:19  Warning: 'res' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+85:19  Error: Please rename the variable `res`. Suggested names are: `resource`, `response_`, `result`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/ipd/page.tsx
+99:40  Error: Use `undefined` instead of `null`.  unicorn/no-null
+110:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/login/page.tsx
+55:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+61:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+85:19  Warning: 'res' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+85:19  Error: Please rename the variable `res`. Suggested names are: `resource`, `response_`, `result`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/opd/page.tsx
+35:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+41:26  Error: Use `undefined` instead of `null`.  unicorn/no-null
+137:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+166:15  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/app/pharmacy/inventory/add/page.tsx
+102:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+170:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/pharmacy/medications/add/page.tsx
+91:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+128:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/pharmacy/medications/page.tsx
+76:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+82:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+259:37  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+403:28  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/app/pharmacy/page.tsx
+127:43  Error: Move arrow function 'getThirtyDaysFromNow' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/app/route.ts
+195:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+197:28  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/billing/billing-pharmacy-integration.tsx
+197:34  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+305:38  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/er/er-lab-order-modal.tsx
+137:49  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/er/er-patient-admit-modal.tsx
+131:49  Error: Use `undefined` instead of `null`.  unicorn/no-null
+133:51  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/er/er-patient-tracking-board.tsx
+116:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+125:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+178:33  Error: Use `undefined` instead of `null`.  unicorn/no-null
+194:33  Error: Use `undefined` instead of `null`.  unicorn/no-null
+195:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+265:24  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/er/er-radiology-order-modal.tsx
+115:49  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/er/er-registration-modal.tsx
+95:5  Error: Use `undefined` instead of `null`.  unicorn/no-null
+115:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+147:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+257:23  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/admission-form.tsx
+93:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+113:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+352:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/bed-management-dashboard.tsx
+50:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+86:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/discharge-summary.tsx
+58:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+60:43  Error: Use `undefined` instead of `null`.  unicorn/no-null
+70:65  Error: Use `undefined` instead of `null`.  unicorn/no-null
+72:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+84:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+125:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+154:5  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+160:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+167:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+182:13  Warning: '_submissionData' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+248:32  Error: Move arrow function 'handlePrint' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/components/ipd/ipd-patient-list.tsx
+48:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+54:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/ipd-pharmacy-integration.tsx
+63:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+74:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+260:51  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+377:33  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/medication-administration.tsx
+67:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+77:65  Error: Use `undefined` instead of `null`.  unicorn/no-null
+79:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+92:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+198:5  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+207:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+214:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+289:51  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+452:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/nursing-notes.tsx
+86:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+88:52  Error: Use `undefined` instead of `null`.  unicorn/no-null
+89:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+95:65  Error: Use `undefined` instead of `null`.  unicorn/no-null
+97:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+110:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+169:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+174:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+181:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+244:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+245:60  Error: Use `undefined` instead of `null`.  unicorn/no-null
+268:51  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+288:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+293:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+425:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/patient-progress-notes.tsx
+137:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+145:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+158:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+239:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+244:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+330:67  Error: Move arrow function 'formatDateTime' to the outer scope.  unicorn/consistent-function-scoping
+440:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ipd/vital-signs.tsx
+81:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+92:72  Error: Use `undefined` instead of `null`.  unicorn/no-null
+105:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+186:25  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+191:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+210:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+211:71  Error: Use `undefined` instead of `null`.  unicorn/no-null
+214:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+215:52  Error: Use `undefined` instead of `null`.  unicorn/no-null
+218:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+221:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+222:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+294:67  Error: Move arrow function 'formatDateTime' to the outer scope.  unicorn/consistent-function-scoping
+439:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/laboratory/order-management.tsx
+90:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+91:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+92:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+95:66  Error: Use `undefined` instead of `null`.  unicorn/no-null
+97:10  Warning: '_tests' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+100:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+121:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+153:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+169:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+250:13  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+293:15  Error: Use `undefined` instead of `null`.  unicorn/no-null
+294:15  Error: Use `undefined` instead of `null`.  unicorn/no-null
+295:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+525:17  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/laboratory/result-management.tsx
+20:3  Warning: 'CloseOutlined' is defined but never used.  @typescript-eslint/no-unused-vars
+23:8  Warning: 'dayjs' is defined but never used.  @typescript-eslint/no-unused-vars
+24:15  Warning: 'Dayjs' is defined but never used.  @typescript-eslint/no-unused-vars
+27:9  Warning: 'TabPane' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+108:65  Error: Use `undefined` instead of `null`.  unicorn/no-null
+112:74  Error: Use `undefined` instead of `null`.  unicorn/no-null
+114:35  Error: Use `undefined` instead of `null`.  unicorn/no-null
+118:10  Warning: 'orderItems' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+202:9  Warning: 'fetchOrderItems' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+388:9  Warning: 'showResultEntryModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+544:24  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+575:30  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/laboratory/sample-management.tsx
+12:3  Warning: 'Upload' is defined but never used.  @typescript-eslint/no-unused-vars
+17:3  Warning: 'PlusOutlined' is defined but never used.  @typescript-eslint/no-unused-vars
+26:15  Warning: 'FormInstance' is defined but never used.  @typescript-eslint/no-unused-vars
+63:67  Error: Use `undefined` instead of `null`.  unicorn/no-null
+67:71  Error: Use `undefined` instead of `null`.  unicorn/no-null
+189:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+195:5  Warning: 'values' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+432:24  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+474:17  Error: Use `undefined` instead of `null`.  unicorn/no-null
+509:17  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/laboratory/test-catalog-management.tsx
+269:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+412:60  Error: Use `undefined` instead of `null`.  unicorn/no-null
+491:24  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+566:17  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/opd/opd-appointment-list.tsx
+64:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+107:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/opd/opd-consultation-form.tsx
+92:74  Error: Use `undefined` instead of `null`.  unicorn/no-null
+188:15  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+201:35  Error: Use `undefined` instead of `null`.  unicorn/no-null
+216:57  Error: Move async arrow function 'fetchPatientHistory' to the outer scope.  unicorn/consistent-function-scoping
+236:13  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+298:13  Warning: 'messageText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/opd/opd-patient-queue.tsx
+4:8  Warning: 'Image' is defined but never used.  @typescript-eslint/no-unused-vars
+47:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+91:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+239:47  Error: Move arrow function 'formatWaitingTime' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/components/opd/opd-pharmacy-integration.tsx
+64:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+66:70  Error: Use `undefined` instead of `null`.  unicorn/no-null
+253:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+258:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+448:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+462:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+485:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+500:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+514:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+556:26  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/opd/opd-statistics.tsx
+5:10  Warning: 'Card' is defined but never used.  @typescript-eslint/no-unused-vars
+5:16  Warning: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+5:29  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+5:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+33:71  Error: Use `undefined` instead of `null`.  unicorn/no-null
+35:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+40:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+66:25  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/ot-billing-items.tsx
+35:6  Warning: 'BillingItemsApiResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+40:11  Warning: 'ApiErrorResponse' is defined but never used.  @typescript-eslint/no-unused-vars
+61:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+67:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+161:43  Error: Move arrow function 'formatCurrency' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/components/ot/ot-booking-list.tsx
+43:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+56:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+196:26  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/ot-booking-modal.tsx
+143:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+153:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+162:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+165:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/ot-checklist-template-list.tsx
+15:24  Warning: 'ListChecks' is defined but never used.  @typescript-eslint/no-unused-vars
+34:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+40:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/ot-checklist-template-modal.tsx
+23:10  Warning: 'Textarea' is defined but never used.  @typescript-eslint/no-unused-vars
+93:29  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+120:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+239:34  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/ot-patient-surgeries.tsx
+40:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+46:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+143:43  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+156:43  Error: Move arrow function 'formatTime' to the outer scope.  unicorn/consistent-function-scoping
+
+./src/components/ot/ot-record-modal.tsx
+173:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+185:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+191:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+215:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+218:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/ot-staff-assignment.tsx
+24:37  Warning: 'Search' is defined but never used.  @typescript-eslint/no-unused-vars
+60:26  Warning: 'setAvailableUsers' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+65:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+71:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+113:6  Warning: React Hook useCallback has an unnecessary dependency: 'bookingId'. Either exclude it or remove the dependency array.  react-hooks/exhaustive-deps
+136:13  Warning: 'assignmentData' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+246:26  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/ot/ot-surgery-type-list.tsx
+29:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+35:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/ot-surgery-type-modal.tsx
+61:52  Error: Use `undefined` instead of `null`.  unicorn/no-null
+64:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+80:56  Error: Use `undefined` instead of `null`.  unicorn/no-null
+83:60  Error: Use `undefined` instead of `null`.  unicorn/no-null
+93:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+99:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+104:41  Error: Use `undefined` instead of `null`.  unicorn/no-null
+105:45  Error: Use `undefined` instead of `null`.  unicorn/no-null
+133:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+149:46  Error: Use `undefined` instead of `null`.  unicorn/no-null
+150:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/ot-theatre-list.tsx
+30:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+36:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ot/ot-theatre-modal.tsx
+86:5  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+96:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+102:40  Error: Use `undefined` instead of `null`.  unicorn/no-null
+103:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+105:42  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/pharmacy/billing-pharmacy-integration.tsx
+35:9  Warning: '_router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+198:34  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+306:38  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/pharmacy/ipd-pharmacy-integration.tsx
+63:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+74:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+260:51  Error: Move arrow function 'formatDate' to the outer scope.  unicorn/consistent-function-scoping
+377:33  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/pharmacy/opd-pharmacy-integration.tsx
+64:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+66:70  Error: Use `undefined` instead of `null`.  unicorn/no-null
+253:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+258:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+448:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+462:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+485:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+500:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+514:40  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+556:26  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/components/radiology/create-modality-modal.tsx
+44:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+85:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+98:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+110:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+124:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/create-procedure-type-modal.tsx
+42:31  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+53:40  Error: Use `undefined` instead of `null`.  unicorn/no-null
+85:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+98:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+111:28  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+131:19  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/create-radiology-order-modal.tsx
+74:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+83:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+141:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+151:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+158:51  Error: Use `undefined` instead of `null`.  unicorn/no-null
+194:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+265:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+342:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/create-radiology-report-modal.tsx
+86:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+94:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+131:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+142:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+147:31  Error: Use `undefined` instead of `null`.  unicorn/no-null
+149:45  Error: Use `undefined` instead of `null`.  unicorn/no-null
+198:13  Error: Use `undefined` instead of `null`.  unicorn/no-null
+247:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+264:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+282:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+329:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/create-radiology-study-modal.tsx
+72:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+78:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+109:31  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+120:44  Error: Use `undefined` instead of `null`.  unicorn/no-null
+122:34  Error: Use `undefined` instead of `null`.  unicorn/no-null
+124:29  Error: Use `undefined` instead of `null`.  unicorn/no-null
+125:48  Error: Use `undefined` instead of `null`.  unicorn/no-null
+128:11  Error: Use `undefined` instead of `null`.  unicorn/no-null
+156:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+170:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+224:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+236:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+250:30  Error: Please rename the variable `e`. Suggested names are: `error_`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+264:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/radiology-order-detail.tsx
+48:61  Error: Use `undefined` instead of `null`.  unicorn/no-null
+50:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+56:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+62:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+66:20  Error: Use `undefined` instead of `null`.  unicorn/no-null
+84:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/radiology-order-list.tsx
+36:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+46:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/radiology-report-detail.tsx
+65:64  Error: Use `undefined` instead of `null`.  unicorn/no-null
+67:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+68:10  Warning: 'showEditModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+73:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+165:38  Error: Move arrow function 'handlePrintReport' to the outer scope.  unicorn/consistent-function-scoping
+172:25  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/radiology-reports-list.tsx
+33:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+49:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/radiology-settings.tsx
+43:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+44:73  Error: Use `undefined` instead of `null`.  unicorn/no-null
+57:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+84:24  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/radiology-studies-list.tsx
+31:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+40:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+49:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/radiology/radiology-study-detail.tsx
+55:71  Error: Use `undefined` instead of `null`.  unicorn/no-null
+57:59  Error: Use `undefined` instead of `null`.  unicorn/no-null
+59:53  Error: Use `undefined` instead of `null`.  unicorn/no-null
+71:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+109:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+116:16  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ui/form.tsx
+156:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/components/ui/index.tsx
+502:25  Error: Use `undefined` instead of `null`.  unicorn/no-null
+587:19  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+628:21  Error: Use `undefined` instead of `null`.  unicorn/no-null
+637:19  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+757:19  Error: Please rename the variable `e`. Suggested names are: `error`, `event_`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/lib/auth.ts
+64:10  Error: Use `undefined` instead of `null`.  unicorn/no-null
+86:33  Error: Please rename the variable `res`. Suggested names are: `resource`, `response`, `result`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+95:31  Error: Please rename the variable `res`. Suggested names are: `resource`, `response`, `result`. A more descriptive name will do too.  unicorn/prevent-abbreviations
+
+./src/lib/database.ts
+67:18  Error: Use `undefined` instead of `null`.  unicorn/no-null
+82:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/lib/ipd.ts
+81:67  Error: Use `undefined` instead of `null`.  unicorn/no-null
+127:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+./src/lib/session.ts
+48:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+62:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+74:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+113:76  Error: Use `undefined` instead of `null`.  unicorn/no-null
+117:14  Error: Use `undefined` instead of `null`.  unicorn/no-null
+157:12  Error: Use `undefined` instead of `null`.  unicorn/no-null
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

@@ -23,7 +23,7 @@ export default function OTDashboardPage() {
   const handleSave = useCallback(async (data: unknown) => {
     // In a real app, this might involve re-fetching data or updating state
     console.log("Saved data, triggering refresh:", data);
-    setRefreshKey(prev => prev + 1); // Increment key to trigger re-render/re-fetch in lists
+    setRefreshKey((previous) => previous + 1); // Increment key to trigger re-render/re-fetch in lists
   }, []);
 
   return (
@@ -32,7 +32,12 @@ export default function OTDashboardPage() {
         <h1 className="text-3xl font-bold">Operation Theatre Management</h1>
       </div>
 
-      <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs
+        defaultValue="dashboard"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
         <TabsList className="grid grid-cols-5 mb-8">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
@@ -49,7 +54,7 @@ export default function OTDashboardPage() {
         <TabsContent value="bookings" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold">OT Bookings</h2>
-            <OTBookingModal 
+            <OTBookingModal
               trigger={
                 <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -66,7 +71,7 @@ export default function OTDashboardPage() {
         <TabsContent value="theatres" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold">Operation Theatres</h2>
-            <OTTheatreModal 
+            <OTTheatreModal
               trigger={
                 <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -83,7 +88,7 @@ export default function OTDashboardPage() {
         <TabsContent value="surgery-types" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold">Surgery Types</h2>
-            <OTSurgeryTypeModal 
+            <OTSurgeryTypeModal
               trigger={
                 <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -100,7 +105,7 @@ export default function OTDashboardPage() {
         <TabsContent value="checklists" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold">Checklist Templates</h2>
-            <OTChecklistTemplateModal 
+            <OTChecklistTemplateModal
               trigger={
                 <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />

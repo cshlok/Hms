@@ -7,6 +7,7 @@ This report documents the alignment check performed between the local files, pro
 ## Alignment Process
 
 1. **Initial Analysis**
+
    - Extracted and reviewed the iterative development files
    - Analyzed task links and requirements
    - Examined interface images and design concepts
@@ -14,6 +15,7 @@ This report documents the alignment check performed between the local files, pro
    - Connected to the GitHub repository and analyzed the codebase
 
 2. **Identified Discrepancies**
+
    - Missing Pharmacy components directory in the GitHub repository
    - Scattered documentation files not properly organized in the repository
    - SQL migration files not fully synchronized
@@ -30,7 +32,9 @@ This report documents the alignment check performed between the local files, pro
 ## Current Alignment Status
 
 ### Repository Structure
+
 The GitHub repository now follows the standard Next.js project structure:
+
 - `/docs` - Comprehensive documentation for all modules
 - `/migrations` - SQL migration files for database schema
 - `/src/app` - Next.js page routes
@@ -39,7 +43,9 @@ The GitHub repository now follows the standard Next.js project structure:
 - `/tests` - API and UI testing files
 
 ### Completed Modules
+
 The following modules are fully implemented and aligned across local files and the GitHub repository:
+
 1. Patient Registration & Management
 2. Outpatient Department (OPD) Module
 3. Inpatient Department (IPD) Module
@@ -47,7 +53,9 @@ The following modules are fully implemented and aligned across local files and t
 5. Pharmacy Management Module (now with proper component structure)
 
 ### Documentation
+
 All documentation has been consolidated and organized:
+
 - Module-specific requirements documents
 - Implementation summaries
 - Testing plans
@@ -58,20 +66,24 @@ All documentation has been consolidated and organized:
 ## Recommendations for Maintaining Alignment
 
 1. **Consistent Development Workflow**
+
    - Continue using the iterative development approach
    - Complete one module fully before moving to the next
    - Maintain the established project structure
 
 2. **Regular Synchronization**
+
    - Commit and push changes after each meaningful development step
    - Ensure all components (database, API, UI) for a module are synchronized together
 
 3. **Documentation Standards**
+
    - Keep documentation in the `/docs` directory
    - Update documentation alongside code changes
    - Maintain the requirements checklist as modules are completed
 
 4. **Testing Practices**
+
    - Add tests for all new components
    - Organize tests by module in the appropriate directories
    - Include both API and UI tests

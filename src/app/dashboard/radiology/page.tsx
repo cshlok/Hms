@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RadiologyOrderList from "@/components/radiology/RadiologyOrderList";
 import RadiologyStudiesList from "@/components/radiology/RadiologyStudiesList";
@@ -34,4 +34,3 @@ export default function RadiologyPage() {
     </div>
   );
 }
-

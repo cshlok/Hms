@@ -6,37 +6,37 @@
 @layer base {
   :root {
     /* Shlokam Primary Colors */
-    --primary-dark: 225 43% 18%;    /* #1a2342; Dark navy blue (background) */
-    --primary: 222.2 47.4% 11.2%;         /* #2e3b62; Navy blue (hands in logo) */
-    --primary-light: 227 30% 42%;   /* #4a5a8f; Lighter navy blue */
-    
+    --primary-dark: 225 43% 18%; /* #1a2342; Dark navy blue (background) */
+    --primary: 222.2 47.4% 11.2%; /* #2e3b62; Navy blue (hands in logo) */
+    --primary-light: 227 30% 42%; /* #4a5a8f; Lighter navy blue */
+
     /* Shlokam Secondary Colors */
-    --secondary: 210 40% 96.1%;       /* #2ec4b6; Teal/turquoise (figure in logo and text) */
+    --secondary: 210 40% 96.1%; /* #2ec4b6; Teal/turquoise (figure in logo and text) */
     --secondary-light: 174 80% 62%; /* #5edfd4; Lighter teal */
-    --secondary-dark: 174 70% 34%;  /* #1a9589; Darker teal */
-    
+    --secondary-dark: 174 70% 34%; /* #1a9589; Darker teal */
+
     /* Shlokam Accent Colors */
-    --accent: 210 40% 96.1%;          /* #ff5e8f; Pink (circle in logo) */
-    --accent-light: 340 100% 75%;    /* #ff8fb0; Lighter pink */
-    --accent-dark: 340 60% 53%;     /* #d13e6f; Darker pink */
-    
+    --accent: 210 40% 96.1%; /* #ff5e8f; Pink (circle in logo) */
+    --accent-light: 340 100% 75%; /* #ff8fb0; Lighter pink */
+    --accent-dark: 340 60% 53%; /* #d13e6f; Darker pink */
+
     /* Shlokam Neutral Colors */
     --background-dark: 240 17% 15%; /* #1e1e2e; Dark background (dark mode) */
     --background-light: 0 0% 100%; /* #ffffff; Light background (light mode) */
-    --text-dark: 0 0% 17%;       /* #2c2c2c; Dark text */
-    --text-light: 0 0% 97%;      /* #f8f8f8; Light text */
-    
+    --text-dark: 0 0% 17%; /* #2c2c2c; Dark text */
+    --text-light: 0 0% 97%; /* #f8f8f8; Light text */
+
     /* Shlokam UI Colors */
-    --success: 142 71% 45%;         /* #22c55e; Green for success messages */
-    --warning: 38 92% 50%;         /* #f59e0b; Amber for warnings */
-    --error: 0 84% 60%;           /* #ef4444; Red for errors */
-    --info: 217 91% 60%;            /* #3b82f6; Blue for information */
-    
+    --success: 142 71% 45%; /* #22c55e; Green for success messages */
+    --warning: 38 92% 50%; /* #f59e0b; Amber for warnings */
+    --error: 0 84% 60%; /* #ef4444; Red for errors */
+    --info: 217 91% 60%; /* #3b82f6; Blue for information */
+
     /* Shlokam Card and Border Colors */
-    --card-dark: 240 10% 19%;       /* #282838; Dark mode card background */
-    --card-light: 0 0% 100%;      /* #ffffff; Light mode card background */
-    --border-dark: 240 17% 31%;     /* #3f3f5f; Dark mode borders */
-    --border-light: 215 20% 90%;    /* #e2e8f0; Light mode borders */
+    --card-dark: 240 10% 19%; /* #282838; Dark mode card background */
+    --card-light: 0 0% 100%; /* #ffffff; Light mode card background */
+    --border-dark: 240 17% 31%; /* #3f3f5f; Dark mode borders */
+    --border-light: 215 20% 90%; /* #e2e8f0; Light mode borders */
 
     /* Standard Shadcn UI Variables (Dark Mode - Default) */
     --background: 0 0% 100%; /* Using Shlokam's --background-dark */
@@ -306,4 +306,3 @@ input:focus, select:focus, textarea:focus {
   font-size: 1rem;
   font-weight: 400;
 }
-

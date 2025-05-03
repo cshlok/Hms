@@ -99,4 +99,4 @@ Testing will involve a combination of automated and manual testing methods:
 - Update the GitHub repository with the tested and fixed code.
 - Document the IPD module implementation details.
 
-*(Note: Due to limitations, automated API tests and comprehensive manual UI testing cannot be fully performed by the AI. This plan serves as a guide for manual testing or further development of automated tests.)*
+_(Note: Due to limitations, automated API tests and comprehensive manual UI testing cannot be fully performed by the AI. This plan serves as a guide for manual testing or further development of automated tests.)_

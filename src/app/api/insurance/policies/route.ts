@@ -78,8 +78,8 @@ const mockPolicies: InsurancePolicy[] = [
     is_primary: 1,
     is_active: 1,
     verification_status: "Pending",
-    verified_by_id: null,
-    verified_at: null,
+    verified_by_id: undefined,
+    verified_at: undefined,
     created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -128,30 +128,41 @@ interface InsurancePolicyFilters {
 }
 
 // Helper function to simulate DB interaction (GET Policies)
-async function getPatientInsurancePoliciesFromDB(filters: InsurancePolicyFilters = {}) {
-  console.log("Simulating DB fetch for patient insurance policies with filters:", filters);
+async function getPatientInsurancePoliciesFromDB(
+  filters: InsurancePolicyFilters = {}
+) {
+  console.log(
+    "Simulating DB fetch for patient insurance policies with filters:",
+    filters
+  );
   let filteredPolicies = [...mockPolicies];
-  
+
   // FIX: Check filters.patient_id before parsing (TS2345)
   if (filters.patient_id) {
-    const patientId = parseInt(filters.patient_id);
-    if (!isNaN(patientId)) {
-      filteredPolicies = filteredPolicies.filter(p => p.patient_id === patientId);
+    const patientId = Number.parseInt(filters.patient_id);
+    if (!Number.isNaN(patientId)) {
+      filteredPolicies = filteredPolicies.filter(
+        (p) => p.patient_id === patientId
+      );
     }
   }
   // FIX: Check filters.provider_id before parsing (TS2345)
   if (filters.provider_id) {
-    const providerId = parseInt(filters.provider_id);
-    if (!isNaN(providerId)) {
-      filteredPolicies = filteredPolicies.filter(p => p.provider_id === providerId);
+    const providerId = Number.parseInt(filters.provider_id);
+    if (!Number.isNaN(providerId)) {
+      filteredPolicies = filteredPolicies.filter(
+        (p) => p.provider_id === providerId
+      );
     }
   }
   // FIX: Check filters.is_active before using (TS18049)
-  if (filters.is_active !== null && filters.is_active !== undefined) {
+  if (filters.is_active !== undefined && filters.is_active !== undefined) {
     const activeBool = String(filters.is_active).toLowerCase() === "true";
-    filteredPolicies = filteredPolicies.filter(p => (p.is_active === 1) === activeBool);
+    filteredPolicies = filteredPolicies.filter(
+      (p) => (p.is_active === 1) === activeBool
+    );
   }
-  
+
   // FIX: Ensure created_at exists before sorting (or handle potential undefined)
   return filteredPolicies.sort((a, b) => {
     const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -171,7 +182,10 @@ async function getPatientInsurancePoliciesFromDB(filters: InsurancePolicyFilters
 // }
 
 // Helper function to simulate DB interaction (POST Policy)
-async function createPatientInsurancePolicyInDB(data: InsurancePolicyInput): Promise<InsurancePolicy> { // Added return type
+async function createPatientInsurancePolicyInDB(
+  data: InsurancePolicyInput
+): Promise<InsurancePolicy> {
+  // Added return type
   console.log("Simulating DB create for patient insurance policy:", data);
   const now = new Date().toISOString();
   // FIX: Ensure created object matches InsurancePolicy interface
@@ -180,18 +194,18 @@ async function createPatientInsurancePolicyInDB(data: InsurancePolicyInput): Pro
     patient_id: data.patient_id,
     provider_id: data.provider_id,
     policy_number: data.policy_number,
-    group_number: data.group_number || null,
-    subscriber_name: data.subscriber_name || null,
-    subscriber_dob: data.subscriber_dob || null,
+    group_number: data.group_number || undefined,
+    subscriber_name: data.subscriber_name || undefined,
+    subscriber_dob: data.subscriber_dob || undefined,
     relationship_to_patient: data.relationship_to_patient || "Self",
     effective_date: data.effective_date,
     expiry_date: data.expiry_date,
-    coverage_details: data.coverage_details || null,
+    coverage_details: data.coverage_details || undefined,
     is_primary: data.is_primary ? 1 : 0,
-    is_active: data.is_active !== undefined ? (data.is_active ? 1 : 0) : 1, // Default active
+    is_active: data.is_active === undefined ? 1 : data.is_active ? 1 : 0, // Default active
     verification_status: "Pending",
-    verified_by_id: null,
-    verified_at: null,
+    verified_by_id: undefined,
+    verified_at: undefined,
     created_at: now,
     updated_at: now,
   };
@@ -208,17 +222,16 @@ async function createPatientInsurancePolicyInDB(data: InsurancePolicyInput): Pro
 //   }
 //   const now = new Date().toISOString();
 //   // FIX: Ensure updated object matches InsurancePolicy interface
-//   const updatedPolicy = { 
-//     ...mockPolicies[policyIndex], 
-//     ...data, 
+//   const updatedPolicy = {
+//     ...mockPolicies[policyIndex],
+//     ...data,
 //     is_primary: data.is_primary !== undefined ? (data.is_primary ? 1 : 0) : mockPolicies[policyIndex].is_primary,
 //     is_active: data.is_active !== undefined ? (data.is_active ? 1 : 0) : mockPolicies[policyIndex].is_active,
-//     updated_at: now 
+//     updated_at: now
 //   };
 //   mockPolicies[policyIndex] = updatedPolicy;
 //   return updatedPolicy;
 // }
-
 
 /**
  * GET /api/insurance/policies
@@ -242,7 +255,10 @@ export async function GET(request: NextRequest) {
       errorMessage = error.message;
     }
     return NextResponse.json(
-      { error: "Failed to fetch patient insurance policies", details: errorMessage },
+      {
+        error: "Failed to fetch patient insurance policies",
+        details: errorMessage,
+      },
       { status: 500 }
     );
   }
@@ -259,9 +275,18 @@ export async function POST(request: NextRequest) {
     const policyData = body as InsurancePolicyInput;
 
     // Basic validation (add more comprehensive validation)
-    if (!policyData.patient_id || !policyData.provider_id || !policyData.policy_number || !policyData.effective_date || !policyData.expiry_date) {
+    if (
+      !policyData.patient_id ||
+      !policyData.provider_id ||
+      !policyData.policy_number ||
+      !policyData.effective_date ||
+      !policyData.expiry_date
+    ) {
       return NextResponse.json(
-        { error: "Missing required fields (patient_id, provider_id, policy_number, effective_date, expiry_date)" },
+        {
+          error:
+            "Missing required fields (patient_id, provider_id, policy_number, effective_date, expiry_date)",
+        },
         { status: 400 }
       );
     }
@@ -277,11 +302,13 @@ export async function POST(request: NextRequest) {
       errorMessage = error.message;
     }
     return NextResponse.json(
-      { error: "Failed to create patient insurance policy", details: errorMessage },
+      {
+        error: "Failed to create patient insurance policy",
+        details: errorMessage,
+      },
       { status: 500 }
     );
   }
 }
 
 // Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
-

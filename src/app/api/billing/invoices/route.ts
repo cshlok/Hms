@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DB } from "@/lib/db"; // Assuming DB is correctly typed or mocked
+import { DB } from "@/lib/database"; // Assuming DB is correctly typed or mocked
 
 // Define an interface for the expected request body for updating a booking
 interface UpdateBookingBody {
@@ -7,7 +7,7 @@ interface UpdateBookingBody {
   lead_surgeon_id?: number | string;
   anesthesiologist_id?: number | string;
   scheduled_start_time?: string; // Assuming ISO string format
-  scheduled_end_time?: string;   // Assuming ISO string format
+  scheduled_end_time?: string; // Assuming ISO string format
   status?: string; // Consider using an enum: e.g., 'scheduled', 'in_progress', 'completed', 'cancelled', 'postponed'
   priority?: string; // Consider using an enum: e.g., 'routine', 'urgent', 'emergency'
   pre_op_assessment_notes?: string;
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
 
     // Also fetch total count for pagination
     let countQuery = `SELECT COUNT(*) as total FROM OTBookings WHERE 1=1`;
-        const countParameters: (string | number)[] = [];
+    const countParameters: (string | number)[] = [];
     if (statusFilter) {
       countQuery += " AND status = ?";
       countParameters.push(statusFilter);
@@ -94,7 +94,10 @@ export async function GET(request: NextRequest) {
     // Fixed: Use DB.query instead of prepare/bind/first
     // Assuming DB.query returns { rows: T[] } and we take the first row
     const countResult = await DB.query(countQuery, countParams);
-    const total = countResult.rows && countResult.rows.length > 0 ? (countResult.rows[0] as { total: number }).total : 0;
+    const total =
+      countResult.rows && countResult.rows.length > 0
+        ? (countResult.rows[0] as { total: number }).total
+        : 0;
 
     return NextResponse.json({
       data: results,
@@ -105,14 +108,17 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
     });
-
-  } catch (error: unknown) { // FIX: Use unknown instead of any
+  } catch (error: unknown) {
+    // FIX: Use unknown instead of any
     console.error("Error fetching OT bookings:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    return NextResponse.json({ message: "Error fetching OT bookings", details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error fetching OT bookings", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
@@ -120,11 +126,17 @@ export async function GET(request: NextRequest) {
 // ... (POST handler code - assuming it exists and might need similar type fixes)
 
 // PUT /api/ot/bookings/[id] - Update an existing OT booking
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const bookingId = params.id;
     if (!bookingId) {
-      return NextResponse.json({ message: "Booking ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Booking ID is required" },
+        { status: 400 }
+      );
     }
 
     const body = await request.json();
@@ -140,7 +152,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       priority,
       pre_op_assessment_notes,
       consent_obtained,
-      booking_notes
+      booking_notes,
     } = body as UpdateBookingBody;
 
     // const DB = (process.env.DB as unknown) as D1Database; // Using Mock DB instead
@@ -148,28 +160,42 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Construct the update query dynamically
     // FIX: Use a more specific type for values
-    const fieldsToUpdate: { [key: string]: string | number | boolean | undefined } = {};
+    const fieldsToUpdate: {
+      [key: string]: string | number | boolean | undefined;
+    } = {};
     if (theatre_id !== undefined) fieldsToUpdate.theatre_id = theatre_id;
-    if (lead_surgeon_id !== undefined) fieldsToUpdate.lead_surgeon_id = lead_surgeon_id;
-    if (anesthesiologist_id !== undefined) fieldsToUpdate.anesthesiologist_id = anesthesiologist_id;
-    if (scheduled_start_time !== undefined) fieldsToUpdate.scheduled_start_time = scheduled_start_time;
-    if (scheduled_end_time !== undefined) fieldsToUpdate.scheduled_end_time = scheduled_end_time;
+    if (lead_surgeon_id !== undefined)
+      fieldsToUpdate.lead_surgeon_id = lead_surgeon_id;
+    if (anesthesiologist_id !== undefined)
+      fieldsToUpdate.anesthesiologist_id = anesthesiologist_id;
+    if (scheduled_start_time !== undefined)
+      fieldsToUpdate.scheduled_start_time = scheduled_start_time;
+    if (scheduled_end_time !== undefined)
+      fieldsToUpdate.scheduled_end_time = scheduled_end_time;
     if (status !== undefined) fieldsToUpdate.status = status;
     if (priority !== undefined) fieldsToUpdate.priority = priority;
-    if (pre_op_assessment_notes !== undefined) fieldsToUpdate.pre_op_assessment_notes = pre_op_assessment_notes;
-    if (consent_obtained !== undefined) fieldsToUpdate.consent_obtained = consent_obtained;
-    if (booking_notes !== undefined) fieldsToUpdate.booking_notes = booking_notes;
-    
+    if (pre_op_assessment_notes !== undefined)
+      fieldsToUpdate.pre_op_assessment_notes = pre_op_assessment_notes;
+    if (consent_obtained !== undefined)
+      fieldsToUpdate.consent_obtained = consent_obtained;
+    if (booking_notes !== undefined)
+      fieldsToUpdate.booking_notes = booking_notes;
+
     // Ensure at least one field is being updated
     if (Object.keys(fieldsToUpdate).length === 0) {
-        return NextResponse.json({ message: "No update fields provided" }, { status: 400 });
+      return NextResponse.json(
+        { message: "No update fields provided" },
+        { status: 400 }
+      );
     }
 
     fieldsToUpdate.updated_at = now;
 
     // TODO: Add validation for time conflicts if times/theatre are changed
 
-    const setClauses = Object.keys(fieldsToUpdate).map(key => `${key} = ?`).join(", ");
+    const setClauses = Object.keys(fieldsToUpdate)
+      .map((key) => `${key} = ?`)
+      .join(", ");
     const values = Object.values(fieldsToUpdate);
 
     const updateQuery = `UPDATE OTBookings SET ${setClauses} WHERE id = ?`;
@@ -195,35 +221,49 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     `;
     // Fixed: Use DB.query instead of prepare/bind/all
     const updatedResult = await DB.query(fetchUpdatedQuery, [bookingId]);
-    const updatedBookingData = updatedResult.rows && updatedResult.rows.length > 0 ? updatedResult.rows[0] : undefined;
+    const updatedBookingData =
+      updatedResult.rows && updatedResult.rows.length > 0
+        ? updatedResult.rows[0]
+        : undefined;
 
     if (!updatedBookingData) {
-        // Simulate returning the updated data based on input for mock if fetch fails
-        const simulatedUpdatedBooking = { id: bookingId, ...fieldsToUpdate };
-        console.warn("Failed to fetch updated booking details, returning simulated data.");
-        return NextResponse.json(simulatedUpdatedBooking);
-        // return NextResponse.json({ message: "Failed to fetch updated booking details after update" }, { status: 500 });
+      // Simulate returning the updated data based on input for mock if fetch fails
+      const simulatedUpdatedBooking = { id: bookingId, ...fieldsToUpdate };
+      console.warn(
+        "Failed to fetch updated booking details, returning simulated data."
+      );
+      return NextResponse.json(simulatedUpdatedBooking);
+      // return NextResponse.json({ message: "Failed to fetch updated booking details after update" }, { status: 500 });
     }
 
     return NextResponse.json(updatedBookingData);
-
-  } catch (error: unknown) { // FIX: Use unknown instead of any
+  } catch (error: unknown) {
+    // FIX: Use unknown instead of any
     console.error("Error updating OT booking:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
     // TODO: Add specific error handling for time conflicts
-    return NextResponse.json({ message: "Error updating OT booking", details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error updating OT booking", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
 // DELETE /api/ot/bookings/[id] - Cancel an OT booking (soft delete or status update)
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const bookingId = params.id;
     if (!bookingId) {
-      return NextResponse.json({ message: "Booking ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Booking ID is required" },
+        { status: 400 }
+      );
     }
 
     // const DB = (process.env.DB as unknown) as D1Database; // Using Mock DB instead
@@ -233,7 +273,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // await DB.query("DELETE FROM OTBookings WHERE id = ?", [bookingId]);
 
     // Option 2: Soft delete (update status to 'cancelled')
-    const cancelQuery = "UPDATE OTBookings SET status = ?, updated_at = ? WHERE id = ? AND status NOT IN ('completed', 'in_progress')";
+    const cancelQuery =
+      "UPDATE OTBookings SET status = ?, updated_at = ? WHERE id = ? AND status NOT IN ('completed', 'in_progress')";
     // Fixed: Use DB.query instead of prepare/bind/run
     await DB.query(cancelQuery, ["cancelled", now, bookingId]);
     // Cannot check info.meta.changes with the current mock
@@ -241,15 +282,20 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     //   return NextResponse.json({ message: "OT Booking not found or cannot be cancelled (e.g., already completed/in progress)" }, { status: 404 });
     // }
 
-    return NextResponse.json({ message: "OT Booking cancelled successfully" }, { status: 200 });
-
-  } catch (error: unknown) { // FIX: Use unknown instead of any
+    return NextResponse.json(
+      { message: "OT Booking cancelled successfully" },
+      { status: 200 }
+    );
+  } catch (error: unknown) {
+    // FIX: Use unknown instead of any
     console.error("Error cancelling OT booking:", error);
     let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-    return NextResponse.json({ message: "Error cancelling OT booking", details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error cancelling OT booking", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
-

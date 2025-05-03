@@ -5,17 +5,17 @@ export const runtime = "edge";
 
 // Interface for the POST request body
 interface OTBookingBody {
-    patient_id: string; // Assuming ID is string
-    surgery_type_id: string; // Assuming ID is string
-    theatre_id: string; // Assuming ID is string
-    lead_surgeon_id: string; // Assuming ID is string
-    anesthesiologist_id?: string | null; // Assuming ID is string, optional
-    scheduled_start_time: string; // ISO string format
-    scheduled_end_time: string; // ISO string format
-    booking_type?: string | null; // e.g., 'elective', 'emergency'
-    priority?: string | null; // e.g., 'routine', 'urgent'
-    booking_notes?: string | null;
-    created_by_id?: string | null; // Assuming ID is string, optional
+  patient_id: string; // Assuming ID is string
+  surgery_type_id: string; // Assuming ID is string
+  theatre_id: string; // Assuming ID is string
+  lead_surgeon_id: string; // Assuming ID is string
+  anesthesiologist_id?: string | null; // Assuming ID is string, optional
+  scheduled_start_time: string; // ISO string format
+  scheduled_end_time: string; // ISO string format
+  booking_type?: string | null; // e.g., 'elective', 'emergency'
+  priority?: string | null; // e.g., 'routine', 'urgent'
+  booking_notes?: string | null;
+  created_by_id?: string | null; // Assuming ID is string, optional
 }
 
 // GET /api/ot/bookings - List OT bookings
@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
     const patientId = searchParams.get("patientId");
     const status = searchParams.get("status");
     const startDate = searchParams.get("startDate"); // Expected format: YYYY-MM-DD
-    const endDate = searchParams.get("endDate");     // Expected format: YYYY-MM-DD
+    const endDate = searchParams.get("endDate"); // Expected format: YYYY-MM-DD
     // TODO: Add pagination parameters (page, limit)
 
-    const DB = (process.env.DB as unknown) as D1Database;
+    const DB = process.env.DB as unknown as D1Database;
     let query = `
       SELECT 
         b.id, b.scheduled_start_time, b.scheduled_end_time, b.status, b.priority, 
@@ -45,31 +45,31 @@ export async function GET(request: NextRequest) {
       JOIN Users u_surgeon ON b.lead_surgeon_id = u_surgeon.id
     `;
     const conditions: string[] = [];
-    const params: string[] = [];
+    const parameters: string[] = [];
 
     if (theatreId) {
       conditions.push("b.theatre_id = ?");
-      params.push(theatreId);
+      parameters.push(theatreId);
     }
     if (surgeonId) {
       conditions.push("b.lead_surgeon_id = ?");
-      params.push(surgeonId);
+      parameters.push(surgeonId);
     }
     if (patientId) {
       conditions.push("b.patient_id = ?");
-      params.push(patientId);
+      parameters.push(patientId);
     }
     if (status) {
       conditions.push("b.status = ?");
-      params.push(status);
+      parameters.push(status);
     }
     if (startDate) {
       conditions.push("date(b.scheduled_start_time) >= date(?)");
-      params.push(startDate);
+      parameters.push(startDate);
     }
     if (endDate) {
       conditions.push("date(b.scheduled_start_time) <= date(?)");
-      params.push(endDate);
+      parameters.push(endDate);
     }
 
     if (conditions.length > 0) {
@@ -79,20 +79,25 @@ export async function GET(request: NextRequest) {
     query += " ORDER BY b.scheduled_start_time ASC";
     // TODO: Add LIMIT and OFFSET for pagination
 
-    const { results } = await DB.prepare(query).bind(...params).all();
+    const { results } = await DB.prepare(query)
+      .bind(...parameters)
+      .all();
 
     return NextResponse.json(results);
   } catch (error) {
     console.error("Error fetching OT bookings:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ message: "Error fetching OT bookings", details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error fetching OT bookings", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
 // POST /api/ot/bookings - Create a new OT booking
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as OTBookingBody;
+    const body = (await request.json()) as OTBookingBody;
     const {
       patient_id,
       surgery_type_id,
@@ -104,17 +109,27 @@ export async function POST(request: NextRequest) {
       booking_type,
       priority,
       booking_notes,
-      created_by_id // Assuming this comes from authenticated user context in a real app
+      created_by_id, // Assuming this comes from authenticated user context in a real app
     } = body;
 
     // Basic validation
-    if (!patient_id || !surgery_type_id || !theatre_id || !lead_surgeon_id || !scheduled_start_time || !scheduled_end_time) {
-      return NextResponse.json({ message: "Missing required booking fields" }, { status: 400 });
+    if (
+      !patient_id ||
+      !surgery_type_id ||
+      !theatre_id ||
+      !lead_surgeon_id ||
+      !scheduled_start_time ||
+      !scheduled_end_time
+    ) {
+      return NextResponse.json(
+        { message: "Missing required booking fields" },
+        { status: 400 }
+      );
     }
 
     // TODO: Add validation for time conflicts in the selected theatre
 
-    const DB = (process.env.DB as unknown) as D1Database;
+    const DB = process.env.DB as unknown as D1Database;
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
@@ -124,26 +139,29 @@ export async function POST(request: NextRequest) {
         scheduled_start_time, scheduled_end_time, booking_type, priority, status, 
         booking_notes, created_by_id, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).bind(
-      id,
-      patient_id,
-      surgery_type_id,
-      theatre_id,
-      lead_surgeon_id,
-      anesthesiologist_id || null,
-      scheduled_start_time,
-      scheduled_end_time,
-      booking_type || 'elective',
-      priority || 'routine',
-      'scheduled', // Initial status
-      booking_notes || null,
-      created_by_id || null, // Replace with actual user ID
-      now,
-      now
-    ).run();
+    )
+      .bind(
+        id,
+        patient_id,
+        surgery_type_id,
+        theatre_id,
+        lead_surgeon_id,
+        anesthesiologist_id || undefined,
+        scheduled_start_time,
+        scheduled_end_time,
+        booking_type || "elective",
+        priority || "routine",
+        "scheduled", // Initial status
+        booking_notes || undefined,
+        created_by_id || undefined, // Replace with actual user ID
+        now,
+        now
+      )
+      .run();
 
     // Fetch the newly created booking details (joining with related tables for context)
-    const { results } = await DB.prepare(`
+    const { results } = await DB.prepare(
+      `
         SELECT 
             b.*, 
             p.name as patient_name, 
@@ -158,20 +176,28 @@ export async function POST(request: NextRequest) {
         JOIN Users u_surgeon ON b.lead_surgeon_id = u_surgeon.id
         LEFT JOIN Users u_anes ON b.anesthesiologist_id = u_anes.id
         WHERE b.id = ?
-    `).bind(id).all();
+    `
+    )
+      .bind(id)
+      .all();
 
     if (results && results.length > 0) {
-        return NextResponse.json(results[0], { status: 201 });
+      return NextResponse.json(results[0], { status: 201 });
     } else {
-        // Fallback if select fails
-        return NextResponse.json({ message: "Booking created, but failed to fetch details" }, { status: 201 });
+      // Fallback if select fails
+      return NextResponse.json(
+        { message: "Booking created, but failed to fetch details" },
+        { status: 201 }
+      );
     }
-
-  } catch (error) { // FIX: Remove explicit any
+  } catch (error) {
+    // FIX: Remove explicit any
     console.error("Error creating OT booking:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     // TODO: Add specific error handling for time conflicts if validation is implemented
-    return NextResponse.json({ message: "Error creating OT booking", details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error creating OT booking", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
-

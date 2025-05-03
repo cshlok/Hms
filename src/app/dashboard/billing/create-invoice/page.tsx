@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardFooter 
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,13 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  // Select,
+import {} from // Select,
 // SelectContent,
 // SelectItem,
 // SelectTrigger,
 // SelectValue,
-} from "@/components/ui/select";
+"@/components/ui/select";
 import {
   Command,
   CommandInput,
@@ -35,10 +34,10 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
 // import { Skeleton } from "@/components/ui/skeleton";
 import { X, Plus, Check, ChevronsUpDown } from "lucide-react";
@@ -50,7 +49,7 @@ interface Patient {
   name: string; // Combined first/last or display name
   mrn: string;
   first_name?: string; // Optional if 'name' is primary display
-  last_name?: string;  // Optional if 'name' is primary display
+  last_name?: string; // Optional if 'name' is primary display
 }
 
 interface ServiceItem {
@@ -87,13 +86,14 @@ interface ErrorResponse {
 export default function CreateInvoicePage() {
   const router = useRouter();
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>();
   const [patientSearchTerm, setPatientSearchTerm] = useState("");
   const [isPatientPopoverOpen, setIsPatientPopoverOpen] = useState(false);
   const [loadingPatients, setLoadingPatients] = useState(false);
 
   const [serviceItems, setServiceItems] = useState<ServiceItem[]>([]);
-  const [selectedServiceItem, setSelectedServiceItem] = useState<ServiceItem | null>(null);
+  const [selectedServiceItem, setSelectedServiceItem] =
+    useState<ServiceItem | null>();
   const [serviceSearchTerm, setServiceSearchTerm] = useState("");
   const [isServicePopoverOpen, setIsServicePopoverOpen] = useState(false);
   const [loadingServices, setLoadingServices] = useState(false);
@@ -101,22 +101,26 @@ export default function CreateInvoicePage() {
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [invoiceTotal, setInvoiceTotal] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>();
 
   // Fetch Patients from real API
   const fetchPatients = useCallback(async (search: string) => {
     setLoadingPatients(true);
-    setError(null); // Clear previous errors
+    setError(undefined); // Clear previous errors
     try {
-      const response = await fetch(`/api/patients?search=${encodeURIComponent(search)}`);
+      const response = await fetch(
+        `/api/patients?search=${encodeURIComponent(search)}`
+      );
       if (!response.ok) throw new Error("Failed to fetch patients");
       // FIX: Cast response JSON to defined type
-      const data = await response.json() as PatientsApiResponse;
+      const data = (await response.json()) as PatientsApiResponse;
       // Ensure data.patients is an array before setting state
       setPatients(Array.isArray(data?.patients) ? data.patients : []);
-    } catch (err) {
-      console.error("Failed to fetch patients:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch patients");
+    } catch (error_) {
+      console.error("Failed to fetch patients:", error_);
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to fetch patients"
+      );
       setPatients([]); // Clear patients on error
     } finally {
       setLoadingPatients(false);
@@ -126,17 +130,25 @@ export default function CreateInvoicePage() {
   // Fetch Service Items
   const fetchServiceItems = useCallback(async (search: string) => {
     setLoadingServices(true);
-    setError(null); // Clear previous errors
+    setError(undefined); // Clear previous errors
     try {
-      const response = await fetch(`/api/billing/service-items?search=${encodeURIComponent(search)}`);
+      const response = await fetch(
+        `/api/billing/service-items?search=${encodeURIComponent(search)}`
+      );
       if (!response.ok) throw new Error("Failed to fetch service items");
       // FIX: Cast response JSON to defined type
-      const data = await response.json() as ServiceItemsApiResponse;
-       // Ensure data.serviceItems is an array before setting state
-      setServiceItems(Array.isArray(data?.serviceItems) ? data.serviceItems : []);
-    } catch (err) {
-      console.error("Failed to fetch service items:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch service items");
+      const data = (await response.json()) as ServiceItemsApiResponse;
+      // Ensure data.serviceItems is an array before setting state
+      setServiceItems(
+        Array.isArray(data?.serviceItems) ? data.serviceItems : []
+      );
+    } catch (error_) {
+      console.error("Failed to fetch service items:", error_);
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Failed to fetch service items"
+      );
       setServiceItems([]); // Clear service items on error
     } finally {
       setLoadingServices(false);
@@ -146,10 +158,11 @@ export default function CreateInvoicePage() {
   // Debounce search for patients
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (patientSearchTerm.trim()) { // Only search if term is not empty
-          fetchPatients(patientSearchTerm);
+      if (patientSearchTerm.trim()) {
+        // Only search if term is not empty
+        fetchPatients(patientSearchTerm);
       } else {
-          setPatients([]); // Clear if search is empty or just whitespace
+        setPatients([]); // Clear if search is empty or just whitespace
       }
     }, 300); // Debounce time
     return () => clearTimeout(handler);
@@ -158,43 +171,54 @@ export default function CreateInvoicePage() {
   // Debounce search for service items
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (serviceSearchTerm.trim()) { // Only search if term is not empty
-          fetchServiceItems(serviceSearchTerm);
+      if (serviceSearchTerm.trim()) {
+        // Only search if term is not empty
+        fetchServiceItems(serviceSearchTerm);
       } else {
-          setServiceItems([]); // Clear if search is empty or just whitespace
+        setServiceItems([]); // Clear if search is empty or just whitespace
       }
     }, 300); // Debounce time
     return () => clearTimeout(handler);
   }, [serviceSearchTerm, fetchServiceItems]);
 
-
   // Add item to invoice
   const addInvoiceItem = (item: ServiceItem) => {
     // The check `if (!item) return;` was already here, handling the null case.
     if (!item) return;
-    const existingItemIndex = invoiceItems.findIndex(invItem => invItem.id === item.id);
+    const existingItemIndex = invoiceItems.findIndex(
+      (invItem) => invItem.id === item.id
+    );
 
-    if (existingItemIndex > -1) {
+    if (existingItemIndex === -1) {
+      // Add new item
+      setInvoiceItems([
+        ...invoiceItems,
+        { ...item, quantity: 1, subtotal: item.unit_price },
+      ]);
+    } else {
       // Increment quantity if item already exists
       const updatedItems = [...invoiceItems];
       updatedItems[existingItemIndex].quantity += 1;
-      updatedItems[existingItemIndex].subtotal = updatedItems[existingItemIndex].quantity * updatedItems[existingItemIndex].unit_price;
+      updatedItems[existingItemIndex].subtotal =
+        updatedItems[existingItemIndex].quantity *
+        updatedItems[existingItemIndex].unit_price;
       setInvoiceItems(updatedItems);
-    } else {
-      // Add new item
-      setInvoiceItems([...invoiceItems, { ...item, quantity: 1, subtotal: item.unit_price }]);
     }
-    setSelectedServiceItem(null); // Reset selection
+    setSelectedServiceItem(undefined); // Reset selection
     setServiceSearchTerm(""); // Clear search
     setServiceItems([]); // Clear results
   };
 
   // Update item quantity
   const updateItemQuantity = (itemId: number, quantity: number) => {
-    const updatedItems = invoiceItems.map(item => {
+    const updatedItems = invoiceItems.map((item) => {
       if (item.id === itemId) {
         const newQuantity = Math.max(1, quantity); // Ensure quantity is at least 1
-        return { ...item, quantity: newQuantity, subtotal: newQuantity * item.unit_price };
+        return {
+          ...item,
+          quantity: newQuantity,
+          subtotal: newQuantity * item.unit_price,
+        };
       }
       return item;
     });
@@ -203,7 +227,7 @@ export default function CreateInvoicePage() {
 
   // Remove item from invoice
   const removeInvoiceItem = (itemId: number) => {
-    setInvoiceItems(invoiceItems.filter(item => item.id !== itemId));
+    setInvoiceItems(invoiceItems.filter((item) => item.id !== itemId));
   };
 
   // Calculate total whenever items change
@@ -220,12 +244,12 @@ export default function CreateInvoicePage() {
     }
 
     setIsSubmitting(true);
-    setError(null);
+    setError(undefined);
 
     try {
       const invoiceData = {
         patient_id: selectedPatient.id,
-        items: invoiceItems.map(item => ({
+        items: invoiceItems.map((item) => ({
           service_item_id: item.id,
           item_name: item.item_name, // Consider if description should be different
           description: item.item_name, // Using item_name as description for now
@@ -246,12 +270,15 @@ export default function CreateInvoicePage() {
       if (!response.ok) {
         let errorMessage = "Failed to create invoice";
         try {
-            // FIX: Cast error response JSON to defined type
-            const errorData = await response.json() as ErrorResponse;
-            errorMessage = errorData?.error || errorData?.message || `HTTP error! status: ${response.status}`;
+          // FIX: Cast error response JSON to defined type
+          const errorData = (await response.json()) as ErrorResponse;
+          errorMessage =
+            errorData?.error ||
+            errorData?.message ||
+            `HTTP error! status: ${response.status}`;
         } catch {
-            // Handle cases where response is not JSON or empty
-            errorMessage = `HTTP error! status: ${response.status}`;
+          // Handle cases where response is not JSON or empty
+          errorMessage = `HTTP error! status: ${response.status}`;
         }
         throw new Error(errorMessage);
       }
@@ -260,10 +287,13 @@ export default function CreateInvoicePage() {
       console.log("Invoice created:", result);
       // Consider showing a success toast message here
       router.push("/dashboard/billing/invoices"); // Redirect to invoices list
-
-    } catch (err) {
-      console.error("Error creating invoice:", err);
-      setError(err instanceof Error ? err.message : "An unknown error occurred during submission.");
+    } catch (error_) {
+      console.error("Error creating invoice:", error_);
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "An unknown error occurred during submission."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -271,19 +301,25 @@ export default function CreateInvoicePage() {
 
   // --- JSX ---
   return (
-    <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8 space-y-6"> {/* Added lg:px-8 */}
-      <div className="flex justify-between items-center mb-4"> {/* Added mb-4 */}
+    <div className="container mx-auto py-8 px-4 md:px-6 lg:px-8 space-y-6">
+      {" "}
+      {/* Added lg:px-8 */}
+      <div className="flex justify-between items-center mb-4">
+        {" "}
+        {/* Added mb-4 */}
         <h1 className="text-2xl font-semibold">Create New Invoice</h1>
-        <Button variant="outline" onClick={() => router.back()}>Back to Billing</Button> {/* Changed Cancel text */}
+        <Button variant="outline" onClick={() => router.back()}>
+          Back to Billing
+        </Button>{" "}
+        {/* Changed Cancel text */}
       </div>
-
-
       {error && (
-        <div className="mb-4 text-red-600 border border-red-600 bg-red-50 p-3 rounded-md"> {/* Added bg-red-50 */}
+        <div className="mb-4 text-red-600 border border-red-600 bg-red-50 p-3 rounded-md">
+          {" "}
+          {/* Added bg-red-50 */}
           Error: {error}
         </div>
       )}
-
       {/* Patient Selection Card */}
       <Card>
         <CardHeader>
@@ -291,7 +327,10 @@ export default function CreateInvoicePage() {
         </CardHeader>
         <CardContent>
           <Label htmlFor="patient-search">Select Patient</Label>
-          <Popover open={isPatientPopoverOpen} onOpenChange={setIsPatientPopoverOpen}>
+          <Popover
+            open={isPatientPopoverOpen}
+            onOpenChange={setIsPatientPopoverOpen}
+          >
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -304,25 +343,52 @@ export default function CreateInvoicePage() {
                   ? `${selectedPatient.name} (MRN: ${selectedPatient.mrn})` // Added MRN label
                   : "Select patient..."}
                 {selectedPatient ? (
-                  <X className="ml-2 h-4 w-4 shrink-0 opacity-50 cursor-pointer" onClick={(e) => { e.stopPropagation(); setSelectedPatient(null); setPatientSearchTerm(''); }} /> // Added cursor-pointer and clear search term
+                  (<X
+                    className="ml-2 h-4 w-4 shrink-0 opacity-50 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedPatient(undefined);
+                      setPatientSearchTerm("");
+                    }}
+                  />) // Added cursor-pointer and clear search term
                 ) : (
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-              <Command shouldFilter={false}> {/* Disable default filtering, handled by API */}
+              <Command shouldFilter={false}>
+                {" "}
+                {/* Disable default filtering, handled by API */}
                 <CommandInput
                   placeholder="Search patient by name or MRN..."
                   value={patientSearchTerm}
                   onValueChange={setPatientSearchTerm} // Let useEffect handle debounced fetching
                 />
                 <CommandList>
-                  {loadingPatients && <div className="p-4 text-center text-sm text-muted-foreground">Loading patients...</div>} {/* Improved loading state */}
-                  {!loadingPatients && patients.length === 0 && patientSearchTerm && <CommandEmpty>No patient found matching &quot;{patientSearchTerm}&quot;.</CommandEmpty>}
-                  {!loadingPatients && patients.length === 0 && !patientSearchTerm && <CommandEmpty>Type to search for patients.</CommandEmpty>}
+                  {loadingPatients && (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      Loading patients...
+                    </div>
+                  )}{" "}
+                  {/* Improved loading state */}
+                  {!loadingPatients &&
+                    patients.length === 0 &&
+                    patientSearchTerm && (
+                      <CommandEmpty>
+                        No patient found matching &quot;{patientSearchTerm}
+                        &quot;.
+                      </CommandEmpty>
+                    )}
+                  {!loadingPatients &&
+                    patients.length === 0 &&
+                    !patientSearchTerm && (
+                      <CommandEmpty>Type to search for patients.</CommandEmpty>
+                    )}
                   {!loadingPatients && patients.length > 0 && (
-                    <CommandGroup heading="Search Results"> {/* Added heading */}
+                    <CommandGroup heading="Search Results">
+                      {" "}
+                      {/* Added heading */}
                       {patients.map((patient) => (
                         <CommandItem
                           key={patient.id}
@@ -330,14 +396,16 @@ export default function CreateInvoicePage() {
                           onSelect={() => {
                             setSelectedPatient(patient);
                             setIsPatientPopoverOpen(false);
-                            setPatientSearchTerm(''); // Clear search after selection
+                            setPatientSearchTerm(""); // Clear search after selection
                           }}
                           className="cursor-pointer" // Added cursor
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
+                              selectedPatient?.id === patient.id
+                                ? "opacity-100"
+                                : "opacity-0"
                             )}
                           />
                           {patient.name} (MRN: {patient.mrn})
@@ -351,7 +419,6 @@ export default function CreateInvoicePage() {
           </Popover>
         </CardContent>
       </Card>
-
       {/* Invoice Items Card */}
       <Card>
         <CardHeader>
@@ -359,10 +426,17 @@ export default function CreateInvoicePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Add Service Item */}
-          <div className="flex flex-col sm:flex-row gap-2 items-end"> {/* Responsive layout */}
-            <div className="flex-grow w-full sm:w-auto"> {/* Full width on small screens */}
+          <div className="flex flex-col sm:flex-row gap-2 items-end">
+            {" "}
+            {/* Responsive layout */}
+            <div className="flex-grow w-full sm:w-auto">
+              {" "}
+              {/* Full width on small screens */}
               <Label htmlFor="service-search">Add Service/Item</Label>
-              <Popover open={isServicePopoverOpen} onOpenChange={setIsServicePopoverOpen}>
+              <Popover
+                open={isServicePopoverOpen}
+                onOpenChange={setIsServicePopoverOpen}
+              >
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -384,10 +458,27 @@ export default function CreateInvoicePage() {
                       onValueChange={setServiceSearchTerm}
                     />
                     <CommandList>
-                       {loadingServices && <div className="p-4 text-center text-sm text-muted-foreground">Loading services...</div>}
-                       {!loadingServices && serviceItems.length === 0 && serviceSearchTerm && <CommandEmpty>No service/item found matching &quot;{serviceSearchTerm}&quot;.</CommandEmpty>}
-                       {!loadingServices && serviceItems.length === 0 && !serviceSearchTerm && <CommandEmpty>Type to search for services/items.</CommandEmpty>}
-                       {!loadingServices && serviceItems.length > 0 && (
+                      {loadingServices && (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          Loading services...
+                        </div>
+                      )}
+                      {!loadingServices &&
+                        serviceItems.length === 0 &&
+                        serviceSearchTerm && (
+                          <CommandEmpty>
+                            No service/item found matching &quot;
+                            {serviceSearchTerm}&quot;.
+                          </CommandEmpty>
+                        )}
+                      {!loadingServices &&
+                        serviceItems.length === 0 &&
+                        !serviceSearchTerm && (
+                          <CommandEmpty>
+                            Type to search for services/items.
+                          </CommandEmpty>
+                        )}
+                      {!loadingServices && serviceItems.length > 0 && (
                         <CommandGroup heading="Search Results">
                           {serviceItems.map((item) => (
                             <CommandItem
@@ -396,21 +487,24 @@ export default function CreateInvoicePage() {
                               onSelect={() => {
                                 setSelectedServiceItem(item);
                                 setIsServicePopoverOpen(false);
-                                setServiceSearchTerm(''); // Clear search after selection
+                                setServiceSearchTerm(""); // Clear search after selection
                               }}
                               className="cursor-pointer"
                             >
                               <Check
                                 className={cn(
                                   "mr-2 h-4 w-4",
-                                  selectedServiceItem?.id === item.id ? "opacity-100" : "opacity-0"
+                                  selectedServiceItem?.id === item.id
+                                    ? "opacity-100"
+                                    : "opacity-0"
                                 )}
                               />
-                              {item.item_name} ({item.item_code}) - ₹{item.unit_price.toFixed(2)}
+                              {item.item_name} ({item.item_code}) - ₹
+                              {item.unit_price.toFixed(2)}
                             </CommandItem>
                           ))}
                         </CommandGroup>
-                       )}
+                      )}
                     </CommandList>
                   </Command>
                 </PopoverContent>
@@ -431,37 +525,65 @@ export default function CreateInvoicePage() {
           </div>
 
           {/* Items Table */}
-          <div className="rounded-md border overflow-x-auto"> {/* Added overflow-x-auto */}
+          <div className="rounded-md border overflow-x-auto">
+            {" "}
+            {/* Added overflow-x-auto */}
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[200px]">Item</TableHead> {/* Added min-width */}
+                  <TableHead className="min-w-[200px]">Item</TableHead>{" "}
+                  {/* Added min-width */}
                   <TableHead>Category</TableHead>
                   <TableHead className="text-right">Unit Price (₹)</TableHead>
                   <TableHead className="text-center">Quantity</TableHead>
                   <TableHead className="text-right">Subtotal (₹)</TableHead>
-                  <TableHead className="text-right">Actions</TableHead> {/* Changed alignment */}
+                  <TableHead className="text-right">Actions</TableHead>{" "}
+                  {/* Changed alignment */}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {invoiceItems.length > 0 ? (
                   invoiceItems.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.item_name} <span className="text-xs text-muted-foreground">({item.item_code})</span></TableCell> {/* Improved display */}
+                      <TableCell className="font-medium">
+                        {item.item_name}{" "}
+                        <span className="text-xs text-muted-foreground">
+                          ({item.item_code})
+                        </span>
+                      </TableCell>{" "}
+                      {/* Improved display */}
                       <TableCell>{item.category}</TableCell>
-                      <TableCell className="text-right">{item.unit_price.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">
+                        {item.unit_price.toFixed(2)}
+                      </TableCell>
                       <TableCell className="text-center">
                         <Input
                           type="number"
                           min="1"
                           value={item.quantity}
-                          onChange={(e) => updateItemQuantity(item.id, parseInt(e.target.value) || 1)}
+                          onChange={(e) =>
+                            updateItemQuantity(
+                              item.id,
+                              Number.parseInt(e.target.value) || 1
+                            )
+                          }
                           className="w-16 h-8 text-center mx-auto" // Centered input
                         />
                       </TableCell>
-                      <TableCell className="text-right font-medium">{item.subtotal.toFixed(2)}</TableCell>
-                      <TableCell className="text-right"> {/* Changed alignment */}
-                        <Button variant="ghost" size="icon" onClick={() => removeInvoiceItem(item.id)} aria-label="Remove item"> {/* Added aria-label */}
+                      <TableCell className="text-right font-medium">
+                        {item.subtotal.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {" "}
+                        {/* Changed alignment */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeInvoiceItem(item.id)}
+                          aria-label="Remove item"
+                        >
+                          {" "}
+                          {/* Added aria-label */}
                           <X className="h-4 w-4 text-red-500" />
                         </Button>
                       </TableCell>
@@ -469,8 +591,14 @@ export default function CreateInvoicePage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground"> {/* Added text-muted-foreground */}
-                      No items added to the invoice yet. Use the search above to add items.
+                    <TableCell
+                      colSpan={6}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      {" "}
+                      {/* Added text-muted-foreground */}
+                      No items added to the invoice yet. Use the search above to
+                      add items.
                     </TableCell>
                   </TableRow>
                 )}
@@ -478,15 +606,27 @@ export default function CreateInvoicePage() {
             </Table>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4"> {/* Responsive layout and gap */}
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          {" "}
+          {/* Responsive layout and gap */}
           <div className="text-lg font-semibold">
             Total Amount: ₹{invoiceTotal.toFixed(2)}
           </div>
-          <div className="flex gap-2 w-full sm:w-auto"> {/* Full width buttons on small screens */}
-            <Button variant="outline" onClick={() => router.back()} className="flex-1 sm:flex-none">Cancel</Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            {" "}
+            {/* Full width buttons on small screens */}
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              className="flex-1 sm:flex-none"
+            >
+              Cancel
+            </Button>
             <Button
               onClick={handleCreateInvoice}
-              disabled={isSubmitting || !selectedPatient || invoiceItems.length === 0}
+              disabled={
+                isSubmitting || !selectedPatient || invoiceItems.length === 0
+              }
               className="flex-1 sm:flex-none" // Make button grow on small screens
             >
               {isSubmitting ? "Creating Invoice..." : "Create Invoice"}

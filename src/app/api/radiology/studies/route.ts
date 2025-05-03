@@ -4,17 +4,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getSession, Session } from "@/lib/session"; // Import Session type
 // import { checkUserRole } from "@/lib/auth";
-import { getDB } from "@/lib/db"; // Import getDB
+import { getDB } from "@/lib/database"; // Import getDB
 
 // Define Database interface (can be moved to a shared types file)
 interface PreparedStatement {
-  bind(...params: (string | number | null)[]): {
-    run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
-    all<T = unknown>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+  bind(...parameters: (string | number | null)[]): {
+    run(): Promise<{
+      success: boolean;
+      meta: { duration: number; changes?: number };
+    }>;
+    all<T = unknown>(): Promise<{
+      results: T[];
+      success: boolean;
+      meta: { duration: number };
+    }>;
     first<T = unknown>(colName?: string): Promise<T | null>;
   };
-  run(): Promise<{ success: boolean; meta: { duration: number; changes?: number; } }>;
-  all<T = unknown>(): Promise<{ results: T[]; success: boolean; meta: { duration: number; } }>;
+  run(): Promise<{
+    success: boolean;
+    meta: { duration: number; changes?: number };
+  }>;
+  all<T = unknown>(): Promise<{
+    results: T[];
+    success: boolean;
+    meta: { duration: number };
+  }>;
   first<T = unknown>(colName?: string): Promise<T | null>;
 }
 
@@ -33,7 +47,13 @@ interface RadiologyStudyPostData {
   protocol?: string | null;
   series_description?: string | null;
   number_of_images?: number | null;
-  status?: "scheduled" | "in_progress" | "completed" | "reported" | "verified" | "cancelled";
+  status?:
+    | "scheduled"
+    | "in_progress"
+    | "completed"
+    | "reported"
+    | "verified"
+    | "cancelled";
 }
 
 // Interface for GET response items (adjust based on actual query results)
@@ -68,7 +88,7 @@ export async function GET(request: NextRequest) {
     const patientId = searchParams.get("patientId"); // Requires join
     const status = searchParams.get("status");
 
-    const db: Database = await getDB(); // Use getDB
+    const database: Database = await getDB(); // Use getDB
 
     // Adjust SELECT to match RadiologyStudyListItem
     let query = `SELECT
@@ -80,20 +100,20 @@ export async function GET(request: NextRequest) {
                  JOIN RadiologyOrders ro ON rs.order_id = ro.id
                  JOIN Patients p ON ro.patient_id = p.id
                  JOIN RadiologyProcedureTypes pt ON ro.procedure_type_id = pt.id`;
-    const params: string[] = [];
+    const parameters: string[] = [];
     const conditions: string[] = [];
 
     if (orderId) {
       conditions.push("rs.order_id = ?");
-      params.push(orderId);
+      parameters.push(orderId);
     }
     if (patientId) {
       conditions.push("ro.patient_id = ?");
-      params.push(patientId);
+      parameters.push(patientId);
     }
     if (status) {
       conditions.push("rs.status = ?");
-      params.push(status);
+      parameters.push(status);
     }
 
     if (conditions.length > 0) {
@@ -102,13 +122,22 @@ export async function GET(request: NextRequest) {
     query += " ORDER BY rs.study_datetime DESC";
 
     // Use the defined Database interface and expect results matching RadiologyStudyListItem
-    const { results } = await db.prepare(query).bind(...params).all<RadiologyStudyListItem>();
+    const { results } = await database
+      .prepare(query)
+      .bind(...parameters)
+      .all<RadiologyStudyListItem>();
     return NextResponse.json(results);
-
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
-    console.error({ message: "Error fetching radiology studies", error: message });
-    return NextResponse.json({ error: "Failed to fetch radiology studies", details: message }, { status: 500 });
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    console.error({
+      message: "Error fetching radiology studies",
+      error: message,
+    });
+    return NextResponse.json(
+      { error: "Failed to fetch radiology studies", details: message },
+      { status: 500 }
+    );
   }
 }
 
@@ -121,27 +150,58 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // Use roleName for check
-    if (session.user.roleName !== "Admin" && session.user.roleName !== "Technician") {
-      return NextResponse.json({ error: "Forbidden: Admin or Technician role required" }, { status: 403 });
+    if (
+      session.user.roleName !== "Admin" &&
+      session.user.roleName !== "Technician"
+    ) {
+      return NextResponse.json(
+        { error: "Forbidden: Admin or Technician role required" },
+        { status: 403 }
+      );
     }
 
-    const db: Database = await getDB(); // Use getDB
+    const database: Database = await getDB(); // Use getDB
     // Use type assertion for request body
-    const { order_id, accession_number, study_datetime, modality_id, technician_id, protocol, series_description, number_of_images, status } = await request.json() as RadiologyStudyPostData;
+    const {
+      order_id,
+      accession_number,
+      study_datetime,
+      modality_id,
+      technician_id,
+      protocol,
+      series_description,
+      number_of_images,
+      status,
+    } = (await request.json()) as RadiologyStudyPostData;
 
     if (!order_id || !study_datetime || !technician_id) {
-      return NextResponse.json({ error: "Missing required fields (order_id, study_datetime, technician_id)" }, { status: 400 });
+      return NextResponse.json(
+        {
+          error:
+            "Missing required fields (order_id, study_datetime, technician_id)",
+        },
+        { status: 400 }
+      );
     }
 
     // Validate date format
-    if (isNaN(Date.parse(study_datetime))) {
-        return NextResponse.json({ error: "Invalid study date/time format" }, { status: 400 });
+    if (Number.isNaN(Date.parse(study_datetime))) {
+      return NextResponse.json(
+        { error: "Invalid study date/time format" },
+        { status: 400 }
+      );
     }
 
     // Check if order exists and is in a valid state (e.g., scheduled or pending)
-    const order = await db.prepare("SELECT status FROM RadiologyOrders WHERE id = ?").bind(order_id).first<{ status: string }>();
+    const order = await database
+      .prepare("SELECT status FROM RadiologyOrders WHERE id = ?")
+      .bind(order_id)
+      .first<{ status: string }>();
     if (!order) {
-        return NextResponse.json({ error: "Associated radiology order not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Associated radiology order not found" },
+        { status: 404 }
+      );
     }
     // Add logic here if specific order statuses are required before creating a study
     // Example: if (!["scheduled", "pending"].includes(order.status)) {
@@ -153,45 +213,82 @@ export async function POST(request: NextRequest) {
     // Default status could be 'scheduled' or 'in_progress' depending on workflow
     const studyStatus = status || "in_progress";
 
-    await db.prepare(
-      "INSERT INTO RadiologyStudies (id, order_id, accession_number, study_datetime, modality_id, technician_id, protocol, series_description, number_of_images, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    ).bind(
-      id,
-      order_id,
-      accession_number ?? null, // Use nullish coalescing
-      study_datetime,
-      modality_id ?? null,
-      technician_id,
-      protocol ?? null,
-      series_description ?? null,
-      number_of_images ?? null,
-      studyStatus,
-      now, // created_at
-      now  // updated_at
-    ).run();
+    await database
+      .prepare(
+        "INSERT INTO RadiologyStudies (id, order_id, accession_number, study_datetime, modality_id, technician_id, protocol, series_description, number_of_images, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      )
+      .bind(
+        id,
+        order_id,
+        accession_number ?? undefined, // Use nullish coalescing
+        study_datetime,
+        modality_id ?? undefined,
+        technician_id,
+        protocol ?? undefined,
+        series_description ?? undefined,
+        number_of_images ?? undefined,
+        studyStatus,
+        now, // created_at
+        now // updated_at
+      )
+      .run();
 
     // Update the associated order status to 'in_progress' if it's not already completed/cancelled
-    await db.prepare("UPDATE RadiologyOrders SET status = ?, updated_at = ? WHERE id = ? AND status NOT IN (?, ?, ?)")
-      .bind("in_progress", now, order_id, "completed", "cancelled", "in_progress") // Avoid unnecessary updates
+    await database
+      .prepare(
+        "UPDATE RadiologyOrders SET status = ?, updated_at = ? WHERE id = ? AND status NOT IN (?, ?, ?)"
+      )
+      .bind(
+        "in_progress",
+        now,
+        order_id,
+        "completed",
+        "cancelled",
+        "in_progress"
+      ) // Avoid unnecessary updates
       .run();
 
     // Fetch the created study to return it
-    const createdStudy = await db.prepare("SELECT * FROM RadiologyStudies WHERE id = ?").bind(id).first<RadiologyStudyListItem>();
+    const createdStudy = await database
+      .prepare("SELECT * FROM RadiologyStudies WHERE id = ?")
+      .bind(id)
+      .first<RadiologyStudyListItem>();
 
-    return NextResponse.json(createdStudy || { id, message: "Radiology study created" }, { status: 201 });
-
+    return NextResponse.json(
+      createdStudy || { id, message: "Radiology study created" },
+      { status: 201 }
+    );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
-    console.error({ message: "Error creating radiology study", error: message });
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    console.error({
+      message: "Error creating radiology study",
+      error: message,
+    });
     // Handle specific DB errors
-    if (error instanceof Error && error.message?.includes("UNIQUE constraint failed") && error.message?.includes("accession_number")) {
-        return NextResponse.json({ error: "Accession number already exists" }, { status: 409 });
+    if (
+      error instanceof Error &&
+      error.message?.includes("UNIQUE constraint failed") &&
+      error.message?.includes("accession_number")
+    ) {
+      return NextResponse.json(
+        { error: "Accession number already exists" },
+        { status: 409 }
+      );
     }
-    if (error instanceof Error && error.message?.includes("FOREIGN KEY constraint failed")) {
-        // Could be invalid order_id, modality_id, or technician_id
-        return NextResponse.json({ error: "Invalid reference ID (Order, Modality, or Technician)" }, { status: 400 });
+    if (
+      error instanceof Error &&
+      error.message?.includes("FOREIGN KEY constraint failed")
+    ) {
+      // Could be invalid order_id, modality_id, or technician_id
+      return NextResponse.json(
+        { error: "Invalid reference ID (Order, Modality, or Technician)" },
+        { status: 400 }
+      );
     }
-    return NextResponse.json({ error: "Failed to create radiology study", details: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create radiology study", details: message },
+      { status: 500 }
+    );
   }
 }
-

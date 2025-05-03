@@ -3,15 +3,17 @@
 ## Open Source HMS Projects Analyzed
 
 ### 1. Danphe EMR
+
 - **Repository**: [opensource-emr/hospital-management-emr](https://github.com/opensource-emr/hospital-management-emr)
 - **Technology Stack**: Angular, ASP.NET Core, SQL Server
-- **Key Features**: 
+- **Key Features**:
   - Live in 50+ hospitals across Asia
   - Comprehensive module set (40+ modules)
   - Patient registration, appointments, billing, accounting, inventory, pharmacy, lab management
 - **Architecture**: Monolithic application with modular design
 
 ### 2. Open Hospital
+
 - **Repository**: [informatici/openhospital](https://github.com/informatici/openhospital)
 - **Technology Stack**: Java, Spring, MySQL
 - **Components**:
@@ -25,6 +27,7 @@
 ## Best Practices for HMS Architecture
 
 ### 1. Scalable Architecture
+
 - **Recommendation**: Use microservice architecture
 - **Benefits**:
   - Enables parallel development of modules
@@ -33,24 +36,28 @@
   - Supports incremental deployment
 
 ### 2. Platform Selection
+
 - **Web Applications**: For administrative interfaces, doctor portals
 - **Mobile Applications**: For patient-facing features, doctor on-the-go access
 - **Responsive Design**: Ensure web interfaces work across devices
 - **Consideration**: Not all modules need to be available on all platforms
 
 ### 3. HIPAA Compliance
+
 - All modules must adhere to HIPAA guidelines
 - Implement proper authentication and authorization
 - Ensure data encryption at rest and in transit
 - Maintain comprehensive audit logs
 
 ### 4. Modular Development Approach
+
 - Start with core modules (Patient Registration, EHR, Appointments)
 - Create dashboard sections for each module initially
 - Later integrate all dashboards into a unified administrative view
 - Implement iterative development with continuous feedback
 
 ### 5. Essential Modules
+
 - **Patient CRM**: Registration, history, interactions
 - **Doctor Directory**: Staff management, scheduling
 - **EHR System**: Medical records, treatment plans
@@ -60,6 +67,7 @@
 - **Business Intelligence**: Reporting, analytics
 
 ### 6. Integration Capabilities
+
 - APIs for third-party system integration
 - Support for health data exchange standards
 - Integration with medical devices and equipment

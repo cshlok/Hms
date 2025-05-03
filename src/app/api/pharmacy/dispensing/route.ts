@@ -22,7 +22,10 @@ export async function GET(request: Request) {
   // In a real implementation, this would fetch dispensing records
   // For now, return an empty array or a placeholder response
   console.log("GET /api/pharmacy/dispensing called", request.url);
-  return NextResponse.json({ message: "Dispensing endpoint placeholder", data: [] });
+  return NextResponse.json({
+    message: "Dispensing endpoint placeholder",
+    data: [],
+  });
 }
 
 // Placeholder POST handler (optional, but good practice for API routes)
@@ -33,9 +36,15 @@ export async function POST(request: Request) {
     const body = await request.json();
     console.log("Request body:", body);
     // Add logic to handle dispensing creation
-    return NextResponse.json({ message: "Dispensing record created (simulated)", data: body }, { status: 201 });
+    return NextResponse.json(
+      { message: "Dispensing record created (simulated)", data: body },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error processing POST request:", error);
-    return NextResponse.json({ error: "Failed to process request" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Failed to process request" },
+      { status: 400 }
+    );
   }
 }

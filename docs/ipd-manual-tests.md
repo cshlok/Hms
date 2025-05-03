@@ -116,4 +116,4 @@ This document outlines manual test cases for the IPD module UI and its integrati
 - **Test Case 10.3:** Check if billing is triggered or updated upon admission/discharge (if Billing module integration is implemented).
   - **Expected:** Relevant billing entries are created/updated.
 
-*(Note: These are manual test cases. Execution requires logging in with different user credentials and interacting with the application interface.)*
+_(Note: These are manual test cases. Execution requires logging in with different user credentials and interacting with the application interface.)_

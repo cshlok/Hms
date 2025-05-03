@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getDB } from '@/lib/db'; // Assuming db returns a promise
-import { getSession, Session } from '@/lib/session';
+import { NextRequest, NextResponse } from "next/server";
+import { getDB } from "@/lib/database"; // Assuming db returns a promise
+import { getSession, Session } from "@/lib/session";
 
 // Define interfaces for data structures
 // interface _Medication { // FIX: Prefixed unused interface - Removed as it's unused
@@ -66,11 +66,15 @@ export async function GET(request: NextRequest) {
       search: searchParams.get("search"),
       category: searchParams.get("category"),
       manufacturer: searchParams.get("manufacturer"),
-      prescription_required: searchParams.has("prescription_required") ? searchParams.get("prescription_required") === "true" : null,
-      narcotic: searchParams.has("narcotic") ? searchParams.get("narcotic") === "true" : null,
+      prescription_required: searchParams.has("prescription_required")
+        ? searchParams.get("prescription_required") === "true"
+        : undefined,
+      narcotic: searchParams.has("narcotic")
+        ? searchParams.get("narcotic") === "true"
+        : undefined,
     };
 
-    const db = await getDB();
+    const database = await getDB();
     let query = `
       SELECT
         m.*,
@@ -81,7 +85,7 @@ export async function GET(request: NextRequest) {
       LEFT JOIN Manufacturers mf ON m.manufacturer_id = mf.id
       WHERE 1=1
     `;
-    const queryParams: (string | number)[] = [];
+    const queryParameters: (string | number)[] = [];
 
     if (filters.search) {
       query += ` AND (
@@ -91,35 +95,41 @@ export async function GET(request: NextRequest) {
         m.description LIKE ?
       )`;
       const searchTerm = `%${filters.search}%`;
-      queryParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
+      queryParameters.push(searchTerm, searchTerm, searchTerm, searchTerm);
     }
     if (filters.category) {
       query += ` AND mc.name = ?`;
-      queryParams.push(filters.category);
+      queryParameters.push(filters.category);
     }
     if (filters.manufacturer) {
       query += ` AND mf.name = ?`;
-      queryParams.push(filters.manufacturer);
+      queryParameters.push(filters.manufacturer);
     }
-    if (filters.prescription_required !== null) {
+    if (filters.prescription_required !== undefined) {
       query += ` AND m.prescription_required = ?`;
-      queryParams.push(filters.prescription_required ? 1 : 0);
+      queryParameters.push(filters.prescription_required ? 1 : 0);
     }
-    if (filters.narcotic !== null) {
+    if (filters.narcotic !== undefined) {
       query += ` AND m.narcotic = ?`;
-      queryParams.push(filters.narcotic ? 1 : 0);
+      queryParameters.push(filters.narcotic ? 1 : 0);
     }
 
     query += " ORDER BY m.generic_name ASC";
 
-    const { results } = await db.prepare(query).bind(...queryParams).all();
+    const { results } = await database
+      .prepare(query)
+      .bind(...queryParameters)
+      .all();
 
     return NextResponse.json(results);
-
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
     console.error({ message: "Error fetching medications", error: message });
-    return NextResponse.json({ error: "Failed to fetch medications", details: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch medications", details: message },
+      { status: 500 }
+    );
   }
 }
 
@@ -130,70 +140,108 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session: Session | null = await getSession(); // FIX: Use Session type
-    if (!session?.user || !["Admin", "Pharmacist"].includes(session.user.roleName)) {
-      return NextResponse.json({ error: "Unauthorized: Admin or Pharmacist role required" }, { status: 403 });
+    if (
+      !session?.user ||
+      !["Admin", "Pharmacist"].includes(session.user.roleName)
+    ) {
+      return NextResponse.json(
+        { error: "Unauthorized: Admin or Pharmacist role required" },
+        { status: 403 }
+      );
     }
 
-    const data = await request.json() as MedicationInput;
+    const data = (await request.json()) as MedicationInput;
 
     // Basic validation
-    if (!data.item_code || !data.generic_name || !data.dosage_form || !data.strength || !data.unit_of_measure) {
-      return NextResponse.json({ error: "Missing required fields (item_code, generic_name, dosage_form, strength, unit_of_measure)" }, { status: 400 });
+    if (
+      !data.item_code ||
+      !data.generic_name ||
+      !data.dosage_form ||
+      !data.strength ||
+      !data.unit_of_measure
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Missing required fields (item_code, generic_name, dosage_form, strength, unit_of_measure)",
+        },
+        { status: 400 }
+      );
     }
 
-    const db = await getDB();
+    const database = await getDB();
     const now = new Date().toISOString();
 
     // Check if item_code already exists
-    const existingMed = await db.prepare("SELECT id FROM Medications WHERE item_code = ?").bind(data.item_code).first();
+    const existingMed = await database
+      .prepare("SELECT id FROM Medications WHERE item_code = ?")
+      .bind(data.item_code)
+      .first();
     if (existingMed) {
-      return NextResponse.json({ error: "Medication with this item code already exists" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Medication with this item code already exists" },
+        { status: 409 }
+      );
     }
 
-    const { results } = await db.prepare(
-      `INSERT INTO Medications (
+    const { results } = await database
+      .prepare(
+        `INSERT INTO Medications (
         item_code, generic_name, brand_name, dosage_form, strength, route,
         unit_of_measure, prescription_required, narcotic, description,
         category_id, manufacturer_id, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       RETURNING id` // Use RETURNING to get the new ID
-    ).bind(
-      data.item_code,
-      data.generic_name,
-      data.brand_name || null,
-      data.dosage_form,
-      data.strength,
-      data.route || null,
-      data.unit_of_measure,
-      data.prescription_required === true ? 1 : 0,
-      data.narcotic === true ? 1 : 0,
-      data.description || null,
-      data.category_id || null,
-      data.manufacturer_id || null,
-      now,
-      now
-    ).all(); // Use .all() for RETURNING clause
+      )
+      .bind(
+        data.item_code,
+        data.generic_name,
+        data.brand_name || undefined,
+        data.dosage_form,
+        data.strength,
+        data.route || undefined,
+        data.unit_of_measure,
+        data.prescription_required === true ? 1 : 0,
+        data.narcotic === true ? 1 : 0,
+        data.description || undefined,
+        data.category_id || undefined,
+        data.manufacturer_id || undefined,
+        now,
+        now
+      )
+      .all(); // Use .all() for RETURNING clause
 
     // FIX: Cast results to expected type to access 'id'
-    const newId = (results as Array<{ id: number | string }>)?. [0]?.id;
+    const newId = (results as Array<{ id: number | string }>)?.[0]?.id;
 
     if (!newId) {
       throw new Error("Failed to retrieve ID after medication creation.");
     }
 
     // Fetch the newly created medication to return it
-    const newMedication = await db.prepare("SELECT * FROM Medications WHERE id = ?").bind(newId).first();
+    const newMedication = await database
+      .prepare("SELECT * FROM Medications WHERE id = ?")
+      .bind(newId)
+      .first();
 
     return NextResponse.json(newMedication, { status: 201 });
-
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
     console.error({ message: "Error creating medication", error: message });
     // Handle potential unique constraint violation if check fails due to race condition
-    if (message.includes("UNIQUE constraint failed") && message.includes("item_code")) {
-      return NextResponse.json({ error: "Medication with this item code already exists" }, { status: 409 });
+    if (
+      message.includes("UNIQUE constraint failed") &&
+      message.includes("item_code")
+    ) {
+      return NextResponse.json(
+        { error: "Medication with this item code already exists" },
+        { status: 409 }
+      );
     }
-    return NextResponse.json({ error: "Failed to create medication", details: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create medication", details: message },
+      { status: 500 }
+    );
   }
 }
-

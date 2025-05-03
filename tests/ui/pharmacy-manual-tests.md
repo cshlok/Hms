@@ -10,7 +10,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
   - **Steps**:
     1. Log in as a Pharmacy user
     2. Navigate to `/pharmacy`
-  - **Expected Result**: 
+  - **Expected Result**:
     - Dashboard displays with summary cards showing:
       - Pending prescriptions count
       - Low stock items count
@@ -21,9 +21,10 @@ This document outlines the manual test cases for the Pharmacy Management module 
 ### 2. Inventory Management
 
 - **Test Case IM-01**: View Inventory List
+
   - **Steps**:
     1. Navigate to `/pharmacy/inventory`
-  - **Expected Result**: 
+  - **Expected Result**:
     - List of inventory items displays with columns for:
       - Medication name
       - Batch number
@@ -33,6 +34,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
     - Search and filter options are available
 
 - **Test Case IM-02**: Add New Inventory Batch
+
   - **Steps**:
     1. Navigate to `/pharmacy/inventory/add`
     2. Fill in all required fields:
@@ -45,7 +47,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
        - Enter supplier
        - Enter location
     3. Click "Save"
-  - **Expected Result**: 
+  - **Expected Result**:
     - Form submits successfully
     - New batch appears in inventory list
     - Success message displays
@@ -54,15 +56,16 @@ This document outlines the manual test cases for the Pharmacy Management module 
   - **Steps**:
     1. Navigate to `/pharmacy/inventory`
     2. Use filter options (e.g., low stock, expiring soon)
-  - **Expected Result**: 
+  - **Expected Result**:
     - List updates to show only items matching filter criteria
 
 ### 3. Medication Management
 
 - **Test Case MM-01**: View Medications List
+
   - **Steps**:
     1. Navigate to `/pharmacy/medications`
-  - **Expected Result**: 
+  - **Expected Result**:
     - List of medications displays with columns for:
       - Generic name
       - Brand name
@@ -87,7 +90,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
        - Narcotic (checkbox)
        - Description (optional)
     3. Click "Save Medication"
-  - **Expected Result**: 
+  - **Expected Result**:
     - Form submits successfully
     - New medication appears in medications list
     - Success message displays
@@ -97,6 +100,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
 ### 4. OPD Integration
 
 - **Test Case OI-01**: Prescribe Medications from OPD
+
   - **Steps**:
     1. Log in as a Doctor
     2. Navigate to OPD module
@@ -106,7 +110,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
     6. Enter dosage, frequency, duration for each
     7. Add any special instructions
     8. Click "Create Prescription"
-  - **Expected Result**: 
+  - **Expected Result**:
     - Prescription is created successfully
     - Success message displays
     - Prescription appears in the patient's history
@@ -118,7 +122,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
     2. Navigate to OPD module
     3. Select a patient with existing prescriptions
     4. View the prescription section
-  - **Expected Result**: 
+  - **Expected Result**:
     - Previous prescriptions are listed with:
       - Date
       - Status (pending, dispensed, etc.)
@@ -127,12 +131,13 @@ This document outlines the manual test cases for the Pharmacy Management module 
 ### 5. IPD Integration (MAR)
 
 - **Test Case II-01**: View Medication Schedule in IPD
+
   - **Steps**:
     1. Log in as a Nurse
     2. Navigate to IPD module
     3. Select a patient with active medication orders
     4. View the MAR section
-  - **Expected Result**: 
+  - **Expected Result**:
     - Medication schedule displays with:
       - Scheduled times
       - Medication details
@@ -145,7 +150,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
     3. Select a patient with pending medications
     4. Click "Administer" for a scheduled medication
     5. Confirm administration
-  - **Expected Result**: 
+  - **Expected Result**:
     - Administration is recorded successfully
     - Status updates to "administered"
     - Record appears in administration history
@@ -153,12 +158,13 @@ This document outlines the manual test cases for the Pharmacy Management module 
 ### 6. Billing Integration
 
 - **Test Case BI-01**: View Unbilled Pharmacy Items
+
   - **Steps**:
     1. Log in as a Billing user
     2. Navigate to Billing module
     3. Select a patient with dispensed medications
     4. View the pharmacy billing section
-  - **Expected Result**: 
+  - **Expected Result**:
     - Unbilled pharmacy items display with:
       - Medication details
       - Quantity
@@ -173,7 +179,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
     3. Select a patient with unbilled pharmacy items
     4. Select items to bill
     5. Click "Generate Bill"
-  - **Expected Result**: 
+  - **Expected Result**:
     - Bill is generated successfully
     - Selected items are marked as billed
     - Bill total is calculated correctly
@@ -182,7 +188,7 @@ This document outlines the manual test cases for the Pharmacy Management module 
 ## Test Results
 
 | Test ID | Date | Tester | Result | Notes |
-|---------|------|--------|--------|-------|
+| ------- | ---- | ------ | ------ | ----- |
 | PD-01   |      |        |        |       |
 | IM-01   |      |        |        |       |
 | IM-02   |      |        |        |       |

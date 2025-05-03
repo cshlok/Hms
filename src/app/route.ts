@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getSession, Session, SessionUser } from "@/lib/session"; // FIX: Import SessionUser
 // import { checkUserRole } from "@/lib/auth"; // Assuming checkUserRole might not be fully implemented or needed based on roleName
-import { getDB } from "@/lib/db"; // Import getDB
+import { getDB } from "@/lib/database"; // Import getDB
 
 // Interface for POST request body
 interface RadiologyReportPostData {
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     const radiologistId = searchParams.get("radiologistId");
     const status = searchParams.get("status");
 
-    const db = await getDB();
+    const database = await getDB();
 
     // Select rr.*, rs.accession_number, rad.name as radiologist_name, ro.patient_id, p.name as patient_name, pt.name as procedure_name
     // Ensure aliases match the RadiologyReportListItem interface if possible
@@ -71,24 +71,24 @@ export async function GET(request: NextRequest) {
                  JOIN RadiologyOrders ro ON rs.order_id = ro.id
                  JOIN Patients p ON ro.patient_id = p.id
                  JOIN RadiologyProcedureTypes pt ON ro.procedure_type_id = pt.id`;
-    const params: string[] = [];
+    const parameters: string[] = [];
     const conditions: string[] = [];
 
     if (studyId) {
       conditions.push("rr.study_id = ?");
-      params.push(studyId);
+      parameters.push(studyId);
     }
     if (patientId) {
       conditions.push("ro.patient_id = ?");
-      params.push(patientId);
+      parameters.push(patientId);
     }
     if (radiologistId) {
       conditions.push("rr.radiologist_id = ?");
-      params.push(radiologistId);
+      parameters.push(radiologistId);
     }
     if (status) {
       conditions.push("rr.status = ?");
-      params.push(status);
+      parameters.push(status);
     }
 
     if (conditions.length > 0) {
@@ -98,13 +98,22 @@ export async function GET(request: NextRequest) {
 
     // FIX: Use direct type argument for .all() if supported, or assert structure
     // Assuming .all<T>() returns { results: T[] }
-    const result = await db.prepare(query).bind(...params).all<RadiologyReportListItem>();
+    const result = await database
+      .prepare(query)
+      .bind(...parameters)
+      .all<RadiologyReportListItem>();
     return NextResponse.json(result.results || []);
-
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
-    console.error({ message: "Error fetching radiology reports", error: message });
-    return NextResponse.json({ error: "Failed to fetch radiology reports", details: message }, { status: 500 });
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    console.error({
+      message: "Error fetching radiology reports",
+      error: message,
+    });
+    return NextResponse.json(
+      { error: "Failed to fetch radiology reports", details: message },
+      { status: 500 }
+    );
   }
 }
 
@@ -120,23 +129,48 @@ export async function POST(request: NextRequest) {
     // FIX: Assert user type after null check
     const currentUser = session.user as SessionUser;
     // Use roleName for check
-    if (currentUser.roleName !== "Admin" && currentUser.roleName !== "Radiologist") {
-      return NextResponse.json({ error: "Forbidden: Admin or Radiologist role required" }, { status: 403 });
+    if (
+      currentUser.roleName !== "Admin" &&
+      currentUser.roleName !== "Radiologist"
+    ) {
+      return NextResponse.json(
+        { error: "Forbidden: Admin or Radiologist role required" },
+        { status: 403 }
+      );
     }
 
-    const db = await getDB();
+    const database = await getDB();
     // FIX: Use type assertion for request body
-    const { study_id, radiologist_id, findings, impression, recommendations, status } = await request.json() as RadiologyReportPostData;
+    const {
+      study_id,
+      radiologist_id,
+      findings,
+      impression,
+      recommendations,
+      status,
+    } = (await request.json()) as RadiologyReportPostData;
 
     if (!study_id || !radiologist_id || !impression) {
-      return NextResponse.json({ error: "Missing required fields (study_id, radiologist_id, impression)" }, { status: 400 });
+      return NextResponse.json(
+        {
+          error:
+            "Missing required fields (study_id, radiologist_id, impression)",
+        },
+        { status: 400 }
+      );
     }
 
     // Check if study exists
     // FIX: Use direct type argument for .first() and check result directly
-    const studyResult = await db.prepare("SELECT id FROM RadiologyStudies WHERE id = ?").bind(study_id).first<{ id: string }>();
+    const studyResult = await database
+      .prepare("SELECT id FROM RadiologyStudies WHERE id = ?")
+      .bind(study_id)
+      .first<{ id: string }>();
     if (!studyResult) {
-        return NextResponse.json({ error: "Associated radiology study not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Associated radiology study not found" },
+        { status: 404 }
+      );
     }
 
     // Check if a report already exists for this study (optional, depends on workflow - allow addendums?)
@@ -149,53 +183,85 @@ export async function POST(request: NextRequest) {
     const now = new Date().toISOString();
     const reportStatus = status || "preliminary"; // Default to preliminary
 
-    await db.prepare(
-      "INSERT INTO RadiologyReports (id, study_id, radiologist_id, report_datetime, findings, impression, recommendations, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    ).bind(
-      id,
-      study_id,
-      radiologist_id,
-      now, // report_datetime
-      findings ?? null, // Use nullish coalescing
-      impression,
-      recommendations ?? null, // Use nullish coalescing
-      reportStatus,
-      now, // created_at
-      now  // updated_at
-    ).run();
+    await database
+      .prepare(
+        "INSERT INTO RadiologyReports (id, study_id, radiologist_id, report_datetime, findings, impression, recommendations, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      )
+      .bind(
+        id,
+        study_id,
+        radiologist_id,
+        now, // report_datetime
+        findings ?? undefined, // Use nullish coalescing
+        impression,
+        recommendations ?? undefined, // Use nullish coalescing
+        reportStatus,
+        now, // created_at
+        now // updated_at
+      )
+      .run();
 
     // Update the associated study status to 'reported'
-    await db.prepare("UPDATE RadiologyStudies SET status = ?, updated_at = ? WHERE id = ? AND status != ?")
+    await database
+      .prepare(
+        "UPDATE RadiologyStudies SET status = ?, updated_at = ? WHERE id = ? AND status != ?"
+      )
       .bind("reported", now, study_id, "reported") // Avoid unnecessary updates
       .run();
 
     // Potentially update the order status to 'completed'
     // FIX: Use direct type argument for .first() and check result directly
-    const orderIdResult = await db.prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?").bind(study_id).first<{ order_id: string }>();
+    const orderIdResult = await database
+      .prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?")
+      .bind(study_id)
+      .first<{ order_id: string }>();
     if (orderIdResult?.order_id) {
-        await db.prepare("UPDATE RadiologyOrders SET status = ?, updated_at = ? WHERE id = ? AND status != ?")
-          .bind("completed", now, orderIdResult.order_id, "completed") // Avoid unnecessary updates
-          .run();
+      await database
+        .prepare(
+          "UPDATE RadiologyOrders SET status = ?, updated_at = ? WHERE id = ? AND status != ?"
+        )
+        .bind("completed", now, orderIdResult.order_id, "completed") // Avoid unnecessary updates
+        .run();
     }
 
     // Fetch the created report to return it
     // FIX: Use direct type argument for .first()
-    const createdReport = await db.prepare("SELECT * FROM RadiologyReports WHERE id = ?").bind(id).first<CreatedRadiologyReportQueryResultRow>();
+    const createdReport = await database
+      .prepare("SELECT * FROM RadiologyReports WHERE id = ?")
+      .bind(id)
+      .first<CreatedRadiologyReportQueryResultRow>();
 
-    return NextResponse.json(createdReport || { id, message: "Radiology report created" }, { status: 201 });
-
+    return NextResponse.json(
+      createdReport || { id, message: "Radiology report created" },
+      { status: 201 }
+    );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "An unknown error occurred";
-    console.error({ message: "Error creating radiology report", error: message });
+    const message =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    console.error({
+      message: "Error creating radiology report",
+      error: message,
+    });
     // Provide more specific error details if possible
-    if (error instanceof Error && error.message.includes("UNIQUE constraint failed")) {
-        return NextResponse.json({ error: "Failed to create radiology report: A report for this study might already exist.", details: message }, { status: 409 });
+    if (
+      error instanceof Error &&
+      error.message.includes("UNIQUE constraint failed")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Failed to create radiology report: A report for this study might already exist.",
+          details: message,
+        },
+        { status: 409 }
+      );
     }
-    return NextResponse.json({ error: "Failed to create radiology report", details: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create radiology report", details: message },
+      { status: 500 }
+    );
   }
 }
-
-
 
 // Define the expected structure for the query result row
 interface CreatedRadiologyReportQueryResultRow {
@@ -214,4 +280,3 @@ interface CreatedRadiologyReportQueryResultRow {
   created_at: string;
   updated_at: string;
 }
-

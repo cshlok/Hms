@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db'; // Using mock DB
-import { getSession } from '@/lib/session';
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/database"; // Using mock DB
+import { getSession } from "@/lib/session";
 
 // Interface for the request body when creating a lab test
 interface LabTestCreateBody {
@@ -22,46 +22,50 @@ export async function GET(request: NextRequest) {
 
     // Check authentication
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
-    const categoryId = searchParams.get('categoryId');
-    const isActive = searchParams.get('isActive');
+    const categoryId = searchParams.get("categoryId");
+    const isActive = searchParams.get("isActive");
 
     // Build query
-    let query = 'SELECT t.*, c.name as category_name FROM lab_tests t JOIN lab_test_categories c ON t.category_id = c.id';
+    let query =
+      "SELECT t.*, c.name as category_name FROM lab_tests t JOIN lab_test_categories c ON t.category_id = c.id";
     // FIX: Use specific type for params
-    const params: (string | number | boolean)[] = [];
+    const parameters: (string | number | boolean)[] = [];
 
     // Add filters
     const conditions: string[] = [];
 
     if (categoryId) {
-      conditions.push('t.category_id = ?');
-      params.push(categoryId);
+      conditions.push("t.category_id = ?");
+      parameters.push(categoryId);
     }
 
-    if (isActive !== null) {
-      conditions.push('t.is_active = ?');
-      params.push(isActive === 'true' ? 1 : 0);
+    if (isActive !== undefined) {
+      conditions.push("t.is_active = ?");
+      parameters.push(isActive === "true" ? 1 : 0);
     }
 
     if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
+      query += " WHERE " + conditions.join(" AND ");
     }
 
-    query += ' ORDER BY t.name ASC';
+    query += " ORDER BY t.name ASC";
 
     // Execute query using db.query
-    const testsResult = await db.query(query, params);
+    const testsResult = await db.query(query, parameters);
 
     return NextResponse.json(testsResult.rows || []); // Return rows from the result
   } catch (error) {
-    console.error('Error fetching laboratory tests:', error);
+    console.error("Error fetching laboratory tests:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: 'Failed to fetch laboratory tests', details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch laboratory tests", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
@@ -72,22 +76,36 @@ export async function POST(request: NextRequest) {
 
     // Check authentication and authorization
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Only lab managers and admins can create tests
-    if (!['admin', 'lab_manager'].includes(session.user.roleName)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!["admin", "lab_manager"].includes(session.user.roleName)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Parse request body and assert type
-    const body = await request.json() as LabTestCreateBody;
+    const body = (await request.json()) as LabTestCreateBody;
 
     // Validate required fields
-    const requiredFields: (keyof LabTestCreateBody)[] = ['category_id', 'code', 'name', 'sample_type', 'price'];
+    const requiredFields: (keyof LabTestCreateBody)[] = [
+      "category_id",
+      "code",
+      "name",
+      "sample_type",
+      "price",
+    ];
     for (const field of requiredFields) {
-      if (!(field in body) || body[field] === undefined || body[field] === null || body[field] === '') {
-        return NextResponse.json({ error: `Missing or invalid required field: ${field}` }, { status: 400 });
+      if (
+        !(field in body) ||
+        body[field] === undefined ||
+        body[field] === undefined ||
+        body[field] === ""
+      ) {
+        return NextResponse.json(
+          { error: `Missing or invalid required field: ${field}` },
+          { status: 400 }
+        );
       }
     }
 
@@ -98,36 +116,39 @@ export async function POST(request: NextRequest) {
         sample_volume, processing_time, price, is_active
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    const insertParams = [
+    const insertParameters = [
       body.category_id,
       body.code,
       body.name,
-      body.description || '',
+      body.description || "",
       body.sample_type,
-      body.sample_volume || '',
-      body.processing_time === undefined ? null : body.processing_time, // Handle undefined for optional number
+      body.sample_volume || "",
+      body.processing_time === undefined ? undefined : body.processing_time, // Handle undefined for optional number
       body.price,
-      body.is_active !== undefined ? body.is_active : true
+      body.is_active === undefined ? true : body.is_active,
     ];
 
-    await db.query(insertQuery, insertParams);
+    await db.query(insertQuery, insertParameters);
 
     // Mock response as we cannot get last_row_id from mock db.query
-    const mockTestId = Math.floor(Math.random() * 10000);
+    const mockTestId = Math.floor(Math.random() * 10_000);
     const mockCreatedTest = {
       id: mockTestId,
       ...body, // Include other details from the request body
-      is_active: body.is_active !== undefined ? body.is_active : true, // Ensure is_active is set
-      description: body.description || '',
-      sample_volume: body.sample_volume || '',
-      processing_time: body.processing_time === undefined ? null : body.processing_time,
+      is_active: body.is_active === undefined ? true : body.is_active, // Ensure is_active is set
+      description: body.description || "",
+      sample_volume: body.sample_volume || "",
+      processing_time:
+        body.processing_time === undefined ? undefined : body.processing_time,
     };
 
     return NextResponse.json(mockCreatedTest, { status: 201 });
   } catch (error) {
-    console.error('Error creating laboratory test:', error);
+    console.error("Error creating laboratory test:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: 'Failed to create laboratory test', details: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create laboratory test", details: errorMessage },
+      { status: 500 }
+    );
   }
 }
-

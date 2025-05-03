@@ -24,6 +24,7 @@ Refer to the migration file `migrations/0008_add_ot_management_tables.sql` for t
 The module provides the following API endpoints:
 
 ### Operation Theatres
+
 - `GET /api/ot/theatres`: List all operation theatres
 - `POST /api/ot/theatres`: Create a new operation theatre
 - `GET /api/ot/theatres/:id`: Get details of a specific theatre
@@ -31,6 +32,7 @@ The module provides the following API endpoints:
 - `DELETE /api/ot/theatres/:id`: Delete a theatre
 
 ### Surgery Types
+
 - `GET /api/ot/surgery-types`: List all surgery types
 - `POST /api/ot/surgery-types`: Create a new surgery type
 - `GET /api/ot/surgery-types/:id`: Get details of a specific surgery type
@@ -38,6 +40,7 @@ The module provides the following API endpoints:
 - `DELETE /api/ot/surgery-types/:id`: Delete a surgery type
 
 ### Bookings
+
 - `GET /api/ot/bookings`: List all bookings (with optional filters)
 - `POST /api/ot/bookings`: Create a new booking
 - `GET /api/ot/bookings/:id`: Get details of a specific booking
@@ -45,11 +48,13 @@ The module provides the following API endpoints:
 - `DELETE /api/ot/bookings/:id`: Cancel a booking
 
 ### Staff Assignments
+
 - `GET /api/ot/bookings/:id/staff`: List staff assigned to a booking
 - `POST /api/ot/bookings/:id/staff`: Assign staff to a booking
 - `DELETE /api/ot/bookings/:id/staff/:assignmentId`: Remove staff from a booking
 
 ### Checklist Templates
+
 - `GET /api/ot/checklist-templates`: List all checklist templates
 - `POST /api/ot/checklist-templates`: Create a new checklist template
 - `GET /api/ot/checklist-templates/:id`: Get details of a specific template
@@ -57,10 +62,12 @@ The module provides the following API endpoints:
 - `DELETE /api/ot/checklist-templates/:id`: Delete a template
 
 ### Checklist Responses
+
 - `GET /api/ot/bookings/:id/checklist-responses`: Get checklist responses for a booking
 - `POST /api/ot/bookings/:id/checklist-responses`: Submit checklist responses
 
 ### Operation Records
+
 - `GET /api/ot/bookings/:id/record`: Get operation record for a booking
 - `POST /api/ot/bookings/:id/record`: Create operation record
 - `PUT /api/ot/bookings/:id/record`: Update operation record
@@ -70,6 +77,7 @@ The module provides the following API endpoints:
 The module includes the following UI components:
 
 ### Main Components
+
 - `OTDashboardPage`: Main dashboard with tabs for different sections
 - `OTDashboardStats`: Statistics and today's schedule overview
 - `OTBookingList`: List of all OT bookings with filtering
@@ -78,6 +86,7 @@ The module includes the following UI components:
 - `OTChecklistTemplateList`: List of all checklist templates
 
 ### Modal Components
+
 - `OTBookingModal`: Create/edit OT bookings
 - `OTTheatreModal`: Create/edit operation theatres
 - `OTSurgeryTypeModal`: Create/edit surgery types
@@ -85,6 +94,7 @@ The module includes the following UI components:
 - `OTRecordModal`: Create/edit operation records
 
 ### Integration Components
+
 - `OTPatientSurgeries`: Shows surgeries for a specific patient (integrates with IPD)
 - `OTBillingItems`: Shows OT-related billing items (integrates with Billing)
 - `OTStaffAssignment`: Manages staff assignments for surgeries (integrates with User Management)
@@ -94,16 +104,19 @@ The module includes the following UI components:
 The OT module integrates with other HMS modules as follows:
 
 ### IPD Module Integration
+
 - Patient surgeries are displayed in the IPD patient view
 - Surgeries can be scheduled directly from the IPD module
 - Post-operative notes are accessible from the IPD module
 
 ### User Management Integration
+
 - Staff members are assigned to surgeries based on their roles
 - Surgeons, anesthesiologists, and other staff are selected from the user database
 - Staff availability is checked when scheduling surgeries
 
 ### Billing Integration
+
 - Surgery charges are automatically generated based on surgery type
 - OT usage charges are added to patient bills
 - Consumables and equipment usage are tracked for billing

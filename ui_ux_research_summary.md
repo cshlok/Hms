@@ -4,37 +4,42 @@ Based on the user request to "add all best visual appealing libraries and depend
 
 ## Current State:
 
-*   The project already utilizes **`shadcn/ui`** components, as evidenced by the `src/components/ui/index.tsx` file and its dependencies (like Radix UI primitives and `class-variance-authority`). `shadcn/ui` is a popular choice known for its visually appealing, customizable components built directly on Tailwind CSS and Radix UI.
+- The project already utilizes **`shadcn/ui`** components, as evidenced by the `src/components/ui/index.tsx` file and its dependencies (like Radix UI primitives and `class-variance-authority`). `shadcn/ui` is a popular choice known for its visually appealing, customizable components built directly on Tailwind CSS and Radix UI.
 
 ## Research Findings (Compatible Libraries):
 
 1.  **`shadcn/ui` (Already in use):**
-    *   **Pros:** Highly customizable, accessible, built with Tailwind & Radix, copy-paste components (not a traditional dependency), good documentation, aligns perfectly with the current stack.
-    *   **Cons:** Requires manual setup for each component added.
+
+    - **Pros:** Highly customizable, accessible, built with Tailwind & Radix, copy-paste components (not a traditional dependency), good documentation, aligns perfectly with the current stack.
+    - **Cons:** Requires manual setup for each component added.
 
 2.  **Material Tailwind:**
-    *   **Pros:** Implements Material Design, comprehensive component set, React and HTML versions.
-    *   **Cons:** Introduces Material Design style, which might not be the desired aesthetic or could clash with existing `shadcn/ui` styles.
+
+    - **Pros:** Implements Material Design, comprehensive component set, React and HTML versions.
+    - **Cons:** Introduces Material Design style, which might not be the desired aesthetic or could clash with existing `shadcn/ui` styles.
 
 3.  **Flowbite / Flowbite React:**
-    *   **Pros:** Tailwind-based, large component set, offers Figma files.
-    *   **Cons:** Requires specific `flowbite-react` package for React integration.
+
+    - **Pros:** Tailwind-based, large component set, offers Figma files.
+    - **Cons:** Requires specific `flowbite-react` package for React integration.
 
 4.  **Tailwind UI (Official):**
-    *   **Pros:** High-quality, professionally designed components and templates, built by Tailwind creators.
-    *   **Cons:** Paid service.
+
+    - **Pros:** High-quality, professionally designed components and templates, built by Tailwind creators.
+    - **Cons:** Paid service.
 
 5.  **Daisy UI:**
-    *   **Pros:** Adds component classes to Tailwind (like Bootstrap), themable.
-    *   **Cons:** Potential accessibility concerns mentioned in research, acts as a plugin rather than a component library.
+
+    - **Pros:** Adds component classes to Tailwind (like Bootstrap), themable.
+    - **Cons:** Potential accessibility concerns mentioned in research, acts as a plugin rather than a component library.
 
 6.  **Other Libraries:** Horizon UI, TailGrids, etc. - Many options exist, but introducing another library adds complexity.
 
 ## Recommendation:
 
-Given that **`shadcn/ui` is already integrated** into the project and is a highly regarded, visually appealing library that fits the tech stack perfectly, the most effective approach is to **leverage and expand its use**. 
+Given that **`shadcn/ui` is already integrated** into the project and is a highly regarded, visually appealing library that fits the tech stack perfectly, the most effective approach is to **leverage and expand its use**.
 
-Instead of adding *another* full component library, which could lead to inconsistencies and increased bundle size, we should focus on:
+Instead of adding _another_ full component library, which could lead to inconsistencies and increased bundle size, we should focus on:
 
 1.  **Reviewing existing `shadcn/ui` usage:** Ensure components are used correctly and consistently.
 2.  **Identifying UI areas for improvement:** Determine where new or different `shadcn/ui` components could enhance the visual appeal and user experience.

@@ -66,7 +66,7 @@ A testing strategy was defined in `ipd_testing_plan.md`. Key testing activities 
 - **API Testing:** Basic API tests were implemented in `tests/api/ipd-api-tests.js` to verify endpoint responses and data structures (executed via browser console).
 - **Manual UI Testing:** Detailed manual test cases were documented in `tests/ui/ipd-manual-tests.md`, covering UI functionality, integration points, and RBAC scenarios.
 
-*(Note: Comprehensive automated testing was not performed due to environment limitations, but the structure and plans are in place.)*
+_(Note: Comprehensive automated testing was not performed due to environment limitations, but the structure and plans are in place.)_
 
 ## 7. Conclusion
 

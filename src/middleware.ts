@@ -15,11 +15,11 @@ export async function middleware(request: NextRequest) {
     ) {
       return NextResponse.next();
     }
-    
+
     // Apply auth middleware to protected routes
     return await authMiddleware(request);
   }
-  
+
   // Allow other requests (e.g., static files, login page) to pass through
   return NextResponse.next();
 }

@@ -1,11 +1,13 @@
 # IPD (Inpatient Department) Management Module Requirements Analysis
 
 ## Overview
+
 The IPD Management module is a critical component of the Hospital Management System, handling all aspects of inpatient care from admission to discharge. This module will manage bed allocation, patient progress tracking, nursing care, and discharge processes.
 
 ## Key Components
 
 ### 1. Admission Management
+
 - Patient admission registration
 - Room/bed assignment
 - Initial assessment documentation
@@ -15,6 +17,7 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - Admission type (emergency, planned, transfer)
 
 ### 2. Bed Management
+
 - Real-time bed availability tracking
 - Bed categorization (general, semi-private, private, ICU, etc.)
 - Bed status monitoring (occupied, available, reserved, under maintenance)
@@ -23,6 +26,7 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - Bed charges based on category
 
 ### 3. Daily Progress Notes
+
 - Doctor's daily visit documentation
 - Patient condition updates
 - Treatment modifications
@@ -31,6 +35,7 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - Procedure documentation
 
 ### 4. Nursing Notes
+
 - Vital signs monitoring
 - Medication administration records
 - Intake/output monitoring
@@ -40,6 +45,7 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - Patient status updates
 
 ### 5. Discharge Summary
+
 - Discharge planning
 - Final diagnosis
 - Treatment summary
@@ -50,6 +56,7 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - Discharge certificate generation
 
 ## Database Requirements
+
 - Patient admission records
 - Bed/room allocation history
 - Progress notes
@@ -59,6 +66,7 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - Discharge records
 
 ## UI Requirements
+
 - Admission form
 - Bed allocation dashboard
 - Patient list view with status
@@ -68,6 +76,7 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - IPD billing integration
 
 ## Integration Points
+
 - Patient Registration module
 - Billing & Invoicing module
 - Pharmacy Management
@@ -76,6 +85,7 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - Nursing Portal
 
 ## Reporting Requirements
+
 - Bed occupancy reports
 - Average length of stay
 - Admission/discharge statistics
@@ -83,12 +93,14 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - Doctor-wise admission statistics
 
 ## Security and Access Control
+
 - Doctor access to assigned patients only
 - Nursing access based on ward/department assignment
 - Administrative access for bed management
 - Billing department access for discharge processing
 
 ## Mobile Access Requirements
+
 - Bed availability checking
 - Patient status updates
 - Critical alerts
@@ -96,6 +108,7 @@ The IPD Management module is a critical component of the Hospital Management Sys
 - Discharge planning
 
 ## Next Steps
+
 1. Design database schema for IPD module
 2. Implement API routes for admission, bed management, progress notes, nursing notes, and discharge
 3. Create UI components for each functional area

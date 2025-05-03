@@ -5,6 +5,7 @@
 Based on research from multiple sources including Ezovion, SWI Hospital Software, and other industry solutions, the following are essential features and components of an effective Operation Theatre Management System:
 
 ### 1. Master Setup
+
 - Operating room configuration (number of ORs, specialties, equipment)
 - Staff profiles (surgeons, anesthesiologists, nurses, technicians)
 - Surgery types and procedures catalog
@@ -12,6 +13,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Configurable checklists (pre-op, intra-op, post-op)
 
 ### 2. Booking & Scheduling
+
 - Calendar-based scheduling interface
 - Conflict management and resolution
 - Block scheduling for departments/surgeons
@@ -22,6 +24,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Waitlist management
 
 ### 3. Surgery Packages
+
 - Package designer for different modalities/specialties
 - Pricing configuration
 - Inclusion of consumables, medications, and services
@@ -29,6 +32,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Integration with billing
 
 ### 4. Pre-operative Management
+
 - Pre-anesthesia checkup documentation
 - Patient consent forms
 - Pre-operative instructions
@@ -37,6 +41,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Surgical team briefing
 
 ### 5. Intra-operative Management
+
 - Surgery start/end time tracking
 - Surgical notes and documentation
 - Anesthesia records
@@ -47,6 +52,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Complications recording
 
 ### 6. Post-operative Management
+
 - Recovery room management
 - Post-op instructions
 - Medication orders
@@ -55,6 +61,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Transfer to ward/ICU coordination
 
 ### 7. Inventory Management
+
 - Surgical supplies tracking
 - Instrument sets management
 - Equipment maintenance scheduling
@@ -64,6 +71,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Usage tracking by procedure
 
 ### 8. Shift Management
+
 - Staff scheduling
 - Duty roster creation
 - On-call management
@@ -72,6 +80,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Leave management integration
 
 ### 9. Integration Points
+
 - Patient management system (demographics, medical history)
 - Inpatient department (bed management, admission/discharge)
 - Laboratory and radiology (pre-op investigations)
@@ -81,6 +90,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Central sterile supply department (CSSD)
 
 ### 10. OT Summary & Analytics
+
 - Utilization metrics (OR utilization, turnover time)
 - Performance indicators (on-time starts, cancellations)
 - Surgeon-specific metrics
@@ -89,6 +99,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Quality indicators
 
 ### 11. Billing
+
 - Procedure-based billing
 - Package billing
 - Consumables and additional charges
@@ -97,6 +108,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Split billing (patient/insurance)
 
 ### 12. Reports
+
 - Scheduled surgeries report
 - Completed surgeries report
 - Cancelled/postponed surgeries report
@@ -108,6 +120,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 ## Workflow Considerations
 
 ### Pre-operative Workflow
+
 1. Surgery recommendation by doctor
 2. Pre-anesthesia checkup scheduling
 3. Pre-op investigations ordering
@@ -118,6 +131,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 8. Pre-op checklist verification
 
 ### Intra-operative Workflow
+
 1. Patient check-in to pre-op area
 2. Surgical safety checklist (time-out)
 3. Anesthesia administration
@@ -128,6 +142,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 8. Completion of surgical notes
 
 ### Post-operative Workflow
+
 1. Transfer to recovery room
 2. Post-anesthesia monitoring
 3. Pain management
@@ -140,6 +155,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 ## Technical Requirements
 
 ### Database Requirements
+
 - Patient demographics and medical history
 - Surgeon and staff profiles
 - Operating room details and equipment
@@ -150,6 +166,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Billing and package information
 
 ### UI Requirements
+
 - Calendar view for scheduling
 - Dashboard for OT status
 - Forms for surgical documentation
@@ -158,6 +175,7 @@ Based on research from multiple sources including Ezovion, SWI Hospital Software
 - Mobile responsiveness for on-the-go access
 
 ### Integration Requirements
+
 - Single sign-on with main HMS
 - Shared patient context
 - Consistent UI/UX with other modules

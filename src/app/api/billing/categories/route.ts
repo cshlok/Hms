@@ -9,10 +9,10 @@ import { NextResponse } from "next/server";
 export async function GET(_request: Request) {
   try {
     // const { env } = getRequestContext();
-    
+
     // Mock implementation for development without Cloudflare
     // In a real implementation, this would connect to your database
-    
+
     // Mock categories for development
     const mockCategories = [
       "Consultation",
@@ -21,9 +21,9 @@ export async function GET(_request: Request) {
       "Procedure",
       "Pharmacy",
       "Room Charge",
-      "Other"
+      "Other",
     ];
-    
+
     return NextResponse.json({ categories: mockCategories });
   } catch (error) {
     console.error("Error fetching service item categories:", error);
@@ -37,4 +37,3 @@ export async function GET(_request: Request) {
     );
   }
 }
-
