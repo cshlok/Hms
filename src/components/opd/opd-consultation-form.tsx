@@ -23,7 +23,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // import { zodResolver } from "@hookform/resolvers/zod"; // Removed unused import
 // import { useForm } from "react-hook-form"; // Removed unused import
-import * as z from "zod";
+// import * as z from "zod";
 
 // Define the form schema
 // const consultationFormSchema = z.object({ // Removed unused schema definition
@@ -59,13 +59,13 @@ import * as z from "zod";
 
 // type ConsultationFormValues = z.infer<typeof consultationFormSchema>; // Type depends on unused schema
 
-interface Patient {
-  id: string;
-  name: string;
-  age: number;
-  gender: string;
-  tokenNumber: number;
-}
+// interface Patient {
+//   id: string;
+//   name: string;
+//   age: number;
+//   gender: string;
+//   tokenNumber: number;
+// }
 
 // FIX: Define API response types
 // interface PermissionApiResponse { // Removed unused interface

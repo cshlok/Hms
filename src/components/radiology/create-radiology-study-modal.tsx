@@ -106,7 +106,7 @@ export default function CreateRadiologyStudyModal({
   }, []);
 
   // FIX: Type the event parameter
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!studyDatetime || !technicianId) {
       alert(
@@ -153,7 +153,7 @@ export default function CreateRadiologyStudyModal({
                 <Input
                   id="accessionNumber"
                   value={accessionNumber}
-                  onChange={(_event_) => setAccessionNumber(e.target.value)}
+                  onChange={(e) => setAccessionNumber(e.target.value)}
                   className="col-span-3"
                   placeholder="Auto-generated if left blank"
                 />
@@ -167,7 +167,7 @@ export default function CreateRadiologyStudyModal({
                   id="studyDatetime"
                   type="datetime-local"
                   value={studyDatetime}
-                  onChange={(_event_) => setStudyDatetime(e.target.value)}
+                  onChange={(e) => setStudyDatetime(e.target.value)}
                   className="col-span-3"
                   required
                 />
@@ -221,7 +221,7 @@ export default function CreateRadiologyStudyModal({
                 <Input
                   id="protocol"
                   value={protocol}
-                  onChange={(_event_) => setProtocol(e.target.value)}
+                  onChange={(e) => setProtocol(e.target.value)}
                   className="col-span-3"
                 />
               </div>
@@ -233,7 +233,7 @@ export default function CreateRadiologyStudyModal({
                 <Textarea
                   id="seriesDescription"
                   value={seriesDescription}
-                  onChange={(_event_) => setSeriesDescription(e.target.value)}
+                  onChange={(e) => setSeriesDescription(e.target.value)}
                   className="col-span-3"
                 />
               </div>
@@ -247,7 +247,7 @@ export default function CreateRadiologyStudyModal({
                   type="number"
                   min="1"
                   value={numberOfImages}
-                  onChange={(_event_) => setNumberOfImages(e.target.value)}
+                  onChange={(e) => setNumberOfImages(e.target.value)}
                   className="col-span-3"
                 />
               </div>

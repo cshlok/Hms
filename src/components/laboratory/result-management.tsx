@@ -52,13 +52,6 @@ interface LabOrder {
   // Add other relevant order fields if needed for display
 }
 
-interface LabOrderItem {
-  id: string;
-  test_id: string;
-  test_name: string;
-  // Add other relevant item fields if needed
-}
-
 interface LabParameter {
   id: string;
   name: string;
@@ -78,10 +71,6 @@ interface OrdersApiResponse {
 // interface OrderItemsApiResponse { // Removed unused interface
 //   results?: LabOrderItem[];
 // }
-
-interface ParametersApiResponse {
-  results?: LabParameter[];
-}
 
 interface ApiErrorResponse {
   error?: string;
@@ -115,7 +104,7 @@ const ResultManagement: React.FC = () => {
   const [entryForm] = Form.useForm<CreateResultValues>();
   const [orders, setOrders] = useState<LabOrder[]>([]); // For order selection
   // const [orderItems, setOrderItems] = useState<LabOrderItem[]>([]); // FIX: Removed unused state variable (for result entry)
-  const [parameters, setParameters] = useState<LabParameter[]>([]); // For parameter selection
+  // const [_parameters, _setParameters] = useState<LabParameter[]>([]); // For parameter selection
 
   // Fetch results with optional filters
   const fetchResults = useCallback(async (): Promise<void> => {

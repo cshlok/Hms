@@ -68,7 +68,7 @@ export default function CreateModalityModal({
   };
 
   return (
-    <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(openState) => !openState && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Modality</DialogTitle>

@@ -39,7 +39,7 @@ export default function CreateProcedureTypeModal({
   const [modalityType, setModalityType] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name) {
       alert("Please enter a procedure type name.");
@@ -82,7 +82,7 @@ export default function CreateProcedureTypeModal({
               <Input
                 id="name"
                 value={name}
-                onChange={(_event_) => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 className="col-span-3"
                 required
                 disabled={isSubmitting}
@@ -95,7 +95,7 @@ export default function CreateProcedureTypeModal({
               <Input
                 id="modalityType"
                 value={modalityType}
-                onChange={(_event_) => setModalityType(e.target.value)}
+                onChange={(e) => setModalityType(e.target.value)}
                 className="col-span-3"
                 placeholder="e.g., XRAY, CT, MRI, ULTRASOUND"
                 disabled={isSubmitting}
@@ -108,7 +108,7 @@ export default function CreateProcedureTypeModal({
               <Textarea
                 id="description"
                 value={description}
-                onChange={(_event_) => setDescription(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
                 className="col-span-3"
                 disabled={isSubmitting}
               />

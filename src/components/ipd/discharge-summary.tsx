@@ -16,6 +16,6 @@ interface DischargeSummaryProperties {
 
 
 
-export default function DischargeSummary({ _admissionId }: DischargeSummaryProperties) {
+export default function DischargeSummary({}: DischargeSummaryProperties) {
 
 }
