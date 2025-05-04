@@ -839,6 +839,7 @@ interface CalendarProperties {
 
 // Calendar component (placeholder - use react-day-picker)
 export const Calendar = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   mode: _mode = "single", // FIX: Prefix unused variable
   selected,
   onSelect,

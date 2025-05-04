@@ -128,10 +128,10 @@ export async function GET(request: NextRequest) {
 // PUT /api/ot/bookings/[id] - Update an existing OT booking
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const bookingId = params.id;
+    const bookingId = context.params.id;
     if (!bookingId) {
       return NextResponse.json(
         { message: "Booking ID is required" },
