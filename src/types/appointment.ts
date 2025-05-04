@@ -2,14 +2,15 @@
 import { Patient } from "./patient";
 import { Doctor } from "./doctor";
 
-export type AppointmentStatus = 
-    | "Scheduled"
-    | "Confirmed"
-    | "CheckedIn"
-    | "InProgress"
-    | "Completed"
-    | "Cancelled"
-    | "NoShow";
+export enum AppointmentStatus {
+    Scheduled = "Scheduled",
+    Confirmed = "Confirmed",
+    CheckedIn = "CheckedIn",
+    InProgress = "InProgress",
+    Completed = "Completed",
+    Cancelled = "Cancelled",
+    NoShow = "NoShow",
+}
 
 export interface Appointment {
     appointment_id: number;
@@ -19,7 +20,7 @@ export interface Appointment {
     appointment_datetime: string; // ISO string or Date object
     duration_minutes: number;
     reason?: string | null;
-    status: AppointmentStatus;
+    status: AppointmentStatus; // Use enum
     notes?: string | null;
     booked_by_user_id?: number | null;
     created_at: string; // ISO string or Date object

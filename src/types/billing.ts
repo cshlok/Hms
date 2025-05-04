@@ -1,13 +1,20 @@
 // types/billing.ts
 
-export type ItemType = "Service" | "Procedure" | "Pharmacy" | "Consumable" | "EquipmentUsage" | "Package";
+export enum ItemType {
+    Service = "Service",
+    Procedure = "Procedure",
+    Pharmacy = "Pharmacy",
+    Consumable = "Consumable",
+    EquipmentUsage = "EquipmentUsage",
+    Package = "Package",
+}
 
 export interface BillableItem {
     item_id: number;
     item_code?: string | null;
     item_name: string;
     description?: string | null;
-    item_type: ItemType;
+    item_type: ItemType; // Use enum
     unit_price: number;
     department?: string | null;
     is_taxable: boolean;
@@ -16,7 +23,14 @@ export interface BillableItem {
     updated_at: string;
 }
 
-export type InvoiceStatus = "Draft" | "Issued" | "Paid" | "PartiallyPaid" | "Overdue" | "Cancelled";
+export enum InvoiceStatus {
+    Draft = "Draft",
+    Issued = "Issued",
+    Paid = "Paid",
+    PartiallyPaid = "PartiallyPaid",
+    Overdue = "Overdue",
+    Cancelled = "Cancelled",
+}
 
 export interface Invoice {
     invoice_id: number;
@@ -30,7 +44,7 @@ export interface Invoice {
     paid_amount: number;
     discount_amount: number;
     tax_amount: number;
-    status: InvoiceStatus;
+    status: InvoiceStatus; // Use enum
     notes?: string | null;
     created_by_user_id?: number | null;
     created_at: string;
@@ -57,7 +71,13 @@ export interface InvoiceItem {
     billable_item?: Pick<BillableItem, "item_id" | "item_name" | "item_type">;
 }
 
-export type PaymentMethod = "Cash" | "Card" | "BankTransfer" | "Insurance" | "Online";
+export enum PaymentMethod {
+    Cash = "Cash",
+    Card = "Card",
+    BankTransfer = "BankTransfer",
+    Insurance = "Insurance",
+    Online = "Online",
+}
 
 export interface Payment {
     payment_id: number;
@@ -65,7 +85,7 @@ export interface Payment {
     patient_id: number;
     payment_date: string;
     amount_paid: number;
-    payment_method: PaymentMethod;
+    payment_method: PaymentMethod; // Use enum
     transaction_reference?: string | null;
     notes?: string | null;
     received_by_user_id?: number | null;

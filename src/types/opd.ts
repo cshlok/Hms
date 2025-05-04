@@ -5,18 +5,30 @@ import { Appointment } from "./appointment";
 import { InventoryItem } from "./inventory";
 import { BillableItem } from "./billing";
 
-export type OPDVisitStatus = "Waiting" | "WithDoctor" | "Billing" | "Pharmacy" | "Lab" | "Completed" | "Cancelled";
-export type OPDVisitType = "New" | "FollowUp" | "WalkIn";
+export enum OPDVisitStatus {
+    Waiting = "Waiting",
+    WithDoctor = "WithDoctor",
+    Billing = "Billing",
+    Pharmacy = "Pharmacy",
+    Lab = "Lab",
+    Completed = "Completed",
+    Cancelled = "Cancelled",
+}
+export enum OPDVisitType {
+    New = "New",
+    FollowUp = "FollowUp",
+    WalkIn = "WalkIn",
+}
 
 export interface OPDVisit {
     opd_visit_id: number;
     patient_id: number;
     appointment_id?: number | null;
     visit_datetime: string;
-    visit_type: OPDVisitType;
+    visit_type: OPDVisitType; // Use enum
     doctor_id: number;
     department?: string | null;
-    status: OPDVisitStatus;
+    status: OPDVisitStatus; // Use enum
     notes?: string | null;
     created_by_user_id?: number | null;
     created_at: string;
@@ -103,8 +115,20 @@ export interface PrescriptionItem {
     inventory_item?: Pick<InventoryItem, "inventory_item_id" | "unit_of_measure">;
 }
 
-export type LabOrderStatus = "Ordered" | "SampleCollected" | "Processing" | "Completed" | "Cancelled";
-export type LabOrderItemStatus = "Ordered" | "SampleCollected" | "Processing" | "Completed" | "Cancelled";
+export enum LabOrderStatus {
+    Ordered = "Ordered",
+    SampleCollected = "SampleCollected",
+    Processing = "Processing",
+    Completed = "Completed",
+    Cancelled = "Cancelled",
+}
+export enum LabOrderItemStatus {
+    Ordered = "Ordered",
+    SampleCollected = "SampleCollected",
+    Processing = "Processing",
+    Completed = "Completed",
+    Cancelled = "Cancelled",
+}
 
 export interface LabOrder {
     lab_order_id: number;
@@ -112,7 +136,7 @@ export interface LabOrder {
     patient_id: number;
     doctor_id: number;
     order_datetime: string;
-    status: LabOrderStatus;
+    status: LabOrderStatus; // Use enum
     notes?: string | null;
     created_at: string;
     updated_at: string;
@@ -138,7 +162,7 @@ export interface LabOrderItem {
     result_notes?: string | null;
     result_datetime?: string | null;
     result_verified_by_user_id?: number | null;
-    status: LabOrderItemStatus;
+    status: LabOrderItemStatus; // Use enum
     created_at: string;
     updated_at: string;
     // Optional expanded details
