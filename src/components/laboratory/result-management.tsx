@@ -52,12 +52,12 @@ interface LabOrder {
   // Add other relevant order fields if needed for display
 }
 
-interface LabParameter {
-  id: string;
-  name: string;
-  unit?: string;
-  // Add other relevant parameter fields if needed
-}
+// interface LabParameter { // FIX: Commented out unused interface
+//   id: string;
+//   name: string;
+//   unit?: string;
+//   // Add other relevant parameter fields if needed
+// }
 
 // FIX: Define API response types
 interface ResultsApiResponse {

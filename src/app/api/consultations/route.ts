@@ -1,14 +1,20 @@
 // app/api/consultations/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Consultation } from "@/types/opd";
 import { z } from "zod";
 
 // Define roles allowed to view/create consultations (adjust as needed)
-const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse"]; // Nurse might view for context
+const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse"];
 const ALLOWED_ROLES_CREATE = ["Doctor"];
+
+// Define Cloudflare Env type (adjust based on actual bindings)
+interface CloudflareEnv {
+    DB: D1Database;
+    [key: string]: unknown; // Index signature
+}
 
 // GET handler for listing consultations with filters
 const ListConsultationsQuerySchema = z.object({
@@ -22,8 +28,26 @@ const ListConsultationsQuerySchema = z.object({
     offset: z.coerce.number().int().nonnegative().optional().default(0),
 });
 
+// Define type for the query result row
+interface ConsultationListQueryResult {
+    consultation_id: number;
+    patient_id: number;
+    doctor_id: number;
+    opd_visit_id: number | null;
+    admission_id: number | null;
+    consultation_datetime: string;
+    chief_complaint: string | null;
+    diagnosis: string | null;
+    created_at: string;
+    updated_at: string;
+    patient_first_name: string;
+    patient_last_name: string;
+    doctor_full_name: string;
+}
+
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    // const cookieStore = cookies(); // Removed intermediate variable
+    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
@@ -40,13 +64,19 @@ export async function GET(request: Request) {
         }
 
         const filters = validation.data;
-        const { env } = getCloudflareContext();
-        const { DB } = env;
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
+        const DB = env.DB; // Access DB directly from env
+
+        if (!DB) {
+            throw new Error("Database binding not found in Cloudflare environment.");
+        }
 
         // 2. Build Query
         let query = `
-            SELECT 
-                c.*, 
+            SELECT
+                c.consultation_id, c.patient_id, c.doctor_id, c.opd_visit_id, c.admission_id,
+                c.consultation_datetime, c.chief_complaint, c.diagnosis, c.created_at, c.updated_at,
                 p.first_name as patient_first_name, p.last_name as patient_last_name,
                 u.full_name as doctor_full_name
             FROM Consultations c
@@ -63,7 +93,6 @@ export async function GET(request: Request) {
             queryParamsList.push(filters.patientId);
         }
         if (filters.doctorId) {
-            // If user is a doctor, restrict to their own consultations unless admin/nurse
             if (session.user.roleName === "Doctor") {
                 const userDoctorProfile = await DB.prepare("SELECT doctor_id FROM Doctors WHERE user_id = ?").bind(session.user.userId).first<{ doctor_id: number }>();
                 if (!userDoctorProfile || (filters.doctorId && filters.doctorId !== userDoctorProfile.doctor_id)) {
@@ -76,7 +105,6 @@ export async function GET(request: Request) {
                  queryParamsList.push(filters.doctorId);
             }
         } else if (session.user.roleName === "Doctor") {
-             // If no doctorId filter is applied, doctor sees only their own
              const userDoctorProfile = await DB.prepare("SELECT doctor_id FROM Doctors WHERE user_id = ?").bind(session.user.userId).first<{ doctor_id: number }>();
              if (userDoctorProfile) {
                  query += " AND c.doctor_id = ?";
@@ -105,10 +133,10 @@ export async function GET(request: Request) {
         queryParamsList.push(filters.limit, filters.offset);
 
         // 3. Execute Query
-        const results = await DB.prepare(query).bind(...queryParamsList).all<unknown[]>();
+        const results = await DB.prepare(query).bind(...queryParamsList).all<ConsultationListQueryResult>();
 
         // 4. Format Response
-        const consultations: Consultation[] = results.results?.map(row => ({
+        const consultations: Consultation[] = results.results?.map((row: ConsultationListQueryResult) => ({
             consultation_id: row.consultation_id,
             patient_id: row.patient_id,
             doctor_id: row.doctor_id,
@@ -116,7 +144,7 @@ export async function GET(request: Request) {
             admission_id: row.admission_id,
             consultation_datetime: row.consultation_datetime,
             chief_complaint: row.chief_complaint,
-            diagnosis: row.diagnosis, // Only include key fields in list view
+            diagnosis: row.diagnosis,
             created_at: row.created_at,
             updated_at: row.updated_at,
             patient: {
@@ -144,21 +172,22 @@ const CreateConsultationSchema = z.object({
     patient_id: z.number().int().positive(),
     opd_visit_id: z.number().int().positive().optional().nullable(),
     admission_id: z.number().int().positive().optional().nullable(),
-    consultation_datetime: z.string().datetime().optional(), // Defaults to now
+    consultation_datetime: z.string().datetime().optional(),
     chief_complaint: z.string().optional().nullable(),
     history_of_present_illness: z.string().optional().nullable(),
     physical_examination: z.string().optional().nullable(),
     diagnosis: z.string().optional().nullable(),
     treatment_plan: z.string().optional().nullable(),
     follow_up_instructions: z.string().optional().nullable(),
-    notes: z.string().optional().nullable(), // Doctor's private notes
+    notes: z.string().optional().nullable(),
 }).refine(data => data.opd_visit_id || data.admission_id, {
     message: "Consultation must be linked to either an OPD Visit or an Admission.",
-    path: ["opd_visit_id", "admission_id"], // Indicate related fields
+    path: ["opd_visit_id", "admission_id"],
 });
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    // const cookieStore = cookies(); // Removed intermediate variable
+    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_CREATE.includes(session.user.roleName)) {
@@ -174,8 +203,13 @@ export async function POST(request: Request) {
         }
 
         const consultData = validation.data;
-        const { env } = getCloudflareContext();
-        const { DB } = env;
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
+        const DB = env.DB; // Access DB directly from env
+
+        if (!DB) {
+            throw new Error("Database binding not found in Cloudflare environment.");
+        }
 
         // 2. Get Doctor ID from session user
         const doctorProfile = await DB.prepare("SELECT doctor_id FROM Doctors WHERE user_id = ?").bind(session.user.userId).first<{ doctor_id: number }>();
@@ -191,11 +225,9 @@ export async function POST(request: Request) {
         if (consultData.opd_visit_id) {
             checks.push(DB.prepare("SELECT opd_visit_id FROM OPDVisits WHERE opd_visit_id = ? AND patient_id = ?").bind(consultData.opd_visit_id, consultData.patient_id));
         }
-        // Add check for admission_id if IPD module is implemented
-        // if (consultData.admission_id) { ... }
 
         const results = await DB.batch(checks);
-        const [patientCheck, visitCheck /*, admissionCheck */] = results;
+        const [patientCheck, visitCheck] = results;
 
         if (!patientCheck?.results?.length) {
             return new Response(JSON.stringify({ error: "Patient not found or inactive" }), { status: 404 });
@@ -203,21 +235,20 @@ export async function POST(request: Request) {
         if (consultData.opd_visit_id && !visitCheck?.results?.length) {
             return new Response(JSON.stringify({ error: "OPD Visit not found or does not belong to this patient" }), { status: 404 });
         }
-        // Add check for admission_id result
 
         // 4. Insert the new consultation
         const insertResult = await DB.prepare(
             `INSERT INTO Consultations (
-                patient_id, doctor_id, opd_visit_id, admission_id, consultation_datetime, 
-                chief_complaint, history_of_present_illness, physical_examination, 
+                patient_id, doctor_id, opd_visit_id, admission_id, consultation_datetime,
+                chief_complaint, history_of_present_illness, physical_examination,
                 diagnosis, treatment_plan, follow_up_instructions, notes
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).bind(
             consultData.patient_id,
-            doctorId, // Use doctorId from session
+            doctorId,
             consultData.opd_visit_id,
             consultData.admission_id,
-            consultData.consultation_datetime || null, // Let DB handle default
+            consultData.consultation_datetime || null,
             consultData.chief_complaint,
             consultData.history_of_present_illness,
             consultData.physical_examination,
@@ -228,15 +259,14 @@ export async function POST(request: Request) {
         ).run();
 
         if (!insertResult.success) {
-            throw new Error("Failed to create consultation");
+            throw new Error(`Failed to create consultation: ${insertResult.error}`);
         }
 
         const newConsultationId = insertResult.meta.last_row_id;
 
-        // Optional: Update OPD Visit status to 'WithDoctor' or 'Completed' based on workflow
         if (consultData.opd_visit_id) {
             await DB.prepare("UPDATE OPDVisits SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE opd_visit_id = ? AND status = ?")
-                  .bind("WithDoctor", consultData.opd_visit_id, "Waiting") // Example: Update only if status was 'Waiting'
+                  .bind("WithDoctor", consultData.opd_visit_id, "Waiting")
                   .run();
         }
 
@@ -255,4 +285,3 @@ export async function POST(request: Request) {
         });
     }
 }
-

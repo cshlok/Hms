@@ -1,6 +1,6 @@
 // app/api/consultations/[consultationId]/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Consultation } from "@/types/opd";
@@ -10,18 +10,24 @@ import { z } from "zod";
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse"];
 const ALLOWED_ROLES_UPDATE = ["Doctor"]; // Only the doctor who created it?
 
+// Define Cloudflare Env type (adjust based on actual bindings)
+interface CloudflareEnv {
+    DB: D1Database;
+    [key: string]: unknown; // Index signature
+}
+
 // Helper function to get consultation ID from URL
 function getConsultationId(pathname: string): number | null {
-    // Pathname might be /api/consultations/123
     const parts = pathname.split("/");
-    const idStr = parts[parts.length - 1]; // Last part
+    const idStr = parts[parts.length - 1];
     const id = parseInt(idStr, 10);
     return isNaN(id) ? null : id;
 }
 
 // GET handler for retrieving a specific consultation with full details
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    // const cookieStore = cookies(); // Removed intermediate variable
+    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
     const url = new URL(request.url);
     const consultationId = getConsultationId(url.pathname);
 
@@ -35,13 +41,39 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
-        const { DB } = env;
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
+        const DB = env.DB; // Access DB directly from env
+
+        if (!DB) {
+            throw new Error("Database binding not found in Cloudflare environment.");
+        }
 
         // 2. Retrieve the main consultation record
+        interface ConsultationQueryResult {
+            consultation_id: number;
+            patient_id: number;
+            doctor_id: number;
+            opd_visit_id: number | null;
+            admission_id: number | null;
+            consultation_datetime: string;
+            chief_complaint: string | null;
+            history_of_present_illness: string | null;
+            physical_examination: string | null;
+            diagnosis: string | null;
+            treatment_plan: string | null;
+            follow_up_instructions: string | null;
+            notes: string | null;
+            created_at: string;
+            updated_at: string;
+            patient_first_name: string;
+            patient_last_name: string;
+            doctor_full_name: string;
+        }
+
         const consultResult = await DB.prepare(
-            `SELECT 
-                c.*, 
+            `SELECT
+                c.*,
                 p.first_name as patient_first_name, p.last_name as patient_last_name,
                 u.full_name as doctor_full_name
              FROM Consultations c
@@ -49,7 +81,7 @@ export async function GET(request: Request) {
              JOIN Doctors d ON c.doctor_id = d.doctor_id
              JOIN Users u ON d.user_id = u.user_id
              WHERE c.consultation_id = ?`
-        ).bind(consultationId).first<unknown>();
+        ).bind(consultationId).first<ConsultationQueryResult>();
 
         if (!consultResult) {
             return new Response(JSON.stringify({ error: "Consultation not found" }), { status: 404 });
@@ -63,7 +95,7 @@ export async function GET(request: Request) {
             }
         }
 
-        // 4. Format the response (including all fields for detail view)
+        // 4. Format the response
         const consultation: Consultation = {
             consultation_id: consultResult.consultation_id,
             patient_id: consultResult.patient_id,
@@ -89,7 +121,6 @@ export async function GET(request: Request) {
                 doctor_id: consultResult.doctor_id,
                 user: { fullName: consultResult.doctor_full_name }
             }
-            // TODO: Optionally fetch related prescriptions, lab orders here if needed
         };
 
         // 5. Return the detailed consultation
@@ -104,18 +135,18 @@ export async function GET(request: Request) {
 
 // PUT handler for updating a consultation
 const UpdateConsultationSchema = z.object({
-    // Only allow updating specific fields by the doctor
     chief_complaint: z.string().optional().nullable(),
     history_of_present_illness: z.string().optional().nullable(),
     physical_examination: z.string().optional().nullable(),
     diagnosis: z.string().optional().nullable(),
     treatment_plan: z.string().optional().nullable(),
     follow_up_instructions: z.string().optional().nullable(),
-    notes: z.string().optional().nullable(), // Doctor's private notes
+    notes: z.string().optional().nullable(),
 });
 
 export async function PUT(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    // const cookieStore = cookies(); // Removed intermediate variable
+    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
     const url = new URL(request.url);
     const consultationId = getConsultationId(url.pathname);
 
@@ -138,13 +169,17 @@ export async function PUT(request: Request) {
 
         const updateData = validation.data;
 
-        // Check if there's anything to update
         if (Object.keys(updateData).length === 0) {
              return new Response(JSON.stringify({ message: "No update data provided" }), { status: 200 });
         }
 
-        const { env } = getCloudflareContext();
-        const { DB } = env;
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
+        const DB = env.DB; // Access DB directly from env
+
+        if (!DB) {
+            throw new Error("Database binding not found in Cloudflare environment.");
+        }
 
         // 2. Verify consultation exists and belongs to the current doctor
         const doctorProfile = await DB.prepare("SELECT doctor_id FROM Doctors WHERE user_id = ?").bind(session.user.userId).first<{ doctor_id: number }>();
@@ -168,7 +203,7 @@ export async function PUT(request: Request) {
         const queryParams: (string | null | number)[] = [];
 
         Object.entries(updateData).forEach(([key, value]) => {
-            if (value !== undefined) { // Allow null values to be set
+            if (value !== undefined) {
                 query += `, ${key} = ?`;
                 queryParams.push(value);
             }
@@ -181,7 +216,7 @@ export async function PUT(request: Request) {
         const updateResult = await DB.prepare(query).bind(...queryParams).run();
 
         if (!updateResult.success) {
-            throw new Error("Failed to update consultation");
+            throw new Error(`Failed to update consultation: ${updateResult.error}`);
         }
 
         // 5. Return success response
@@ -193,8 +228,3 @@ export async function PUT(request: Request) {
         return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), { status: 500 });
     }
 }
-
-// DELETE handler - Consultations are generally not deleted, maybe marked as error?
-// Implement if hard deletion is truly required, but use with caution.
-// export async function DELETE(request: Request) { ... }
-

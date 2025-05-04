@@ -1,6 +1,6 @@
 // app/api/appointments/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Appointment, AppointmentStatus } from "@/types/appointment";
@@ -10,9 +10,36 @@ import { z } from "zod";
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor", "Patient"];
 const ALLOWED_ROLES_BOOK = ["Admin", "Receptionist", "Patient"]; // Doctors usually don't book for patients
 
+// Define interface for the complex query result
+interface AppointmentQueryResult {
+  appointment_id: number;
+  patient_id: number;
+  doctor_id: number;
+  schedule_id: number | null;
+  appointment_datetime: string; // ISO String
+  duration_minutes: number;
+  reason: string | null;
+  status: AppointmentStatus;
+  notes: string | null;
+  booked_by_user_id: number;
+  created_at: string; // ISO String
+  updated_at: string; // ISO String
+  patient_first_name: string;
+  patient_last_name: string;
+  doctor_name: string;
+  doctor_specialty: string;
+}
+
+// Define Cloudflare Env type (adjust based on actual bindings)
+interface CloudflareEnv {
+    DB: D1Database;
+    [key: string]: unknown; // Index signature
+}
+
 // GET handler for listing appointments
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies(); // FIX: Await cookies()
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // Pass the awaited store
     const { searchParams } = new URL(request.url);
 
     // 1. Check Authentication & Authorization
@@ -24,14 +51,19 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
-        const { DB } = env;
+        const context = await getCloudflareContext<{env: CloudflareEnv}>(); // FIX: Correct generic type
+        const { env } = context;
+        const DB = env.DB; // Access DB directly from env
+
+        if (!DB) {
+            throw new Error("Database binding not found in Cloudflare environment.");
+        }
 
         // 2. Build query based on filters
         let query = `
-            SELECT 
-                a.*, 
-                p.first_name as patient_first_name, p.last_name as patient_last_name, 
+            SELECT
+                a.*,
+                p.first_name as patient_first_name, p.last_name as patient_last_name,
                 u_doc.full_name as doctor_name, d.specialty as doctor_specialty
             FROM Appointments a
             JOIN Patients p ON a.patient_id = p.patient_id
@@ -44,7 +76,6 @@ export async function GET(request: Request) {
         // Filter by patient_id (if user is Patient, restrict to their own)
         const patientId = searchParams.get("patientId");
         if (session.user.roleName === "Patient") {
-            // Find patient_id associated with the logged-in user
             const patientProfile = await DB.prepare("SELECT patient_id FROM Patients WHERE user_id = ? AND is_active = TRUE").bind(session.user.userId).first<{ patient_id: number }>();
             if (!patientProfile) {
                  return new Response(JSON.stringify({ error: "Patient profile not found for this user" }), {
@@ -98,14 +129,13 @@ export async function GET(request: Request) {
         query += " ORDER BY a.appointment_datetime ASC";
 
         // 3. Retrieve appointments
-        const appointmentsResult = await DB.prepare(query).bind(...queryParams).all<unknown[]>(); // Use unknown[] for joined fields
+        const statement = DB.prepare(query).bind(...queryParams);
+        const appointmentsResult = await statement.all<AppointmentQueryResult>();
 
-        if (!appointmentsResult.results) {
-            throw new Error("Failed to retrieve appointments");
-        }
+        const appointments = appointmentsResult.results || [];
 
         // 4. Format results
-        const formattedResults: Appointment[] = appointmentsResult.results.map(appt => ({
+        const formattedResults: Appointment[] = appointments.map((appt: AppointmentQueryResult) => ({
             appointment_id: appt.appointment_id,
             patient_id: appt.patient_id,
             doctor_id: appt.doctor_id,
@@ -128,10 +158,9 @@ export async function GET(request: Request) {
                 specialty: appt.doctor_specialty,
                 user: {
                     fullName: appt.doctor_name,
-                    // Add other necessary user fields if needed
-                    userId: 0, // Placeholder, ideally fetch user_id if needed
-                    username: '', // Placeholder
-                    email: '' // Placeholder
+                    userId: 0, // Placeholder
+                    username: "", // Placeholder
+                    email: "" // Placeholder
                 }
             }
         }));
@@ -156,14 +185,15 @@ export async function GET(request: Request) {
 const BookAppointmentSchema = z.object({
     patient_id: z.number().int().positive(),
     doctor_id: z.number().int().positive(),
-    appointment_datetime: z.string().datetime({ message: "Invalid ISO 8601 datetime string" }), // Expect ISO 8601 format
+    appointment_datetime: z.string().datetime({ message: "Invalid ISO 8601 datetime string" }),
     duration_minutes: z.number().int().positive().optional().default(15),
     reason: z.string().optional(),
-    status: z.nativeEnum(AppointmentStatus).optional().default("Scheduled"),
+    status: z.nativeEnum(AppointmentStatus).optional().default(AppointmentStatus.Scheduled),
 });
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies(); // FIX: Await cookies()
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // Pass the awaited store
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_BOOK.includes(session.user.roleName)) {
@@ -185,12 +215,20 @@ export async function POST(request: Request) {
         }
 
         const apptData = validation.data;
+        let dbInstance: D1Database | undefined;
+
+        // Get context and DB instance once
+        const context = await getCloudflareContext<{env: CloudflareEnv}>(); // FIX: Correct generic type
+        const { env } = context;
+        dbInstance = env.DB; // Access DB directly from env
+
+        if (!dbInstance) {
+            throw new Error("Database binding not found in Cloudflare environment.");
+        }
 
         // If user is a Patient, ensure they are booking for themselves
         if (session.user.roleName === "Patient") {
-             const { env } = getCloudflareContext();
-             const { DB } = env;
-             const patientProfile = await DB.prepare("SELECT patient_id FROM Patients WHERE user_id = ? AND is_active = TRUE").bind(session.user.userId).first<{ patient_id: number }>();
+             const patientProfile = await dbInstance.prepare("SELECT patient_id FROM Patients WHERE user_id = ? AND is_active = TRUE").bind(session.user.userId).first<{ patient_id: number }>();
              if (!patientProfile || patientProfile.patient_id !== apptData.patient_id) {
                  return new Response(JSON.stringify({ error: "Forbidden: Patients can only book appointments for themselves" }), {
                     status: 403,
@@ -199,17 +237,10 @@ export async function POST(request: Request) {
              }
         }
 
-        const { env } = getCloudflareContext();
-        const { DB } = env;
-
         // 2. TODO: Check Doctor Availability (complex logic)
-        // - Check against DoctorSchedules
-        // - Check against existing Appointments for overlaps
-        // This requires careful time comparison logic.
-        // For now, we'll skip the complex availability check and assume the slot is valid.
 
         // 3. Insert new appointment
-        const insertResult = await DB.prepare(
+        const insertResult = await dbInstance.prepare(
             "INSERT INTO Appointments (patient_id, doctor_id, appointment_datetime, duration_minutes, reason, status, booked_by_user_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
         )
         .bind(
@@ -219,30 +250,28 @@ export async function POST(request: Request) {
             apptData.duration_minutes,
             apptData.reason || null,
             apptData.status,
-            session.user.userId // Record who booked it
+            session.user.userId
         )
         .run();
 
         if (!insertResult.success) {
-            throw new Error("Failed to book appointment");
+            throw new Error(`Failed to book appointment: ${insertResult.error}`);
         }
 
         const newAppointmentId = insertResult.meta.last_row_id;
 
         // 4. Return success response
         return new Response(JSON.stringify({ message: "Appointment booked successfully", appointmentId: newAppointmentId }), {
-            status: 201, // Created
+            status: 201,
             headers: { "Content-Type": "application/json" },
         });
 
     } catch (error) {
         console.error("Book appointment error:", error);
         const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        // Handle potential constraint errors if any
         return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
             status: 500,
             headers: { "Content-Type": "application/json" },
         });
     }
 }
-

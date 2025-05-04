@@ -1,6 +1,6 @@
 // types/opd.ts
 import { Patient } from "./patient";
-import { Doctor } from "./doctor";
+// import { Doctor } from "./doctor"; // FIX: Removed unused import
 import { Appointment } from "./appointment";
 import { InventoryItem } from "./inventory";
 import { BillableItem } from "./billing";
@@ -170,4 +170,3 @@ export interface LabOrderItem {
     sample_collected_by_user?: { user_id: number; full_name?: string | null };
     result_verified_by_user?: { user_id: number; full_name?: string | null };
 }
-

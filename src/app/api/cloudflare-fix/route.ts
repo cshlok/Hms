@@ -1,9 +1,9 @@
 // import { NextRequest } from "next/server";
+import { D1Database } from "@cloudflare/workers-types"; // FIX: Import D1Database type
 
 // Define the expected structure of the Cloudflare environment bindings
 interface Environment {
-  // DB: D1Database; // Commented out Cloudflare specific type
-  DB: unknown; // Using 'unknown' as a placeholder
+  DB: D1Database; // FIX: Uncomment and use correct type
   // Add other bindings like KV namespaces, secrets, etc., here
 }
 
@@ -32,6 +32,8 @@ function getCloudflareBindings(): Environment | undefined {
     "Accessing Cloudflare bindings in Next.js API routes on Cloudflare Pages requires specific setup. This is a placeholder."
   );
   // Returning undefined to indicate bindings might not be directly available this way without proper setup.
+  // For testing purposes, let's mock a return if needed, otherwise keep as undefined.
+  // return { DB: {} as D1Database }; // Mock example
   return undefined;
 }
 
@@ -39,7 +41,8 @@ function getCloudflareBindings(): Environment | undefined {
 export async function GET() {
   try {
     // Attempt to get Cloudflare bindings (replace with actual method)
-    const environment = getCloudflareBindings(_request);
+    // FIX: Removed argument from getCloudflareBindings call
+    const environment = getCloudflareBindings();
 
     if (!environment || !environment.DB) {
       console.error(
@@ -55,10 +58,11 @@ export async function GET() {
     }
 
     // Example: Querying the D1 database
-    // The following line will likely fail at runtime if env.DB is not a valid D1 instance
-    // but this resolves the TypeScript build error    const { results } = await (env.DB as unknown as { prepare: (query: string) => { bind: (...args: unknown[]) => { all: () => Promise<{ results: unknown[] }> } } }).prepare("SELECT name FROM sqlite_master WHERE type=\'table\'").all();
-    return new Response(JSON.stringify({ tables: [] }), {
-      // FIX: Use empty array as placeholder since results are not fetched
+    // FIX: Use environment.DB instead of env.DB
+    // FIX: Ensure the type assertion is correct for D1Database methods
+    const { results } = await environment.DB.prepare("SELECT name FROM sqlite_master WHERE type=\'table\'").all();
+
+    return new Response(JSON.stringify({ tables: results }), { // FIX: Return actual results
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -110,7 +114,7 @@ export function getDb(): D1Database {
 // Usage in API route:
 // import { initializeDb, getDb } from '@/lib/db';
 // import { NextRequest } from 'next/server';
-// 
+//
 // export async function GET(request: NextRequest, { env }: { env: { DB: D1Database } }) {
 //   initializeDb(env); // Initialize DB with bindings from Cloudflare
 //   const DB = getDb();

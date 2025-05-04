@@ -1,6 +1,6 @@
 // app/api/doctors/[id]/schedules/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session"; // FIX: Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { DoctorSchedule } from "@/types/schedule";
@@ -10,9 +10,14 @@ import { z } from "zod";
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor"];
 const ALLOWED_ROLES_MANAGE = ["Admin", "Doctor"]; // Only Admin or the Doctor themselves can manage schedule
 
+// Define Cloudflare Env type
+interface CloudflareEnv {
+    DB: D1Database;
+    [key: string]: unknown; // Index signature
+}
+
 // Helper function to get doctor ID from URL
 function getDoctorId(pathname: string): number | null {
-    // Pathname might be /api/doctors/123/schedules
     const parts = pathname.split("/");
     const idStr = parts[parts.length - 2]; // Second to last part
     const id = parseInt(idStr, 10);
@@ -21,7 +26,8 @@ function getDoctorId(pathname: string): number | null {
 
 // GET handler for listing schedules for a specific doctor
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = cookies(); // FIX: Get cookie store
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
     const url = new URL(request.url);
     const doctorId = getDoctorId(url.pathname);
 
@@ -41,20 +47,24 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
-        const { DB } = env;
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Await and type context
+        const { env } = context;
+        const DB = env.DB; // FIX: Access DB directly
+
+        if (!DB) {
+            throw new Error("Database binding not found in Cloudflare environment.");
+        }
 
         // 2. Retrieve schedules for the doctor
         const schedulesResult = await DB.prepare(
             "SELECT * FROM DoctorSchedules WHERE doctor_id = ? ORDER BY day_of_week, start_time"
         ).bind(doctorId).all<DoctorSchedule>();
 
-        if (!schedulesResult.results) {
-            throw new Error("Failed to retrieve schedules");
-        }
+        // Assuming .all() returns { results: [...] } or similar structure based on D1 docs
+        const schedules = schedulesResult.results || [];
 
         // 3. Return schedule list
-        return new Response(JSON.stringify(schedulesResult.results), {
+        return new Response(JSON.stringify(schedules), {
             status: 200,
             headers: { "Content-Type": "application/json" },
         });
@@ -82,7 +92,8 @@ const AddScheduleSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = cookies(); // FIX: Get cookie store
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
     const url = new URL(request.url);
     const doctorId = getDoctorId(url.pathname);
 
@@ -93,27 +104,35 @@ export async function POST(request: Request) {
             headers: { "Content-Type": "application/json" },
         });
     }
-    // If the user is a Doctor, they can only manage their own schedule
-    if (session.user.roleName === "Doctor") {
-        const { env } = getCloudflareContext();
-        const { DB } = env;
-        const doctorProfile = await DB.prepare("SELECT doctor_id FROM Doctors WHERE user_id = ?").bind(session.user.userId).first<{ doctor_id: number }>();
-        if (!doctorProfile || doctorProfile.doctor_id !== doctorId) {
-             return new Response(JSON.stringify({ error: "Forbidden: Doctors can only manage their own schedule" }), {
-                status: 403,
+
+    let dbInstance: D1Database | undefined;
+    try {
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Await and type context
+        const { env } = context;
+        dbInstance = env.DB; // FIX: Access DB directly
+
+        if (!dbInstance) {
+            throw new Error("Database binding not found in Cloudflare environment.");
+        }
+
+        // If the user is a Doctor, they can only manage their own schedule
+        if (session.user.roleName === "Doctor") {
+            const doctorProfile = await dbInstance.prepare("SELECT doctor_id FROM Doctors WHERE user_id = ?").bind(session.user.userId).first<{ doctor_id: number }>();
+            if (!doctorProfile || doctorProfile.doctor_id !== doctorId) {
+                 return new Response(JSON.stringify({ error: "Forbidden: Doctors can only manage their own schedule" }), {
+                    status: 403,
+                    headers: { "Content-Type": "application/json" },
+                });
+            }
+        }
+
+        if (doctorId === null) {
+            return new Response(JSON.stringify({ error: "Invalid Doctor ID" }), {
+                status: 400,
                 headers: { "Content-Type": "application/json" },
             });
         }
-    }
 
-    if (doctorId === null) {
-        return new Response(JSON.stringify({ error: "Invalid Doctor ID" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-        });
-    }
-
-    try {
         const body = await request.json();
         const validation = AddScheduleSchema.safeParse(body);
 
@@ -126,14 +145,10 @@ export async function POST(request: Request) {
 
         const scheduleData = validation.data;
 
-        const { env } = getCloudflareContext();
-        const { DB } = env;
-
         // 2. Check for overlapping schedules (basic check, more complex overlap logic might be needed)
-        // This UNIQUE constraint (doctor_id, day_of_week, start_time) handles exact start time overlaps
 
         // 3. Insert new schedule slot
-        const insertResult = await DB.prepare(
+        const insertResult = await dbInstance.prepare(
             "INSERT INTO DoctorSchedules (doctor_id, day_of_week, start_time, end_time, slot_duration_minutes, is_available) VALUES (?, ?, ?, ?, ?, ?)"
         )
         .bind(
@@ -147,7 +162,14 @@ export async function POST(request: Request) {
         .run();
 
         if (!insertResult.success) {
-            throw new Error("Failed to add schedule slot");
+             // Handle potential unique constraint errors
+            if (insertResult.error?.includes("UNIQUE constraint failed")) {
+                 return new Response(JSON.stringify({ error: "Schedule slot with this start time already exists for this day" }), {
+                    status: 409, // Conflict
+                    headers: { "Content-Type": "application/json" },
+                });
+            }
+            throw new Error(`Failed to add schedule slot: ${insertResult.error}`);
         }
 
         const newScheduleId = insertResult.meta.last_row_id;
@@ -161,12 +183,9 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error(`Add schedule for doctor ${doctorId} error:`, error);
         const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        // Handle potential unique constraint errors
-        const statusCode = errorMessage.includes("UNIQUE constraint failed") ? 409 : 500;
-        return new Response(JSON.stringify({ error: statusCode === 409 ? "Schedule slot with this start time already exists for this day" : "Internal Server Error", details: errorMessage }), {
-            status: statusCode,
+        return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
+            status: 500,
             headers: { "Content-Type": "application/json" },
         });
     }
 }
-

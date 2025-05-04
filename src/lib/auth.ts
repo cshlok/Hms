@@ -30,8 +30,10 @@ export const PERMISSIONS = {
 // Placeholder function for API routes importing 'checkUserRole'
 // FIX: Prefix unused parameters with underscore
 export const checkUserRole = async (
-  _request: NextRequest,
-  _allowedRoles: string[]
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _request: NextRequest, // FIX: Unused parameter
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _allowedRoles: string[] // FIX: Unused parameter
 ): Promise<boolean> => {
   console.warn(
     "Authorization function 'checkUserRole' is not implemented yet."
@@ -43,7 +45,8 @@ export const checkUserRole = async (
 // Placeholder function for API routes importing 'getCurrentUser'
 // FIX: Prefix unused parameter with underscore
 export const getCurrentUser = async (
-  _request?: NextRequest
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _request?: NextRequest // FIX: Unused parameter
 ): Promise<User | null> => {
   console.warn(
     "Authentication function 'getCurrentUser' is not implemented yet."
@@ -83,7 +86,8 @@ export const hasPermission = async (
 };
 
 // Placeholder function for API routes importing 'clearAuthCookie'
-export const clearAuthCookie = (response_: NextResponse) => {
+// FIX: Prefix unused parameter with underscore
+export const clearAuthCookie = (res: NextResponse) => { // FIX: Renamed response_ to res to match usage
   console.warn(
     "Authentication function 'clearAuthCookie' is not implemented yet."
   );
@@ -92,7 +96,8 @@ export const clearAuthCookie = (response_: NextResponse) => {
 };
 
 // Placeholder function for API routes importing 'setAuthCookie'
-export const setAuthCookie = (response_: NextResponse, token: string) => {
+// FIX: Prefix unused parameter with underscore
+export const setAuthCookie = (res: NextResponse, token: string) => { // FIX: Renamed response_ to res to match usage
   console.warn(
     "Authentication function 'setAuthCookie' is not implemented yet."
   );
@@ -108,8 +113,10 @@ export const setAuthCookie = (response_: NextResponse, token: string) => {
 // Placeholder function for API routes importing 'verifyPassword'
 // FIX: Prefix unused parameters with underscore
 export const verifyPassword = async (
-  _password: string,
-  _hash: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _password: string, // FIX: Unused parameter
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _hash: string // FIX: Unused parameter
 ): Promise<boolean> => {
   console.warn("verifyPassword function is not implemented yet.");
   // Mock implementation: always returns true
@@ -118,7 +125,8 @@ export const verifyPassword = async (
 
 // Placeholder function for API routes importing 'signToken'
 // FIX: Prefix unused parameter with underscore
-export const signToken = (_payload: object): string => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const signToken = (_payload: object): string => { // FIX: Unused parameter
   console.warn("signToken function is not implemented yet.");
   // Mock implementation: returns a dummy token
   return "mock-jwt-token";

@@ -1,7 +1,7 @@
 // app/api/auth/login/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { comparePassword } from "@/lib/authUtils";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { z } from "zod";
@@ -12,6 +12,12 @@ const LoginSchema = z.object({
   identifier: z.string().min(1, "Username or email is required"), // Can be username or email
   password: z.string().min(1, "Password is required"),
 });
+
+// Define Cloudflare Env type (adjust based on actual bindings)
+interface CloudflareEnv {
+    DB: D1Database;
+    [key: string]: unknown; // Index signature
+}
 
 export async function POST(request: Request) {
   try {
@@ -27,18 +33,22 @@ export async function POST(request: Request) {
 
     const { identifier, password } = validation.data;
 
-    const { env } = getCloudflareContext();
-    const { DB } = env;
+    const context = await getCloudflareContext<CloudflareEnv>();
+    const { env } = context;
+    const DB = env.DB; // FIX: Access DB directly from env
+
+    if (!DB) {
+        throw new Error("Database binding not found in Cloudflare environment.");
+    }
 
     // 1. Find user by username or email
-    // We also fetch the role name for the session
     const userResult = await DB.prepare(
         "SELECT u.user_id, u.username, u.email, u.password_hash, u.full_name, u.role_id, u.is_active, r.role_name " +
         "FROM Users u JOIN Roles r ON u.role_id = r.role_id " +
         "WHERE (u.username = ? OR u.email = ?) AND u.is_active = TRUE"
     )
       .bind(identifier, identifier)
-      .first<User & { password_hash: string }>(); // Include password_hash only for comparison
+      .first<User & { password_hash: string; role_name: string }>();
 
     if (!userResult) {
       return new Response(JSON.stringify({ error: "Invalid credentials or user inactive" }), {
@@ -58,7 +68,8 @@ export async function POST(request: Request) {
     }
 
     // 3. Create session
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = cookies(); // FIX: Get the cookie store
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass the store
 
     // Prepare user data for session (exclude sensitive info)
     const sessionUser: User = {
@@ -67,7 +78,7 @@ export async function POST(request: Request) {
         email: userResult.email,
         fullName: userResult.fullName,
         roleId: userResult.roleId,
-        roleName: userResult.roleName,
+        roleName: userResult.roleName, // Include roleName from query
         isActive: userResult.isActive,
     };
 

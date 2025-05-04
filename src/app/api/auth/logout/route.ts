@@ -1,11 +1,15 @@
 // app/api/auth/logout/route.ts
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 
 export async function POST() {
   try {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = cookies(); // FIX: Get the cookie store
+    const session = await getIronSession<IronSessionData>(
+      cookieStore, // FIX: Pass the store
+      sessionOptions
+    );
     session.destroy(); // Clear the session data
 
     return new Response(JSON.stringify({ message: "Logout successful" }), {

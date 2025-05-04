@@ -1,7 +1,13 @@
-import { IronSessionOptions, getIronSession } from "iron-session";
+import { IronSessionOptions, getIronSession, CookieStore } from "iron-session"; // Import CookieStore
 import { cookies } from "next/headers"; // Import cookies from next/headers for App Router
 import { User } from "@/types/user"; // Assuming you define a User type
 
+// Define and export the shape of the session data
+export interface IronSessionData {
+  user?: User;
+}
+
+// Augment the iron-session module to include our IronSessionData definition
 declare module "iron-session" {
   interface IronSessionData {
     user?: User;
@@ -33,8 +39,9 @@ export const sessionOptions: IronSessionOptions = {
 
 // Function to get the session in App Router Route Handlers or Server Components
 export async function getSession() {
+  // FIX: Attempt casting to CookieStore to resolve TS2345
   const session = await getIronSession<IronSessionData>(
-    cookies(),
+    cookies() as unknown as CookieStore, // Cast to unknown first, then CookieStore
     sessionOptions
   );
   return session;

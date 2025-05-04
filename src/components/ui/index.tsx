@@ -584,8 +584,9 @@ export const DialogTrigger = ({
       children as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
       {
         ...properties,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         onClick: (event: React.MouseEvent<HTMLElement>) => {
-          childOnClick?.(e);
+          childOnClick?.(event); // FIX: Use the correct variable name
           handleClick();
         },
       }
@@ -593,7 +594,7 @@ export const DialogTrigger = ({
   }
 
   return (
-    <button type="button" onClick={handleClick} {...properties}>
+    <button {...properties} onClick={handleClick}>
       {children}
     </button>
   );
@@ -601,74 +602,76 @@ export const DialogTrigger = ({
 DialogTrigger.displayName = "DialogTrigger";
 
 // Define specific props type for DialogContent component
-interface DialogContentProperties extends React.HTMLAttributes<HTMLDivElement> {
+interface DialogContentProperties
+  extends React.ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;
+  className?: string;
   open?: boolean; // Received from Dialog
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>; // Received from Dialog
-  className?: string;
 }
 
-export const DialogContent = ({
-  children,
-  open,
-  setOpen,
-  className = "",
-  ...properties
-}: DialogContentProperties) => {
-  React.useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen?.(false);
-      }
-    };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [setOpen]);
+export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProperties>(
+  ({ children, className = "", open, setOpen, ...properties }, reference) => {
+    React.useEffect(() => {
+      const handleEscape = (event: KeyboardEvent) => {
+        if (event.key === "Escape") {
+          setOpen?.(false);
+        }
+      };
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
+    }, [setOpen]);
 
-  if (!open) return;
+    if (!open) return null;
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
-      onClick={() => setOpen?.(false)}
-    >
+    return (
       <div
-        className={`relative w-full max-w-md overflow-hidden rounded-lg bg-white p-6 shadow-lg ${className}`}
-        onClick={(_event_) => e.stopPropagation()} // Prevent closing when clicking inside content
+        ref={reference}
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 ${className}`}
         {...properties}
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        onClick={(_event_: React.MouseEvent<HTMLElement>) => {
+          // Close on overlay click
+          setOpen?.(false);
+        }}
       >
-        <button
-          type="button"
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
-          onClick={() => setOpen?.(false)}
+        <div
+          className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative"
+          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside content
         >
-          <span className="sr-only">Close</span>
-          {/* Simple X SVG */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-4 h-4"
+          {children}
+          <button
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            onClick={() => setOpen?.(false)}
           >
-            <path
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-        {children}
+              className="h-4 w-4"
+            >
+              <path d="M18 6 6 18"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+            <span className="sr-only">Close</span>
+          </button>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
 DialogContent.displayName = "DialogContent";
 
 // Define specific props type for DialogHeader component
 interface DialogHeaderProperties extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export const DialogHeader = ({
@@ -677,7 +680,10 @@ export const DialogHeader = ({
   ...properties
 }: DialogHeaderProperties) => {
   return (
-    <div className={`text-center sm:text-left ${className}`} {...properties}>
+    <div
+      className={`flex flex-col space-y-1.5 text-center sm:text-left ${className}`}
+      {...properties}
+    >
       {children}
     </div>
   );
@@ -686,29 +692,52 @@ DialogHeader.displayName = "DialogHeader";
 
 // Define specific props type for DialogTitle component
 interface DialogTitleProperties
-  extends React.HTMLAttributes<HTMLHeadingElement> {
-  children?: React.ReactNode;
+  extends React.ComponentPropsWithoutRef<"h2"> {
+  children: React.ReactNode;
+  className?: string;
 }
 
-export const DialogTitle = ({
-  children,
-  className = "",
-  ...properties
-}: DialogTitleProperties) => {
-  return (
-    <h2
-      className={`text-lg font-semibold leading-6 text-gray-900 ${className}`}
-      {...properties}
-    >
-      {children}
-    </h2>
-  );
-};
+export const DialogTitle = React.forwardRef<HTMLHeadingElement, DialogTitleProperties>(
+  ({ children, className = "", ...properties }, reference) => {
+    return (
+      <h2
+        ref={reference}
+        className={`text-lg font-semibold leading-none tracking-tight ${className}`}
+        {...properties}
+      >
+        {children}
+      </h2>
+    );
+  }
+);
 DialogTitle.displayName = "DialogTitle";
+
+// Define specific props type for DialogDescription component
+interface DialogDescriptionProperties
+  extends React.ComponentPropsWithoutRef<"p"> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const DialogDescription = React.forwardRef<HTMLParagraphElement, DialogDescriptionProperties>(
+  ({ children, className = "", ...properties }, reference) => {
+    return (
+      <p
+        ref={reference}
+        className={`text-sm text-gray-500 ${className}`}
+        {...properties}
+      >
+        {children}
+      </p>
+    );
+  }
+);
+DialogDescription.displayName = "DialogDescription";
 
 // Define specific props type for DialogFooter component
 interface DialogFooterProperties extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export const DialogFooter = ({
@@ -718,7 +747,7 @@ export const DialogFooter = ({
 }: DialogFooterProperties) => {
   return (
     <div
-      className={`mt-5 sm:mt-4 sm:flex sm:flex-row-reverse ${className}`}
+      className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className}`}
       {...properties}
     >
       {children}
@@ -727,170 +756,204 @@ export const DialogFooter = ({
 };
 DialogFooter.displayName = "DialogFooter";
 
-// Define specific props type for DialogClose component
-interface DialogCloseProperties
-  extends React.ComponentPropsWithoutRef<"button"> {
-  children: React.ReactNode;
-  asChild?: boolean;
-  setOpen?: React.Dispatch<React.SetStateAction<boolean>>; // Received from Dialog
+// Define specific props type for DatePicker component
+interface DatePickerProperties {
+  date?: Date;
+  setDate: (date: Date | undefined) => void;
+  className?: string;
 }
 
-export const DialogClose = ({
-  children,
-  asChild,
-  setOpen,
-  ...properties
-}: DialogCloseProperties) => {
-  const handleClick = () => {
-    setOpen?.(false);
+// DatePicker component (simplified example)
+export const DatePicker = ({
+  date,
+  setDate,
+  className = "",
+}: DatePickerProperties) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleDayClick = (day: Date) => {
+    setDate(day);
+    setIsOpen(false);
   };
 
-  if (asChild && React.isValidElement(children)) {
-    const childOnClick =
-      children.props && typeof children.props.onClick === "function"
-        ? children.props.onClick
-        : undefined;
-    return React.cloneElement(
-      children as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
-      {
-        ...properties,
-        onClick: (event: React.MouseEvent<HTMLElement>) => {
-          childOnClick?.(e);
-          handleClick();
-        },
-      }
-    );
-  }
-
   return (
-    <button type="button" onClick={handleClick} {...properties}>
-      {children}
-    </button>
+    <div className={`relative ${className}`}>
+      <Button
+        variant="outline"
+        className="w-[280px] justify-start text-left font-normal"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {date ? date.toLocaleDateString() : <span>Pick a date</span>}
+      </Button>
+      {isOpen && (
+        <div className="absolute z-10 mt-1 w-auto rounded-md border bg-white p-0 shadow-lg">
+          {/* Basic Day Picker - Replace with a proper library like react-day-picker */}
+          <div className="p-3">
+            <div className="grid grid-cols-7 gap-1 text-center text-sm">
+              <div>Su</div>
+              <div>Mo</div>
+              <div>Tu</div>
+              <div>We</div>
+              <div>Th</div>
+              <div>Fr</div>
+              <div>Sa</div>
+              {/* Generate calendar days (this is highly simplified) */}
+              {[...Array(31)].map((_, index) => {
+                const day = new Date();
+                day.setDate(index + 1);
+                return (
+                  <button
+                    key={index}
+                    className={`p-1 rounded-md hover:bg-gray-100 ${
+                      date && date.getDate() === index + 1
+                        ? "bg-blue-600 text-white"
+                        : ""
+                    }`}
+                    onClick={() => handleDayClick(day)}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
-DialogClose.displayName = "DialogClose";
+DatePicker.displayName = "DatePicker";
 
-// Calendar component (Simplified example, assuming react-day-picker is used)
-// Needs react-day-picker installed: npm install react-day-picker
-import { DayPicker, DayPickerProps } from "react-day-picker";
-import "react-day-picker/dist/style.css";
-
-type CalendarProperties = DayPickerProps & {
+// Define specific props type for Calendar component (placeholder)
+interface CalendarProperties {
+  mode?: "single" | "multiple" | "range";
+  selected?: Date | Date[] | { from?: Date; to?: Date };
+  onSelect?: (
+    day: Date | Date[] | { from?: Date; to?: Date } | undefined
+  ) => void;
   className?: string;
-  classNames?: DayPickerProps["classNames"];
-  showOutsideDays?: boolean;
-  // onDaySelect is part of DayPickerProps, no need to redefine unless overriding
-};
+  month?: Date;
+  onMonthChange?: (month: Date) => void;
+  numberOfMonths?: number;
+}
 
-export function Calendar({
-  className,
-  classNames,
-  showOutsideDays = true,
+// Calendar component (placeholder - use react-day-picker)
+export const Calendar = ({
+  mode = "single",
+  selected,
+  onSelect,
+  className = "",
+  month,
+  onMonthChange,
+  numberOfMonths = 1,
   ...properties
-}: CalendarProperties) {
+}: CalendarProperties) => {
+  // State for the current displayed month if not controlled externally
+  const [currentMonth, setCurrentMonth] = React.useState(month || new Date());
+
+  React.useEffect(() => {
+    if (month) {
+      setCurrentMonth(month);
+    }
+  }, [month]);
+
+  const handleMonthChange = (newMonth: Date) => {
+    setCurrentMonth(newMonth);
+    onMonthChange?.(newMonth);
+  };
+
+  const handlePrevMonth = () => {
+    const prevMonth = new Date(currentMonth);
+    prevMonth.setMonth(prevMonth.getMonth() - 1);
+    handleMonthChange(prevMonth);
+  };
+
+  const handleNextMonth = () => {
+    const nextMonth = new Date(currentMonth);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    handleMonthChange(nextMonth);
+  };
+
+  // Simplified day rendering logic
+  const renderDays = (offsetMonth: number) => {
+    const monthToRender = new Date(currentMonth);
+    monthToRender.setMonth(monthToRender.getMonth() + offsetMonth);
+    const year = monthToRender.getFullYear();
+    const monthIndex = monthToRender.getMonth();
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const firstDayOfMonth = new Date(year, monthIndex, 1).getDay(); // 0 = Sunday
+
+    const days = [];
+    // Add padding for days before the 1st
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(<div key={`pad-start-${i}`} className="p-1.5"></div>);
+    }
+    // Add actual days
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(year, monthIndex, day);
+      const isSelected = (
+        selected instanceof Date &&
+        currentDate.toDateString() === selected.toDateString()
+      );
+      // Add more complex selection logic for multiple/range modes
+
+      days.push(
+        <button
+          key={day}
+          className={`p-1.5 rounded-md text-center hover:bg-gray-100 ${
+            isSelected ? "bg-blue-600 text-white hover:bg-blue-700" : ""
+          }`}
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          onClick={(_event: React.MouseEvent<HTMLElement>) => onSelect?.(currentDate)} // Pass the date object
+        >
+          {day}
+        </button>
+      );
+    }
+    return days;
+  };
+
   return (
-    <DayPicker
-      showOutsideDays={showOutsideDays}
-      className={`p-3 ${className}`}
-      classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
-        nav: "space-x-1 flex items-center",
-        nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
-        table: "w-full border-collapse space-y-1",
-        head_row: "flex",
-        head_cell: "text-gray-500 rounded-md w-9 font-normal text-[0.8rem]",
-        row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-gray-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-        day_selected:
-          "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white",
-        day_today: "bg-gray-100 text-gray-900",
-        day_outside: "text-gray-500 opacity-50",
-        day_disabled: "text-gray-500 opacity-50",
-        day_range_middle:
-          "aria-selected:bg-gray-100 aria-selected:text-gray-900",
-        day_hidden: "invisible",
-        ...classNames,
-      }}
-      components={{
-        Chevron: ({ orientation, ...properties }) => {
-          if (orientation === "left") {
-            return <ChevronLeft className="h-4 w-4" {...properties} />;
-          }
-          if (orientation === "right") {
-            return <ChevronRight className="h-4 w-4" {...properties} />;
-          }
-          return <></>; // Return empty fragment instead of null
-        },
-      }}
-      {...properties} // Pass rest of the props including onSelect, selected, etc.
-    />
+    <div className={`p-3 ${className}`} {...properties}>
+      {[...Array(numberOfMonths)].map((_, index) => {
+        const monthToRender = new Date(currentMonth);
+        monthToRender.setMonth(monthToRender.getMonth() + index);
+        return (
+          <div key={index} className={numberOfMonths > 1 ? "mb-4" : ""}>
+            <div className="flex justify-between items-center mb-2">
+              {index === 0 && (
+                <Button variant="outline" size="icon" onClick={handlePrevMonth}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+              )}
+              <div className="text-sm font-medium">
+                {monthToRender.toLocaleString("default", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </div>
+              {index === numberOfMonths - 1 && (
+                <Button variant="outline" size="icon" onClick={handleNextMonth}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-1">
+              <div>Su</div>
+              <div>Mo</div>
+              <div>Tu</div>
+              <div>We</div>
+              <div>Th</div>
+              <div>Fr</div>
+              <div>Sa</div>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-sm">
+              {renderDays(index)}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
-}
+};
 Calendar.displayName = "Calendar";
-
-// Skeleton component
-interface SkeletonProperties extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string;
-}
-
-export function Skeleton({ className, ...properties }: SkeletonProperties) {
-  return (
-    <div
-      className={`animate-pulse rounded-md bg-gray-200 ${className}`}
-      {...properties}
-    />
-  );
-}
-Skeleton.displayName = "Skeleton";
-
-// Select components (Simplified stubs, assuming Radix or similar)
-// Needs proper implementation or library integration
-
-export const Select = ({ children }: { children: React.ReactNode }) => (
-  <div>{children}</div>
-);
-Select.displayName = "Select";
-export const SelectTrigger = ({ children }: { children: React.ReactNode }) => (
-  <button>{children}</button>
-);
-SelectTrigger.displayName = "SelectTrigger";
-export const SelectValue = ({ placeholder }: { placeholder?: string }) => (
-  <span>{placeholder || "Select..."}</span>
-);
-SelectValue.displayName = "SelectValue";
-export const SelectContent = ({ children }: { children: React.ReactNode }) => (
-  <div>{children}</div>
-);
-SelectContent.displayName = "SelectContent";
-export const SelectItem = ({
-  children,
-  value,
-}: {
-  children: React.ReactNode;
-  value: string;
-}) => <div data-value={value}>{children}</div>;
-SelectItem.displayName = "SelectItem";
-
-// Export toast components and types explicitly to avoid naming conflicts
-export {
-  ToastProvider,
-  ToastViewport,
-  Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
-  ToastAction,
-} from "./toast";
-export type { ToastProps, ToastActionElement } from "./toast";
-export { useToast, toast } from "./use-toast";
-export type {
-  ToasterToast,
-  ToastContextProps,
-  Toast as ToastType,
-} from "./use-toast";

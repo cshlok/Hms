@@ -12,6 +12,12 @@ const RegisterSchema = z.object({
   role_name: z.enum(["Admin", "Doctor", "Nurse", "Receptionist", "Lab Technician", "Pharmacist", "Patient"]).default("Patient"),
 });
 
+// Define Cloudflare Env type (adjust based on actual bindings)
+interface CloudflareEnv {
+    DB: D1Database;
+    [key: string]: unknown; // Index signature
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -26,8 +32,13 @@ export async function POST(request: Request) {
 
     const { username, email, password, full_name, phone_number, role_name } = validation.data;
 
-    const { env } = getCloudflareContext();
-    const { DB } = env;
+    const context = await getCloudflareContext<CloudflareEnv>();
+    const { env } = context;
+    const DB = env.DB; // FIX: Access DB directly from env
+
+    if (!DB) {
+        throw new Error("Database binding not found in Cloudflare environment.");
+    }
 
     // 1. Get Role ID
     const roleResult = await DB.prepare("SELECT role_id FROM Roles WHERE role_name = ?").bind(role_name).first<{ role_id: number }>();
@@ -62,7 +73,7 @@ export async function POST(request: Request) {
       .run();
 
     if (!insertResult.success) {
-        throw new Error("Failed to register user");
+        throw new Error(`Failed to register user: ${insertResult.error}`);
     }
 
     // Optionally: Return the newly created user ID or a success message
@@ -81,4 +92,3 @@ export async function POST(request: Request) {
     });
   }
 }
-
