@@ -241,9 +241,9 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const filters: InsurancePolicyFilters = {
-      patient_id: searchParams.get("patient_id"),
-      provider_id: searchParams.get("provider_id"),
-      is_active: searchParams.get("is_active"), // "true" or "false"
+      patient_id: searchParams.get("patient_id") ?? undefined,
+      provider_id: searchParams.get("provider_id") ?? undefined,
+      is_active: searchParams.get("is_active") ?? undefined, // "true" or "false"
     };
 
     const policies = await getPatientInsurancePoliciesFromDB(filters);

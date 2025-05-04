@@ -584,7 +584,7 @@ export const DialogTrigger = ({
       children as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
       {
         ...properties,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+         
         onClick: (event: React.MouseEvent<HTMLElement>) => {
           childOnClick?.(event); // FIX: Use the correct variable name
           handleClick();
@@ -839,7 +839,7 @@ interface CalendarProperties {
 
 // Calendar component (placeholder - use react-day-picker)
 export const Calendar = ({
-  mode = "single",
+  mode: _mode = "single", // FIX: Prefix unused variable
   selected,
   onSelect,
   className = "",

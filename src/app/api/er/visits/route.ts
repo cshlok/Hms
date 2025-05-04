@@ -152,8 +152,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const filters: ERVisitFilters = {       status: searchParams.get("status") ?? undefined,
-      location: searchParams.get("location"),
-      date: searchParams.get("date"),
+      location: searchParams.get("location") ?? undefined,
+      date: searchParams.get("date") ?? undefined,
     };
 
     const visits = await getERVisitsFromDB(filters);

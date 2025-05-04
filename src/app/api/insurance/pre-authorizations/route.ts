@@ -193,10 +193,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const filters: PreAuthorizationFilters = {
-      status: searchParams.get("status"),
-      patient_insurance_id: searchParams.get("patient_insurance_id"),
-      date_from: searchParams.get("date_from"),
-      date_to: searchParams.get("date_to"),
+      status: searchParams.get("status") ?? undefined,
+      patient_insurance_id: searchParams.get("patient_insurance_id") ?? undefined,
+      date_from: searchParams.get("date_from") ?? undefined,
+      date_to: searchParams.get("date_to") ?? undefined,
     };
 
     const preAuthorizations = await getPreAuthorizationsFromDB(filters);

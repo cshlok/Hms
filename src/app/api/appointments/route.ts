@@ -209,11 +209,9 @@ export async function POST(request: Request) {
         }
 
         const apptData = validation.data;
-        let dbInstance: D1Database | undefined;
-
         // Get context and DB instance once
         const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
-        dbInstance = context.env.DB; // FIX: Access DB via context.env
+        const dbInstance = context.env.DB; // FIX: Access DB via context.env
 
         if (!dbInstance) {
             throw new Error("Database binding not found in Cloudflare environment.");
