@@ -5,16 +5,11 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Consultation } from "@/types/opd";
 import { z } from "zod";
+import { CloudflareEnv } from "@/types/cloudflare"; // FIX: Import CloudflareEnv
 
 // Define roles allowed to view/create consultations (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse"];
 const ALLOWED_ROLES_CREATE = ["Doctor"];
-
-// Define Cloudflare Env type (adjust based on actual bindings)
-interface CloudflareEnv {
-    DB: D1Database;
-    [key: string]: unknown; // Index signature
-}
 
 // GET handler for listing consultations with filters
 const ListConsultationsQuerySchema = z.object({
@@ -46,8 +41,8 @@ interface ConsultationListQueryResult {
 }
 
 export async function GET(request: Request) {
-    // const cookieStore = cookies(); // Removed intermediate variable
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
@@ -65,8 +60,8 @@ export async function GET(request: Request) {
 
         const filters = validation.data;
         const context = await getCloudflareContext<CloudflareEnv>();
-        const { env } = context;
-        const DB = env.DB; // Access DB directly from env
+        // const { env } = context; // Removed destructuring
+        const DB = context.env.DB; // Access DB via context.env
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -186,8 +181,8 @@ const CreateConsultationSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    // const cookieStore = cookies(); // Removed intermediate variable
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_CREATE.includes(session.user.roleName)) {
@@ -204,8 +199,8 @@ export async function POST(request: Request) {
 
         const consultData = validation.data;
         const context = await getCloudflareContext<CloudflareEnv>();
-        const { env } = context;
-        const DB = env.DB; // Access DB directly from env
+        // const { env } = context; // Removed destructuring
+        const DB = context.env.DB; // Access DB via context.env
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");

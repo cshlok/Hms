@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 
 export async function POST() {
   try {
-    const cookieStore = cookies(); // FIX: Get the cookie store
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
     const session = await getIronSession<IronSessionData>(
       cookieStore, // FIX: Pass the store
       sessionOptions

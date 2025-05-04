@@ -1,6 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { hashPassword } from "@/lib/authUtils";
 import { z } from "zod";
+import { CloudflareEnv } from "@/types/cloudflare"; // FIX: Import CloudflareEnv
 
 // Input validation schema
 const RegisterSchema = z.object({
@@ -11,12 +12,6 @@ const RegisterSchema = z.object({
   phone_number: z.string().optional(),
   role_name: z.enum(["Admin", "Doctor", "Nurse", "Receptionist", "Lab Technician", "Pharmacist", "Patient"]).default("Patient"),
 });
-
-// Define Cloudflare Env type (adjust based on actual bindings)
-interface CloudflareEnv {
-    DB: D1Database;
-    [key: string]: unknown; // Index signature
-}
 
 export async function POST(request: Request) {
   try {
@@ -32,9 +27,8 @@ export async function POST(request: Request) {
 
     const { username, email, password, full_name, phone_number, role_name } = validation.data;
 
-    const context = await getCloudflareContext<CloudflareEnv>();
-    const { env } = context;
-    const DB = env.DB; // FIX: Access DB directly from env
+    const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
+    const DB = context.env.DB; // FIX: Access DB via context.env
 
     if (!DB) {
         throw new Error("Database binding not found in Cloudflare environment.");

@@ -5,16 +5,11 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Consultation } from "@/types/opd";
 import { z } from "zod";
+import { CloudflareEnv } from "@/types/cloudflare"; // FIX: Import CloudflareEnv
 
 // Define roles allowed to view/update consultations (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse"];
 const ALLOWED_ROLES_UPDATE = ["Doctor"]; // Only the doctor who created it?
-
-// Define Cloudflare Env type (adjust based on actual bindings)
-interface CloudflareEnv {
-    DB: D1Database;
-    [key: string]: unknown; // Index signature
-}
 
 // Helper function to get consultation ID from URL
 function getConsultationId(pathname: string): number | null {
@@ -26,8 +21,8 @@ function getConsultationId(pathname: string): number | null {
 
 // GET handler for retrieving a specific consultation with full details
 export async function GET(request: Request) {
-    // const cookieStore = cookies(); // Removed intermediate variable
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
     const url = new URL(request.url);
     const consultationId = getConsultationId(url.pathname);
 
@@ -41,9 +36,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const context = await getCloudflareContext<CloudflareEnv>();
-        const { env } = context;
-        const DB = env.DB; // Access DB directly from env
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
+        const DB = context.env.DB; // FIX: Access DB via context.env
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -145,8 +139,8 @@ const UpdateConsultationSchema = z.object({
 });
 
 export async function PUT(request: Request) {
-    // const cookieStore = cookies(); // Removed intermediate variable
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
     const url = new URL(request.url);
     const consultationId = getConsultationId(url.pathname);
 
@@ -173,9 +167,8 @@ export async function PUT(request: Request) {
              return new Response(JSON.stringify({ message: "No update data provided" }), { status: 200 });
         }
 
-        const context = await getCloudflareContext<CloudflareEnv>();
-        const { env } = context;
-        const DB = env.DB; // Access DB directly from env
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
+        const DB = context.env.DB; // FIX: Access DB via context.env
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");

@@ -1,6 +1,6 @@
 // app/api/doctors/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session"; // FIX: Added IronSessionData import
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 // import { User } from "@/types/user";
@@ -14,7 +14,8 @@ const ALLOWED_ROLES_ADD = ["Admin"];
 
 // GET handler for listing doctors
 export async function GET(request: Request) {
-  const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+  const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
+  const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
   const { searchParams } = new URL(request.url);
   const specialty = searchParams.get("specialty");
 
@@ -27,8 +28,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { env } = getCloudflareContext();
-    const { DB } = env;
+    const context = await getCloudflareContext<{env: CloudflareEnv}>(); // FIX: Await and type context
+    // const { env } = context; // Removed destructuring
+    const DB = context.env.DB; // FIX: Access DB via context.env
+
+    if (!DB) { throw new Error("Database binding not found."); } // Add null check
 
     // 2. Build query based on filters
     let query = "SELECT d.doctor_id, d.user_id, d.specialty, d.qualifications, u.full_name, u.email " +
@@ -50,7 +54,7 @@ export async function GET(request: Request) {
     }
 
     // Map results to include user details within a nested 'user' object if desired
-    const formattedResults = doctorsResult.results.map(doc => ({
+    const formattedResults = doctorsResult.results.map((doc: Doctor & { full_name: string, email: string }) => ({ // FIX: Added type annotation for 'doc'
         doctor_id: doc.doctor_id,
         user_id: doc.user_id,
         specialty: doc.specialty,
@@ -89,7 +93,8 @@ const AddDoctorSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies(); // Re-add await based on TS error
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_ADD.includes(session.user.roleName)) {
@@ -112,8 +117,11 @@ export async function POST(request: Request) {
 
         const doctorData = validation.data;
 
-        const { env } = getCloudflareContext();
-        const { DB } = env;
+        const context = await getCloudflareContext<{env: CloudflareEnv}>(); // FIX: Await and type context
+        // const { env } = context; // Removed destructuring
+        const DB = context.env.DB; // FIX: Access DB via context.env
+
+        if (!DB) { throw new Error("Database binding not found."); } // Add null check
 
         // 2. Verify the user exists and has the 'Doctor' role
         const userCheck = await DB.prepare("SELECT role_id FROM Users WHERE user_id = ? AND is_active = TRUE").bind(doctorData.user_id).first<{ role_id: number }>();

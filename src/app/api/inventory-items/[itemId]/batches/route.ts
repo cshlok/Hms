@@ -1,6 +1,6 @@
 // app/api/inventory-items/[itemId]/batches/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session"; // FIX: Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { StockBatch } from "@/types/inventory";
@@ -21,7 +21,8 @@ function getItemId(pathname: string): number | null {
 
 // GET handler for listing batches for a specific inventory item
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies(); // FIX: Await cookies()
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const url = new URL(request.url);
     const inventoryItemId = getItemId(url.pathname);
 
@@ -41,8 +42,11 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
-        const { DB } = env;
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Await and type context
+        // const { env } = context; // Removed destructuring
+        const DB = context.env.DB; // FIX: Access DB via context.env
+
+        if (!DB) { throw new Error("Database binding not found."); } // Add null check
 
         // 2. Retrieve batches for the item
         const batchesResult = await DB.prepare(
@@ -82,7 +86,8 @@ const AddStockBatchSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies(); // FIX: Await cookies()
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const url = new URL(request.url);
     const inventoryItemId = getItemId(url.pathname);
 
@@ -114,8 +119,11 @@ export async function POST(request: Request) {
 
         const batchData = validation.data;
 
-        const { env } = getCloudflareContext();
-        const { DB } = env;
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Await and type context
+        // const { env } = context; // Removed destructuring
+        const DB = context.env.DB; // FIX: Access DB via context.env
+
+        if (!DB) { throw new Error("Database binding not found."); } // Add null check
 
         // 2. Verify the inventory item exists and is active
         const itemCheck = await DB.prepare("SELECT inventory_item_id FROM InventoryItems WHERE inventory_item_id = ? AND is_active = TRUE")

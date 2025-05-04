@@ -151,8 +151,7 @@ async function createERVisitInDB(data: ERVisitInput): Promise<ERVisit> {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const filters: ERVisitFilters = {
-      status: searchParams.get("status"),
+    const filters: ERVisitFilters = {       status: searchParams.get("status") ?? undefined,
       location: searchParams.get("location"),
       date: searchParams.get("date"),
     };

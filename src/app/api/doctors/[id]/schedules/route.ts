@@ -26,7 +26,7 @@ function getDoctorId(pathname: string): number | null {
 
 // GET handler for listing schedules for a specific doctor
 export async function GET(request: Request) {
-    const cookieStore = cookies(); // FIX: Get cookie store
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
     const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
     const url = new URL(request.url);
     const doctorId = getDoctorId(url.pathname);
@@ -48,8 +48,8 @@ export async function GET(request: Request) {
 
     try {
         const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Await and type context
-        const { env } = context;
-        const DB = env.DB; // FIX: Access DB directly
+        // const { env } = context; // Removed destructuring
+        const DB = context.env.DB; // FIX: Access DB via context.env
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -92,7 +92,7 @@ const AddScheduleSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const cookieStore = cookies(); // FIX: Get cookie store
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
     const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
     const url = new URL(request.url);
     const doctorId = getDoctorId(url.pathname);
@@ -108,8 +108,8 @@ export async function POST(request: Request) {
     let dbInstance: D1Database | undefined;
     try {
         const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Await and type context
-        const { env } = context;
-        dbInstance = env.DB; // FIX: Access DB directly
+        // const { env } = context; // Removed destructuring
+        dbInstance = context.env.DB; // FIX: Access DB via context.env
 
         if (!dbInstance) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -162,8 +162,8 @@ export async function POST(request: Request) {
         .run();
 
         if (!insertResult.success) {
-             // Handle potential unique constraint errors
-            if (insertResult.error?.includes("UNIQUE constraint failed")) {
+            // Handle potential unique constraint errors
+            if (typeof insertResult.error === 'string' && insertResult.error.includes("UNIQUE constraint failed")) { // FIX: Check type before includes
                  return new Response(JSON.stringify({ error: "Schedule slot with this start time already exists for this day" }), {
                     status: 409, // Conflict
                     headers: { "Content-Type": "application/json" },

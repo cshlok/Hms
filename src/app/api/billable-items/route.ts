@@ -5,21 +5,14 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { BillableItem, ItemType } from "@/types/billing";
 import { z } from "zod";
+import { CloudflareEnv } from "@/types/cloudflare"; // FIX: Import CloudflareEnv
 
 // Define roles allowed to view/manage billable items (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor", "Pharmacist", "Billing Staff"]; // Add Billing Staff role if needed
 const ALLOWED_ROLES_MANAGE = ["Admin", "Billing Staff"];
-
-// Define Cloudflare Env type (adjust based on actual bindings)
-interface CloudflareEnv {
-    DB: D1Database;
-    [key: string]: unknown; // Index signature
-}
-
-// GET handler for listing billable items
 export async function GET(request: Request) {
-    // const cookieStore = cookies(); // Get the cookie store - Removed, pass cookies() directly
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
     const { searchParams } = new URL(request.url);
 
     // 1. Check Authentication & Authorization
@@ -31,9 +24,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const context = await getCloudflareContext<CloudflareEnv>();
-        const { env } = context;
-        const DB = env.DB; // Access DB directly from env
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
+        const DB = context.env.DB; // FIX: Access DB via context.env
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -76,7 +68,7 @@ export async function GET(request: Request) {
             headers: { "Content-Type": "application/json" },
         });
     }
-}
+} // End of GET function
 
 // POST handler for adding a new billable item
 const AddBillableItemSchema = z.object({
@@ -91,8 +83,8 @@ const AddBillableItemSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    // const cookieStore = cookies(); // Get the cookie store - Removed, pass cookies() directly
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions); // FIX: Pass cookies() directly
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_MANAGE.includes(session.user.roleName)) {
@@ -115,9 +107,8 @@ export async function POST(request: Request) {
 
         const itemData = validation.data;
 
-        const context = await getCloudflareContext<CloudflareEnv>();
-        const { env } = context;
-        const DB = env.DB; // Access DB directly from env
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
+        const DB = context.env.DB; // FIX: Access DB via context.env
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");

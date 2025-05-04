@@ -6,19 +6,13 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { User } from "@/types/user";
+import { CloudflareEnv } from "@/types/cloudflare"; // FIX: Import CloudflareEnv
 
 // Input validation schema
 const LoginSchema = z.object({
   identifier: z.string().min(1, "Username or email is required"), // Can be username or email
   password: z.string().min(1, "Password is required"),
 });
-
-// Define Cloudflare Env type (adjust based on actual bindings)
-interface CloudflareEnv {
-    DB: D1Database;
-    [key: string]: unknown; // Index signature
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -33,9 +27,8 @@ export async function POST(request: Request) {
 
     const { identifier, password } = validation.data;
 
-    const context = await getCloudflareContext<CloudflareEnv>();
-    const { env } = context;
-    const DB = env.DB; // FIX: Access DB directly from env
+    const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
+    const DB = context.env.DB; // FIX: Access DB via context.env
 
     if (!DB) {
         throw new Error("Database binding not found in Cloudflare environment.");
@@ -68,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     // 3. Create session
-    const cookieStore = cookies(); // FIX: Get the cookie store
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
     const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass the store
 
     // Prepare user data for session (exclude sensitive info)

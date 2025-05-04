@@ -6,7 +6,7 @@ export const runtime = "edge";
 
 // GET /api/er/visits/[id]/statuses - Get status/location history for a visit
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {

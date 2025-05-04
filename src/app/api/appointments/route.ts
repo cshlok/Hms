@@ -5,6 +5,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Appointment, AppointmentStatus } from "@/types/appointment";
 import { z } from "zod";
+import { CloudflareEnv } from "@/types/cloudflare"; // FIX: Import CloudflareEnv
 
 // Define roles allowed to view/book appointments (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor", "Patient"];
@@ -30,15 +31,9 @@ interface AppointmentQueryResult {
   doctor_specialty: string;
 }
 
-// Define Cloudflare Env type (adjust based on actual bindings)
-interface CloudflareEnv {
-    DB: D1Database;
-    [key: string]: unknown; // Index signature
-}
-
 // GET handler for listing appointments
 export async function GET(request: Request) {
-    const cookieStore = await cookies(); // FIX: Await cookies()
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
     const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // Pass the awaited store
     const { searchParams } = new URL(request.url);
 
@@ -51,9 +46,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const context = await getCloudflareContext<{env: CloudflareEnv}>(); // FIX: Correct generic type
-        const { env } = context;
-        const DB = env.DB; // Access DB directly from env
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
+        const DB = context.env.DB; // FIX: Access DB via context.env
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -192,7 +186,7 @@ const BookAppointmentSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const cookieStore = await cookies(); // FIX: Await cookies()
+    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
     const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // Pass the awaited store
 
     // 1. Check Authentication & Authorization
@@ -218,9 +212,8 @@ export async function POST(request: Request) {
         let dbInstance: D1Database | undefined;
 
         // Get context and DB instance once
-        const context = await getCloudflareContext<{env: CloudflareEnv}>(); // FIX: Correct generic type
-        const { env } = context;
-        dbInstance = env.DB; // Access DB directly from env
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
+        dbInstance = context.env.DB; // FIX: Access DB via context.env
 
         if (!dbInstance) {
             throw new Error("Database binding not found in Cloudflare environment.");
