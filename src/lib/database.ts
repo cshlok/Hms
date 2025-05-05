@@ -171,4 +171,4 @@ export const initializeDatabase = async () => {
 };
 
 // Default export might also be expected by some imports
-export default db;
+export default DB;

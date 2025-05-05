@@ -1,4 +1,4 @@
-import { IronSessionOptions, getIronSession, CookieStore } from "iron-session"; // Import CookieStore
+import { SessionOptions, getIronSession } from "iron-session"; // Import CookieStore removed
 import { cookies } from "next/headers"; // Import cookies from next/headers for App Router
 import { User } from "@/types/user"; // Assuming you define a User type
 
@@ -27,7 +27,7 @@ if (!sessionPassword || sessionPassword.length < 32) {
   );
 }
 
-export const sessionOptions: IronSessionOptions = {
+export const sessionOptions: SessionOptions = {
   password: sessionPassword,
   cookieName: "hms-session",
   // secure: true should be used in production (HTTPS) but can be false for localhost
@@ -41,7 +41,7 @@ export const sessionOptions: IronSessionOptions = {
 export async function getSession() {
   // FIX: Attempt casting to CookieStore to resolve TS2345
   const session = await getIronSession<IronSessionData>(
-    cookies() as unknown as CookieStore, // Cast to unknown first, then CookieStore
+    await cookies(), // Added await
     sessionOptions
   );
   return session;

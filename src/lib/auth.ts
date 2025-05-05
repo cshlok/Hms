@@ -53,7 +53,7 @@ export const getCurrentUser = async (
   );
   // Mock implementation: returns a dummy user or null
   // In a real implementation, this would verify a token from cookies or headers
-  const token = cookies().get("auth_token")?.value;
+  const token = (await cookies()).get("auth_token")?.value;
   if (token === "mock-jwt-token") {
     // Example check
     return {
@@ -64,7 +64,7 @@ export const getCurrentUser = async (
       permissions: Object.values(PERMISSIONS), // Example: grant all permissions
     };
   }
-  return undefined;
+  return null;
 };
 
 // Placeholder function for API routes importing 'hasPermission'

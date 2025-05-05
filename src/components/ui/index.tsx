@@ -575,11 +575,12 @@ export const DialogTrigger = ({
   };
 
   if (asChild && React.isValidElement(children)) {
+  // Use React.ReactElement<React.HTMLAttributes<HTMLElement>> for better type safety
     const childOnClick =
-      children.props && typeof children.props.onClick === "function"
+      React.isValidElement<{ onClick?: (event: React.MouseEvent<HTMLElement>) => void }>(children) &&
+      typeof children.props.onClick === "function"
         ? children.props.onClick
         : undefined;
-    // Use React.ReactElement<React.HTMLAttributes<HTMLElement>> for better type safety
     return React.cloneElement(
       children as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
       {

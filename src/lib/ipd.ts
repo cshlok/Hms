@@ -78,7 +78,7 @@ export const getAdmissionByIdFromDB = async (
     "SELECT * FROM admissions WHERE id = ?",
     [id.toString()]
   )) as QueryResult<Admission>; // Mock query, assuming ID is string in DB
-  return result.rows && result.rows.length > 0 ? result.rows[0] : undefined;
+  return result.rows && result.rows.length > 0 ? result.rows[0] : null;
 };
 
 // Mock function to create an admission
@@ -124,7 +124,7 @@ export const updateAdmissionInDB = async (
   // Return mock updated data
   const existing = await getAdmissionByIdFromDB(id); // Fetch mock existing data
   if (!existing) {
-    return undefined;
+    return null;
   }
   // Apply updates to the existing mock data
   const updatedAdmission: Admission = {

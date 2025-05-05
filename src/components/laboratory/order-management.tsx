@@ -58,10 +58,6 @@ interface PatientsApiResponse {
   // Add other potential fields like pagination info
 }
 
-interface TestsApiResponse {
-  results?: Test[];
-}
-
 interface OrdersApiResponse {
   results?: Order[];
 }
@@ -147,8 +143,7 @@ const OrderManagement: React.FC = () => {
         } // FIX: Removed unused _jsonError
         throw new Error(errorMessage);
       }
-      // FIX: Type the response data
-      const _data: TestsApiResponse = await response.json(); // FIX: Prefixed unused variable
+      await response.json(); // FIX: Removed unused _data variable
       // setTests(data.results || []); // FIX: Removed call to unused state setter
       setError(undefined);
     } catch (error_: unknown) {
