@@ -58,7 +58,7 @@ export default function EditPatientPage() {
       try {
         const response = await fetch(`/api/patients/${patientId}`);
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData: { error?: string } = await response.json();
           throw new Error(errorData.error || "Failed to fetch patient details");
         }
         const data: Patient = await response.json();
@@ -70,7 +70,7 @@ export default function EditPatientPage() {
         setFormData(formattedData);
       } catch (err: unknown) { // Use unknown
         const message = err instanceof Error ? err.message : "An unknown error occurred";
-        setErrors([{ path: ["form"], message: message }]);
+        setErrors([{ code: z.ZodIssueCode.custom, path: ["form"], message: message }]);
         toast({
           title: "Error Fetching Patient",
           description: message,
@@ -119,11 +119,11 @@ export default function EditPatientPage() {
       return;
     }
 
-    // Ensure we only send fields that are part of the schema
-    const dataToSend: Partial<FormData> = {};
+    const dataToSend: Partial<Patient> = {};
     Object.keys(validation.data).forEach(key => {
-        const typedKey = key as keyof FormData;
+        const typedKey = key as keyof Patient;
         if (formData[typedKey] !== undefined) { // Check if the key exists in formData
+            // Ensure the value is not null if the target type doesn't allow null, though Partial<Patient> should handle this
             dataToSend[typedKey] = formData[typedKey];
         }
     });
@@ -143,7 +143,7 @@ export default function EditPatientPage() {
         body: JSON.stringify(dataToSend),
       });
 
-      const result = await response.json();
+      const result: { error?: string } = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || "Failed to update patient");
@@ -158,7 +158,7 @@ export default function EditPatientPage() {
 
     } catch (err: unknown) { // Use unknown
       const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setErrors([{ path: ["form"], message: message }]);
+      setErrors([{ code: z.ZodIssueCode.custom, path: ["form"], message: message }]);
       toast({
         title: "Update Failed",
         description: message,

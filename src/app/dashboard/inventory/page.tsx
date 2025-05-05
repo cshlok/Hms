@@ -39,7 +39,7 @@ export default function InventoryPage() {
 
         const response = await fetch(`/api/inventory-items?${params.toString()}`);
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData: { error?: string } = await response.json();
           throw new Error(errorData.error || "Failed to fetch inventory items");
         }
         const data: InventoryItem[] = await response.json();

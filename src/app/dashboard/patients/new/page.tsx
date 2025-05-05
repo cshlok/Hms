@@ -83,7 +83,7 @@ export default function AddPatientPage() {
         body: JSON.stringify(validation.data),
       });
 
-      const result = await response.json();
+      const result: { error?: string } = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || "Failed to register patient");
@@ -98,7 +98,7 @@ export default function AddPatientPage() {
 
     } catch (err: unknown) { // Use unknown
       const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setErrors([{ path: ["form"], message: message }]);
+      setErrors([{ code: z.ZodIssueCode.custom, path: ["form"], message: message }]);
       toast({
         title: "Registration Failed",
         description: message,

@@ -107,7 +107,7 @@ export default function AddInventoryItemPage() {
         body: JSON.stringify(dataToSend),
       });
 
-      const result = await response.json();
+      const result: { error?: string } = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || "Failed to add inventory item");
@@ -122,7 +122,7 @@ export default function AddInventoryItemPage() {
 
     } catch (err: unknown) { // Use unknown
       const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setErrors([{ path: ["form"], message: message }]);
+      setErrors([{ code: z.ZodIssueCode.custom, path: ["form"], message: message }]);
       toast({
         title: "Creation Failed",
         description: message,

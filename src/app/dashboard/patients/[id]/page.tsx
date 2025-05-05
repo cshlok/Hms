@@ -42,7 +42,7 @@ export default function PatientDetailPage() {
       try {
         const response = await fetch(`/api/patients/${patientId}`);
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData: { error?: string } = await response.json();
           throw new Error(errorData.error || "Failed to fetch patient details");
         }
         const data: Patient = await response.json();
@@ -69,7 +69,7 @@ export default function PatientDetailPage() {
         const response = await fetch(`/api/patients/${patientId}`, {
             method: "DELETE",
         });
-        const result = await response.json();
+        const result: { error?: string } = await response.json();
         if (!response.ok) {
             throw new Error(result.error || "Failed to deactivate patient");
         }

@@ -135,7 +135,7 @@ const ServiceItemForm: React.FC<ServiceItemFormProperties> = ({
       await onSubmit(formData);
       // If onSubmit is successful, the modal will be closed by the parent component
     } catch {
-      console.error("Form submission error:", error);
+      console.error("Form submission error:", error_);
       // Error is handled in the parent component (handleFormSubmit)
       // Keep the modal open by not calling onCancel here
     } finally {
@@ -277,7 +277,7 @@ export default function ServiceItemsPage() {
   const [error, setError] = useState<string | null>();
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<ServiceItem | null>();
+  const [editingItem, setEditingItem] = useState<ServiceItem | null>(null);
 
   const fetchServiceItems = useCallback(async () => {
     setIsLoading(true);
@@ -531,3 +531,10 @@ export default function ServiceItemsPage() {
     </div>
   );
 }
+
+
+// Helper function to determine badge variant based on status
+const getStatusBadgeVariant = (isActive: boolean): "success" | "secondary" => {
+  return isActive ? "success" : "secondary";
+};
+
