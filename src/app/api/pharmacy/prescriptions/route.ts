@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database"; // Assuming db returns a promise
-import { getSession, Session, SessionUser } from "@/lib/session"; // FIX: Import SessionUser
+import { getSession, IronSessionData } from "@/lib/session";
+import { IronSession } from "iron-session";
+import { User } from "@/types/user";
 
 // FIX: Define generic QueryResult type
 interface QueryResult<T> {

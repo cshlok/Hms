@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database"; // Import getDB function
-import { getSession, Session, SessionUser } from "@/lib/session"; // FIX: Import SessionUser
+import { getSession, IronSessionData } from "@/lib/session";
+import { IronSession } from "iron-session";
+import { User } from "@/types/user";
 // import { checkUserRole } from "@/lib/auth"; // Assuming checkUserRole might not be fully implemented or needed based on roleName
 
 // FIX: Define generic SingleQueryResult type for .first()

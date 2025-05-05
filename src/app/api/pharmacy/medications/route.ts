@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database"; // Assuming db returns a promise
-import { getSession, Session } from "@/lib/session";
+import { getSession } from "@/lib/session";
 
 // Define interfaces for data structures
 // interface _Medication { // FIX: Prefixed unused interface - Removed as it's unused
