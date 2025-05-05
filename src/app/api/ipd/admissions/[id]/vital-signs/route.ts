@@ -17,7 +17,7 @@ interface VitalSignsInput {
 // GET /api/ipd/admissions/[id]/vital-signs - Get all vital signs for an admission
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     const session = await getSession(); // Removed request argument
@@ -27,7 +27,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const admissionId = params.id;
+    const { id: admissionId } = await params; // FIX: Await params and destructure id (Next.js 15+)
 
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
@@ -96,7 +96,7 @@ export async function GET(
 // POST /api/ipd/admissions/[id]/vital-signs - Create a new vital signs record
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     const session = await getSession(); // Removed request argument
@@ -117,7 +117,7 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const admissionId = params.id;
+    const { id: admissionId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     // Fixed: Apply type assertion
     const data = (await request.json()) as VitalSignsInput;
 
@@ -200,3 +200,4 @@ export async function POST(
     );
   }
 }
+

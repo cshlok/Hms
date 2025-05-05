@@ -5,7 +5,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Appointment, AppointmentStatus } from "@/types/appointment";
 import { z } from "zod";
-import { CloudflareEnv } from "@/types/cloudflare"; // FIX: Import CloudflareEnv
+import type { CloudflareEnv } from "../../../env";
 
 // Define roles allowed to view/book appointments (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor", "Patient"];

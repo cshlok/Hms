@@ -3,12 +3,6 @@ import { getDB } from "@/lib/database"; // Import getDB function
 import { getSession, Session, SessionUser } from "@/lib/session"; // FIX: Import SessionUser
 // import { checkUserRole } from "@/lib/auth"; // Assuming checkUserRole might not be fully implemented or needed based on roleName
 
-// FIX: Define generic QueryResult type - Removed as unused
-// interface QueryResult<T> {
-//   results?: T[];
-//   // Add other potential properties like rowCount, etc., based on your DB library
-// }
-
 // FIX: Define generic SingleQueryResult type for .first()
 interface SingleQueryResult<T> {
   result?: T | null;
@@ -54,7 +48,7 @@ interface RadiologyReportPutData {
 // GET a specific Radiology Report by ID
 export async function GET(
   request: NextRequest, // Keep request for potential future use
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
     // FIX: Get session without unsafe assertion
@@ -69,7 +63,7 @@ export async function GET(
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     // }
 
-    const reportId = params.id;
+    const { id: reportId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!reportId) {
       return NextResponse.json(
         { error: "Report ID is required" },
@@ -86,10 +80,10 @@ export async function GET(
         `SELECT
          rr.*,
          rs.accession_number,
-         rad.first_name || ' ' || rad.last_name as radiologist_name,
-         ver.first_name || ' ' || ver.last_name as verified_by_name,
+         rad.first_name || \' \' || rad.last_name as radiologist_name,
+         ver.first_name || \' \' || ver.last_name as verified_by_name,
          ro.patient_id,
-         p.first_name || ' ' || p.last_name as patient_name,
+         p.first_name || \' \' || p.last_name as patient_name,
          pt.name as procedure_name
        FROM RadiologyReports rr
        JOIN RadiologyStudies rs ON rr.study_id = rs.id
@@ -130,7 +124,7 @@ export async function GET(
 // PUT (update/verify) a specific Radiology Report
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
     // FIX: Get session without unsafe assertion
@@ -141,7 +135,7 @@ export async function PUT(
     // FIX: Assert user type after null check
     const currentUser = session.user as SessionUser;
 
-    const reportId = params.id;
+    const { id: reportId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!reportId) {
       return NextResponse.json(
         { error: "Report ID is required" },
@@ -227,12 +221,12 @@ export async function PUT(
     }
     if (data.verified_by_id !== undefined) {
       // Optional: Check if the verifier is a valid user
-      // const verifierExists = await db.prepare("SELECT id FROM Users WHERE id = ? AND 'Radiologist' = ANY(roles)").bind(data.verified_by_id).first();
+      // const verifierExists = await db.prepare("SELECT id FROM Users WHERE id = ? AND \'Radiologist\' = ANY(roles)").bind(data.verified_by_id).first();
       // if (!verifierExists) return NextResponse.json({ error: "Invalid verifier ID or verifier is not a Radiologist" }, { status: 400 });
 
       fieldsToUpdate.verified_by_id = data.verified_by_id;
       fieldsToUpdate.verified_datetime = updatedAt;
-      // Automatically set status to 'final' when verified, if not already set
+      // Automatically set status to \'final\' when verified, if not already set
       if (
         fieldsToUpdate.status === undefined ||
         fieldsToUpdate.status === "preliminary"
@@ -266,7 +260,7 @@ export async function PUT(
     // Check if update actually happened (info.meta.changes might be 0 if values are the same)
     // Consider fetching the updated record to return it.
 
-    // If report status is set to 'final', update related study/order statuses
+    // If report status is set to \'final\', update related study/order statuses
     if (fieldsToUpdate.status === "final") {
       // FIX: Use type assertion for .first()
       const studyIdResult = (await database
@@ -340,7 +334,7 @@ export async function PUT(
 // DELETE a specific Radiology Report (Admin only - consider status update instead)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
     // FIX: Get session without unsafe assertion
@@ -359,7 +353,7 @@ export async function DELETE(
       );
     }
 
-    const reportId = params.id;
+    const { id: reportId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!reportId) {
       return NextResponse.json(
         { error: "Report ID is required" },
@@ -369,7 +363,7 @@ export async function DELETE(
 
     const database = await getDB();
 
-    // Option 1: Soft delete (recommended - set status to 'retracted')
+    // Option 1: Soft delete (recommended - set status to \'retracted\')
     const retractedAt = new Date().toISOString();
     // FIX: Assume .run() returns a structure with success/meta
     const info = await database
@@ -409,3 +403,4 @@ export async function DELETE(
     );
   }
 }
+

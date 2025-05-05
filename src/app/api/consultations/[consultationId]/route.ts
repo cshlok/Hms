@@ -5,7 +5,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Consultation } from "@/types/opd";
 import { z } from "zod";
-import { CloudflareEnv } from "@/types/cloudflare"; // FIX: Import CloudflareEnv
+import type { CloudflareEnv } from "../../../env";
 
 // Define roles allowed to view/update consultations (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse"];
@@ -21,8 +21,8 @@ function getConsultationId(pathname: string): number | null {
 
 // GET handler for retrieving a specific consultation with full details
 export async function GET(request: Request) {
-    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
-    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const url = new URL(request.url);
     const consultationId = getConsultationId(url.pathname);
 
@@ -36,8 +36,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
-        const DB = context.env.DB; // FIX: Access DB via context.env
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const DB = context.env.DB;
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -139,8 +139,8 @@ const UpdateConsultationSchema = z.object({
 });
 
 export async function PUT(request: Request) {
-    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
-    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const url = new URL(request.url);
     const consultationId = getConsultationId(url.pathname);
 
@@ -167,8 +167,8 @@ export async function PUT(request: Request) {
              return new Response(JSON.stringify({ message: "No update data provided" }), { status: 200 });
         }
 
-        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
-        const DB = context.env.DB; // FIX: Access DB via context.env
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const DB = context.env.DB;
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");

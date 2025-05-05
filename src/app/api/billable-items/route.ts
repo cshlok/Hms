@@ -5,14 +5,14 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { BillableItem, ItemType } from "@/types/billing";
 import { z } from "zod";
-import { CloudflareEnv } from "@/types/cloudflare"; // FIX: Import CloudflareEnv
+import type { CloudflareEnv } from "../../../env";
 
 // Define roles allowed to view/manage billable items (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor", "Pharmacist", "Billing Staff"]; // Add Billing Staff role if needed
 const ALLOWED_ROLES_MANAGE = ["Admin", "Billing Staff"];
 export async function GET(request: Request) {
-    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
-    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const { searchParams } = new URL(request.url);
 
     // 1. Check Authentication & Authorization
@@ -24,8 +24,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
-        const DB = context.env.DB; // FIX: Access DB via context.env
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const DB = context.env.DB;
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -83,8 +83,8 @@ const AddBillableItemSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
-    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_MANAGE.includes(session.user.roleName)) {
@@ -107,8 +107,8 @@ export async function POST(request: Request) {
 
         const itemData = validation.data;
 
-        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Use CloudflareEnv directly as generic
-        const DB = context.env.DB; // FIX: Access DB via context.env
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const DB = context.env.DB;
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");

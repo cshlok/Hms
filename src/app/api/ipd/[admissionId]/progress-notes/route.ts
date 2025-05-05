@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server"; // Fixed: Use NextResponse
 import { getCurrentUser } from "@/lib/auth"; // Changed from getSession
 import { ProgressNoteSchema } from "@/lib/schemas/ipd-schemas";
 
@@ -22,7 +22,7 @@ interface ProgressNoteInput {
 // GET handler for fetching progress notes
 export async function GET(
   request: NextRequest,
-  { params }: { params: { admissionId: string } }
+  { params }: { params: Promise<{ admissionId: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     const user = await getCurrentUser(); // Changed from getSession
@@ -30,21 +30,17 @@ export async function GET(
     // Check if user is authenticated
     if (!user) {
       // Changed from !session || !session.user
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-      });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); // FIX: Use NextResponse
     }
 
     // Check if user has appropriate role (e.g., Doctor, Nurse, Admin)
     const allowedRoles = new Set(["Doctor", "Nurse", "Consultant", "Admin"]); // Add roles as needed
     // Changed from !allowedRoles.includes(session.user.roleName)
     if (!user.roles.some((role) => allowedRoles.has(role))) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-      });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 }); // FIX: Use NextResponse
     }
 
-    const admissionId = params.admissionId;
+    const { admissionId } = await params; // FIX: Await params and destructure admissionId (Next.js 15+)
     const DB = process.env.DB as unknown as D1Database;
     const { searchParams } = new URL(request.url);
 
@@ -99,23 +95,17 @@ export async function GET(
     // const countResult = await DB.prepare("SELECT COUNT(*) as count FROM IPDProgressNotes WHERE admission_id = ?").bind(admissionId).first();
     // const totalCount = countResult ? (countResult.count as number) : 0;
 
-    return new Response(
-      JSON.stringify({
-        notes: progressNotes,
-        // pagination: { page, limit, totalCount } // Include if count is fetched
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return NextResponse.json({ // FIX: Use NextResponse
+      notes: progressNotes,
+      // pagination: { page, limit, totalCount } // Include if count is fetched
+    });
   } catch (error: unknown) {
     console.error("Error fetching IPD progress notes:", error);
-    return new Response(
-      JSON.stringify({
+    return NextResponse.json( // FIX: Use NextResponse
+      {
         error: "Failed to fetch IPD progress notes",
         details: error instanceof Error ? error.message : String(error),
-      }),
+      },
       {
         status: 500,
       }
@@ -126,7 +116,7 @@ export async function GET(
 // POST handler for creating a new progress note
 export async function POST(
   request: NextRequest,
-  { params }: { params: { admissionId: string } }
+  { params }: { params: Promise<{ admissionId: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     const user = await getCurrentUser(); // Changed from getSession
@@ -134,21 +124,17 @@ export async function POST(
     // Check if user is authenticated
     if (!user) {
       // Changed from !session || !session.user
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-      });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); // FIX: Use NextResponse
     }
 
     // Check if user has appropriate role
     const allowedRoles = new Set(["Doctor", "Nurse", "Consultant"]);
     // Changed from !allowedRoles.includes(session.user.roleName)
     if (!user.roles.some((role) => allowedRoles.has(role))) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-      });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 }); // FIX: Use NextResponse
     }
 
-    const admissionId = params.admissionId;
+    const { admissionId } = await params; // FIX: Await params and destructure admissionId (Next.js 15+)
     const DB = process.env.DB as unknown as D1Database;
 
     // Verify admission exists and is active
@@ -168,10 +154,10 @@ export async function POST(
         : undefined;
 
     if (!admissionCheck) {
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json( // FIX: Use NextResponse
+        {
           error: "Admission not found",
-        }),
+        },
         {
           status: 404,
         }
@@ -179,10 +165,10 @@ export async function POST(
     }
 
     if (admissionCheck.status !== "Active") {
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json( // FIX: Use NextResponse
+        {
           error: "Cannot add progress notes to a non-active admission",
-        }),
+        },
         {
           status: 400,
         }
@@ -206,10 +192,10 @@ export async function POST(
           : undefined;
 
       if (!doctorCheck) {
-        return new Response(
-          JSON.stringify({
+        return NextResponse.json( // FIX: Use NextResponse
+          {
             error: "You are not authorized to add notes for this patient",
-          }),
+          },
           {
             status: 403,
           }
@@ -229,11 +215,11 @@ export async function POST(
     // Validate input data (now includes admission_id)
     const validationResult = ProgressNoteSchema.safeParse(dataWithId);
     if (!validationResult.success) {
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json( // FIX: Use NextResponse
+        {
           error: "Invalid input data",
           details: validationResult.error.format(),
-        }),
+        },
         {
           status: 400,
         }
@@ -283,25 +269,26 @@ export async function POST(
 
     const progressNoteId = result.meta?.last_row_id || undefined;
 
-    return new Response(
-      JSON.stringify({
+    return NextResponse.json( // FIX: Use NextResponse
+      {
         message: "Progress note created successfully",
         progress_note_id: progressNoteId,
-      }),
+      },
       {
         status: 201,
       }
     );
   } catch (error: unknown) {
     console.error("Error creating IPD progress note:", error);
-    return new Response(
-      JSON.stringify({
+    return NextResponse.json( // FIX: Use NextResponse
+      {
         error: "Failed to create IPD progress note",
         details: error instanceof Error ? error.message : String(error),
-      }),
+      },
       {
         status: 500,
       }
     );
   }
 }
+

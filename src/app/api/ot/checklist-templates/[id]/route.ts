@@ -22,10 +22,10 @@ interface ChecklistTemplateUpdateBody {
 // GET /api/ot/checklist-templates/[id] - Get details of a specific checklist template
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const templateId = params.id;
+    const { id: templateId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!templateId) {
       return NextResponse.json(
         { message: "Template ID is required" },
@@ -75,10 +75,10 @@ export async function GET(
 // PUT /api/ot/checklist-templates/[id] - Update an existing checklist template
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const templateId = params.id;
+    const { id: templateId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!templateId) {
       return NextResponse.json(
         { message: "Template ID is required" },
@@ -214,10 +214,10 @@ export async function PUT(
 // DELETE /api/ot/checklist-templates/[id] - Delete a checklist template
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const templateId = params.id;
+    const { id: templateId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!templateId) {
       return NextResponse.json(
         { message: "Template ID is required" },
@@ -266,3 +266,4 @@ export async function DELETE(
     );
   }
 }
+

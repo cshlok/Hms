@@ -1,6 +1,6 @@
 // app/api/invoices/[invoiceId]/items/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session"; // FIX: Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 // import { InvoiceItem } from "@/types/billing";
@@ -30,7 +30,8 @@ const AddInvoiceItemSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies(); // FIX: Add await
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const url = new URL(request.url);
     const invoiceId = getInvoiceId(url.pathname);
 
@@ -62,7 +63,8 @@ export async function POST(request: Request) {
 
         const itemData = validation.data;
 
-        const { env } = getCloudflareContext();
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Add await and type
+        const { env } = context;
         const { DB } = env;
 
         // Use a transaction to ensure atomicity (add item, update invoice total)

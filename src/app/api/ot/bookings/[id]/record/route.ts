@@ -25,10 +25,10 @@ interface OTRecordBody {
 // GET /api/ot/bookings/[id]/record - Get operation record for a booking
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!bookingId) {
       return NextResponse.json(
         { message: "Booking ID is required" },
@@ -91,10 +91,10 @@ export async function GET(
 // POST /api/ot/bookings/[id]/record - Create/Update operation record for a booking
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!bookingId) {
       return NextResponse.json(
         { message: "Booking ID is required" },
@@ -143,14 +143,14 @@ export async function POST(
       ["scheduled", "confirmed"].includes(bookingResults[0].status as string)
     ) {
       await DB.prepare(
-        "UPDATE OTBookings SET status = 'in_progress', updated_at = ? WHERE id = ?"
+        "UPDATE OTBookings SET status = \'in_progress\', updated_at = ? WHERE id = ?"
       )
         .bind(now, bookingId)
         .run();
     }
     if (actual_end_time) {
       await DB.prepare(
-        "UPDATE OTBookings SET status = 'completed', updated_at = ? WHERE id = ?"
+        "UPDATE OTBookings SET status = \'completed\', updated_at = ? WHERE id = ?"
       )
         .bind(now, bookingId)
         .run();
@@ -312,3 +312,4 @@ export async function POST(
     );
   }
 }
+

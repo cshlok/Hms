@@ -10,11 +10,7 @@ import { z } from "zod";
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor"];
 const ALLOWED_ROLES_MANAGE = ["Admin", "Doctor"]; // Only Admin or the Doctor themselves can manage schedule
 
-// Define Cloudflare Env type
-interface CloudflareEnv {
-    DB: D1Database;
-    [key: string]: unknown; // Index signature
-}
+import type { CloudflareEnv } from "../../../../env";
 
 // Helper function to get doctor ID from URL
 function getDoctorId(pathname: string): number | null {
@@ -26,8 +22,8 @@ function getDoctorId(pathname: string): number | null {
 
 // GET handler for listing schedules for a specific doctor
 export async function GET(request: Request) {
-    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
-    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const url = new URL(request.url);
     const doctorId = getDoctorId(url.pathname);
 
@@ -47,9 +43,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Await and type context
-        // const { env } = context; // Removed destructuring
-        const DB = context.env.DB; // FIX: Access DB via context.env
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const DB = context.env.DB;
 
         if (!DB) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -92,8 +87,8 @@ const AddScheduleSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
-    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const url = new URL(request.url);
     const doctorId = getDoctorId(url.pathname);
 
@@ -107,9 +102,8 @@ export async function POST(request: Request) {
 
     let dbInstance: D1Database | undefined;
     try {
-        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Await and type context
-        // const { env } = context; // Removed destructuring
-        dbInstance = context.env.DB; // FIX: Access DB via context.env
+        const context = await getCloudflareContext<CloudflareEnv>();
+        dbInstance = context.env.DB;
 
         if (!dbInstance) {
             throw new Error("Database binding not found in Cloudflare environment.");
@@ -163,7 +157,8 @@ export async function POST(request: Request) {
 
         if (!insertResult.success) {
             // Handle potential unique constraint errors
-            if (typeof insertResult.error === 'string' && insertResult.error.includes("UNIQUE constraint failed")) { // FIX: Check type before includes
+            const errorString = String(insertResult.error); // Convert error to string
+            if (errorString.includes("UNIQUE constraint failed")) { // Check string
                  return new Response(JSON.stringify({ error: "Schedule slot with this start time already exists for this day" }), {
                     status: 409, // Conflict
                     headers: { "Content-Type": "application/json" },

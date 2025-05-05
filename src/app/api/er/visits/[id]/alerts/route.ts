@@ -28,12 +28,12 @@ const mockAlerts: Alert[] = [];
 // GET /api/er/visits/[id]/alerts - Get alerts for a specific ER visit
 export async function GET(
   _request: NextRequest, // Prefixed as unused
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     // const { env } = getRequestContext(); // Cloudflare specific
     // const db = env.DB; // Cloudflare specific
-    const visitId = params.id;
+    const { id: visitId } = await params; // FIX: Await params and destructure id (Next.js 15+)
 
     // Placeholder for database query
     /*
@@ -71,12 +71,12 @@ export async function GET(
 // POST /api/er/visits/[id]/alerts - Create a new critical alert for an ER visit
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     // const { env } = getRequestContext(); // Cloudflare specific
     // const db = env.DB; // Cloudflare specific
-    const visitId = params.id;
+    const { id: visitId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     const body = await request.json();
     // Apply type assertion
     const alertData = body as AlertInput;
@@ -145,3 +145,4 @@ export async function POST(
 // Note: Updating alert status (acknowledge/resolve) might be better handled
 // in a separate route like /api/er/visits/[visitId]/alerts/[alertId] (PUT)
 // or potentially via the main visit update PUT endpoint if simpler.
+

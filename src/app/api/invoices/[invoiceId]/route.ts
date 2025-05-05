@@ -1,6 +1,6 @@
 // app/api/invoices/[invoiceId]/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session"; // FIX: Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Invoice, /* InvoiceItem, */ InvoiceStatus, Payment } from "@/types/billing"; // Commented out unused InvoiceItem
@@ -21,7 +21,8 @@ function getInvoiceId(pathname: string): number | null {
 
 // GET handler for retrieving a specific invoice with details
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies(); // FIX: Add await
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const url = new URL(request.url);
     const invoiceId = getInvoiceId(url.pathname);
 
@@ -41,7 +42,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Add await and type
+        const { env } = context;
         const { DB } = env;
 
         // 2. Retrieve the main invoice record

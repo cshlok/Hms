@@ -15,10 +15,10 @@ interface TheatreUpdateBody {
 // GET /api/ot/theatres/[id] - Get details of a specific operation theatre
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const theatreId = params.id;
+    const { id: theatreId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!theatreId) {
       return NextResponse.json(
         { message: "Theatre ID is required" },
@@ -57,10 +57,10 @@ export async function GET(
 // PUT /api/ot/theatres/[id] - Update an existing operation theatre
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const theatreId = params.id;
+    const { id: theatreId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!theatreId) {
       return NextResponse.json(
         { message: "Theatre ID is required" },
@@ -165,10 +165,10 @@ export async function PUT(
 // DELETE /api/ot/theatres/[id] - Delete an operation theatre
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const theatreId = params.id;
+    const { id: theatreId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!theatreId) {
       return NextResponse.json(
         { message: "Theatre ID is required" },
@@ -215,3 +215,4 @@ export async function DELETE(
     );
   }
 }
+

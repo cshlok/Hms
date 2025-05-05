@@ -1,6 +1,6 @@
-// app/api/inventory-items/route.ts
+import type { CloudflareEnv } from "../../../env";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { InventoryItem } from "@/types/inventory";
@@ -12,7 +12,8 @@ const ALLOWED_ROLES_MANAGE = ["Admin", "Pharmacist", "Inventory Manager"];
 
 // GET handler for listing inventory items
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies(); // FIX: Add await
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const { searchParams } = new URL(request.url);
 
     // 1. Check Authentication & Authorization
@@ -24,7 +25,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Add await and type
+        const { env } = context;
         const { DB } = env;
 
         // 2. Build query based on filters
@@ -88,7 +90,8 @@ const AddInventoryItemSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies(); // FIX: Add await
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_MANAGE.includes(session.user.roleName)) {
@@ -111,7 +114,8 @@ export async function POST(request: Request) {
 
         const itemData = validation.data;
 
-        const { env } = getCloudflareContext();
+        const context = await getCloudflareContext<CloudflareEnv>(); // FIX: Add await and type
+        const { env } = context;
         const { DB } = env;
 
         // 2. Optional: Check if billable_item_id exists and is valid if provided

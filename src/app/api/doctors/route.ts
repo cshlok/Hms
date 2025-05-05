@@ -1,4 +1,4 @@
-// app/api/doctors/route.ts
+import type { CloudflareEnv } from "../../../env";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions, IronSessionData } from "@/lib/session"; // FIX: Added IronSessionData import
 import { getIronSession } from "iron-session";
@@ -14,8 +14,8 @@ const ALLOWED_ROLES_ADD = ["Admin"];
 
 // GET handler for listing doctors
 export async function GET(request: Request) {
-  const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
-  const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
+  const cookieStore = await cookies();
+  const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
   const { searchParams } = new URL(request.url);
   const specialty = searchParams.get("specialty");
 
@@ -28,9 +28,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const context = await getCloudflareContext<{env: CloudflareEnv}>(); // FIX: Await and type context
-    // const { env } = context; // Removed destructuring
-    const DB = context.env.DB; // FIX: Access DB via context.env
+    const context = await getCloudflareContext<CloudflareEnv>();
+    const DB = context.env.DB;
 
     if (!DB) { throw new Error("Database binding not found."); } // Add null check
 
@@ -93,8 +92,8 @@ const AddDoctorSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const cookieStore = await cookies(); // Re-add await based on TS error
-    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass store
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_ADD.includes(session.user.roleName)) {
@@ -117,9 +116,8 @@ export async function POST(request: Request) {
 
         const doctorData = validation.data;
 
-        const context = await getCloudflareContext<{env: CloudflareEnv}>(); // FIX: Await and type context
-        // const { env } = context; // Removed destructuring
-        const DB = context.env.DB; // FIX: Access DB via context.env
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const DB = context.env.DB;
 
         if (!DB) { throw new Error("Database binding not found."); } // Add null check
 

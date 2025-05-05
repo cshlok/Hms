@@ -13,7 +13,7 @@ interface OrderUpdateInput {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   const session = await getSession();
   if (
@@ -29,7 +29,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  const orderId = params.id;
+  const { id: orderId } = await params; // FIX: Await params and destructure id (Next.js 15+)
   const DB = process.env.DB as unknown as D1Database;
 
   try {
@@ -62,7 +62,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   const session = await getSession();
   // Allow Admin, Receptionist, Technician to update status/details
@@ -73,7 +73,7 @@ export async function PUT(
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  const orderId = params.id;
+  const { id: orderId } = await params; // FIX: Await params and destructure id (Next.js 15+)
   const DB = process.env.DB as unknown as D1Database;
 
   try {
@@ -153,7 +153,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   const session = await getSession();
   // Typically only Admins or perhaps Receptionists should cancel orders
@@ -165,11 +165,11 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  const orderId = params.id;
+  const { id: orderId } = await params; // FIX: Await params and destructure id (Next.js 15+)
   const DB = process.env.DB as unknown as D1Database;
 
   try {
-    // Instead of deleting, consider marking as 'cancelled'
+    // Instead of deleting, consider marking as \"cancelled\"
     const updatedAt = new Date().toISOString();
     const info: D1Result = await DB.prepare(
       // Add type D1Result
@@ -194,7 +194,7 @@ export async function DELETE(
         );
       }
       // Check if existingOrder has status property before accessing it
-      // FIX: Removed unnecessary escapes around 'object' and 'status'
+      // FIX: Removed unnecessary escapes around \"object\" and \"status\"
       if (
         typeof existingOrder === "object" &&
         existingOrder !== undefined &&
@@ -229,3 +229,4 @@ export async function DELETE(
     );
   }
 }
+

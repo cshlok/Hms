@@ -1,18 +1,18 @@
 // src/app/api/ot/bookings/[id]/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server"; // FIX: Import NextRequest
 // import { getRequestContext } from "@cloudflare/next-on-pages";
 
 export const runtime = "edge";
 
 // GET /api/ot/bookings/[id] - Get a specific OT booking by ID
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest, // FIX: Use NextRequest
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     // const { env } = getRequestContext();
     // const DB = env.DB;
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
 
     // Placeholder for database query
     /*
@@ -58,13 +58,13 @@ export async function GET(
 
 // PUT /api/ot/bookings/[id] - Update a specific OT booking
 export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest, // FIX: Use NextRequest
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     // const { env } = getRequestContext();
     // const DB = env.DB;
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     const updateData = await request.json();
 
     // Validate required fields
@@ -125,19 +125,19 @@ export async function PUT(
 
 // DELETE /api/ot/bookings/[id] - Cancel a specific OT booking
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest, // FIX: Use NextRequest
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     // const { env } = getRequestContext();
     // const DB = env.DB;
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     // const now = new Date().toISOString(); // Unused variable
 
     // Option 1: Hard delete (if allowed)
     // const info = await DB.prepare("DELETE FROM OTBookings WHERE id = ?").bind(bookingId).run();
 
-    // Option 2: Soft delete (update status to 'cancelled')
+    // Option 2: Soft delete (update status to \'cancelled\')
     // Mock implementation for development
     console.log(`Cancelling booking ${bookingId}`);
 
@@ -157,3 +157,4 @@ export async function DELETE(
     );
   }
 }
+

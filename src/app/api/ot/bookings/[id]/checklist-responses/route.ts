@@ -14,10 +14,10 @@ interface ChecklistResponseBody {
 // GET /api/ot/bookings/[id]/checklist-responses - Get checklist responses for a booking
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!bookingId) {
       return NextResponse.json(
         { message: "Booking ID is required" },
@@ -85,10 +85,10 @@ export async function GET(
 // POST /api/ot/bookings/[id]/checklist-responses - Add/Update checklist responses for a booking
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!bookingId) {
       return NextResponse.json(
         { message: "Booking ID is required" },
@@ -229,3 +229,4 @@ export async function POST(
     );
   }
 }
+

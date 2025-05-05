@@ -87,7 +87,7 @@ interface RadiologyStudyPutData {
 // GET a specific Radiology Study by ID
 export async function GET(
   request: NextRequest, // Keep request for potential future use
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
     const session = await getSession(); // Call without request
@@ -101,7 +101,7 @@ export async function GET(
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     // }
 
-    const studyId = params.id;
+    const { id: studyId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!studyId) {
       return NextResponse.json(
         { error: "Study ID is required" },
@@ -116,9 +116,9 @@ export async function GET(
         `SELECT
          rs.*,
          ro.patient_id,
-         p.first_name || ' ' || p.last_name as patient_name,
+         p.first_name || \' \' || p.last_name as patient_name,
          pt.name as procedure_name,
-         tech.first_name || ' ' || tech.last_name as technician_name,
+         tech.first_name || \' \' || tech.last_name as technician_name,
          mod.name as modality_name
        FROM RadiologyStudies rs
        JOIN RadiologyOrders ro ON rs.order_id = ro.id
@@ -155,7 +155,7 @@ export async function GET(
 // PUT (update) a specific Radiology Study (Technician or Admin)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
     const session = await getSession(); // Call without request
@@ -171,7 +171,7 @@ export async function PUT(
       );
     }
 
-    const studyId = params.id;
+    const { id: studyId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!studyId) {
       return NextResponse.json(
         { error: "Study ID is required" },
@@ -271,7 +271,7 @@ export async function PUT(
         );
       }
 
-      // If status is updated to 'completed', 'reported' or 'verified', update the parent order status
+      // If status is updated to \'completed\', \'reported\' or \'verified\', update the parent order status
       if (
         fieldsToUpdate.status &&
         ["completed", "reported", "verified"].includes(
@@ -285,7 +285,7 @@ export async function PUT(
           .first<{ order_id: string }>(); // Use generic type argument
         // Add null check for orderIdResult
         if (orderIdResult?.order_id) {
-          // Determine the appropriate order status (e.g., 'completed' when study is done)
+          // Determine the appropriate order status (e.g., \'completed\' when study is done)
           const newOrderStatus = "completed"; // Or more complex logic based on study status
           await database
             .prepare(
@@ -344,7 +344,7 @@ export async function PUT(
 // DELETE a specific Radiology Study (Admin only - consider status update instead)
 export async function DELETE(
   request: NextRequest, // Keep request for potential future use
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
     const session = await getSession(); // Call without request
@@ -356,7 +356,7 @@ export async function DELETE(
       );
     }
 
-    const studyId = params.id;
+    const { id: studyId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!studyId) {
       return NextResponse.json(
         { error: "Study ID is required" },
@@ -419,3 +419,4 @@ export async function DELETE(
     );
   }
 }
+

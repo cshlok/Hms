@@ -295,7 +295,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     const session = await getSession();
@@ -303,8 +303,9 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const id = Number.parseInt(params.id);
-    if (Number.isNaN(id) || id <= 0) {
+    const { id } = await params; // FIX: Await params and destructure id (Next.js 15+)
+    const numericId = Number.parseInt(id);
+    if (Number.isNaN(numericId) || numericId <= 0) {
       return NextResponse.json(
         { error: "Invalid lab order ID" },
         { status: 400 }
@@ -313,7 +314,7 @@ export async function PUT(
 
     const updateData = (await request.json()) as LabOrderUpdateInput;
 
-    const updatedOrder = await updateLabOrderInDB(id, updateData);
+    const updatedOrder = await updateLabOrderInDB(numericId, updateData);
 
     if (!updatedOrder) {
       return NextResponse.json(
@@ -333,3 +334,4 @@ export async function PUT(
     );
   }
 }
+

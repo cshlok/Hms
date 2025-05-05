@@ -5,6 +5,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { PatientVital } from "@/types/opd";
 import { z } from "zod";
+import { NextRequest } from "next/server"; // FIX: Import NextRequest
 
 // Define roles allowed to view/record vitals (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor", "Nurse", "Patient"]; // Patient can view own
@@ -20,10 +21,10 @@ const ListVitalsQuerySchema = z.object({
     offset: z.coerce.number().int().nonnegative().optional().default(0),
 });
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) { // FIX: Use NextRequest and Promise type for params
     const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
     const url = new URL(request.url);
-    const patientIdStr = params.id;
+    const { id: patientIdStr } = await params; // FIX: Await params and destructure id
     const patientId = parseInt(patientIdStr, 10);
 
     // 1. Check Authentication & Authorization
@@ -89,7 +90,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
         const results = await DB.prepare(query).bind(...queryParamsList).all<unknown[]>();
 
         // 6. Format Response
-        const vitals: PatientVital[] = results.results?.map(row => ({
+        const vitals: PatientVital[] = results.results?.map((row: any) => ({
             vital_id: row.vital_id,
             patient_id: row.patient_id,
             opd_visit_id: row.opd_visit_id,
@@ -140,9 +141,9 @@ const RecordVitalsSchema = z.object({
 }).refine(data => data.height_cm || data.weight_kg || data.temperature_celsius || data.systolic_bp || data.diastolic_bp || data.heart_rate || data.respiratory_rate || data.oxygen_saturation || data.pain_scale,
     { message: "At least one vital measurement must be provided." });
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) { // FIX: Use NextRequest and Promise type for params
     const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
-    const patientIdStr = params.id;
+    const { id: patientIdStr } = await params; // FIX: Await params and destructure id
     const patientId = parseInt(patientIdStr, 10);
 
     // 1. Check Authentication & Authorization
@@ -232,5 +233,4 @@ export async function POST(request: Request, { params }: { params: { id: string 
         });
     }
 }
-
 

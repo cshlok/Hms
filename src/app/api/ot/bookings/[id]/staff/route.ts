@@ -12,10 +12,10 @@ interface StaffAssignmentBody {
 // GET /api/ot/bookings/[id]/staff - Get staff assigned to a specific OT booking
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!bookingId) {
       return NextResponse.json(
         { message: "Booking ID is required" },
@@ -52,10 +52,10 @@ export async function GET(
 // POST /api/ot/bookings/[id]/staff - Assign staff to an OT booking
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!bookingId) {
       return NextResponse.json(
         { message: "Booking ID is required" },
@@ -174,10 +174,10 @@ export async function POST(
 // DELETE /api/ot/bookings/[id]/staff - Remove all staff from an OT booking
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const bookingId = params.id;
+    const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!bookingId) {
       return NextResponse.json(
         { message: "Booking ID is required" },
@@ -193,7 +193,7 @@ export async function DELETE(
     return NextResponse.json(
       {
         message: "Staff assignments removed successfully",
-        // D1 delete doesn't reliably return changes, so we might not have an accurate count
+        // D1 delete doesn\"t reliably return changes, so we might not have an accurate count
         // count: info.meta.changes
       },
       { status: 200 }
@@ -207,3 +207,4 @@ export async function DELETE(
     );
   }
 }
+

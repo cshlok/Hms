@@ -28,12 +28,12 @@ const mockTriageAssessments: Triage[] = [];
 // GET /api/er/visits/[id]/triage - Get triage assessment(s) for a specific ER visit
 export async function GET(
   _request: NextRequest, // FIX: Prefixed as unused, changed Request to NextRequest
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     // const { env } = getRequestContext(); // Cloudflare specific
     // const db = env.DB; // Cloudflare specific
-    const visitId = params.id;
+    const { id: visitId } = await params; // FIX: Await params and destructure id (Next.js 15+)
 
     // Placeholder for database query
     /*
@@ -69,12 +69,12 @@ export async function GET(
 // POST /api/er/visits/[id]/triage - Create a new triage assessment for an ER visit
 export async function POST(
   request: NextRequest, // Use NextRequest for json()
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     // const { env } = getRequestContext(); // Cloudflare specific
     // const db = env.DB; // Cloudflare specific
-    const visitId = params.id;
+    const { id: visitId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     const body = await request.json();
     // Apply type assertion
     const triageData = body as TriageInput;
@@ -151,3 +151,4 @@ export async function POST(
     );
   }
 }
+

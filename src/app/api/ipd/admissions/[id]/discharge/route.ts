@@ -15,7 +15,7 @@ interface DischargeInput {
 // GET /api/ipd/admissions/[id]/discharge - Get discharge summary for an admission
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     const session = await getSession(); // Removed request argument
@@ -25,7 +25,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const admissionId = params.id;
+    const { id: admissionId } = await params; // FIX: Await params and destructure id (Next.js 15+)
 
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
@@ -93,10 +93,10 @@ export async function GET(
   }
 }
 
-// POST /api/ipd/admissions/[id]/discharge - Create a discharge summary and discharge the patient
-export async function POST(
+// POST /api// GET /api/ipd/admissions/[id]/discharge - Get discharge summary for an admission
+export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     const session = await getSession(); // Removed request argument
@@ -116,7 +116,7 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const admissionId = params.id;
+    const { id: admissionId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     // Fixed: Apply type assertion to request.json()
     const data = (await request.json()) as DischargeInput;
 
@@ -192,7 +192,7 @@ export async function POST(
 
     // Mock DB doesn't support transactions or batch, execute queries sequentially
     // Use db.exec for transaction control if the real DB supports it
-    // await db.exec('BEGIN TRANSACTION'); // Uncomment if using real DB with transactions
+    // await db.exec("BEGIN TRANSACTION"); // Uncomment if using real DB with transactions
     try {
       const dischargeTimestamp =
         data.discharge_date || new Date().toISOString();
@@ -240,7 +240,7 @@ export async function POST(
         ]
       );
 
-      // await db.exec('COMMIT'); // Uncomment if using real DB with transactions
+      // await db.exec("COMMIT"); // Uncomment if using real DB with transactions
 
       // Since we can't get the ID from the mock DB, return a success message without the summary object
       return NextResponse.json(
@@ -252,7 +252,7 @@ export async function POST(
       );
     } catch (error: unknown) {
       console.error("Error during discharge database operations:", error);
-      // await db.exec('ROLLBACK'); // Uncomment if using real DB with transactions
+      // await db.exec("ROLLBACK"); // Uncomment if using real DB with transactions
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       return NextResponse.json(
@@ -272,3 +272,4 @@ export async function POST(
     );
   }
 }
+

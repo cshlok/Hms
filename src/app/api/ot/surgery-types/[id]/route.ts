@@ -23,10 +23,10 @@ interface SurgeryTypeUpdateBody {
 // GET /api/ot/surgery-types/[id] - Get details of a specific surgery type
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const surgeryTypeId = params.id;
+    const { id: surgeryTypeId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!surgeryTypeId) {
       return NextResponse.json(
         { message: "Surgery Type ID is required" },
@@ -87,10 +87,10 @@ export async function GET(
 // PUT /api/ot/surgery-types/[id] - Update an existing surgery type
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const surgeryTypeId = params.id;
+    const { id: surgeryTypeId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!surgeryTypeId) {
       return NextResponse.json(
         { message: "Surgery Type ID is required" },
@@ -233,10 +233,10 @@ export async function PUT(
 // DELETE /api/ot/surgery-types/[id] - Delete a surgery type
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
-    const surgeryTypeId = params.id;
+    const { id: surgeryTypeId } = await params; // FIX: Await params and destructure id (Next.js 15+)
     if (!surgeryTypeId) {
       return NextResponse.json(
         { message: "Surgery Type ID is required" },
@@ -283,3 +283,4 @@ export async function DELETE(
     );
   }
 }
+

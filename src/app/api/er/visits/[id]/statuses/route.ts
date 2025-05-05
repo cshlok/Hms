@@ -1,18 +1,18 @@
 // src/app/api/er/visits/[id]/statuses/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server"; // Fixed: Use NextRequest
 // import { getRequestContext } from "@cloudflare/next-on-pages";
 
 export const runtime = "edge";
 
 // GET /api/er/visits/[id]/statuses - Get status/location history for a visit
 export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } }
+  _request: NextRequest, // Fixed: Use NextRequest
+  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     // const { env } = getRequestContext(); // Cloudflare specific
     // const db = env.DB; // Cloudflare specific
-    const visitId = params.id;
+    const { id: visitId } = await params; // FIX: Await params and destructure id (Next.js 15+)
 
     // Placeholder for database query
     /*
@@ -69,3 +69,4 @@ export async function GET(
 
 // Note: POST for status logs is implicitly handled by updating the visit status/location via PUT /api/er/visits/[id]
 // However, a dedicated POST could be added here if needed for specific logging events not tied to a visit update.
+

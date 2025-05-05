@@ -40,13 +40,14 @@ interface Fetcher {
 }
 
 // Define the Cloudflare environment bindings
-interface CloudflareEnv {
-  DB: D1Database;
-  ASSETS: Fetcher;
-  // Add other bindings (KV, R2, etc.) here if needed
-  // MY_KV_NAMESPACE: KVNamespace;
-  // MY_R2_BUCKET: R2Bucket;
-}
+// interface CloudflareEnv {
+//   DB: D1Database;
+//   ASSETS: Fetcher;
+//   [key: string]: unknown; // Index signature for Record<string, unknown> constraint
+//   // Add other bindings (KV, R2, etc.) here if needed
+//   // MY_KV_NAMESPACE: KVNamespace;
+//   // MY_R2_BUCKET: R2Bucket;
+// }
 
 // It might also be necessary to declare the types for process.env if used
 // declare global {
