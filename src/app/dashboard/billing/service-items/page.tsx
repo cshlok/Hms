@@ -538,12 +538,3 @@ const getStatusBadgeVariant = (isActive: boolean): "default" | "secondary" => {
   return isActive ? "default" : "secondary";
 };
 
-
-
-// Helper function to determine badge variant based on status
-const getStatusBadgeVariant = (
-  isActive: boolean
-): "default" | "secondary" | "destructive" | "outline" => {
-  return isActive ? "default" : "secondary";
-};
-

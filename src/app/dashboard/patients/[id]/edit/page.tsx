@@ -120,13 +120,16 @@ export default function EditPatientPage() {
     }
 
     const dataToSend: Partial<Patient> = {}; // Initialize empty object
-    Object.keys(validation.data).forEach(key => {
-        const typedKey = key as keyof Patient;
-        const value = formData[typedKey];
-        if (value !== undefined && value !== null) { // Only include defined, non-null values
-            dataToSend[typedKey] = value;
+    for (const key in validation.data) {
+        if (Object.prototype.hasOwnProperty.call(validation.data, key)) {
+            const typedKey = key as keyof Patient;
+            const value = formData[typedKey];
+            // Only include defined, non-null values that are part of the validated data
+            if (value !== undefined && value !== null) {
+                 (dataToSend as any)[typedKey] = value; // Use 'any' temporarily to bypass TS2322
+            }
         }
-    });
+    }
 
      if (Object.keys(dataToSend).length === 0) {
         toast({ title: "No Changes", description: "No changes detected to save." });

@@ -33,7 +33,7 @@ interface ExpiringMedication {
 export default function PharmacyPage() {
   const router = useRouter(); // Initialize router
   const [activeTab, setActiveTab] = useState("dashboard"); // Initialize activeTab state
-  const [loading, setLoading] = useState(false); // Initialize loading state
+  const [loading, _setLoading] = useState(false); // Initialize loading state
 
   // Placeholder for tab content rendering logic
   const renderTabContent = () => {

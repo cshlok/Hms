@@ -176,7 +176,7 @@ export default function ERRegistrationModal({
           variant: "default",
         });
       }
-    } catch {
+    } catch (error) {
       console.error("Patient search error:", error);
       toast({
         title: "Search Failed",

@@ -25,6 +25,7 @@ import dayjs from "dayjs";
 // import { useSession } from "next-auth/react"; // Removed unused import
 import { IPDPrescription, IPDPrescriptionItem } from "@/types/ipd";
 import { MedicationAdministrationRecord } from "@/types/pharmacy";
+import { AdminRecordsApiResponse, ApiErrorResponse } from "@/types/api"; // Import API response types
 
 // const { Option } = Select; // Removed unused variable assignment
 
@@ -129,7 +130,7 @@ const IPDPharmacyIntegration: React.FC<IPDPharmacyIntegrationProperties> = ({
       if (!response.ok) {
         throw new Error("Failed to fetch administration records");
       }
-      const data = await response.json();
+      const data: AdminRecordsApiResponse = await response.json();
       _setAdministrationRecords(data.records || []);
 
       // Update schedule status based on fetched records
@@ -201,7 +202,7 @@ const IPDPharmacyIntegration: React.FC<IPDPharmacyIntegrationProperties> = ({
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData: ApiErrorResponse = await response.json();
         throw new Error(errorData.error || "Failed to record administration");
       }
 
