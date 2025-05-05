@@ -119,12 +119,12 @@ export default function EditPatientPage() {
       return;
     }
 
-    const dataToSend: Partial<Patient> = {};
+    const dataToSend: Partial<Patient> = {}; // Initialize empty object
     Object.keys(validation.data).forEach(key => {
         const typedKey = key as keyof Patient;
-        if (formData[typedKey] !== undefined) { // Check if the key exists in formData
-            // Ensure the value is not null if the target type doesn't allow null, though Partial<Patient> should handle this
-            dataToSend[typedKey] = formData[typedKey];
+        const value = formData[typedKey];
+        if (value !== undefined && value !== null) { // Only include defined, non-null values
+            dataToSend[typedKey] = value;
         }
     });
 

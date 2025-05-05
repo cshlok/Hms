@@ -134,8 +134,8 @@ const ServiceItemForm: React.FC<ServiceItemFormProperties> = ({
     try {
       await onSubmit(formData);
       // If onSubmit is successful, the modal will be closed by the parent component
-    } catch {
-      console.error("Form submission error:", error_);
+    } catch (error) {
+      console.error("Form submission error:", error);
       // Error is handled in the parent component (handleFormSubmit)
       // Keep the modal open by not calling onCancel here
     } finally {
@@ -274,14 +274,14 @@ const ServiceItemForm: React.FC<ServiceItemFormProperties> = ({
 export default function ServiceItemsPage() {
   const [serviceItems, setServiceItems] = useState<ServiceItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>();
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ServiceItem | null>(null);
 
   const fetchServiceItems = useCallback(async () => {
     setIsLoading(true);
-    setError(undefined);
+    setError(null); // Clear previous errors before fetching
     try {
       const response = await fetch("/api/billing/service-items");
       if (!response.ok) {
@@ -313,7 +313,7 @@ export default function ServiceItemsPage() {
       ? `/api/billing/service-items/${editingItem.id}`
       : "/api/billing/service-items";
     const method = editingItem ? "PUT" : "POST";
-    setError(undefined); // Clear previous errors
+    setError(null); // Clear previous errors
 
     try {
       const response = await fetch(url, {
@@ -341,25 +341,25 @@ export default function ServiceItemsPage() {
       // Refresh list and close modal on success
       await fetchServiceItems();
       setIsModalOpen(false);
-      setEditingItem(undefined);
+      setEditingItem(null);
       // Consider showing a success toast message here
-    } catch (error_) {
+    } catch (error) {
       console.error(
         `Error ${editingItem ? "updating" : "creating"} service item:`,
-        error_
+        error
       );
       const message =
-        error_ instanceof Error
-          ? error_.message
+        error instanceof Error
+          ? error.message
           : `An unknown error occurred while ${editingItem ? "updating" : "creating"} the item.`;
       setError(message);
       // Re-throw to indicate failure to the form component if needed, or handle error display here
-      throw error_;
+      throw error;
     }
   };
 
   const openCreateModal = () => {
-    setEditingItem(undefined);
+    setEditingItem(null);
     setIsModalOpen(true);
   };
 
@@ -406,7 +406,7 @@ export default function ServiceItemsPage() {
               onSubmit={handleFormSubmit}
               onCancel={() => {
                 setIsModalOpen(false);
-                setError(undefined);
+                setError(null);
               }} // Clear error on cancel
             />
           </DialogContent>
@@ -534,7 +534,16 @@ export default function ServiceItemsPage() {
 
 
 // Helper function to determine badge variant based on status
-const getStatusBadgeVariant = (isActive: boolean): "success" | "secondary" => {
-  return isActive ? "success" : "secondary";
+const getStatusBadgeVariant = (isActive: boolean): "default" | "secondary" => {
+  return isActive ? "default" : "secondary";
+};
+
+
+
+// Helper function to determine badge variant based on status
+const getStatusBadgeVariant = (
+  isActive: boolean
+): "default" | "secondary" | "destructive" | "outline" => {
+  return isActive ? "default" : "secondary";
 };
 

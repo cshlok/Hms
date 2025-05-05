@@ -18,6 +18,12 @@ import { Patient } from "@/types/patient"; // Assuming Patient type exists
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 
+// Define interface for error response
+interface ErrorResponse {
+  error?: string;
+  message?: string;
+}
+
 export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,8 +38,9 @@ export default function PatientsPage() {
       try {
         const response = await fetch("/api/patients"); // Use the GET endpoint created earlier
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to fetch patients");
+          // FIX: Cast error response JSON to defined type
+          const errorData = (await response.json()) as ErrorResponse;
+          throw new Error(errorData?.error || errorData?.message || "Failed to fetch patients");
         }
         const data: Patient[] = await response.json();
         setPatients(data);
