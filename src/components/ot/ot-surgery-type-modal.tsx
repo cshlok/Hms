@@ -146,9 +146,9 @@ export default function OTSurgeryTypeModal({
 
       const apiData: SurgeryTypeSaveData = {
         name: formData.name,
-        description: formData.description || undefined,
-        specialty: formData.specialty || undefined,
-        estimated_duration_minutes: duration,
+        description: formData.description || null,
+        specialty: formData.specialty || null,
+        estimated_duration_minutes: duration ?? null,
         required_staff: parsedStaff,
         required_equipment: parsedEquipment,
       };

@@ -56,7 +56,7 @@ export default function CreateModalityModal({
       });
       // Assuming onSubmit handles success/error reporting
       // onClose(); // Optionally close on successful submit
-    } catch {
+    } catch (error) { // FIX: Added error parameter
       console.error("Failed to submit modality:", error);
       // Optionally show an error message to the user
       alert(

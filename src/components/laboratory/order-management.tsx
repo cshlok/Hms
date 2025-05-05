@@ -148,7 +148,7 @@ const OrderManagement: React.FC = () => {
         throw new Error(errorMessage);
       }
       // FIX: Type the response data
-      const data: TestsApiResponse = await response.json();
+      const _data: TestsApiResponse = await response.json(); // FIX: Prefixed unused variable
       // setTests(data.results || []); // FIX: Removed call to unused state setter
       setError(undefined);
     } catch (error_: unknown) {

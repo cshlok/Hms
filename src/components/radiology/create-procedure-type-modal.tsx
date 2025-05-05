@@ -57,7 +57,7 @@ export default function CreateProcedureTypeModal({
       setDescription("");
       setModalityType("");
       // onClose(); // Keep modal open or close based on parent logic after onSubmit completes
-    } catch {
+    } catch (error) { // FIX: Added error parameter
       console.error("Failed to submit procedure type:", error);
       // Optionally show an error message to the user
       alert("Failed to add procedure type. Please try again.");

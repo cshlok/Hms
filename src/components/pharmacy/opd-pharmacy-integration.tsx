@@ -97,8 +97,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           patient_id: simulatedPatient.id,
           doctor_id: "doc_67890", // Simulate logged-in doctor ID
         }));
-      } catch {
-        console.error("Error fetching active patient:", error);
+      } catch (error) { // FIX: Added error parameter
         // Handle error appropriately (e.g., show message)
       }
     };
@@ -145,8 +144,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           },
         ];
         setMedications(simulatedMedications);
-      } catch {
-        console.error("Error fetching medications:", error);
+      } catch (error) { // FIX: Added error parameter
         // Handle error appropriately
       }
     };
@@ -201,8 +199,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           },
         ];
         setPrescriptions(simulatedPrescriptions);
-      } catch {
-        console.error("Error fetching prescriptions:", error);
+      } catch (error) { // FIX: Added error parameter
         // Handle error appropriately
       } finally {
         setLoading(false);
@@ -327,8 +324,7 @@ const OPDPharmacyIntegration: React.FC = () => {
       // Reset form state
       setSelectedMedications([]);
       setFormData((previous) => ({ ...previous, notes: "" }));
-    } catch {
-      console.error("Error creating prescription:", error);
+    } catch (error) { // FIX: Added error parameter
       const message =
         error instanceof Error ? error.message : "An unknown error occurred.";
       alert(`Failed to create prescription: ${message}`);

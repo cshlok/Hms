@@ -102,7 +102,7 @@ const BillingPharmacyIntegration: React.FC<
             subtotal: record.quantity * record.selling_price,
           }))
         );
-      } catch {
+      } catch (error) { // FIX: Added error parameter
         console.error("Error fetching unbilled dispensing records:", error);
         // Handle error appropriately, e.g., show an error message
       } finally {
@@ -185,7 +185,7 @@ const BillingPharmacyIntegration: React.FC<
       // Bill total is recalculated by useEffect, no need to set here
 
       alert("Pharmacy bill generated successfully!");
-    } catch {
+    } catch (error) { // FIX: Added error parameter
       const message =
         error instanceof Error ? error.message : "An unknown error occurred.";
       console.error("Error generating pharmacy bill:", error);

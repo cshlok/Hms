@@ -155,7 +155,7 @@ export default function CreateRadiologyOrderModal({
         procedure_type_id: procedureTypeId,
         clinical_indication: clinicalIndication,
         priority: priority,
-        referring_doctor_id: referringDoctorId || undefined, // Convert empty string to null
+        referring_doctor_id: referringDoctorId || null, // Convert empty string to null
       });
       // Reset form state after successful submission
       setPatientId("");

@@ -144,9 +144,9 @@ export default function CreateRadiologyReportModal({
       await onSubmit({
         study_id: studyId,
         radiologist_id: radiologistId,
-        findings: findings || undefined,
+        findings: findings || null,
         impression: impression,
-        recommendations: recommendations || undefined,
+        recommendations: recommendations || null,
         status: status,
       });
       // Reset form on successful submission (optional, parent might handle closing)

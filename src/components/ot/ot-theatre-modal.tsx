@@ -99,10 +99,10 @@ export default function OTTheatreModal({
     try {
       const apiData: TheatreSaveData = {
         name: formData.name,
-        location: formData.location || undefined,
-        specialty: formData.specialty || undefined,
+        location: formData.location || null,
+        specialty: formData.specialty || null,
         status: formData.status,
-        equipment: formData.equipment || undefined,
+        equipment: formData.equipment || null,
       };
 
       // Replace with actual API call

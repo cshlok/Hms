@@ -212,11 +212,11 @@ export default function OTRecordModal({
         booking_id: bookingId,
         procedure_start_time: formData.procedure_start_time
           ? new Date(formData.procedure_start_time).toISOString()
-          : undefined,
+          : null,
         procedure_end_time: formData.procedure_end_time
           ? new Date(formData.procedure_end_time).toISOString()
-          : undefined,
-        blood_loss_ml: bloodLoss,
+          : null,
+        blood_loss_ml: bloodLoss ?? null,
         checklist_responses: checklistItems,
       };
 

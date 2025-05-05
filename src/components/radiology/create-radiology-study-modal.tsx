@@ -117,15 +117,15 @@ export default function CreateRadiologyStudyModal({
     setIsSubmitting(true);
     await onSubmit({
       order_id: orderId,
-      accession_number: accessionNumber || undefined,
+      accession_number: accessionNumber || null,
       study_datetime: studyDatetime,
-      modality_id: modalityId || undefined,
+      modality_id: modalityId || null,
       technician_id: technicianId,
-      protocol: protocol || undefined,
-      series_description: seriesDescription || undefined,
+      protocol: protocol || null,
+      series_description: seriesDescription || null,
       number_of_images: numberOfImages
         ? Number.parseInt(numberOfImages, 10)
-        : undefined,
+        : null,
       status: "acquired", // Default status for new study
     });
     setIsSubmitting(false);
