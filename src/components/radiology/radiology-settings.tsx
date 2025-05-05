@@ -69,9 +69,9 @@ export default function RadiologySettings() {
       }
       const data: ProcedureType[] = await response.json();
       setProcedureTypes(data || []); // Ensure it's always an array
-    } catch {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      console.error("Error fetching procedure types:", error);
+    } catch (err) { // Changed 'error' to 'err'
+      const message = err instanceof Error ? err.message : "Unknown error"; // Use 'err'
+      console.error("Error fetching procedure types:", err); // Use 'err'
       setErrorProcedures(`Failed to load procedure types: ${message}`);
       setProcedureTypes([]); // Clear on error
     } finally {
@@ -96,9 +96,9 @@ export default function RadiologySettings() {
       }
       const data: Modality[] = await response.json();
       setModalities(data || []); // Ensure it's always an array
-    } catch {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      console.error("Error fetching modalities:", error);
+    } catch (err) { // Changed error to err
+      const message = err instanceof Error ? err.message : "Unknown error"; // Use err
+      console.error("Error fetching modalities:", err); // Use err
       setErrorModalities(`Failed to load modalities: ${message}`);
       setModalities([]); // Clear on error
     } finally {
@@ -132,9 +132,9 @@ export default function RadiologySettings() {
       setShowCreateProcedureModal(false);
       fetchProcedureTypes(); // Refresh the list
       // Consider showing a success message
-    } catch {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      console.error("Error creating procedure type:", error);
+    } catch (err) { // Changed error to err
+      const message = err instanceof Error ? err.message : "Unknown error"; // Use err
+      console.error("Error creating procedure type:", err); // Use err
       alert(`Error: ${message}`); // Replace alert with a better notification system (e.g., toast)
     }
   };
@@ -165,9 +165,9 @@ export default function RadiologySettings() {
       setShowCreateModalityModal(false);
       fetchModalities(); // Refresh the list
       // Consider showing a success message
-    } catch {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      console.error("Error creating modality:", error);
+    } catch (err) { // Changed error to err
+      const message = err instanceof Error ? err.message : "Unknown error"; // Use err
+      console.error("Error creating modality:", err); // Use err
       alert(`Error: ${message}`); // Replace alert with a better notification system
     }
   };
