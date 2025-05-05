@@ -34,13 +34,24 @@ export async function POST(request: Request) {
     }
 
     // 1. Find user by username or email
+    // Assuming permissions are not directly stored/queried here yet.
     const userResult = await DB.prepare(
         "SELECT u.user_id, u.username, u.email, u.password_hash, u.full_name, u.role_id, u.is_active, r.role_name " +
         "FROM Users u JOIN Roles r ON u.role_id = r.role_id " +
         "WHERE (u.username = ? OR u.email = ?) AND u.is_active = TRUE"
     )
       .bind(identifier, identifier)
-      .first<User & { password_hash: string; role_name: string }>();
+      // Define the expected result type more accurately
+      .first<{
+          userId: number;
+          username: string;
+          email: string;
+          password_hash: string;
+          fullName: string | null;
+          roleId: number;
+          isActive: boolean;
+          roleName: string;
+      }>();
 
     if (!userResult) {
       return new Response(JSON.stringify({ error: "Invalid credentials or user inactive" }), {
@@ -60,10 +71,11 @@ export async function POST(request: Request) {
     }
 
     // 3. Create session
-    const cookieStore = await cookies(); // REVERT FIX: Add await back based on TS error
-    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions); // FIX: Pass the store
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
 
     // Prepare user data for session (exclude sensitive info)
+    // Initialize permissions as empty array for now
     const sessionUser: User = {
         userId: userResult.userId,
         username: userResult.username,
@@ -72,6 +84,7 @@ export async function POST(request: Request) {
         roleId: userResult.roleId,
         roleName: userResult.roleName, // Include roleName from query
         isActive: userResult.isActive,
+        permissions: [], // Initialize permissions as empty array
     };
 
     session.user = sessionUser;

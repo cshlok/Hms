@@ -21,7 +21,7 @@ interface ProgressNoteInput {
 
 // GET handler for fetching progress notes
 export async function GET(
-  request: NextRequest,
+  request: NextRequest, // Keep request as it's used for searchParams
   { params }: { params: Promise<{ admissionId: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -147,11 +147,11 @@ export async function POST(
     ).bind(admissionId);
     const admissionCheckResult = await admissionCheckStmt.all();
 
-    // Fixed: Use double assertion for type conversion
+    // Fixed: Use double assertion for type conversion and ensure null is returned if no results
     const admissionCheck: AdmissionCheck | null =
       admissionCheckResult.results && admissionCheckResult.results.length > 0
         ? (admissionCheckResult.results[0] as unknown as AdmissionCheck)
-        : undefined;
+        : null; // FIX: Changed undefined to null
 
     if (!admissionCheck) {
       return NextResponse.json( // FIX: Use NextResponse
@@ -265,9 +265,11 @@ export async function POST(
       user.id // Changed from session.user.userId
     );
 
-    const result = await insertStmt.run();
+    // FIX: Cast result to any to bypass D1Result type mismatch and safely access meta.last_row_id
+    const result = await insertStmt.run() as any;
 
-    const progressNoteId = result.meta?.last_row_id || undefined;
+    // FIX: Safely access last_row_id after casting result to any
+    const progressNoteId = (result.meta && typeof result.meta.last_row_id === 'number') ? result.meta.last_row_id : undefined;
 
     return NextResponse.json( // FIX: Use NextResponse
       {

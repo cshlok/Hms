@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/lab-orders/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session"; // Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { LabOrder, LabOrderStatus } from "@/types/opd";
 import { z } from "zod";
+import { D1Result } from "@cloudflare/workers-types"; // Import D1Result for meta typing
 
 // Define roles allowed to view/create lab orders (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse", "LabTechnician", "Patient"]; // Patient can view own
@@ -22,8 +24,26 @@ const ListLabOrdersQuerySchema = z.object({
     offset: z.coerce.number().int().nonnegative().optional().default(0),
 });
 
+// Define the expected structure based on the SELECT query
+interface LabOrderQueryResultRow {
+    lab_order_id: number;
+    consultation_id: number | null;
+    patient_id: number;
+    doctor_id: number;
+    order_datetime: string;
+    status: LabOrderStatus;
+    notes: string | null;
+    created_at: string;
+    updated_at: string; // Assuming this is part of lo.*
+    patient_first_name: string;
+    patient_last_name: string;
+    doctor_full_name: string | null;
+}
+
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    // Get cookies and create session
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
@@ -40,13 +60,15 @@ export async function GET(request: Request) {
         }
 
         const filters = validation.data;
-        const { env } = getCloudflareContext();
+        // Await the context
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
         const { DB } = env;
 
         // 2. Build Query
         let query = `
-            SELECT 
-                lo.*, 
+            SELECT
+                lo.*,
                 p.first_name as patient_first_name, p.last_name as patient_last_name,
                 u.full_name as doctor_full_name
             FROM LabOrders lo
@@ -118,11 +140,11 @@ export async function GET(request: Request) {
         query += " ORDER BY lo.order_datetime DESC LIMIT ? OFFSET ?";
         queryParamsList.push(filters.limit, filters.offset);
 
-        // 3. Execute Query
-        const results = await DB.prepare(query).bind(...queryParamsList).all<unknown[]>();
+        // 3. Execute Query - Provide row type to .all()
+        const results = await DB.prepare(query).bind(...queryParamsList).all<LabOrderQueryResultRow>();
 
-        // 4. Format Response (basic details for list view)
-        const labOrders: Partial<LabOrder>[] = results.results?.map(row => ({
+        // 4. Format Response (basic details for list view) - Type 'row' in map
+        const labOrders = results.results?.map((row: LabOrderQueryResultRow) => ({
             lab_order_id: row.lab_order_id,
             consultation_id: row.consultation_id,
             patient_id: row.patient_id,
@@ -138,7 +160,8 @@ export async function GET(request: Request) {
             },
             doctor: {
                 doctor_id: row.doctor_id,
-                user: { fullName: row.doctor_full_name }
+                // Assuming Doctor type has a user object; adjust if needed
+                user: { fullName: row.doctor_full_name } as any // Use 'as any' or define Doctor type properly
             }
         })) || [];
 
@@ -160,7 +183,9 @@ const CreateLabOrderSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    // Get cookies and create session
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_CREATE.includes(session.user.roleName)) {
@@ -176,7 +201,9 @@ export async function POST(request: Request) {
         }
 
         const orderData = validation.data;
-        const { env } = getCloudflareContext();
+        // Await the context
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
         const { DB } = env;
 
         // 2. Get Doctor ID from session user
@@ -200,19 +227,22 @@ export async function POST(request: Request) {
         const patientId = consultCheck.patient_id;
 
         // 4. Insert the new lab order shell
-        const insertResult = await DB.prepare(
+        // Type the result of run() as D1Result<unknown>
+        const insertResult: D1Result<unknown> = await DB.prepare(
             "INSERT INTO LabOrders (consultation_id, patient_id, doctor_id, order_datetime, status, notes) VALUES (?, ?, ?, ?, ?, ?)"
         ).bind(
             orderData.consultation_id,
             patientId,
             doctorId,
             orderData.order_datetime || null, // Let DB handle default
-            "Ordered", // Initial status
+            LabOrderStatus.Ordered, // Use enum value
             orderData.notes
         ).run();
 
-        if (!insertResult.success) {
-            throw new Error("Failed to create lab order");
+        // Check success and last_row_id existence and type
+        if (!insertResult.success || !insertResult.meta || typeof insertResult.meta.last_row_id !== 'number') {
+            console.error("Failed to create lab order or get last_row_id:", insertResult);
+            throw new Error("Failed to create lab order or retrieve ID");
         }
 
         const newLabOrderId = insertResult.meta.last_row_id;
@@ -232,4 +262,3 @@ export async function POST(request: Request) {
         });
     }
 }
-

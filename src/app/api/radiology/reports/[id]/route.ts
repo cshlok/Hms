@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database"; // Import getDB function
-import { getSession, IronSessionData } from "@/lib/session";
-import { IronSession } from "iron-session";
-import { User } from "@/types/user";
-// import { checkUserRole } from "@/lib/auth"; // Assuming checkUserRole might not be fully implemented or needed based on roleName
+import { getSession } from "@/lib/session";
+// Removed unused imports: IronSessionData, IronSession, User
 
-// FIX: Define generic SingleQueryResult type for .first()
+// Define generic SingleQueryResult type for .first()
 interface SingleQueryResult<T> {
   result?: T | null;
   // Add other potential properties based on your DB library
@@ -35,7 +33,7 @@ interface RadiologyReport {
   procedure_name?: string;
 }
 
-// FIX: Define type for the raw DB result for the GET request
+// Define type for the raw DB result for the GET request
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RadiologyReportQueryResultRow extends RadiologyReport {}
 
@@ -47,25 +45,33 @@ interface RadiologyReportPutData {
   verified_by_id?: string | null; // Only if verifying
 }
 
+// Define Session and SessionUser interfaces
+interface SessionUser {
+  userId: string;
+  roleName: string;
+}
+
+interface Session {
+  user?: SessionUser;
+}
+
 // GET a specific Radiology Report by ID
 export async function GET(
   request: NextRequest, // Keep request for potential future use
-  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
+  { params }: { params: Promise<{ id: string }> } // Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
-    // FIX: Get session without unsafe assertion
+    // Get session without unsafe assertion
     const session: Session | null = await getSession();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // FIX: Assert user type after null check
-    // const currentUser = session.user as SessionUser; // FIX: Commented out as unused for now
     // Role check example (adjust roles as needed)
     // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(currentUser.roleName)) {
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     // }
 
-    const { id: reportId } = await params; // FIX: Await params and destructure id (Next.js 15+)
+    const { id: reportId } = await params; // Await params and destructure id (Next.js 15+)
     if (!reportId) {
       return NextResponse.json(
         { error: "Report ID is required" },
@@ -75,8 +81,8 @@ export async function GET(
 
     const database = await getDB();
 
-    // FIX: Use type assertion for .first()
-    // FIX: Removed unnecessary escapes in SQL string
+    // Use type assertion for .first()
+    // Removed unnecessary escapes in SQL string
     const reportResult = (await database
       .prepare(
         `SELECT
@@ -99,7 +105,7 @@ export async function GET(
       .bind(reportId)
       .first()) as SingleQueryResult<RadiologyReportQueryResultRow>;
 
-    // FIX: Check result property
+    // Check result property
     const report = reportResult?.result;
 
     if (!report) {
@@ -126,18 +132,18 @@ export async function GET(
 // PUT (update/verify) a specific Radiology Report
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
+  { params }: { params: Promise<{ id: string }> } // Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
-    // FIX: Get session without unsafe assertion
+    // Get session without unsafe assertion
     const session: Session | null = await getSession();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // FIX: Assert user type after null check
+    // Assert user type after null check
     const currentUser = session.user as SessionUser;
 
-    const { id: reportId } = await params; // FIX: Await params and destructure id (Next.js 15+)
+    const { id: reportId } = await params; // Await params and destructure id (Next.js 15+)
     if (!reportId) {
       return NextResponse.json(
         { error: "Report ID is required" },
@@ -150,7 +156,7 @@ export async function PUT(
     const updatedAt = new Date().toISOString();
 
     // Fetch the report to check ownership and current status
-    // FIX: Use type assertion for .first()
+    // Use type assertion for .first()
     const existingReportResult = (await database
       .prepare(
         "SELECT radiologist_id, status FROM RadiologyReports WHERE id = ?"
@@ -161,7 +167,7 @@ export async function PUT(
       status: string;
     }>;
 
-    // FIX: Check result property
+    // Check result property
     const existingReport = existingReportResult?.result;
 
     if (!existingReport) {
@@ -208,7 +214,7 @@ export async function PUT(
     }
 
     // Build the update query dynamically
-    // FIX: Replaced any with Record<string, string | null>
+    // Replaced any with Record<string, string | null>
     const fieldsToUpdate: Record<string, string | null> = {};
     if (data.findings !== undefined) fieldsToUpdate.findings = data.findings;
     if (data.impression !== undefined)
@@ -252,8 +258,6 @@ export async function PUT(
     const values = [...Object.values(fieldsToUpdate), reportId];
 
     const updateStmt = `UPDATE RadiologyReports SET ${setClauses} WHERE id = ?`;
-    // FIX: Prefixed unused variable with underscore - Result of run() might not be needed
-    // const _info = await db.prepare(updateStmt).bind(...values).run();
     await database
       .prepare(updateStmt)
       .bind(...values)
@@ -264,12 +268,12 @@ export async function PUT(
 
     // If report status is set to \'final\', update related study/order statuses
     if (fieldsToUpdate.status === "final") {
-      // FIX: Use type assertion for .first()
+      // Use type assertion for .first()
       const studyIdResult = (await database
         .prepare("SELECT study_id FROM RadiologyReports WHERE id = ?")
         .bind(reportId)
         .first()) as SingleQueryResult<{ study_id: string }>;
-      // FIX: Check result property
+      // Check result property
       if (studyIdResult?.result?.study_id) {
         await database
           .prepare(
@@ -282,12 +286,12 @@ export async function PUT(
             "verified"
           )
           .run();
-        // FIX: Use type assertion for .first()
+        // Use type assertion for .first()
         const orderIdResult = (await database
           .prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?")
           .bind(studyIdResult.result.study_id)
           .first()) as SingleQueryResult<{ order_id: string }>;
-        // FIX: Check result property
+        // Check result property
         if (orderIdResult?.result?.order_id) {
           await database
             .prepare(
@@ -305,12 +309,12 @@ export async function PUT(
     }
 
     // Fetch the updated report to return
-    // FIX: Use type assertion for .first()
+    // Use type assertion for .first()
     const updatedReportResult = (await database
       .prepare("SELECT * FROM RadiologyReports WHERE id = ?")
       .bind(reportId)
       .first()) as SingleQueryResult<RadiologyReport>;
-    // FIX: Check result property
+    // Check result property
     const updatedReport = updatedReportResult?.result;
 
     return NextResponse.json(
@@ -336,16 +340,16 @@ export async function PUT(
 // DELETE a specific Radiology Report (Admin only - consider status update instead)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
+  { params }: { params: Promise<{ id: string }> } // Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
-    // FIX: Get session without unsafe assertion
+    // Get session without unsafe assertion
     const session: Session | null = await getSession();
-    // FIX: Check session and user safely
+    // Check session and user safely
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // FIX: Assert user type after null check
+    // Assert user type after null check
     const currentUser = session.user as SessionUser;
     // Use roleName for check
     if (currentUser.roleName !== "Admin") {
@@ -355,7 +359,7 @@ export async function DELETE(
       );
     }
 
-    const { id: reportId } = await params; // FIX: Await params and destructure id (Next.js 15+)
+    const { id: reportId } = await params; // Await params and destructure id (Next.js 15+)
     if (!reportId) {
       return NextResponse.json(
         { error: "Report ID is required" },
@@ -367,7 +371,7 @@ export async function DELETE(
 
     // Option 1: Soft delete (recommended - set status to \'retracted\')
     const retractedAt = new Date().toISOString();
-    // FIX: Assume .run() returns a structure with success/meta
+    // Assume .run() returns a structure with success/meta
     const info = await database
       .prepare(
         "UPDATE RadiologyReports SET status = ?, updated_at = ? WHERE id = ?"
@@ -379,7 +383,7 @@ export async function DELETE(
     // const info = await db.prepare("DELETE FROM RadiologyReports WHERE id = ?").bind(reportId).run();
 
     // Check info.meta.changes for D1 compatibility
-    // FIX: Check info structure based on actual DB library (assuming success/meta)
+    // Check info structure based on actual DB library (assuming success/meta)
     if (!info.success) {
       // Check success
       return NextResponse.json(
@@ -405,4 +409,3 @@ export async function DELETE(
     );
   }
 }
-

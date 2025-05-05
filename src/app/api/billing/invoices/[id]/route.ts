@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DB } from "@/lib/database"; // Assuming DB is correctly typed or mocked
+import { Invoice } from "@/types/billing"; // Import Invoice type
 
 // NOTE: Removed unused UpdateBookingBody interface related to OT Bookings.
 
@@ -139,9 +140,7 @@ export async function PUT(
     const now = new Date().toISOString();
 
     // Construct the update query dynamically for Invoices table
-    const fieldsToUpdate: {
-      [key: string]: string | number | boolean | undefined;
-    } = {};
+    const fieldsToUpdate: Record<string, string | number | boolean | undefined> = {};
 
     // Add fields relevant to Invoice update
     // Example: fieldsToUpdate.status = updateData.status;
@@ -157,9 +156,10 @@ export async function PUT(
     }
 
     // Populate fieldsToUpdate based on updateData
+    // Use type assertion to allow string indexing
     for (const key in updateData) {
         // Add validation/filtering if necessary
-        fieldsToUpdate[key] = updateData[key];
+        fieldsToUpdate[key] = (updateData as Record<string, any>)[key];
     }
 
     fieldsToUpdate.updated_at = now;
@@ -239,4 +239,3 @@ export async function DELETE(
     );
   }
 }
-

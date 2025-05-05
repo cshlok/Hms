@@ -6,12 +6,37 @@ import { cookies } from "next/headers";
 import { Invoice, InvoiceStatus } from "@/types/billing";
 import { z } from "zod";
 import { format } from "date-fns";
+// Use the specific D1Database type from the correct package
+import type { D1Database } from "@cloudflare/workers-types";
 
 // Define roles allowed to view/manage invoices (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Billing Staff", "Patient"];
 const ALLOWED_ROLES_MANAGE = ["Admin", "Receptionist", "Billing Staff"];
 
+// Define interface for invoice query results
+interface InvoiceQueryResult {
+    invoice_id: number;
+    invoice_number: string;
+    patient_id: number;
+    appointment_id: number | null;
+    admission_id: number | null;
+    invoice_date: string;
+    due_date: string | null;
+    total_amount: number;
+    paid_amount: number;
+    discount_amount: number;
+    tax_amount: number;
+    status: InvoiceStatus;
+    notes: string | null;
+    created_by_user_id: number;
+    created_at: string;
+    updated_at: string;
+    patient_first_name: string;
+    patient_last_name: string;
+}
+
 // Function to generate a unique invoice number (example)
+// FIX: Use D1Database type for DB parameter, but expect potential mismatch at call site
 async function generateInvoiceNumber(DB: D1Database): Promise<string> {
     // Simple example: INV-YYYYMMDD-XXXX (sequential number for the day)
     const today = format(new Date(), "yyyyMMdd");
@@ -53,7 +78,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
         const { DB } = env;
 
         // 2. Build query based on filters
@@ -106,7 +132,7 @@ export async function GET(request: Request) {
         query += " ORDER BY i.invoice_date DESC, i.invoice_id DESC";
 
         // 3. Retrieve invoices
-        const invoicesResult = await DB.prepare(query).bind(...queryParams).all<unknown[]>(); // Use unknown[] for joined fields
+        const invoicesResult = await DB.prepare(query).bind(...queryParams).all<InvoiceQueryResult>();
 
         if (!invoicesResult.results) {
             throw new Error("Failed to retrieve invoices");
@@ -161,7 +187,8 @@ const CreateInvoiceSchema = z.object({
     admission_id: z.number().int().positive().optional().nullable(),
     invoice_date: z.string().datetime().optional(), // Default is CURRENT_TIMESTAMP
     due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
-    status: z.nativeEnum(InvoiceStatus).optional().default("Draft"),
+    // Use z.nativeEnum for TypeScript enums
+    status: z.nativeEnum(InvoiceStatus).optional().default(InvoiceStatus.Draft),
     notes: z.string().optional(),
     // Items will be added via a separate endpoint or PUT request
 });
@@ -191,7 +218,8 @@ export async function POST(request: Request) {
 
         const invoiceData = validation.data;
 
-        const { env } = getCloudflareContext();
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
         const { DB } = env;
 
         // 2. Verify patient exists and is active
@@ -206,9 +234,11 @@ export async function POST(request: Request) {
         }
 
         // 3. Generate unique invoice number
-        const invoiceNumber = await generateInvoiceNumber(DB);
+        // FIX: Use 'as any' to bypass potential D1Database type mismatch
+        const invoiceNumber = await generateInvoiceNumber(DB as any);
 
         // 4. Insert new invoice record
+        // Use 'as any' to bypass D1Result type mismatch
         const insertResult = await DB.prepare(
             "INSERT INTO Invoices (invoice_number, patient_id, appointment_id, admission_id, invoice_date, due_date, status, notes, created_by_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         )
@@ -223,10 +253,12 @@ export async function POST(request: Request) {
             invoiceData.notes || null,
             session.user.userId
         )
-        .run();
+        .run() as any;
 
-        if (!insertResult.success) {
-            throw new Error("Failed to create invoice");
+        // Check success and last_row_id existence and type
+        if (!insertResult.success || !insertResult.meta || typeof insertResult.meta.last_row_id !== 'number') {
+            console.error("Failed to create invoice or get last_row_id:", insertResult);
+            throw new Error("Failed to create invoice or retrieve ID");
         }
 
         const newInvoiceId = insertResult.meta.last_row_id;
@@ -247,4 +279,3 @@ export async function POST(request: Request) {
         });
     }
 }
-

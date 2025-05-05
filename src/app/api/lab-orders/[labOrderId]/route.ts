@@ -1,41 +1,74 @@
 // app/api/lab-orders/[labOrderId]/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { LabOrder, /* LabOrderItem, */ LabOrderStatus } from "@/types/opd"; // Commented out unused LabOrderItem
+import { LabOrder, LabOrderStatus, LabOrderItem, LabOrderItemStatus } from "@/types/opd"; // Added LabOrderItemStatus
 import { z } from "zod";
+// Removed unused D1Result import
 
 // Define roles allowed to view/update lab orders (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse", "LabTechnician", "Patient"]; // Patient can view own
 const ALLOWED_ROLES_UPDATE = ["Admin", "Doctor", "Nurse", "LabTechnician"]; // Roles involved in the lab process
 
-// Helper function to get lab order ID from URL
-function getLabOrderId(pathname: string): number | null {
-    // Pathname might be /api/lab-orders/123
-    const parts = pathname.split("/");
-    const idStr = parts[parts.length - 1]; // Last part
-    const id = parseInt(idStr, 10);
-    return isNaN(id) ? null : id;
+// Define interface for lab order query result
+interface LabOrderQueryResult {
+    lab_order_id: number;
+    consultation_id: number | null;
+    patient_id: number;
+    doctor_id: number;
+    order_datetime: string;
+    status: LabOrderStatus;
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+    patient_first_name: string;
+    patient_last_name: string;
+    doctor_full_name: string | null;
 }
 
-// GET handler for retrieving a specific lab order with items
-export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
-    const url = new URL(request.url);
-    const labOrderId = getLabOrderId(url.pathname);
+// Define interface for lab order item query result
+interface LabOrderItemQueryResult {
+    lab_order_item_id: number;
+    lab_order_id: number;
+    billable_item_id: number;
+    test_name: string;
+    sample_type: string | null;
+    sample_id: string | null;
+    sample_collection_datetime: string | null;
+    sample_collected_by_user_id: number | null;
+    result_value: string | null;
+    result_unit: string | null;
+    reference_range: string | null;
+    result_notes: string | null;
+    result_datetime: string | null;
+    result_verified_by_user_id: number | null;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    billable_item_code: string;
+    sample_collected_by_user_full_name: string | null;
+    result_verified_by_user_full_name: string | null;
+}
+
+export async function GET(_request: Request, { params }: { params: { labOrderId: string } }) {
+    // Pass cookies() directly
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
+    const labOrderId = parseInt(params.labOrderId, 10);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
-    if (labOrderId === null) {
+    if (isNaN(labOrderId)) {
         return new Response(JSON.stringify({ error: "Invalid Lab Order ID" }), { status: 400 });
     }
 
     try {
-        const { env } = getCloudflareContext();
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
         const { DB } = env;
 
         // 2. Retrieve the main lab order record with patient and doctor details
@@ -49,7 +82,7 @@ export async function GET(request: Request) {
              JOIN Doctors d ON lo.doctor_id = d.doctor_id
              JOIN Users u ON d.user_id = u.user_id
              WHERE lo.lab_order_id = ?`
-        ).bind(labOrderId).first<unknown>();
+        ).bind(labOrderId).first<LabOrderQueryResult>();
 
         if (!orderResult) {
             return new Response(JSON.stringify({ error: "Lab Order not found" }), { status: 404 });
@@ -80,7 +113,7 @@ export async function GET(request: Request) {
              LEFT JOIN Users sc_user ON loi.sample_collected_by_user_id = sc_user.user_id
              LEFT JOIN Users rv_user ON loi.result_verified_by_user_id = rv_user.user_id
              WHERE loi.lab_order_id = ? ORDER BY loi.lab_order_item_id`
-        ).bind(labOrderId).all<unknown[]>();
+        ).bind(labOrderId).all<LabOrderItemQueryResult>();
 
         // 5. Format the final response
         const labOrder: LabOrder = {
@@ -94,9 +127,16 @@ export async function GET(request: Request) {
             created_at: orderResult.created_at,
             updated_at: orderResult.updated_at,
             // Include patient and doctor info if needed in detail view
-            // patient: { ... },
-            // doctor: { ... },
-            items: itemsResult.results?.map(item => ({
+            patient: {
+                patient_id: orderResult.patient_id,
+                first_name: orderResult.patient_first_name,
+                last_name: orderResult.patient_last_name,
+            },
+            doctor: {
+                doctor_id: orderResult.doctor_id,
+                user: { fullName: orderResult.doctor_full_name }
+            },
+            items: itemsResult.results?.map((item: LabOrderItemQueryResult) => ({
                 lab_order_item_id: item.lab_order_item_id,
                 lab_order_id: item.lab_order_id,
                 billable_item_id: item.billable_item_id,
@@ -111,22 +151,22 @@ export async function GET(request: Request) {
                 result_notes: item.result_notes,
                 result_datetime: item.result_datetime,
                 result_verified_by_user_id: item.result_verified_by_user_id,
-                status: item.status,
+                status: item.status as LabOrderItemStatus, // Cast string to enum
                 created_at: item.created_at,
                 updated_at: item.updated_at,
                 billable_item: {
                     item_id: item.billable_item_id,
                     item_code: item.billable_item_code
                 },
-                sample_collected_by_user: {
+                sample_collected_by_user: item.sample_collected_by_user_id ? {
                     user_id: item.sample_collected_by_user_id,
                     full_name: item.sample_collected_by_user_full_name
-                },
-                result_verified_by_user: {
+                } : null,
+                result_verified_by_user: item.result_verified_by_user_id ? {
                     user_id: item.result_verified_by_user_id,
                     full_name: item.result_verified_by_user_full_name
-                }
-            })) || [],
+                } : null
+            })) as LabOrderItem[] || [],
         };
 
         // 6. Return the detailed lab order
@@ -146,17 +186,18 @@ const UpdateLabOrderSchema = z.object({
     // Other fields? Usually status is updated based on item statuses
 });
 
-export async function PUT(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
-    const url = new URL(request.url);
-    const labOrderId = getLabOrderId(url.pathname);
+export async function PUT(request: Request, { params }: { params: { labOrderId: string } }) {
+    // Pass cookies() directly
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
+    const labOrderId = parseInt(params.labOrderId, 10);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_UPDATE.includes(session.user.roleName)) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
-    if (labOrderId === null) {
+    if (isNaN(labOrderId)) {
         return new Response(JSON.stringify({ error: "Invalid Lab Order ID" }), { status: 400 });
     }
 
@@ -175,7 +216,9 @@ export async function PUT(request: Request) {
              return new Response(JSON.stringify({ message: "No update data provided" }), { status: 200 });
         }
 
-        const { env } = getCloudflareContext();
+        // If we reach here, there is data to update
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
         const { DB } = env;
 
         // 2. Check if lab order exists
@@ -225,4 +268,3 @@ export async function PUT(request: Request) {
 // DELETE handler - Lab orders are generally not deleted, maybe cancelled (status update).
 // Implement if hard deletion is truly required, but use with caution.
 // export async function DELETE(request: Request) { ... }
-

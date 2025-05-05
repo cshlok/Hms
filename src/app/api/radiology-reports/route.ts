@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { getSession, IronSessionData } from "@/lib/session";
-import { IronSession } from "iron-session";
-import { User } from "@/types/user";
-// import { checkUserRole } from "@/lib/auth"; // Assuming checkUserRole might not be fully implemented or needed based on roleName
+import { getSession } from "@/lib/session";
+// Removed unused imports: IronSessionData, IronSession, User
 import { getDB } from "@/lib/database"; // Import getDB
 
 // Interface for POST request body
@@ -30,20 +28,25 @@ interface RadiologyReportListItem {
   // Add other fields from the SELECT query
 }
 
-// FIX: Removed redundant interface CreatedRadiologyReportQueryResultRow, using RadiologyReportListItem directly
+// Define Session and SessionUser interfaces
+interface SessionUser {
+  userId: string;
+  roleName: string;
+}
+
+interface Session {
+  user?: SessionUser;
+}
 
 // GET all Radiology Reports (filtered by study_id, patient_id, radiologist_id, status)
 export async function GET(request: NextRequest) {
   try {
-    // FIX: Get session without unsafe assertion
+    // Get session without unsafe assertion
     const session: Session | null = await getSession();
     // Check session and user existence first
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // FIX: Assert user type after null check
-    // FIX: Prefix unused variable
-    // const _currentUser = session.user as SessionUser;
     // Role check example (adjust roles as needed)
     // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(currentUser.roleName)) {
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -59,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     // Select rr.*, rs.accession_number, rad.name as radiologist_name, ro.patient_id, p.name as patient_name, pt.name as procedure_name
     // Ensure aliases match the RadiologyReportListItem interface if possible
-    // FIX: Removed unnecessary escapes in SQL string
+    // Removed unnecessary escapes in SQL string
     let query = `SELECT
                    rr.id, rr.study_id, rr.report_datetime, rr.status,
                    rs.accession_number,
@@ -98,14 +101,14 @@ export async function GET(request: NextRequest) {
     }
     query += " ORDER BY rr.report_datetime DESC";
 
-    // FIX: Use direct type argument for .all() if supported, or assert structure
+    // Use direct type argument for .all() if supported, or assert structure
     // Assuming .all<T>() returns { results: T[] }
     const result = await database
       .prepare(query)
       .bind(...parameters)
       .all<RadiologyReportListItem>();
     return NextResponse.json(result.results || []);
-  } catch {
+  } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({
@@ -122,13 +125,13 @@ export async function GET(request: NextRequest) {
 // POST a new Radiology Report (Radiologist or Admin)
 export async function POST(request: NextRequest) {
   try {
-    // FIX: Get session without unsafe assertion
+    // Get session without unsafe assertion
     const session: Session | null = await getSession();
     // Check session and user existence first
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // FIX: Assert user type after null check
+    // Assert user type after null check
     const currentUser = session.user as SessionUser;
     // Use roleName for check
     if (
@@ -142,7 +145,7 @@ export async function POST(request: NextRequest) {
     }
 
     const database = await getDB();
-    // FIX: Use type assertion for request body
+    // Use type assertion for request body
     const {
       study_id,
       radiologist_id,
@@ -163,7 +166,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if study exists
-    // FIX: Use direct type argument for .first() and check result directly
+    // Use direct type argument for .first() and check result directly
     const studyResult = await database
       .prepare("SELECT id FROM RadiologyStudies WHERE id = ?")
       .bind(study_id)
@@ -212,7 +215,7 @@ export async function POST(request: NextRequest) {
       .run();
 
     // Potentially update the order status to 'completed'
-    // FIX: Use direct type argument for .first() and check result directly
+    // Use direct type argument for .first() and check result directly
     const orderIdResult = await database
       .prepare("SELECT order_id FROM RadiologyStudies WHERE id = ?")
       .bind(study_id)
@@ -227,7 +230,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the created report to return it
-    // FIX: Use direct type argument for .first()
+    // Use direct type argument for .first()
     const createdReport = await database
       .prepare("SELECT * FROM RadiologyReports WHERE id = ?")
       .bind(id)
@@ -237,7 +240,7 @@ export async function POST(request: NextRequest) {
       createdReport || { id, message: "Radiology report created" },
       { status: 201 }
     );
-  } catch {
+  } catch (error) {
     const message =
       error instanceof Error ? error.message : "An unknown error occurred";
     console.error({

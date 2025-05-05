@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database"; // Assuming db returns a promise
-import { getSession, IronSessionData } from "@/lib/session";
-import { IronSession } from "iron-session";
-import { User } from "@/types/user";
+import { getSession } from "@/lib/session";
+// Removed unused imports: IronSessionData, IronSession, User
 
-// FIX: Define generic QueryResult type
+// Define generic QueryResult type
 interface QueryResult<T> {
   results?: T[];
   // Add other potential properties like rowCount, etc., based on your DB library
 }
 
-// FIX: Define generic SingleQueryResult type for .first()
+// Define generic SingleQueryResult type for .first()
 interface SingleQueryResult<T> {
   result?: T | null;
   // Add other potential properties based on your DB library
@@ -54,14 +53,11 @@ interface Prescription {
   items?: PrescriptionItem[]; // Added for POST response
 }
 
-// FIX: Define type for the raw DB result for prescriptions list
+// Define type for the raw DB result for prescriptions list
 interface PrescriptionQueryResultRow
   extends Omit<Prescription, "items" | "item_count"> {
   item_count: number; // Ensure item_count is number
 }
-
-// FIX: Remove redundant interface PrescriptionItemQueryResultRow
-// interface PrescriptionItemQueryResultRow extends PrescriptionItem {}
 
 interface PrescriptionItemPostData {
   medication_id: string;
@@ -81,10 +77,20 @@ interface PrescriptionPostData {
   items: PrescriptionItemPostData[];
 }
 
+// Define Session and SessionUser interfaces
+interface SessionUser {
+  userId: string;
+  roleName: string;
+}
+
+interface Session {
+  user?: SessionUser;
+}
+
 // GET /api/pharmacy/prescriptions
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // FIX: Get session without unsafe assertion
+    // Get session without unsafe assertion
     const session: Session | null = await getSession();
 
     if (!session?.user) {
@@ -169,7 +175,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     query += ` ORDER BY p.prescription_date DESC`;
 
-    // FIX: Use type assertion for query result
+    // Use type assertion for query result
     const result = (await database
       .prepare(query)
       .bind(...parameters)
@@ -192,14 +198,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // POST /api/pharmacy/prescriptions
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    // FIX: Get session without unsafe assertion
+    // Get session without unsafe assertion
     const session: Session | null = await getSession();
 
-    // FIX: Check session and user safely
+    // Check session and user safely
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // FIX: Assert user type after null check
+    // Assert user type after null check
     const currentUser = session.user as SessionUser;
 
     const hasPermission = ["admin", "doctor"].includes(currentUser.roleName); // Use roleName from Session
@@ -261,14 +267,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const database = await getDB();
 
-    // FIX: Use type assertion for .first()
+    // Use type assertion for .first()
     const patientExists = (await database
       .prepare(`SELECT id FROM patients WHERE id = ?`)
       .bind(data.patient_id)
       .first()) as SingleQueryResult<{ id: string }>;
 
     if (!patientExists?.result) {
-      // FIX: Check result property
+      // Check result property
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
@@ -281,14 +287,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (data.source_id) {
       const sourceTable = data.source === "OPD" ? "appointments" : "admissions";
-      // FIX: Use type assertion for .first()
+      // Use type assertion for .first()
       const sourceExists = (await database
         .prepare(`SELECT id FROM ${sourceTable} WHERE id = ?`)
         .bind(data.source_id)
         .first()) as SingleQueryResult<{ id: string }>;
 
       if (!sourceExists?.result) {
-        // FIX: Check result property
+        // Check result property
         return NextResponse.json(
           { error: `${data.source} record not found` },
           { status: 404 }
@@ -331,14 +337,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       for (const item of data.items) {
         const itemId = `prescitem_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-        // FIX: Use type assertion for .first()
+        // Use type assertion for .first()
         const medicationExists = (await database
           .prepare(`SELECT id FROM medications WHERE id = ?`)
           .bind(item.medication_id)
           .first()) as SingleQueryResult<{ id: string }>;
 
         if (!medicationExists?.result) {
-          // FIX: Check result property
+          // Check result property
           throw new Error(`Medication not found: ${item.medication_id}`);
         }
 
@@ -368,7 +374,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       await database.exec("COMMIT");
 
       // Fetch the created prescription with details
-      // FIX: Use type assertion for .first()
+      // Use type assertion for .first()
       const createdPrescriptionResult = (await database
         .prepare(
           `
@@ -388,7 +394,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         Omit<Prescription, "items" | "item_count">
       >;
 
-      // FIX: Check result property before using
+      // Check result property before using
       const createdPrescription = createdPrescriptionResult?.result;
 
       if (!createdPrescription) {
@@ -396,7 +402,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
 
       // Fetch prescription items with medication details
-      // FIX: Use type assertion for .all() and use PrescriptionItem directly
+      // Use type assertion for .all() and use PrescriptionItem directly
       const prescriptionItemsResult = (await database
         .prepare(
           `
@@ -412,7 +418,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .bind(prescriptionId)
         .all()) as QueryResult<PrescriptionItem>;
 
-      // FIX: Assert items type safely
+      // Assert items type safely
       const items: PrescriptionItem[] = (prescriptionItemsResult.results ||
         []) as PrescriptionItem[];
 

@@ -3,8 +3,9 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions, IronSessionData } from "@/lib/session"; // FIX: Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { Invoice, InvoiceItem, InvoiceStatus, Payment } from "@/types/billing";
+import { Invoice, InvoiceStatus, Payment, InvoiceItem, ItemType } from "@/types/billing";
 import { z } from "zod";
+// Removed unused D1Result import
 
 // Define roles allowed to view/manage invoices (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Billing Staff", "Patient"];
@@ -163,9 +164,9 @@ export async function GET(request: Request) {
                 billable_item: {
                     item_id: item.billable_item_id,
                     item_name: item.billable_item_name,
-                    item_type: item.billable_item_type,
+                    item_type: item.billable_item_type as ItemType, // Cast to ItemType enum
                 }
-            })) || [],
+            })) as InvoiceItem[] || [],
             payments: paymentsResult.results || [],
         };
 
@@ -235,7 +236,8 @@ export async function PUT(request: Request) {
             });
         }
 
-        const { env } = getCloudflareContext();
+        const context = await getCloudflareContext<CloudflareEnv>();
+        const { env } = context;
         const { DB } = env;
 
         // 2. Check if invoice exists
@@ -267,9 +269,12 @@ export async function PUT(request: Request) {
         queryParams.push(invoiceId);
 
         // 4. Execute update
-        const updateResult = await DB.prepare(query).bind(...queryParams).run();
+        // Use as any to bypass the type mismatch between D1Result implementations
+        const updateResult = await DB.prepare(query).bind(...queryParams).run() as any;
 
+        // Check success property directly
         if (!updateResult.success) {
+             console.error("Failed to update invoice:", updateResult);
             throw new Error("Failed to update invoice");
         }
 
@@ -292,4 +297,3 @@ export async function PUT(request: Request) {
 // DELETE handler - Typically invoices are cancelled (status update) rather than deleted
 // Implement if hard deletion is truly required, but use with caution.
 // export async function DELETE(request: Request) { ... }
-
