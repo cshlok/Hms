@@ -162,10 +162,10 @@ const SampleManagement: React.FC = () => {
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )
       );
-    } catch {
+    } catch (err) { // Changed error to err
       const messageText =
-        error instanceof Error ? error.message : "An unknown error occurred.";
-      console.error("Error fetching samples:", error);
+        err instanceof Error ? err.message : "An unknown error occurred."; // Use err
+      console.error("Error fetching samples:", err); // Use err
       message.error(`Failed to load laboratory samples: ${messageText}`);
     } finally {
       setLoading(false);
@@ -211,10 +211,10 @@ const SampleManagement: React.FC = () => {
       setIsUpdateModalVisible(false);
       updateForm.resetFields();
       fetchSamples(); // Refresh list
-    } catch {
+    } catch (err) { // Changed error to err
       const messageText =
-        error instanceof Error ? error.message : "An unknown error occurred.";
-      console.error("Error updating sample:", error);
+        err instanceof Error ? err.message : "An unknown error occurred."; // Use err
+      console.error("Error updating sample:", err); // Use err
       message.error(`Failed to update sample: ${messageText}`);
     }
   };
@@ -240,10 +240,10 @@ const SampleManagement: React.FC = () => {
 
       message.success(`Sample marked as ${newStatus}`);
       fetchSamples(); // Refresh list
-    } catch {
+    } catch (err) { // Changed error to err
       const messageText =
-        error instanceof Error ? error.message : "An unknown error occurred.";
-      console.error(`Error updating sample status to ${newStatus}:`, error);
+        err instanceof Error ? err.message : "An unknown error occurred."; // Use err
+      console.error(`Error updating sample status to ${newStatus}:`, err); // Use err
       message.error(`Failed to update status: ${messageText}`);
     }
   };
@@ -328,10 +328,10 @@ const SampleManagement: React.FC = () => {
       dataIndex: "collected_at",
       key: "collected_at",
       width: "15%",
-      render: (date: string | null | undefined) =>
+      render: (date: string | null | undefined, record: Sample) => // Added record here
         date
           ? moment(date).format("YYYY-MM-DD HH:mm")
-          : status === "pending"
+          : record.status === "pending" // Changed status to record.status
             ? "Not collected"
             : "N/A",
     },
