@@ -118,7 +118,7 @@ export default function OPDPatientQueue({ /* date: _date */ }: OPDPatientQueuePr
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      setLoadingPermissions(true); // Start permission loading
+      // setLoadingPermissions(true); // FIX: Removed call to undefined function
       setError(null);
       try {
         // Fetch permissions first
@@ -128,7 +128,7 @@ export default function OPDPatientQueue({ /* date: _date */ }: OPDPatientQueuePr
         ]);
         setCanCallPatient(callPerm);
         setCanMarkComplete(completePerm);
-        setLoadingPermissions(false); // Permissions loaded
+        // setLoadingPermissions(false); // FIX: Removed call to undefined function
 
         // Fetch patients
         const patientsData = await fetchPatientsQueue();

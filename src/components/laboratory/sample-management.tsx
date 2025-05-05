@@ -221,7 +221,7 @@ const SampleManagement: React.FC = () => {
 
   // Generic function to update sample status
   const updateSampleStatus = async (
-    sample: Sample,
+    _sample: Sample, // FIX: Prefixed unused parameter
     newStatus: Sample["status"]
   ): Promise<void> => {
     try {

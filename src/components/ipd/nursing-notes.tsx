@@ -285,12 +285,12 @@ const NursingNotes: React.FC<NursingNotesProperties> = ({ admissionId }) => {
 
   // Parse JSON safely and return a specific type or null
   const safeParseJSON = <T,>(jsonString: string | undefined): T | null => {
-    if (!jsonString) return undefined;
+    if (!jsonString) return null;
     try {
       return JSON.parse(jsonString) as T;
     } catch (error_) {
       console.error("Failed to parse JSON string:", jsonString, error_);
-      return undefined;
+      return null;
     }
   };
 

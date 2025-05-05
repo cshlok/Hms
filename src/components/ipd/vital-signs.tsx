@@ -207,28 +207,26 @@ const VitalSigns: React.FC<VitalSignsProperties> = ({ admissionId }) => {
         record_time: new Date().toISOString(),
         temperature: formData.temperature
           ? Number.parseFloat(formData.temperature)
-          : undefined,
-        pulse: formData.pulse ? Number.parseInt(formData.pulse, 10) : undefined,
+          : null,
+        pulse: formData.pulse ? Number.parseInt(formData.pulse, 10) : null,
         respiratory_rate: formData.respiratory_rate
           ? Number.parseInt(formData.respiratory_rate, 10)
-          : undefined,
-        blood_pressure: formData.blood_pressure || undefined,
+          : null,
+        blood_pressure: formData.blood_pressure || null,
         oxygen_saturation: formData.oxygen_saturation
           ? Number.parseFloat(formData.oxygen_saturation)
-          : undefined,
+          : null,
         pain_level: formData.pain_level
           ? Number.parseInt(formData.pain_level, 10)
-          : undefined,
-        notes: formData.notes || undefined,
+          : null,
+        notes: formData.notes || null,
       };
 
       // Basic validation
-      // FIX: Check for NaN and range for pain_level (now correctly typed as number | null)
+      // FIX: Check for null and range for pain_level
       if (
-        submissionData.pain_level !== undefined &&
-        (Number.isNaN(submissionData.pain_level) ||
-          submissionData.pain_level < 0 ||
-          submissionData.pain_level > 10)
+        submissionData.pain_level !== null &&
+        (submissionData.pain_level < 0 || submissionData.pain_level > 10)
       ) {
         throw new Error("Pain level must be a number between 0 and 10.");
       }

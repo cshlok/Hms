@@ -87,9 +87,9 @@ const OrderManagement: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [filters, setFilters] = useState<FilterState>({
     patientId: "",
-    status: undefined,
-    source: undefined,
-    dateRange: undefined,
+    status: null,
+    source: null,
+    dateRange: null,
   });
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [viewingOrder, setViewingOrder] = useState<Order | null>();
@@ -149,7 +149,7 @@ const OrderManagement: React.FC = () => {
       }
       // FIX: Type the response data
       const data: TestsApiResponse = await response.json();
-      setTests(data.results || []);
+      // setTests(data.results || []); // FIX: Removed call to unused state setter
       setError(undefined);
     } catch (error_: unknown) {
       // FIX: Use unknown
@@ -290,9 +290,9 @@ const OrderManagement: React.FC = () => {
   const resetFilters = (): void => {
     setFilters({
       patientId: "",
-      status: undefined,
-      source: undefined,
-      dateRange: undefined,
+      status: null,
+      source: null,
+      dateRange: null,
     });
   };
 

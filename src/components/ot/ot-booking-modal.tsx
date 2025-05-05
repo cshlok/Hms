@@ -159,10 +159,10 @@ export default function OTBookingModal({
         ...formData,
         scheduled_start_time: formData.scheduled_start_time
           ? new Date(formData.scheduled_start_time).toISOString()
-          : undefined,
+          : null,
         scheduled_end_time: formData.scheduled_end_time
           ? new Date(formData.scheduled_end_time).toISOString()
-          : undefined,
+          : null,
       };
 
       // Replace with actual API call
