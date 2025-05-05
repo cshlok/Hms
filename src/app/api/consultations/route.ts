@@ -254,7 +254,12 @@ export async function POST(request: Request) {
             throw new Error(`Failed to create consultation: ${insertResult.error}`);
         }
 
-        const newConsultationId = insertResult.meta.last_row_id;
+        const meta = insertResult.meta as { last_row_id?: number | string };
+        const newConsultationId = meta.last_row_id;
+        if (newConsultationId === undefined || newConsultationId === null) {
+            console.warn("Could not retrieve last_row_id after consultation insert.");
+            throw new Error("Failed to retrieve consultation ID after creation.");
+        }
 
         if (consultData.opd_visit_id) {
             await DB.prepare("UPDATE OPDVisits SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE opd_visit_id = ? AND status = ?")

@@ -166,7 +166,12 @@ export async function POST(request: Request) {
             throw new Error(`Failed to add schedule slot: ${insertResult.error}`);
         }
 
-        const newScheduleId = insertResult.meta.last_row_id;
+        const meta = insertResult.meta as { last_row_id?: number | string };
+        const newScheduleId = meta.last_row_id;
+        if (newScheduleId === undefined || newScheduleId === null) {
+            console.warn("Could not retrieve last_row_id after schedule insert.");
+            throw new Error("Failed to retrieve schedule ID after creation.");
+        }
 
         // 4. Return success response
         return new Response(JSON.stringify({ message: "Schedule slot added successfully", scheduleId: newScheduleId }), {

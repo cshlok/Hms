@@ -156,7 +156,12 @@ export async function POST(request: Request) {
             throw new Error("Failed to add doctor profile");
         }
 
-        const newDoctorId = insertResult.meta.last_row_id;
+        const meta = insertResult.meta as { last_row_id?: number | string };
+        const newDoctorId = meta.last_row_id;
+        if (newDoctorId === undefined || newDoctorId === null) {
+            console.warn("Could not retrieve last_row_id after doctor insert.");
+            throw new Error("Failed to retrieve doctor ID after creation.");
+        }
 
         // 5. Return success response
         return new Response(JSON.stringify({ message: "Doctor profile added successfully", doctorId: newDoctorId }), {
