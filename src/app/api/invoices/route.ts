@@ -1,6 +1,6 @@
 // app/api/invoices/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Invoice, InvoiceStatus } from "@/types/billing";

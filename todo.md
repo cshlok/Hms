@@ -6,7 +6,7 @@ This list outlines the plan to fix the TypeScript errors in the HMS project, pri
     - [x] Verify `tsconfig.json` paths, includes, excludes, and strictness settings.
     - [x] Fix `TS2307: Cannot find module` errors (e.g., `env`, `nanoid`). Check paths and install missing types (`@types/nanoid` if needed). (Batch 1 & 2: Removed invalid `env` imports, installed nanoid package)
     - [x] Fix `TS2305: Module has no exported member` errors (e.g., `Session`, `SessionUser` in `@/lib/session`). (Batch 3: Replaced with IronSessionData/IronSession/User)
-    - [ ] Fix `TS2304: Cannot find name` errors (e.g., `IronSessionData`, `Invoice`). Ensure types are defined and imported correctly.
+    - [ ] Fix `TS2304: Cannot find name` errors (e.g., `IronSessionData`, `Invoice`). Ensure types are defined and imported correctly. (Batch 4: Fixed `IronSessionData` imports)
     - [ ] Fix `TS2339: Property 'env' does not exist on type 'Promise<CloudflareContext...'` errors in API routes.
 
 - [ ] **Phase 2: Common Type Mismatches & Unknowns**
