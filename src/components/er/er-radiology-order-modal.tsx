@@ -40,7 +40,7 @@ const radiologyOrderFormSchema = z.object({
     .string()
     .min(1, { message: "Ordering doctor is required." }),
   procedureTypeId: z.string().min(1, { message: "Select a procedure type." }),
-  priority: z.literal("STAT").default("STAT"), // Default to STAT for ER
+  priority: z.literal("STAT"), // Default to STAT for ER
   clinicalNotes: z.string().optional(),
 });
 

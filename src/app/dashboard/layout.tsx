@@ -49,7 +49,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
       setUserName(undefined);
       setUserRole(undefined);
       router.push("/login");
-    } catch {
+    } catch (error) {
       console.error("Error logging out:", error);
       // Force redirect even if API call fails
       router.push("/login");
@@ -78,7 +78,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
           console.log("User not authenticated, redirecting to login.");
           router.push("/login");
         }
-      } catch {
+      } catch (error) {
         console.error("Error fetching user info:", error);
         router.push("/login"); // Redirect on any fetch error
       } finally {

@@ -62,7 +62,7 @@ export default function OPDDashboard() {
           canCreateAppointment: createData?.hasPermission ?? false,
           canViewStatistics: statsData?.hasPermission ?? false,
         });
-      } catch {
+      } catch (error) {
         console.error("Error fetching permissions:", error);
         setPermissionError(
           error instanceof Error ? error.message : "Failed to load permissions."

@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react"; // Added useState
+import { useRouter } from "next/navigation"; // Added useRouter
 
 // Removed unused Image import
 // import Image from 'next/image';
@@ -30,6 +31,20 @@ interface ExpiringMedication {
 
 // Main Pharmacy Dashboard Page
 export default function PharmacyPage() {
+  const router = useRouter(); // Initialize router
+  const [activeTab, setActiveTab] = useState("dashboard"); // Initialize activeTab state
+  const [loading, setLoading] = useState(false); // Initialize loading state
+
+  // Placeholder for tab content rendering logic
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return <div>Pharmacy Dashboard Content</div>; // Placeholder content
+      // Add cases for other tabs if needed
+      default:
+        return <div>Select a tab</div>;
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -163,7 +178,7 @@ function RecentPrescriptionsList() {
   // Typed the status parameter
   const getStatusBadge = (
     status: RecentPrescription["status"]
-  ): JSX.Element => {
+  ): React.ReactElement => { // Changed JSX.Element to React.ReactElement
     switch (status) {
       case "pending": {
         return (
@@ -329,3 +344,4 @@ function ExpiringMedicationsList() {
     </div>
   );
 }
+

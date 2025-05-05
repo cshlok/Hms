@@ -42,7 +42,7 @@ const labOrderFormSchema = z.object({
   selectedTests: z
     .array(z.string())
     .min(1, { message: "Select at least one test." }),
-  priority: z.literal("STAT").default("STAT"), // Default to STAT for ER
+  priority: z.literal("STAT"), // Default to STAT for ER
   clinicalNotes: z.string().optional(),
 });
 

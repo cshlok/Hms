@@ -9,6 +9,16 @@ import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast"; // Assuming use-toast hook is available from template
 
+// Define interface for the expected API response
+interface LoginApiResponse {
+  error?: string;
+  user?: {
+    username?: string;
+    // Add other user properties if known/needed
+  };
+  // Add other potential properties
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -31,7 +41,8 @@ export default function LoginPage() {
         body: JSON.stringify({ identifier, password }),
       });
 
-      const data = await response.json();
+      // Add type assertion for the response data
+      const data = await response.json() as LoginApiResponse;
 
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
@@ -120,3 +131,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

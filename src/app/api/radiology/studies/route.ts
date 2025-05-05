@@ -222,11 +222,11 @@ export async function POST(request: NextRequest) {
         order_id,
         accession_number ?? null, // Use nullish coalescing
         study_datetime,
-        modality_id ?? undefined,
+        modality_id ?? null,
         technician_id ?? null,
-        protocol ?? undefined,
-        series_description ?? undefined,
-        number_of_images ?? undefined,
+        protocol ?? null,
+        series_description ?? null,
+        number_of_images ?? null,
         studyStatus,
         now, // created_at
         now // updated_at
