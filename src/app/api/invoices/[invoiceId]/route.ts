@@ -194,7 +194,8 @@ const UpdateInvoiceSchema = z.object({
 });
 
 export async function PUT(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const cookieStore = await cookies();
+    const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
     const url = new URL(request.url);
     const invoiceId = getInvoiceId(url.pathname);
 

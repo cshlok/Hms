@@ -13,7 +13,7 @@ This list outlines the plan to fix the TypeScript errors in the HMS project, pri
     - [x] Fix `TS18046: '...' is of type 'unknown'` errors (e.g., `insertResult.meta`). Provide explicit types for DB results/metadata. (Batch 5, 6 & 7: Fixed in appointments, auth/register, billable-items, consultations, doctors, inventory-items)
     - [x] Fix `TS2339: Property '...' does not exist on type '{}' or 'unknown[]'` errors. Type API responses, fetched data, and array elements correctly. (Batch 8: Typed invoice query results)
     - [ ] Fix `TS2741: Property '...' is missing` errors (e.g., `User` type). Ensure objects match their type definitions.
-    - [ ] Fix `TS2345: Argument of type '...' is not assignable` errors (e.g., `CookieStore`). Correct type mismatches in function calls.
+    - [x] Fix `TS2345: Argument of type '...' is not assignable` errors (e.g., `CookieStore`). Correct type mismatches in function calls. (Batch 9: Fixed in invoices, lab-orders/items)
 
 - [ ] **Phase 3: Specific Type & Library Usage Errors**
     - [ ] Fix `TS7006: Parameter '...' implicitly has an 'any' type`. Add explicit type annotations.
