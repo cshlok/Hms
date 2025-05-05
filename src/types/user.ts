@@ -8,5 +8,6 @@ export interface User {
   roleId: number;
   roleName: string; // Added for convenience in session/frontend
   isActive: boolean;
+  permissions: string[]; // Added permissions property
 }
 
