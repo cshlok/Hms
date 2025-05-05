@@ -1,4 +1,3 @@
-import type { CloudflareEnv } from "../../../env";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions, IronSessionData } from "@/lib/session"; // FIX: Added IronSessionData import
 import { getIronSession } from "iron-session";
