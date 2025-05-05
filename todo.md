@@ -10,7 +10,7 @@ This list outlines the plan to fix the TypeScript errors in the HMS project, pri
     - [ ] Fix `TS2339: Property 'env' does not exist on type 'Promise<CloudflareContext...'` errors in API routes.
 
 - [ ] **Phase 2: Common Type Mismatches & Unknowns**
-    - [x] Fix `TS18046: '...' is of type 'unknown'` errors (e.g., `insertResult.meta`). Provide explicit types for DB results/metadata. (Batch 5 & 6: Fixed in appointments, auth/register, billable-items, consultations, doctors)
+    - [x] Fix `TS18046: '...' is of type 'unknown'` errors (e.g., `insertResult.meta`). Provide explicit types for DB results/metadata. (Batch 5, 6 & 7: Fixed in appointments, auth/register, billable-items, consultations, doctors, inventory-items)
     - [ ] Fix `TS2339: Property '...' does not exist on type '{}' or 'unknown[]'` errors. Type API responses, fetched data, and array elements correctly.
     - [ ] Fix `TS2741: Property '...' is missing` errors (e.g., `User` type). Ensure objects match their type definitions.
     - [ ] Fix `TS2345: Argument of type '...' is not assignable` errors (e.g., `CookieStore`). Correct type mismatches in function calls.

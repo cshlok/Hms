@@ -159,7 +159,12 @@ export async function POST(request: Request) {
             throw new Error("Failed to add inventory item");
         }
 
-        const newItemId = insertResult.meta.last_row_id;
+        const meta = insertResult.meta as { last_row_id?: number | string };
+        const newItemId = meta.last_row_id;
+        if (newItemId === undefined || newItemId === null) {
+            console.warn("Could not retrieve last_row_id after inventory item insert.");
+            throw new Error("Failed to retrieve item ID after creation.");
+        }
 
         // 4. Return success response
         return new Response(JSON.stringify({ message: "Inventory item added successfully", inventoryItemId: newItemId }), {

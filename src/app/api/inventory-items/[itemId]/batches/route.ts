@@ -159,7 +159,12 @@ export async function POST(request: Request) {
             throw new Error("Failed to add stock batch");
         }
 
-        const newBatchId = insertResult.meta.last_row_id;
+        const meta = insertResult.meta as { last_row_id?: number | string };
+        const newBatchId = meta.last_row_id;
+        if (newBatchId === undefined || newBatchId === null) {
+            console.warn("Could not retrieve last_row_id after batch insert.");
+            throw new Error("Failed to retrieve batch ID after creation.");
+        }
 
         // 4. Return success response
         return new Response(JSON.stringify({ message: "Stock batch added successfully", batchId: newBatchId }), {
