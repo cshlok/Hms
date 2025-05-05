@@ -3,7 +3,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions, IronSessionData } from "@/lib/session"; // FIX: Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { Invoice, /* InvoiceItem, */ InvoiceStatus, Payment } from "@/types/billing"; // Commented out unused InvoiceItem
+import { Invoice, InvoiceItem, InvoiceStatus, Payment } from "@/types/billing";
 import { z } from "zod";
 
 // Define roles allowed to view/manage invoices (adjust as needed)
@@ -17,6 +17,44 @@ function getInvoiceId(pathname: string): number | null {
     const idStr = parts[parts.length - 1]; // Last part
     const id = parseInt(idStr, 10);
     return isNaN(id) ? null : id;
+}
+
+// Define interfaces for the complex query results
+interface InvoiceQueryResult {
+    invoice_id: number;
+    invoice_number: string;
+    patient_id: number;
+    appointment_id: number | null;
+    admission_id: number | null;
+    invoice_date: string; // ISO String
+    due_date: string | null; // ISO String
+    total_amount: number;
+    paid_amount: number;
+    discount_amount: number;
+    tax_amount: number;
+    status: InvoiceStatus;
+    notes: string | null;
+    created_by_user_id: number;
+    created_at: string; // ISO String
+    updated_at: string; // ISO String
+    patient_first_name: string;
+    patient_last_name: string;
+}
+
+interface InvoiceItemQueryResult {
+    invoice_item_id: number;
+    invoice_id: number;
+    billable_item_id: number;
+    batch_id: number | null;
+    description: string;
+    quantity: number;
+    unit_price: number;
+    discount_amount: number;
+    tax_amount: number;
+    total_amount: number;
+    created_at: string; // ISO String
+    billable_item_name: string;
+    billable_item_type: string; // Assuming ItemType is string-based enum
 }
 
 // GET handler for retrieving a specific invoice with details
@@ -54,7 +92,7 @@ export async function GET(request: Request) {
              FROM Invoices i
              JOIN Patients p ON i.patient_id = p.patient_id
              WHERE i.invoice_id = ?`
-        ).bind(invoiceId).first<unknown>();
+        ).bind(invoiceId).first<InvoiceQueryResult>();
 
         if (!invoiceResult) {
             return new Response(JSON.stringify({ error: "Invoice not found" }), {
@@ -80,7 +118,7 @@ export async function GET(request: Request) {
              FROM InvoiceItems ii 
              JOIN BillableItems bi ON ii.billable_item_id = bi.item_id
              WHERE ii.invoice_id = ? ORDER BY ii.invoice_item_id`
-        ).bind(invoiceId).all<unknown[]>();
+        ).bind(invoiceId).all<InvoiceItemQueryResult>();
 
         // 5. Retrieve associated payments
         const paymentsResult = await DB.prepare(
