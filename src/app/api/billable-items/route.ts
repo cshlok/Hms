@@ -140,7 +140,12 @@ export async function POST(request: Request) {
             throw new Error(`Failed to add billable item: ${insertResult.error}`);
         }
 
-        const newItemId = insertResult.meta.last_row_id;
+        const meta = insertResult.meta as { last_row_id?: number | string };
+        const newItemId = meta.last_row_id;
+        if (newItemId === undefined || newItemId === null) {
+            console.warn("Could not retrieve last_row_id after billable item insert.");
+            throw new Error("Failed to retrieve item ID after creation.");
+        }
 
         // 3. Return success response
         return new Response(JSON.stringify({ message: "Billable item added successfully", itemId: newItemId }), {

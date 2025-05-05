@@ -71,7 +71,13 @@ export async function POST(request: Request) {
 
     // Optionally: Return the newly created user ID or a success message
     // For security, avoid returning sensitive info like password hash
-    return new Response(JSON.stringify({ message: "User registered successfully", userId: insertResult.meta.last_row_id }), {
+    const meta = insertResult.meta as { last_row_id?: number | string };
+    const newUserId = meta.last_row_id;
+    if (newUserId === undefined || newUserId === null) {
+        console.warn("Could not retrieve last_row_id after user insert.");
+        // Optionally handle this case, maybe return success without ID or throw
+    }
+    return new Response(JSON.stringify({ message: "User registered successfully", userId: newUserId }), {
       status: 201, // Created
       headers: { "Content-Type": "application/json" },
     });

@@ -248,7 +248,12 @@ export async function POST(request: Request) {
             throw new Error(`Failed to book appointment: ${insertResult.error}`);
         }
 
-        const newAppointmentId = insertResult.meta.last_row_id;
+        const meta = insertResult.meta as { last_row_id?: number | string };
+        const newAppointmentId = meta.last_row_id;
+        if (newAppointmentId === undefined || newAppointmentId === null) {
+            console.warn("Could not retrieve last_row_id after insert in appointments.");
+            throw new Error("Failed to retrieve appointment ID after creation.");
+        }
 
         // 4. Return success response
         return new Response(JSON.stringify({ message: "Appointment booked successfully", appointmentId: newAppointmentId }), {
