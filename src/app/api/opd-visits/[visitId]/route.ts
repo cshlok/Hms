@@ -1,10 +1,30 @@
 // app/api/opd-visits/[visitId]/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions } from "@/lib/session";
+import { IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { OPDVisit, OPDVisitStatus } from "@/types/opd";
+import { OPDVisit, OPDVisitStatus, OPDVisitType } from "@/types/opd";
 import { z } from "zod";
+
+// Define the expected shape of the database query result
+interface OPDVisitQueryResult {
+  opd_visit_id: number;
+  patient_id: number;
+  appointment_id: number | null;
+  visit_datetime: string; // Assuming ISO string format
+  visit_type: string; // Should ideally be an enum
+  doctor_id: number;
+  department: string;
+  status: OPDVisitStatus; // Use the existing enum
+  notes: string | null;
+  created_by_user_id: number;
+  created_at: string; // Assuming ISO string format
+  updated_at: string; // Assuming ISO string format
+  patient_first_name: string;
+  patient_last_name: string;
+  doctor_full_name: string;
+}
 
 // Define roles allowed to view/manage OPD visits (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor", "Nurse"];
@@ -21,7 +41,7 @@ function getVisitId(pathname: string): number | null {
 
 // GET handler for retrieving a specific OPD visit
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
     const url = new URL(request.url);
     const visitId = getVisitId(url.pathname);
 
@@ -41,7 +61,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext();
         const { DB } = env;
 
         // 2. Retrieve the visit record with patient and doctor details
@@ -55,7 +75,7 @@ export async function GET(request: Request) {
              JOIN Doctors d ON ov.doctor_id = d.doctor_id
              JOIN Users u ON d.user_id = u.user_id
              WHERE ov.opd_visit_id = ?`
-        ).bind(visitId).first<unknown>();
+        ).bind(visitId).first<OPDVisitQueryResult>(); // Use the defined interface
 
         if (!visitResult) {
             return new Response(JSON.stringify({ error: "OPD Visit not found" }), {
@@ -70,7 +90,7 @@ export async function GET(request: Request) {
             patient_id: visitResult.patient_id,
             appointment_id: visitResult.appointment_id,
             visit_datetime: visitResult.visit_datetime,
-            visit_type: visitResult.visit_type,
+            visit_type: visitResult.visit_type as OPDVisitType, // Cast to enum
             doctor_id: visitResult.doctor_id,
             department: visitResult.department,
             status: visitResult.status,
@@ -84,8 +104,8 @@ export async function GET(request: Request) {
                 last_name: visitResult.patient_last_name,
             },
             doctor: {
-                doctor_id: visitResult.doctor_id,
-                user: { fullName: visitResult.doctor_full_name }
+                doctor_id: visitResult.doctor_id, // No longer need non-null assertion
+                user: { fullName: visitResult.doctor_full_name } // No longer need non-null assertion
             }
             // TODO: Optionally fetch related consultations, vitals, etc. here or in separate endpoints
         };
@@ -114,7 +134,7 @@ const UpdateVisitSchema = z.object({
 });
 
 export async function PUT(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
     const url = new URL(request.url);
     const visitId = getVisitId(url.pathname);
 
@@ -154,7 +174,7 @@ export async function PUT(request: Request) {
             });
         }
 
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext();
         const { DB } = env;
 
         // 2. Check if visit exists

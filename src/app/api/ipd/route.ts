@@ -1,6 +1,6 @@
 // Example API route for IPD (Inpatient Department) Management
 import { NextRequest } from "next/server";
-// import { getDb } from "@/lib/database"; // Using mock DB
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
 
 // Schema for IPD Admission
@@ -31,8 +31,9 @@ export async function GET(request: NextRequest) {
   try {
     // Initialize DB (mock function)
 
-    // Get DB instance
-    const database = await getDB(); // Fixed: Await the promise returned by getDB()
+    // Get DB instance from Cloudflare context
+    const { env } = await getCloudflareContext();
+    const { DB: database } = env;
 
     // Get query parameters
     const { searchParams } = new URL(request.url);
@@ -113,9 +114,9 @@ export async function GET(request: NextRequest) {
 
     parameters.push(limit, offset);
 
-    const admissionsResult = await database.query(query, parameters);
+    const admissionsResult = await database.prepare(query).bind(...parameters).all();
 
-    return new Response(JSON.stringify(admissionsResult.rows || []), {
+    return new Response(JSON.stringify(admissionsResult.results || []), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -139,8 +140,9 @@ export async function POST(request: NextRequest) {
   try {
     // Initialize DB (mock function)
 
-    // Get DB instance
-    const database = await getDB(); // Fixed: Await the promise returned by getDB()
+    // Get DB instance from Cloudflare context
+    const { env } = await getCloudflareContext();
+    const { DB: database } = env;
 
     const data = await request.json();
 
@@ -163,12 +165,11 @@ export async function POST(request: NextRequest) {
 
     // Mock checks (replace with actual DB queries later)
     // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
-    const patientCheckResult = await database.query(
-      "SELECT patient_id FROM Patients WHERE patient_id = ? AND is_active = TRUE",
-      [admissionData.patient_id]
-    );
+    const patientCheckResult = await database.prepare(
+      "SELECT patient_id FROM Patients WHERE patient_id = ? AND is_active = TRUE"
+    ).bind(admissionData.patient_id).all();
     const patientCheck =
-      patientCheckResult.rows && patientCheckResult.rows.length > 0;
+      patientCheckResult.results && patientCheckResult.results.length > 0;
 
     if (!patientCheck) {
       return new Response(
@@ -177,12 +178,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const doctorCheckResult = await database.query(
-      "SELECT d.doctor_id FROM Doctors d JOIN Users u ON d.user_id = u.user_id WHERE d.doctor_id = ? AND u.is_active = TRUE",
-      [admissionData.doctor_id]
-    );
+    const doctorCheckResult = await database.prepare(
+      "SELECT d.doctor_id FROM Doctors d JOIN Users u ON d.user_id = u.user_id WHERE d.doctor_id = ? AND u.is_active = TRUE"
+    ).bind(admissionData.doctor_id).all();
     const doctorCheck =
-      doctorCheckResult.rows && doctorCheckResult.rows.length > 0;
+      doctorCheckResult.results && doctorCheckResult.results.length > 0;
 
     if (!doctorCheck) {
       return new Response(
@@ -191,11 +191,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bedCheckResult = await database.query(
-      "SELECT bed_id FROM Beds WHERE bed_id = ? AND status = 'Available'",
-      [admissionData.bed_id]
-    );
-    const bedCheck = bedCheckResult.rows && bedCheckResult.rows.length > 0;
+    const bedCheckResult = await database.prepare(
+      "SELECT bed_id FROM Beds WHERE bed_id = ? AND status = \'Available\'"
+    ).bind(admissionData.bed_id).all();
+    const bedCheck = bedCheckResult.results && bedCheckResult.results.length > 0;
 
     if (!bedCheck) {
       return new Response(JSON.stringify({ error: "Bed not available" }), {
@@ -206,18 +205,16 @@ export async function POST(request: NextRequest) {
 
     // Mock transaction using sequential queries
     try {
-      // Insert admission record
-      // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
-      await database.query(
+      // Insert admission record      // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+      await database.prepare(
         `
         INSERT INTO IPDAdmissions (
           patient_id, doctor_id, admission_date, expected_discharge_date, admission_reason, 
           admission_notes, ward_id, bed_id, admission_type, package_id, insurance_id, 
           insurance_approval_status, insurance_approval_number, status, created_by, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?, CURRENT_TIMESTAMP)
-      `,
-        [
-          admissionData.patient_id,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Active\', ?, CURRENT_TIMESTAMP)
+      `
+      ).bind(          admissionData.patient_id,
           admissionData.doctor_id,
           admissionData.admission_date,
           admissionData.expected_discharge_date || undefined,
@@ -231,15 +228,15 @@ export async function POST(request: NextRequest) {
           admissionData.insurance_approval_status || undefined,
           admissionData.insurance_approval_number || undefined,
           1, // Mock user ID
-        ]
-      );
+        )
+        .run();
 
       // Update bed status
       // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
-      await database.query(
-        "UPDATE Beds SET status = 'Occupied' WHERE bed_id = ?",
-        [admissionData.bed_id]
-      );
+      await database
+        .prepare("UPDATE Beds SET status = 'Occupied' WHERE bed_id = ?")
+        .bind(admissionData.bed_id)
+        .run();
 
       // Cannot get last_row_id from mock db.query
       const mockAdmissionId = Math.floor(Math.random() * 10_000);

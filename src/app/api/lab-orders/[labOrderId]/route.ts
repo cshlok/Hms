@@ -118,11 +118,11 @@ export async function GET(_request: Request, { params }: { params: { labOrderId:
         // 5. Format the final response
         const labOrder: LabOrder = {
             lab_order_id: orderResult.lab_order_id,
-            consultation_id: orderResult.consultation_id,
+            consultation_id: orderResult.consultation_id!,
             patient_id: orderResult.patient_id,
-            doctor_id: orderResult.doctor_id,
+            doctor_id: orderResult.doctor_id!, // Add non-null assertion
             order_datetime: orderResult.order_datetime,
-            status: orderResult.status,
+            status: orderResult.status!,
             notes: orderResult.notes,
             created_at: orderResult.created_at,
             updated_at: orderResult.updated_at,

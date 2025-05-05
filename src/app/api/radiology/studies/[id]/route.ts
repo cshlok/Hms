@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database";
-import { getSession } from "@/lib/session"; // Import Session instead of SessionData
+import { getSession, IronSessionData } from "@/lib/session"; // Import IronSessionData
+import { IronSession } from "iron-session"; // Import IronSession
 // import { checkUserRole } from "@/lib/auth";
 
 // Define Database interface (can be moved to a shared types file)
@@ -86,11 +87,11 @@ interface RadiologyStudyPutData {
 
 // GET a specific Radiology Study by ID
 export async function GET(
-  request: NextRequest, // Keep request for potential future use
+  _request: NextRequest, // Renamed to _request as it's unused
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(); // Call without request
+    const session: IronSession<IronSessionData> = await getSession(); // Call without request
     // Allow broader read access
     if (!session?.user) {
       // Basic check if any logged-in user can view
@@ -158,7 +159,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(); // Call without request
+    const session: IronSession<IronSessionData> = await getSession(); // Call without request
     // Use roleName for check
     if (
       !session?.user ||
@@ -343,11 +344,11 @@ export async function PUT(
 
 // DELETE a specific Radiology Study (Admin only - consider status update instead)
 export async function DELETE(
-  request: NextRequest, // Keep request for potential future use
+  _request: NextRequest, // Renamed to _request as it's unused
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
-    const session = await getSession(); // Call without request
+    const session: IronSession<IronSessionData> = await getSession(); // Call without request
     // Use roleName for check
     if (!session?.user || session.user.roleName !== "Admin") {
       return NextResponse.json(

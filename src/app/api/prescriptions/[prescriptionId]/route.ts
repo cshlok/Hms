@@ -1,6 +1,6 @@
 // app/api/prescriptions/[prescriptionId]/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session"; // Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Prescription } from "@/types/opd";
@@ -50,7 +50,7 @@ function getPrescriptionId(pathname: string): number | null {
 
 // GET handler for retrieving a specific prescription with items
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions); // Added await for cookies()
     const url = new URL(request.url);
     const prescriptionId = getPrescriptionId(url.pathname);
 
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext(); // Added await
         const { DB } = env;
 
         // 2. Retrieve the main prescription record with patient and doctor details
@@ -110,7 +110,7 @@ export async function GET(request: Request) {
         // 5. Format the final response
         const prescription: Prescription = {
             prescription_id: presResult.prescription_id,
-            consultation_id: presResult.consultation_id,
+            consultation_id: presResult.consultation_id as any, // Handle potential null
             patient_id: presResult.patient_id,
             doctor_id: presResult.doctor_id,
             prescription_date: presResult.prescription_date,
@@ -120,7 +120,7 @@ export async function GET(request: Request) {
             // Include patient and doctor info if needed in detail view
             // patient: { ... },
             // doctor: { ... },
-            items: itemsResult.results?.map(item => ({
+            items: itemsResult.results?.map((item: PrescriptionItemQueryResult) => ({ // Use defined interface
                 prescription_item_id: item.prescription_item_id,
                 prescription_id: item.prescription_id,
                 inventory_item_id: item.inventory_item_id,
@@ -152,5 +152,4 @@ export async function GET(request: Request) {
 // PUT/DELETE handlers - Generally prescriptions are not updated/deleted once issued.
 // Modifications might involve cancelling and creating a new one.
 // Implement if specific update/delete logic is required.
-
 

@@ -1,6 +1,6 @@
 // app/api/prescriptions/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session"; // Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Prescription } from "@/types/opd";
@@ -36,7 +36,7 @@ const ListPrescriptionsQuerySchema = z.object({
 });
 
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions); // Added await for cookies()
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
         }
 
         const filters = validation.data;
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext(); // Added await
         const { DB } = env;
 
         // 2. Build Query
@@ -131,9 +131,9 @@ export async function GET(request: Request) {
         const results = await DB.prepare(query).bind(...queryParamsList).all<ListPrescriptionsQueryResult>(); // Use defined interface
 
         // 4. Format Response (basic details for list view)
-        const prescriptions: Partial<Prescription>[] = results.results?.map(row => ({
+        const prescriptions: Partial<Prescription>[] = results.results?.map((row: ListPrescriptionsQueryResult) => ({
             prescription_id: row.prescription_id,
-            consultation_id: row.consultation_id,
+            consultation_id: row.consultation_id === null ? undefined : row.consultation_id,
             patient_id: row.patient_id,
             doctor_id: row.doctor_id,
             prescription_date: row.prescription_date,
@@ -168,7 +168,7 @@ const CreatePrescriptionSchema = z.object({
 });
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions); // Added await for cookies()
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_CREATE.includes(session.user.roleName)) {
@@ -184,7 +184,7 @@ export async function POST(request: Request) {
         }
 
         const presData = validation.data;
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext(); // Added await
         const { DB } = env;
 
         // 2. Get Doctor ID from session user
@@ -203,7 +203,7 @@ export async function POST(request: Request) {
             return new Response(JSON.stringify({ error: "Consultation not found" }), { status: 404 });
         }
         if (consultCheck.doctor_id !== doctorId) {
-            return new Response(JSON.stringify({ error: "Forbidden: Cannot create prescription for another doctor's consultation" }), { status: 403 });
+            return new Response(JSON.stringify({ error: "Forbidden: Cannot create prescription for another doctor\"s consultation" }), { status: 403 });
         }
         const patientId = consultCheck.patient_id;
 
@@ -222,7 +222,7 @@ export async function POST(request: Request) {
             throw new Error("Failed to create prescription");
         }
 
-        const newPrescriptionId = insertResult.meta.last_row_id;
+        const newPrescriptionId = (insertResult.meta as any).last_row_id; // Added type assertion
 
         // 5. Return the newly created prescription ID
         return new Response(JSON.stringify({ message: "Prescription created successfully", prescription_id: newPrescriptionId }), {
@@ -239,5 +239,4 @@ export async function POST(request: Request) {
         });
     }
 }
-
 

@@ -42,7 +42,7 @@ export default function AppointmentsPage() {
 
         const response = await fetch(`/api/appointments?${params.toString()}`);
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData: { error?: string } = await response.json(); // Add type annotation
           throw new Error(errorData.error || "Failed to fetch appointments");
         }
         const data: Appointment[] = await response.json();

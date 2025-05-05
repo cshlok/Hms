@@ -21,7 +21,7 @@ interface ChecklistTemplateUpdateBody {
 
 // GET /api/ot/checklist-templates/[id] - Get details of a specific checklist template
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -74,7 +74,7 @@ export async function GET(
 
 // PUT /api/ot/checklist-templates/[id] - Update an existing checklist template
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -86,7 +86,7 @@ export async function PUT(
       );
     }
 
-    const body = (await request.json()) as ChecklistTemplateUpdateBody;
+    const body = (await _request.json()) as ChecklistTemplateUpdateBody;
     const { name, phase, items } = body;
 
     // Basic validation
@@ -213,7 +213,7 @@ export async function PUT(
 
 // DELETE /api/ot/checklist-templates/[id] - Delete a checklist template
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {

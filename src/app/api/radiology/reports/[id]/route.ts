@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database"; // Import getDB function
-import { getSession } from "@/lib/session";
-// Removed unused imports: IronSessionData, IronSession, User
+import { getSession, IronSessionData } from "@/lib/session"; // Import IronSessionData
+import { IronSession } from "iron-session"; // Import IronSession
 
 // Define generic SingleQueryResult type for .first()
 interface SingleQueryResult<T> {
@@ -18,8 +18,8 @@ interface RadiologyReport {
   impression?: string | null;
   recommendations?: string | null;
   status: "preliminary" | "final" | "addendum" | "retracted";
-  radiologist_id: string;
-  verified_by_id?: string | null;
+  radiologist_id: string; // Assuming this is the User ID (number)
+  verified_by_id?: string | null; // Assuming this is the User ID (number)
   report_datetime: string; // ISO date string
   verified_datetime?: string | null; // ISO date string
   created_at: string; // ISO date string
@@ -45,29 +45,21 @@ interface RadiologyReportPutData {
   verified_by_id?: string | null; // Only if verifying
 }
 
-// Define Session and SessionUser interfaces
-interface SessionUser {
-  userId: string;
-  roleName: string;
-}
-
-interface Session {
-  user?: SessionUser;
-}
+// Removed custom Session and SessionUser interfaces
 
 // GET a specific Radiology Report by ID
 export async function GET(
-  request: NextRequest, // Keep request for potential future use
+  _request: NextRequest, // Renamed to _request as it's unused
   { params }: { params: Promise<{ id: string }> } // Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
-    // Get session without unsafe assertion
-    const session: Session | null = await getSession();
+    // Use IronSession<IronSessionData>
+    const session: IronSession<IronSessionData> = await getSession();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // Role check example (adjust roles as needed)
-    // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(currentUser.roleName)) {
+    // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(session.user.roleName)) {
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     // }
 
@@ -135,13 +127,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> } // Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
-    // Get session without unsafe assertion
-    const session: Session | null = await getSession();
+    // Use IronSession<IronSessionData>
+    const session: IronSession<IronSessionData> = await getSession();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // Assert user type after null check
-    const currentUser = session.user as SessionUser;
+    // Use the user directly from session
+    const currentUser = session.user;
 
     const { id: reportId } = await params; // Await params and destructure id (Next.js 15+)
     if (!reportId) {
@@ -163,7 +155,7 @@ export async function PUT(
       )
       .bind(reportId)
       .first()) as SingleQueryResult<{
-      radiologist_id: string;
+      radiologist_id: string; // Assuming this is User ID (number)
       status: string;
     }>;
 
@@ -180,7 +172,7 @@ export async function PUT(
     // Authorization Check - Use currentUser.roleName and currentUser.userId
     const isAdmin = currentUser.roleName === "Admin";
     const isRadiologist = currentUser.roleName === "Radiologist";
-    // Assuming user ID is a number in the session, but string in the DB? Adjust types if needed.
+    // Assuming user ID is number in session, string in DB. Adjust if needed.
     const isOwner =
       isRadiologist &&
       String(currentUser.userId) === existingReport.radiologist_id;
@@ -265,8 +257,7 @@ export async function PUT(
 
     // Check if update actually happened (info.meta.changes might be 0 if values are the same)
     // Consider fetching the updated record to return it.
-
-    // If report status is set to \'final\', update related study/order statuses
+    // If report status is set to 'final', update related study/order statuses
     if (fieldsToUpdate.status === "final") {
       // Use type assertion for .first()
       const studyIdResult = (await database
@@ -339,18 +330,18 @@ export async function PUT(
 
 // DELETE a specific Radiology Report (Admin only - consider status update instead)
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest, // Renamed to _request as it's unused
   { params }: { params: Promise<{ id: string }> } // Use Promise type for params (Next.js 15+)
 ): Promise<NextResponse> {
   try {
-    // Get session without unsafe assertion
-    const session: Session | null = await getSession();
+    // Use IronSession<IronSessionData>
+    const session: IronSession<IronSessionData> = await getSession();
     // Check session and user safely
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // Assert user type after null check
-    const currentUser = session.user as SessionUser;
+    // Use the user directly from session
+    const currentUser = session.user;
     // Use roleName for check
     if (currentUser.roleName !== "Admin") {
       return NextResponse.json(
@@ -409,3 +400,4 @@ export async function DELETE(
     );
   }
 }
+

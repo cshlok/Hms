@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         }
 
         const itemsData = validation.data;
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext();
         const { DB } = env;
 
         // 2. Get Doctor ID from session user

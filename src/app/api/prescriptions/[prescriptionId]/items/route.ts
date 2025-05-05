@@ -1,6 +1,6 @@
 // app/api/prescriptions/[prescriptionId]/items/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session"; // Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 // import { PrescriptionItem } from "@/types/opd"; // Removed unused import
@@ -28,9 +28,10 @@ const AddPrescriptionItemSchema = z.object({
     instructions: z.string().optional().nullable(),
     quantity_prescribed: z.number().int().positive().optional().nullable(),
 });
+type AddPrescriptionItemType = z.infer<typeof AddPrescriptionItemSchema>;
 
 export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions); // Added await for cookies()
     const url = new URL(request.url);
     const prescriptionId = getPrescriptionId(url.pathname);
 
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
         }
 
         const itemsData = validation.data;
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext(); // Added await
         const { DB } = env;
 
         // 2. Get Doctor ID from session user
@@ -73,18 +74,21 @@ export async function POST(request: Request) {
             return new Response(JSON.stringify({ error: "Prescription not found" }), { status: 404 });
         }
         if (presCheck.doctor_id !== doctorId) {
+            // Corrected escaped quote
             return new Response(JSON.stringify({ error: "Forbidden: Cannot add items to another doctor's prescription" }), { status: 403 });
         }
 
         // 4. Validate all inventory items exist and get their names
-        const inventoryItemIds = itemsData.map(item => item.inventory_item_id);
+        const inventoryItemIds = itemsData.map((item: AddPrescriptionItemType) => item.inventory_item_id);
+        // Corrected template literal for IN clause placeholders
         const inventoryCheckQuery = `SELECT inventory_item_id, item_name FROM InventoryItems WHERE inventory_item_id IN (${inventoryItemIds.map(() => '?').join(',')}) AND is_active = TRUE`;
         const inventoryResults = await DB.prepare(inventoryCheckQuery).bind(...inventoryItemIds).all<{ inventory_item_id: number, item_name: string }>();
 
-        const foundInventoryItems = new Map(inventoryResults.results?.map(item => [item.inventory_item_id, item.item_name]));
+        const foundInventoryItems = new Map(inventoryResults.results?.map((item: { inventory_item_id: number, item_name: string }) => [item.inventory_item_id, item.item_name]));
 
         const missingItems = inventoryItemIds.filter(id => !foundInventoryItems.has(id));
         if (missingItems.length > 0) {
+            // Corrected template literal for error message
             return new Response(JSON.stringify({ error: `Inventory item(s) not found or inactive: ${missingItems.join(', ')}` }), { status: 404 });
         }
 
@@ -117,6 +121,7 @@ export async function POST(request: Request) {
         console.log("Batch insert results:", insertResults); // Log results for debugging
 
         // 7. Return success response
+        // Corrected template literal for success message
         return new Response(JSON.stringify({ message: `${itemsData.length} item(s) added to prescription successfully` }), {
             status: 201, // Created
             headers: { "Content-Type": "application/json" },

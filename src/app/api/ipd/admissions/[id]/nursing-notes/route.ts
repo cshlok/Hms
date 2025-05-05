@@ -14,7 +14,7 @@ interface NursingNoteInput {
 
 // GET /api/ipd/admissions/[id]/nursing-notes - Get all nursing notes for an admission
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {

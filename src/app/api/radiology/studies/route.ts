@@ -220,10 +220,10 @@ export async function POST(request: NextRequest) {
       .bind(
         id,
         order_id,
-        accession_number ?? undefined, // Use nullish coalescing
+        accession_number ?? null, // Use nullish coalescing
         study_datetime,
         modality_id ?? undefined,
-        technician_id,
+        technician_id ?? null,
         protocol ?? undefined,
         series_description ?? undefined,
         number_of_images ?? undefined,

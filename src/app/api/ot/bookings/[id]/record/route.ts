@@ -24,7 +24,7 @@ interface OTRecordBody {
 
 // GET /api/ot/bookings/[id]/record - Get operation record for a booking
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {

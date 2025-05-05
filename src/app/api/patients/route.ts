@@ -1,6 +1,6 @@
 // app/api/patients/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
+import { sessionOptions, IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 // import { User } from "@/types/user";
@@ -43,7 +43,7 @@ const PatientCreateSchema = z.object({
  * Requires authentication and specific roles.
  */
 export async function GET(/* request: Request */) { // Removed unused parameter
-  const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+  const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions); // Added await
 
   // 1. Check Authentication & Authorization
   if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
@@ -54,7 +54,7 @@ export async function GET(/* request: Request */) { // Removed unused parameter
   }
 
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext(); // Added await
     const { DB } = env;
 
     // 2. Retrieve all active patients (consider pagination for large datasets)
@@ -94,9 +94,8 @@ export async function GET(/* request: Request */) { // Removed unused parameter
  * Creates a new patient.
  * Requires authentication and specific roles.
  */
-export async function POST(request: Request) {
-  const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
-
+export async function POST(request: Request) { // Renamed from GET to POST
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions); // Added await
   // 1. Check Authentication & Authorization
   if (!session.user || !ALLOWED_ROLES_CREATE.includes(session.user.roleName)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -117,7 +116,7 @@ export async function POST(request: Request) {
     }
 
     const patientData = validation.data;
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext(); // Added await
     const { DB } = env;
 
     // 2. Insert new patient into the database
@@ -149,11 +148,12 @@ export async function POST(request: Request) {
       session.user.userId // Log who registered the patient
     ).run();
 
-    if (!insertResult.success || !insertResult.meta || insertResult.meta.last_row_id === undefined) {
+    // Use type assertion for meta
+    if (!insertResult.success || !(insertResult.meta as any) || (insertResult.meta as any).last_row_id === undefined) {
       throw new Error("Failed to insert patient into database");
     }
 
-    const newPatientId = insertResult.meta.last_row_id;
+    const newPatientId = (insertResult.meta as any).last_row_id;
 
     // 3. Retrieve the newly created patient data (optional, but good practice)
     const newPatient = await DB.prepare(
@@ -187,3 +187,4 @@ export async function POST(request: Request) {
     });
   }
 }
+

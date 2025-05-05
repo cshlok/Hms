@@ -1,6 +1,7 @@
 // app/api/patients/[id]/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions } from "@/lib/session";
+import { IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { z } from "zod";
@@ -24,7 +25,7 @@ function getPatientId(pathname: string): number | null {
 
 // GET handler for fetching a specific patient
 export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
     const url = new URL(request.url);
     const patientId = getPatientId(url.pathname);
 
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext();
         const { DB } = env;
 
         // 2. Retrieve the specific patient
@@ -102,7 +103,7 @@ const PatientUpdateSchema = z.object({
 }).partial().refine(obj => Object.keys(obj).length > 0, { message: "At least one field must be provided for update" });
 
 export async function PUT(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
     const url = new URL(request.url);
     const patientId = getPatientId(url.pathname);
 
@@ -154,7 +155,7 @@ export async function PUT(request: Request) {
         // Add updated_at timestamp
         setClauses.push("updated_at = CURRENT_TIMESTAMP");
 
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext();
         const { DB } = env;
 
         // 2. Update the patient record
@@ -162,7 +163,7 @@ export async function PUT(request: Request) {
             `UPDATE Patients SET ${setClauses.join(", ")} WHERE patient_id = ?`
         ).bind(...values, patientId).run();
 
-        if (updateResult.meta.changes === 0) {
+        if ((updateResult.meta as any).changes === 0) {
              return new Response(JSON.stringify({ error: "Patient not found or no changes made" }), {
                 status: 404, // Or 304 Not Modified if no actual changes
                 headers: { "Content-Type": "application/json" },
@@ -187,7 +188,7 @@ export async function PUT(request: Request) {
 
 // DELETE handler for deactivating a patient (soft delete)
 export async function DELETE(request: Request) {
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
     const url = new URL(request.url);
     const patientId = getPatientId(url.pathname);
 
@@ -207,7 +208,7 @@ export async function DELETE(request: Request) {
     }
 
     try {
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext();
         const { DB } = env;
 
         // 2. Deactivate the patient (set is_active to FALSE)
@@ -215,7 +216,7 @@ export async function DELETE(request: Request) {
             "UPDATE Patients SET is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE patient_id = ? AND is_active = TRUE"
         ).bind(patientId).run();
 
-        if (deleteResult.meta.changes === 0) {
+        if ((deleteResult.meta as any).changes === 0) {
              return new Response(JSON.stringify({ error: "Patient not found or already inactive" }), {
                 status: 404,
                 headers: { "Content-Type": "application/json" },

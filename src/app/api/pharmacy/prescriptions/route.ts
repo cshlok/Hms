@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database"; // Assuming db returns a promise
-import { getSession } from "@/lib/session";
-// Removed unused imports: IronSessionData, IronSession, User
+import { getSession, IronSessionData } from "@/lib/session"; // Import IronSessionData
+import { IronSession } from "iron-session"; // Import IronSession
 
 // Define generic QueryResult type
 interface QueryResult<T> {
@@ -46,7 +46,7 @@ interface Prescription {
   patient_id: string;
   patient_first_name?: string;
   patient_last_name?: string;
-  doctor_id: string;
+  doctor_id: string | number; // Allow number based on session user ID type
   doctor_first_name?: string;
   doctor_last_name?: string;
   item_count?: number; // Calculated field
@@ -77,21 +77,13 @@ interface PrescriptionPostData {
   items: PrescriptionItemPostData[];
 }
 
-// Define Session and SessionUser interfaces
-interface SessionUser {
-  userId: string;
-  roleName: string;
-}
-
-interface Session {
-  user?: SessionUser;
-}
+// Removed custom Session and SessionUser interfaces
 
 // GET /api/pharmacy/prescriptions
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // Get session without unsafe assertion
-    const session: Session | null = await getSession();
+    // Use IronSession<IronSessionData>
+    const session: IronSession<IronSessionData> = await getSession();
 
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -119,7 +111,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         pt.id as patient_id,
         pt.first_name as patient_first_name,
         pt.last_name as patient_last_name,
-        u.id as doctor_id,
+        u.id as doctor_id, -- Assuming Users table has numeric id
         u.first_name as doctor_first_name,
         u.last_name as doctor_last_name,
         (
@@ -198,17 +190,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // POST /api/pharmacy/prescriptions
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    // Get session without unsafe assertion
-    const session: Session | null = await getSession();
+    // Use IronSession<IronSessionData>
+    const session: IronSession<IronSessionData> = await getSession();
 
     // Check session and user safely
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // Assert user type after null check
-    const currentUser = session.user as SessionUser;
+    // Use the user directly from session, assuming userId is number
+    const currentUser = session.user;
 
-    const hasPermission = ["admin", "doctor"].includes(currentUser.roleName); // Use roleName from Session
+    // Use roleName from session user
+    const hasPermission = ["admin", "doctor"].includes(currentUser.roleName.toLowerCase());
 
     if (!hasPermission) {
       return NextResponse.json(
@@ -325,7 +318,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           prescriptionId,
           prescriptionNumber,
           data.patient_id,
-          currentUser.userId, // Use userId from currentUser
+          currentUser.userId, // Use userId (number) from session user
           data.prescription_date || new Date().toISOString().split("T")[0], // Use YYYY-MM-DD format
           data.source,
           data.source_id || undefined,
@@ -442,3 +435,4 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
+

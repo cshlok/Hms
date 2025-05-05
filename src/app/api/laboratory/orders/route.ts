@@ -124,10 +124,10 @@ async function createLabOrderInDB(orderData: LabOrderInput): Promise<LabOrder> {
     order_date: orderData.order_date || new Date().toISOString(),
     priority: orderData.priority || "routine",
     status: "pending",
-    sample_collected_at: undefined,
-    sample_collected_by: undefined,
-    result_entry_at: undefined,
-    result_verified_at: undefined,
+    sample_collected_at: null, // Use null instead of undefined
+    sample_collected_by: null, // Use null instead of undefined
+    result_entry_at: null,     // Use null instead of undefined
+    result_verified_at: null,  // Use null instead of undefined
     notes: orderData.notes,
     created_at: new Date().toISOString(),
     tests: (orderData.tests || []).map((test: LabTestInput) => ({
@@ -191,7 +191,7 @@ async function updateLabOrderInDB(
   if (existing && typeof existing === "object") {
     return { ...existing, ...updateData, updated_at: new Date().toISOString() };
   }
-  return undefined; // Return null if existing is null or not an object
+  return null; // Return null if existing is null or not an object
 }
 
 // --- API Route Handlers ---

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { getSession } from "@/lib/session";
-// Removed unused imports: IronSessionData, IronSession, User
+import { getSession, IronSessionData } from "@/lib/session"; // Import IronSessionData
+import { IronSession } from "iron-session"; // Import IronSession
 import { getDB } from "@/lib/database"; // Import getDB
 
 // Interface for POST request body
@@ -28,27 +28,19 @@ interface RadiologyReportListItem {
   // Add other fields from the SELECT query
 }
 
-// Define Session and SessionUser interfaces
-interface SessionUser {
-  userId: string;
-  roleName: string;
-}
-
-interface Session {
-  user?: SessionUser;
-}
+// Removed custom Session and SessionUser interfaces
 
 // GET all Radiology Reports (filtered by study_id, patient_id, radiologist_id, status)
 export async function GET(request: NextRequest) {
   try {
-    // Get session without unsafe assertion
-    const session: Session | null = await getSession();
+    // Use IronSession<IronSessionData>
+    const session: IronSession<IronSessionData> = await getSession();
     // Check session and user existence first
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     // Role check example (adjust roles as needed)
-    // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(currentUser.roleName)) {
+    // if (!["Admin", "Doctor", "Receptionist", "Technician", "Radiologist"].includes(session.user.roleName)) {
     //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     // }
 
@@ -125,14 +117,14 @@ export async function GET(request: NextRequest) {
 // POST a new Radiology Report (Radiologist or Admin)
 export async function POST(request: NextRequest) {
   try {
-    // Get session without unsafe assertion
-    const session: Session | null = await getSession();
+    // Use IronSession<IronSessionData>
+    const session: IronSession<IronSessionData> = await getSession();
     // Check session and user existence first
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // Assert user type after null check
-    const currentUser = session.user as SessionUser;
+    // Use the user directly from session
+    const currentUser = session.user;
     // Use roleName for check
     if (
       currentUser.roleName !== "Admin" &&
@@ -285,3 +277,4 @@ interface CreatedRadiologyReportQueryResultRow {
   created_at: string;
   updated_at: string;
 }
+

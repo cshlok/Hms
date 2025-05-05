@@ -11,7 +11,7 @@ interface StaffAssignmentBody {
 
 // GET /api/ot/bookings/[id]/staff - Get staff assigned to a specific OT booking
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -51,7 +51,7 @@ export async function GET(
 
 // POST /api/ot/bookings/[id]/staff - Assign staff to an OT booking
 export async function POST(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -63,7 +63,7 @@ export async function POST(
       );
     }
 
-    const body = (await request.json()) as StaffAssignmentBody;
+    const body = (await _request.json()) as StaffAssignmentBody;
     const { user_id, role } = body;
 
     if (!user_id || !role) {
@@ -173,7 +173,7 @@ export async function POST(
 
 // DELETE /api/ot/bookings/[id]/staff - Remove all staff from an OT booking
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {

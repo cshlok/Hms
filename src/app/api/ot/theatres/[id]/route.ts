@@ -14,7 +14,7 @@ interface TheatreUpdateBody {
 
 // GET /api/ot/theatres/[id] - Get details of a specific operation theatre
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -56,7 +56,7 @@ export async function GET(
 
 // PUT /api/ot/theatres/[id] - Update an existing operation theatre
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -68,7 +68,7 @@ export async function PUT(
       );
     }
 
-    const body = (await request.json()) as TheatreUpdateBody;
+    const body = (await _request.json()) as TheatreUpdateBody;
     const { name, location, specialty, status, equipment } = body;
 
     // Basic validation - ensure at least one field is being updated
@@ -164,7 +164,7 @@ export async function PUT(
 
 // DELETE /api/ot/theatres/[id] - Delete an operation theatre
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {

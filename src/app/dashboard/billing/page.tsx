@@ -47,7 +47,7 @@ export default function BillingPage() {
 
         const response = await fetch(`/api/invoices?${params.toString()}`);
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData: { error?: string } = await response.json(); // Add type annotation
           throw new Error(errorData.error || "Failed to fetch invoices");
         }
         const data: Invoice[] = await response.json();

@@ -22,7 +22,7 @@ interface SurgeryTypeUpdateBody {
 
 // GET /api/ot/surgery-types/[id] - Get details of a specific surgery type
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -86,7 +86,7 @@ export async function GET(
 
 // PUT /api/ot/surgery-types/[id] - Update an existing surgery type
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -98,7 +98,7 @@ export async function PUT(
       );
     }
 
-    const body = (await request.json()) as SurgeryTypeUpdateBody;
+    const body = (await _request.json()) as SurgeryTypeUpdateBody;
     const {
       name,
       description,
@@ -232,7 +232,7 @@ export async function PUT(
 
 // DELETE /api/ot/surgery-types/[id] - Delete a surgery type
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {

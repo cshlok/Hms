@@ -6,7 +6,7 @@ export const runtime = "edge";
 
 // GET /api/ot/bookings/[id] - Get a specific OT booking by ID
 export async function GET(
-  request: NextRequest, // FIX: Use NextRequest
+  _request: NextRequest, // FIX: Use NextRequest
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
@@ -58,14 +58,14 @@ export async function GET(
 
 // PUT /api/ot/bookings/[id] - Update a specific OT booking
 export async function PUT(
-  request: NextRequest, // FIX: Use NextRequest
+  _request: NextRequest, // FIX: Use NextRequest
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {
     // const { env } = getRequestContext();
     // const DB = env.DB;
     const { id: bookingId } = await params; // FIX: Await params and destructure id (Next.js 15+)
-    const updateData = await request.json();
+    const updateData = await _request.json();
 
     // Validate required fields
     if (!updateData) {
@@ -125,7 +125,7 @@ export async function PUT(
 
 // DELETE /api/ot/bookings/[id] - Cancel a specific OT booking
 export async function DELETE(
-  request: NextRequest, // FIX: Use NextRequest
+  _request: NextRequest, // FIX: Use NextRequest
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {

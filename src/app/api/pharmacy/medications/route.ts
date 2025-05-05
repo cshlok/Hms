@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database"; // Assuming db returns a promise
-import { getSession } from "@/lib/session";
+import { getSession, IronSessionData } from "@/lib/session"; // Import IronSessionData
+import { IronSession } from "iron-session"; // Import IronSession
 
 // Define interfaces for data structures
 // interface _Medication { // FIX: Prefixed unused interface - Removed as it's unused
@@ -52,7 +53,8 @@ interface MedicationFilters {
  */
 export async function GET(request: NextRequest) {
   try {
-    const session: Session | null = await getSession(); // FIX: Use Session type
+    // FIX: Use IronSession<IronSessionData> type
+    const session: IronSession<IronSessionData> = await getSession();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -139,7 +141,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session: Session | null = await getSession(); // FIX: Use Session type
+    // FIX: Use IronSession<IronSessionData> type
+    const session: IronSession<IronSessionData> = await getSession();
     if (
       !session?.user ||
       !["Admin", "Pharmacist"].includes(session.user.roleName)
@@ -245,3 +248,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

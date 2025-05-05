@@ -13,7 +13,7 @@ interface MedicationAdminInput {
 
 // GET /api/ipd/admissions/[id]/medication-administration - Get all medication administration records for an admission
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
 ) {
   try {

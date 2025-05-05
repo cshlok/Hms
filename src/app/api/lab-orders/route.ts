@@ -4,9 +4,8 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions, IronSessionData } from "@/lib/session"; // Import IronSessionData
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
-import { LabOrder, LabOrderStatus } from "@/types/opd";
+import { /* LabOrder, */ LabOrderStatus } from "@/types/opd";
 import { z } from "zod";
-import { D1Result } from "@cloudflare/workers-types"; // Import D1Result for meta typing
 
 // Define roles allowed to view/create lab orders (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse", "LabTechnician", "Patient"]; // Patient can view own
@@ -227,8 +226,8 @@ export async function POST(request: Request) {
         const patientId = consultCheck.patient_id;
 
         // 4. Insert the new lab order shell
-        // Type the result of run() as D1Result<unknown>
-        const insertResult: D1Result<unknown> = await DB.prepare(
+        // Type the result of run() explicitly if needed, or ensure DB types are correct
+        const insertResult = await DB.prepare(
             "INSERT INTO LabOrders (consultation_id, patient_id, doctor_id, order_datetime, status, notes) VALUES (?, ?, ?, ?, ?, ?)"
         ).bind(
             orderData.consultation_id,
@@ -240,12 +239,12 @@ export async function POST(request: Request) {
         ).run();
 
         // Check success and last_row_id existence and type
-        if (!insertResult.success || !insertResult.meta || typeof insertResult.meta.last_row_id !== 'number') {
+        if (!insertResult.success || !insertResult.meta || typeof (insertResult.meta as any).last_row_id !== 'number') {
             console.error("Failed to create lab order or get last_row_id:", insertResult);
             throw new Error("Failed to create lab order or retrieve ID");
         }
 
-        const newLabOrderId = insertResult.meta.last_row_id;
+        const newLabOrderId = (insertResult.meta as any).last_row_id;
 
         // 5. Return the newly created lab order ID
         return new Response(JSON.stringify({ message: "Lab Order created successfully", lab_order_id: newLabOrderId }), {

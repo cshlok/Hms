@@ -1,6 +1,7 @@
 // app/api/patients/[id]/vitals/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions } from "@/lib/session";
+import { IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { PatientVital } from "@/types/opd";
@@ -22,7 +23,7 @@ const ListVitalsQuerySchema = z.object({
 });
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) { // FIX: Use NextRequest and Promise type for params
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
     const url = new URL(request.url);
     const { id: patientIdStr } = await params; // FIX: Await params and destructure id
     const patientId = parseInt(patientIdStr, 10);
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     try {
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext();
         const { DB } = env;
 
         // 2. Authorization check for Patients (can only view their own vitals)
@@ -143,7 +144,7 @@ const RecordVitalsSchema = z.object({
     { message: "At least one vital measurement must be provided." });
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) { // FIX: Use NextRequest and Promise type for params
-    const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
     const { id: patientIdStr } = await params; // FIX: Await params and destructure id
     const patientId = parseInt(patientIdStr, 10);
 
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         const vitalsData = validation.data;
-        const { env } = getCloudflareContext();
+        const { env } = await getCloudflareContext();
         const { DB } = env;
 
         // 2. Check if patient exists
@@ -217,7 +218,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             throw new Error("Failed to record patient vitals");
         }
 
-        const newVitalId = insertResult.meta.last_row_id;
+        const newVitalId = (insertResult.meta as any).last_row_id;
 
         // 5. Return the newly created vital ID
         return new Response(JSON.stringify({ message: "Vitals recorded successfully", vital_id: newVitalId }), {

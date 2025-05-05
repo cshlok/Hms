@@ -1,6 +1,7 @@
 // app/api/patients/register/route.ts
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sessionOptions } from "@/lib/session";
+import { IronSessionData } from "@/lib/session";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { z } from "zod";
@@ -37,7 +38,7 @@ const PatientRegistrationSchema = z.object({
 const ALLOWED_ROLES = ["Admin", "Receptionist", "Nurse"];
 
 export async function POST(request: Request) {
-  const session = await getIronSession<IronSessionData>(cookies(), sessionOptions);
+  const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
 
   // 1. Check Authentication & Authorization
   if (!session.user || !ALLOWED_ROLES.includes(session.user.roleName)) {
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
 
     const patientData = validation.data;
 
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext();
     const { DB } = env;
 
     // 2. Check for existing patient (e.g., by phone number or email if provided)
@@ -117,7 +118,7 @@ export async function POST(request: Request) {
         throw new Error("Failed to register patient");
     }
 
-    const newPatientId = insertResult.meta.last_row_id;
+    const newPatientId = (insertResult.meta as any).last_row_id;
 
     // 4. Return success response
     return new Response(JSON.stringify({ message: "Patient registered successfully", patientId: newPatientId }), {

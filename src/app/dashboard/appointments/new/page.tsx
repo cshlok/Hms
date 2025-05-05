@@ -67,7 +67,7 @@ export default function BookAppointmentPage() {
           description: message,
           variant: "destructive",
         });
-        setErrors([{ path: ["form"], message: "Could not load required data." }]);
+        setErrors([{ code: z.ZodIssueCode.custom, path: ["form"], message: "Could not load required data." }]);
       } finally {
         setIsFetchingData(false);
       }
@@ -122,7 +122,7 @@ export default function BookAppointmentPage() {
         body: JSON.stringify(dataToSend),
       });
 
-      const result = await response.json();
+      const result: { error?: string } = await response.json(); // Add type annotation
 
       if (!response.ok) {
         throw new Error(result.error || "Failed to book appointment");
@@ -137,7 +137,7 @@ export default function BookAppointmentPage() {
 
     } catch (err: unknown) { // Use unknown
       const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setErrors([{ path: ["form"], message: message }]);
+      setErrors([{ code: z.ZodIssueCode.custom, path: ["form"], message: message }]);
       toast({
         title: "Booking Failed",
         description: message,
