@@ -132,8 +132,8 @@ export async function PUT(
 
     const body = await request.json();
     // Define interface for Invoice update body if needed, or use partial type
-    // const updateData = body as Partial<Invoice>; // Assuming Invoice type exists
-    const updateData = body as Record<string, any>; // Using generic Record for now
+    // Assuming an Invoice type/interface exists elsewhere
+    const updateData = body as Partial<Invoice>; // Replaced Record<string, any> with Partial<Invoice>
 
     // const DB = (process.env.DB as unknown) as D1Database; // Using Mock DB instead
     const now = new Date().toISOString();

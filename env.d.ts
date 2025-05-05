@@ -1,43 +1,43 @@
 // env.d.ts
 
 // Define the type for the Cloudflare D1 Database binding
-interface D1Database {
-  prepare(query: string): D1PreparedStatement;
-  dump(): Promise<ArrayBuffer>;
-  // FIX: Remove unused generic T, default to unknown in D1Result
-  batch(statements: D1PreparedStatement[]): Promise<D1Result<unknown>[]>;
-  exec(query: string): Promise<D1ExecResult>;
-}
+// interface D1Database {
+//   prepare(query: string): D1PreparedStatement;
+//   dump(): Promise<ArrayBuffer>;
+//   // FIX: Remove unused generic T, default to unknown in D1Result
+//   batch(statements: D1PreparedStatement[]): Promise<D1Result<unknown>[]>;
+//   exec(query: string): Promise<D1ExecResult>;
+// }
 
 // Define the type for D1 prepared statements
-interface D1PreparedStatement {
-  // FIX: Use unknown[] instead of any[] for better type safety
-  bind(...values: unknown[]): D1PreparedStatement;
-  first<T = unknown>(colName?: string): Promise<T | null>;
-  run<T = unknown>(): Promise<D1Result<T>>;
-  all<T = unknown>(): Promise<D1Result<T[]>>;
-  raw<T = unknown>(): Promise<T[]>;
-}
+// interface D1PreparedStatement {
+//   // FIX: Use unknown[] instead of any[] for better type safety
+//   bind(...values: unknown[]): D1PreparedStatement;
+//   first<T = unknown>(colName?: string): Promise<T | null>;
+//   run<T = unknown>(): Promise<D1Result<T>>;
+//   all<T = unknown>(): Promise<D1Result<T[]>>;
+//   raw<T = unknown>(): Promise<T[]>;
+// }
 
 // Define the type for D1 results
-interface D1Result<T = unknown> {
-  results?: T[];
-  success: boolean;
-  // FIX: Use unknown instead of any for better type safety
-  meta?: unknown;
-  error?: string;
-}
+// interface D1Result<T = unknown> {
+//   results?: T[];
+//   success: boolean;
+//   // FIX: Use unknown instead of any for better type safety
+//   meta?: unknown;
+//   error?: string;
+// }
 
 // Define the type for D1 exec results
-interface D1ExecResult {
-  count: number;
-  duration: number;
-}
+// interface D1ExecResult {
+//   count: number;
+//   duration: number;
+// }
 
 // Define the type for Cloudflare Fetcher binding (assuming standard type)
-interface Fetcher {
-  fetch(request: Request | string, requestInit?: RequestInit | Request): Promise<Response>;
-}
+// interface Fetcher {
+//   fetch(request: Request | string, requestInit?: RequestInit | Request): Promise<Response>;
+// }
 
 // Define the Cloudflare environment bindings
 // interface CloudflareEnv {

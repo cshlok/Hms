@@ -150,6 +150,7 @@ export async function PUT(
     for (const field of updateFields) {
       // FIX: Ensure field exists on updatedVisit before assignment and cast field type
       if (field in updatedVisit) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (updatedVisit as any)[field] = updateData[field]; // Use 'as any' to bypass strict index check after 'in' guard
       }
     }

@@ -25,17 +25,17 @@ interface Patient {
 }
 
 // Define API response types
-interface PermissionApiResponse {
-  hasPermission?: boolean;
-  error?: string;
-}
+// interface PermissionApiResponse {
+//   hasPermission?: boolean;
+//   error?: string;
+// }
 
 // Assuming the API returns an array directly, adjust if it returns { results: Patient[] }
-type PatientsQueueApiResponse = Patient[];
+// type PatientsQueueApiResponse = Patient[];
 
-interface ApiErrorResponse {
-  error?: string;
-}
+// interface ApiErrorResponse {
+//   error?: string;
+// }
 
 interface OPDPatientQueueProperties {
   date: Date; // Keep date prop if needed, though unused in current logic
@@ -103,12 +103,12 @@ const getStatusBadge = (status: Patient["status"]) => {
   }
 };
 
-export default function OPDPatientQueue({ date: _date }: OPDPatientQueueProperties) {
+export default function OPDPatientQueue({ /* date: _date */ }: OPDPatientQueueProperties) {
   const { toast } = useToast(); // Initialize toast
 
   // State variables
   const [loading, setLoading] = useState<boolean>(true); // Combined loading state
-  const [loadingPermissions, setLoadingPermissions] = useState<boolean>(true); // Keep separate if needed for UI granularity
+  // const [loadingPermissions, setLoadingPermissions] = useState<boolean>(true); // Removed unused state
   const [patients, setPatients] = useState<Patient[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [canCallPatient, setCanCallPatient] = useState<boolean>(false);

@@ -71,13 +71,13 @@ interface Patient {
   // Add other relevant patient fields if needed
 }
 
-interface PermissionApiResponse {
-  hasPermission?: boolean;
-  error?: string;
-}
+// interface PermissionApiResponse {
+//   hasPermission?: boolean;
+//   error?: string;
+// }
 
 // Assuming the API returns an array directly, adjust if it returns { results: Patient[] }
-type PatientsQueueApiResponse = Patient[];
+// type PatientsQueueApiResponse = Patient[];
 
 interface ConsultationApiResponse {
   consultationId: string; // Assuming the API returns the ID of the created consultation
