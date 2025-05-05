@@ -1,7 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { hashPassword } from "@/lib/authUtils";
 import { z } from "zod";
-import type { CloudflareEnv } from "../../../env";
 
 // Input validation schema
 const RegisterSchema = z.object({

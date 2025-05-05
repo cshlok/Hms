@@ -6,7 +6,6 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { User } from "@/types/user";
-import type { CloudflareEnv } from "../../../env";
 
 // Input validation schema
 const LoginSchema = z.object({

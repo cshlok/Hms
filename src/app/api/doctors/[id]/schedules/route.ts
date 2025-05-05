@@ -10,7 +10,6 @@ import { z } from "zod";
 const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor"];
 const ALLOWED_ROLES_MANAGE = ["Admin", "Doctor"]; // Only Admin or the Doctor themselves can manage schedule
 
-import type { CloudflareEnv } from "../../../../env";
 
 // Helper function to get doctor ID from URL
 function getDoctorId(pathname: string): number | null {

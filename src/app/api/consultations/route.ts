@@ -5,7 +5,6 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { Consultation } from "@/types/opd";
 import { z } from "zod";
-import type { CloudflareEnv } from "../../../env";
 
 // Define roles allowed to view/create consultations (adjust as needed)
 const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse"];
