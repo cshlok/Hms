@@ -1,296 +1,187 @@
-import { NextRequest, NextResponse } from "next/server"; // Fixed: Use NextResponse
-import { getCurrentUser } from "@/lib/auth"; // Changed from getSession
-import { ProgressNoteSchema } from "@/lib/schemas/ipd-schemas";
+import { NextRequest, NextResponse } from "next/server";
+import { DB } from "@/lib/database";
+import { getSession } from "@/lib/session";
+import { z } from "zod";
+import type { D1ResultWithMeta, D1Database } from "@/types/cloudflare"; // Import D1Database
 
-// Define interface for the result of the admission check query
-interface AdmissionCheck {
-  admission_id: number | string;
-  status: string;
-}
+// Zod schema for creating a progress note
+const progressNoteCreateSchema = z.object({
+    note_datetime: z.string().refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid note datetime format",
+    }),
+    notes: z.string().min(1, "Progress note content cannot be empty"),
+    // Assuming doctor_id is derived from the session
+});
 
-// Define interface for the POST request body (before validation)
-interface ProgressNoteInput {
-  note_date?: string;
-  note_time?: string;
-  note_type?: string;
-  note_content?: string;
-  vital_signs?: Record<string, unknown>;
-  medication_given?: Record<string, unknown>;
-  // admission_id will be added later
-}
-
-// GET handler for fetching progress notes
+// GET /api/ipd/[admissionId]/progress-notes - Fetch progress notes for an admission
 export async function GET(
-  request: NextRequest, // Keep request as it's used for searchParams
-  { params }: { params: Promise<{ admissionId: string }> } // FIX: Use Promise type for params (Next.js 15+)
+    request: NextRequest,
+    { params }: { params: { admissionId: string } }
 ) {
-  try {
-    const user = await getCurrentUser(); // Changed from getSession
-
-    // Check if user is authenticated
-    if (!user) {
-      // Changed from !session || !session.user
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); // FIX: Use NextResponse
+    const session = await getSession();
+    if (!session.isLoggedIn) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user has appropriate role (e.g., Doctor, Nurse, Admin)
-    const allowedRoles = new Set(["Doctor", "Nurse", "Consultant", "Admin"]); // Add roles as needed
-    // Changed from !allowedRoles.includes(session.user.roleName)
-    if (!user.roles.some((role) => allowedRoles.has(role))) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 }); // FIX: Use NextResponse
+    const { admissionId } = params;
+    if (!admissionId) {
+        return NextResponse.json(
+            { message: "Admission ID is required" },
+            { status: 400 }
+        );
     }
 
-    const { admissionId } = await params; // FIX: Await params and destructure admissionId (Next.js 15+)
-    const DB = process.env.DB as unknown as D1Database;
-    const { searchParams } = new URL(request.url);
+    try {
+        const { searchParams } = new URL(request.url);
+        const page = Number.parseInt(searchParams.get("page") || "1");
+        const limit = Number.parseInt(searchParams.get("limit") || "10");
+        const offset = (page - 1) * limit;
+        const sortBy = searchParams.get("sort_by") || "note_datetime";
+        const sortOrder = searchParams.get("sort_order") || "desc";
 
-    // Pagination parameters
-    const page = Number.parseInt(searchParams.get("page") || "1");
-    const limit = Number.parseInt(searchParams.get("limit") || "10");
-    const offset = (page - 1) * limit;
+        const validSortColumns = ["note_datetime", "created_at"];
+        const validSortOrders = ["asc", "desc"];
+        const finalSortBy = validSortColumns.includes(sortBy) ? sortBy : "note_datetime";
+        const finalSortOrder = validSortOrders.includes(sortOrder) ? sortOrder.toUpperCase() : "DESC";
 
-    // Base query
-    let query = `
-      SELECT 
-        pn.progress_note_id,
-        pn.note_date,
-        pn.note_time,
-        pn.note_type,
-        pn.note_content,
-        pn.vital_signs,
-        pn.medication_given,
-        pn.created_at,
-        u.name as created_by_name,
-        u.roleName as created_by_role -- Assuming Users table has roleName
-      FROM IPDProgressNotes pn
-      JOIN Users u ON pn.created_by = u.userId -- Assuming Users table and userId
-      WHERE pn.admission_id = ?
-    `;
-    const queryParameters: (string | number)[] = [admissionId];
+        const admissionCheck = await (DB as D1Database).prepare(
+            "SELECT id FROM IPDAdmissions WHERE id = ?"
+        ).bind(admissionId).first<{ id: number }>();
 
-    // Add filters based on searchParams if needed
-    // Example:
-    // const noteType = searchParams.get("note_type");
-    // if (noteType) {
-    //   query += " AND pn.note_type = ?";
-    //   queryParams.push(noteType);
-    // }
+        if (!admissionCheck) {
+            return NextResponse.json(
+                { message: "Admission not found" },
+                { status: 404 }
+            );
+        }
 
-    query += `
-      ORDER BY 
-        pn.note_date DESC, pn.note_time DESC
-      LIMIT ? OFFSET ?
-    `;
+        const query = `
+            SELECT
+                pn.id, pn.admission_id, pn.doctor_id, pn.note_datetime, pn.notes,
+                pn.created_at, pn.updated_at,
+                u.name as doctor_name
+            FROM ProgressNotes pn
+            JOIN Users u ON pn.doctor_id = u.id
+            WHERE pn.admission_id = ?
+            ORDER BY pn.${finalSortBy} ${finalSortOrder}
+            LIMIT ? OFFSET ?
+        `;
+        const countQuery = `SELECT COUNT(*) as total FROM ProgressNotes WHERE admission_id = ?`;
 
-    queryParameters.push(limit, offset);
+        const [notesResult, countResult] = await Promise.all([
+            (DB as D1Database).prepare(query).bind(admissionId, limit, offset).all(),
+            (DB as D1Database).prepare(countQuery).bind(admissionId).first<{ total: number }>()
+        ]);
 
-    // Fixed: Use DB.prepare().bind().all() for SELECT
-    const preparedStatement = DB.prepare(query).bind(...queryParameters);
-    const progressNotesResult = await preparedStatement.all();
+        const results = notesResult.results || [];
+        const total = countResult?.total || 0;
 
-    // D1 .all() returns { results: T[] }
-    const progressNotes = progressNotesResult.results || [];
+        return NextResponse.json({
+            data: results,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        });
 
-    // Optionally, fetch total count for pagination
-    // const countResult = await DB.prepare("SELECT COUNT(*) as count FROM IPDProgressNotes WHERE admission_id = ?").bind(admissionId).first();
-    // const totalCount = countResult ? (countResult.count as number) : 0;
-
-    return NextResponse.json({ // FIX: Use NextResponse
-      notes: progressNotes,
-      // pagination: { page, limit, totalCount } // Include if count is fetched
-    });
-  } catch (error: unknown) {
-    console.error("Error fetching IPD progress notes:", error);
-    return NextResponse.json( // FIX: Use NextResponse
-      {
-        error: "Failed to fetch IPD progress notes",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      {
-        status: 500,
-      }
-    );
-  }
+    } catch (error: unknown) {
+        console.error(`Error fetching progress notes for admission ${admissionId}:`, error);
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        return NextResponse.json(
+            { message: "Error fetching progress notes", details: errorMessage },
+            { status: 500 }
+        );
+    }
 }
 
-// POST handler for creating a new progress note
+// POST /api/ipd/[admissionId]/progress-notes - Create a new progress note
 export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ admissionId: string }> } // FIX: Use Promise type for params (Next.js 15+)
+    request: NextRequest,
+    { params }: { params: { admissionId: string } }
 ) {
-  try {
-    const user = await getCurrentUser(); // Changed from getSession
-
-    // Check if user is authenticated
-    if (!user) {
-      // Changed from !session || !session.user
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); // FIX: Use NextResponse
+    const session = await getSession();
+    if (!session.isLoggedIn) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    if (!session.user) { // Ensure user exists if logged in
+        return NextResponse.json({ message: "User not found in session" }, { status: 500 });
     }
 
-    // Check if user has appropriate role
-    const allowedRoles = new Set(["Doctor", "Nurse", "Consultant"]);
-    // Changed from !allowedRoles.includes(session.user.roleName)
-    if (!user.roles.some((role) => allowedRoles.has(role))) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 }); // FIX: Use NextResponse
-    }
-
-    const { admissionId } = await params; // FIX: Await params and destructure admissionId (Next.js 15+)
-    const DB = process.env.DB as unknown as D1Database;
-
-    // Verify admission exists and is active
-    const admissionCheckStmt = DB.prepare(
-      `
-      SELECT admission_id, status 
-      FROM IPDAdmissions
-      WHERE admission_id = ?
-    `
-    ).bind(admissionId);
-    const admissionCheckResult = await admissionCheckStmt.all();
-
-    // Fixed: Use double assertion for type conversion and ensure null is returned if no results
-    const admissionCheck: AdmissionCheck | null =
-      admissionCheckResult.results && admissionCheckResult.results.length > 0
-        ? (admissionCheckResult.results[0] as unknown as AdmissionCheck)
-        : null; // FIX: Changed undefined to null
-
-    if (!admissionCheck) {
-      return NextResponse.json( // FIX: Use NextResponse
-        {
-          error: "Admission not found",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
-
-    if (admissionCheck.status !== "Active") {
-      return NextResponse.json( // FIX: Use NextResponse
-        {
-          error: "Cannot add progress notes to a non-active admission",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    // If user is a doctor, verify they are assigned to this patient
-    if (user.roles.includes("Doctor")) {
-      const doctorCheckStmt = DB.prepare(
-        `
-        SELECT admission_id 
-        FROM IPDAdmissions
-        WHERE admission_id = ? AND doctor_id = ?
-      `
-      ).bind(admissionId, user.id); // Changed from session.user.userId
-      const doctorCheckResult = await doctorCheckStmt.all();
-      // Assuming the result row has admission_id, we can cast more safely if needed
-      const doctorCheck =
-        doctorCheckResult.results && doctorCheckResult.results.length > 0
-          ? doctorCheckResult.results[0]
-          : undefined;
-
-      if (!doctorCheck) {
-        return NextResponse.json( // FIX: Use NextResponse
-          {
-            error: "You are not authorized to add notes for this patient",
-          },
-          {
-            status: 403,
-          }
+    const { admissionId } = params;
+    if (!admissionId) {
+        return NextResponse.json(
+            { message: "Admission ID is required" },
+            { status: 400 }
         );
-      }
     }
 
-    // Fixed: Apply type assertion to the result of request.json()
-    const data = (await request.json()) as ProgressNoteInput;
+    try {
+        const admissionCheck = await (DB as D1Database).prepare(
+            "SELECT id FROM IPDAdmissions WHERE id = ?"
+        ).bind(admissionId).first<{ id: number }>();
 
-    // Add admission_id from path parameter and create a new object with the correct type
-    const dataWithId = {
-      ...data,
-      admission_id: Number.parseInt(admissionId),
-    };
-
-    // Validate input data (now includes admission_id)
-    const validationResult = ProgressNoteSchema.safeParse(dataWithId);
-    if (!validationResult.success) {
-      return NextResponse.json( // FIX: Use NextResponse
-        {
-          error: "Invalid input data",
-          details: validationResult.error.format(),
-        },
-        {
-          status: 400,
+        if (!admissionCheck) {
+            return NextResponse.json(
+                { message: "Admission not found" },
+                { status: 404 }
+            );
         }
-      );
+
+        const body = await request.json();
+        const validationResult = progressNoteCreateSchema.safeParse(body);
+
+        if (!validationResult.success) {
+            return NextResponse.json(
+                { message: "Invalid input", errors: validationResult.error.errors },
+                { status: 400 }
+            );
+        }
+
+        const noteData = validationResult.data;
+        const now = new Date().toISOString();
+        const doctorId = session.user.userId; // session.user is now guaranteed to be defined
+
+        const insertStmt = (DB as D1Database).prepare(
+            `INSERT INTO ProgressNotes (admission_id, doctor_id, note_datetime, notes, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?)`
+        ).bind(
+            admissionId,
+            doctorId,
+            noteData.note_datetime,
+            noteData.notes,
+            now,
+            now
+        );
+
+        const result = await insertStmt.run() as D1ResultWithMeta;
+
+        if (!result.success || !result.meta || typeof result.meta.last_row_id !== 'number') {
+             console.error("Failed to create progress note or get last_row_id:", result);
+            throw new Error("Failed to create progress note record");
+        }
+
+        const progressNoteId = result.meta.last_row_id;
+
+        return NextResponse.json(
+            { message: "Progress note created successfully", progressNoteId: progressNoteId },
+            { status: 201 }
+        );
+
+    } catch (error: unknown) {
+        console.error(`Error creating progress note for admission ${admissionId}:`, error);
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        return NextResponse.json(
+            { message: "Error creating progress note", details: errorMessage },
+            { status: 500 }
+        );
     }
-
-    const noteData = validationResult.data;
-
-    // Set note_type based on user role if not specified
-    if (!noteData.note_type) {
-      noteData.note_type = user.roles.includes("Doctor")
-        ? "Doctor"
-        : user.roles.includes("Nurse")
-          ? "Nurse"
-          : "Consultant";
-    }
-
-    // Insert progress note
-    const insertStmt = DB.prepare(
-      `
-      INSERT INTO IPDProgressNotes (
-        admission_id,
-        note_date,
-        note_time,
-        note_type,
-        note_content,
-        vital_signs,
-        medication_given,
-        created_by,
-        created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-    `
-    ).bind(
-      noteData.admission_id,
-      noteData.note_date,
-      noteData.note_time,
-      noteData.note_type,
-      noteData.note_content,
-      noteData.vital_signs ? JSON.stringify(noteData.vital_signs) : undefined,
-      noteData.medication_given
-        ? JSON.stringify(noteData.medication_given)
-        : undefined,
-      user.id // Changed from session.user.userId
-    );
-
-    // FIX: Cast result to any to bypass D1Result type mismatch and safely access meta.last_row_id
-    const result = await insertStmt.run() as any;
-
-    // FIX: Safely access last_row_id after casting result to any
-    const progressNoteId = (result.meta && typeof result.meta.last_row_id === 'number') ? result.meta.last_row_id : undefined;
-
-    return NextResponse.json( // FIX: Use NextResponse
-      {
-        message: "Progress note created successfully",
-        progress_note_id: progressNoteId,
-      },
-      {
-        status: 201,
-      }
-    );
-  } catch (error: unknown) {
-    console.error("Error creating IPD progress note:", error);
-    return NextResponse.json( // FIX: Use NextResponse
-      {
-        error: "Failed to create IPD progress note",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      {
-        status: 500,
-      }
-    );
-  }
 }
 

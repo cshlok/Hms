@@ -23,7 +23,7 @@ export async function GET(
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     // Check if admission exists using db.query
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     const admissionResult = await database.query(
       `
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
@@ -34,8 +34,8 @@ export async function GET(
       [admissionId]
     );
     const admission =
-      admissionResult.rows && admissionResult.rows.length > 0
-        ? admissionResult.rows[0]
+      admissionResult.results && admissionResult.results.length > 0 // Changed .rows to .results
+        ? admissionResult.results[0] // Changed .rows to .results
         : undefined;
 
     if (!admission) {
@@ -68,8 +68,8 @@ export async function GET(
       [admissionId]
     );
     const dischargeSummary =
-      dischargeSummaryResult.rows && dischargeSummaryResult.rows.length > 0
-        ? dischargeSummaryResult.rows[0]
+      dischargeSummaryResult.results && dischargeSummaryResult.results.length > 0 // Changed .rows to .results
+        ? dischargeSummaryResult.results[0] // Changed .rows to .results
         : undefined;
 
     return NextResponse.json({
@@ -87,3 +87,4 @@ export async function GET(
 }
 
 // POST /api/ipd/admissions/[id]/discharge - Create discharge summary
+

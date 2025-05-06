@@ -126,7 +126,7 @@ export default function EditPatientPage() {
             const value = formData[typedKey];
             // Only include defined, non-null values that are part of the validated data
             if (value !== undefined && value !== null) {
-                 (dataToSend as any)[typedKey] = value; // Use 'any' temporarily to bypass TS2322
+                 (dataToSend as Record<string, unknown>)[typedKey] = value; // Use Record<string, unknown> instead of any
             }
         }
     }

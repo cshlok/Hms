@@ -97,7 +97,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           patient_id: simulatedPatient.id,
           doctor_id: "doc_67890", // Simulate logged-in doctor ID
         }));
-      } catch (error) { // FIX: Added error parameter
+      } catch (_) { // FIX: Replaced unused _error with _
         // Handle error appropriately (e.g., show message)
       }
     };
@@ -144,7 +144,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           },
         ];
         setMedications(simulatedMedications);
-      } catch (error) { // FIX: Added error parameter
+      } catch (_) { // FIX: Replaced unused _error with _
         // Handle error appropriately
       }
     };
@@ -199,7 +199,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           },
         ];
         setPrescriptions(simulatedPrescriptions);
-      } catch (error) { // FIX: Added error parameter
+      } catch (_) { // FIX: Replaced unused _error with _
         // Handle error appropriately
       } finally {
         setLoading(false);

@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     // Fixed: Use db.query
     const samplesResult = await database.query(query, parameters);
-    return NextResponse.json(samplesResult.rows || []);
+    return NextResponse.json(samplesResult.results || []); // Changed .rows to .results
   } catch (error: unknown) {
     console.error("Error fetching laboratory samples:", error);
     const errorMessage =
@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
         [body.id]
       );
       const existingSample = (
-        sampleResult.rows && sampleResult.rows.length > 0
-          ? sampleResult.rows[0]
+        sampleResult.results && sampleResult.results.length > 0 // Changed .rows to .results (twice)
+          ? sampleResult.results[0] // Changed .rows to .results
           : undefined
       ) as LabSample | null;
 
@@ -200,8 +200,8 @@ export async function POST(request: NextRequest) {
         [body.id]
       );
       const updatedSample =
-        updatedSampleResult.rows && updatedSampleResult.rows.length > 0
-          ? updatedSampleResult.rows[0]
+        updatedSampleResult.results && updatedSampleResult.results.length > 0 // Changed .rows to .results (twice)
+          ? updatedSampleResult.results[0] // Changed .rows to .results
           : undefined;
 
       return NextResponse.json(updatedSample);
@@ -243,8 +243,8 @@ export async function POST(request: NextRequest) {
         [barcode]
       );
       const newSample =
-        newSampleResult.rows && newSampleResult.rows.length > 0
-          ? newSampleResult.rows[0]
+        newSampleResult.results && newSampleResult.results.length > 0 // Changed .rows to .results (twice)
+          ? newSampleResult.results[0] // Changed .rows to .results
           : undefined;
 
       if (!newSample) {
@@ -270,3 +270,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

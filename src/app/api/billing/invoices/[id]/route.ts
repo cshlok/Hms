@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     // Fixed: Use DB.query instead of prepare/bind/all
     const bookingsResult = await DB.query(query, queryParameters);
-    const results = bookingsResult.rows || [];
+    const results = bookingsResult.results || []; // Changed .rows to .results
 
     // Also fetch total count for pagination
     let countQuery = `SELECT COUNT(*) as total FROM OTBookings WHERE 1=1`;
@@ -84,11 +84,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Fixed: Use DB.query instead of prepare/bind/first
-    // Assuming DB.query returns { rows: T[] } and we take the first row
+    // Assuming DB.query returns { results: T[] } and we take the first row
     const countResult = await DB.query(countQuery, countParameters);
     const total =
-      countResult.rows && countResult.rows.length > 0
-        ? (countResult.rows[0] as { total: number }).total
+      countResult.results && countResult.results.length > 0 // Changed .rows to .results
+        ? (countResult.results[0] as { total: number }).total // Changed .rows to .results
         : 0;
 
     return NextResponse.json({
@@ -159,7 +159,7 @@ export async function PUT(
     // Use type assertion to allow string indexing
     for (const key in updateData) {
         // Add validation/filtering if necessary
-        fieldsToUpdate[key] = (updateData as Record<string, any>)[key];
+        fieldsToUpdate[key] = (updateData as Record<string, any>)[key]; // Reverted to any to resolve TS2322 temporarily
     }
 
     fieldsToUpdate.updated_at = now;
@@ -178,8 +178,8 @@ export async function PUT(
     const fetchUpdatedQuery = `SELECT * FROM Invoices WHERE id = ?`;
     const updatedResult = await DB.query(fetchUpdatedQuery, [invoiceId]);
     const updatedInvoiceData =
-      updatedResult.rows && updatedResult.rows.length > 0
-        ? updatedResult.rows[0]
+      updatedResult.results && updatedResult.results.length > 0 // Changed .rows to .results
+        ? updatedResult.results[0] // Changed .rows to .results
         : undefined;
 
     if (!updatedInvoiceData) {
@@ -239,3 +239,4 @@ export async function DELETE(
     );
   }
 }
+

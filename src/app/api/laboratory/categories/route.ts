@@ -21,12 +21,12 @@ export async function GET() {
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     // Execute query using db.query
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     const categoriesResult = await database.query(
       "SELECT * FROM lab_test_categories ORDER BY name ASC"
     );
 
-    return NextResponse.json(categoriesResult.rows || []);
+    return NextResponse.json(categoriesResult.results || []); // Changed .rows to .results
   } catch (error: unknown) {
     console.error("Error fetching laboratory test categories:", error);
     const errorMessage =
@@ -77,8 +77,8 @@ export async function POST(request: NextRequest) {
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     // Insert new category using db.query
-    // Mock query doesn't return last_row_id
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Mock query doesn-	 return last_row_id
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     await database.query(
       `
       INSERT INTO lab_test_categories (name, description)
@@ -100,8 +100,8 @@ export async function POST(request: NextRequest) {
     const errorMessage =
       error instanceof Error ? error.message : "An unknown error occurred";
     // Check for potential duplicate entry errors if the DB provides specific codes
-    // if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') { // Example for SQLite
-    //   return NextResponse.json({ error: 'Category name already exists' }, { status: 409 });
+    // if (error.code === "SQLITE_CONSTRAINT_UNIQUE") { // Example for SQLite
+    //   return NextResponse.json({ error: "Category name already exists" }, { status: 409 });
     // }
     return NextResponse.json(
       {
@@ -112,3 +112,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

@@ -94,7 +94,7 @@ async function getLabOrdersFromDB(
   }
   query += " ORDER BY order_date DESC LIMIT 20";
   const result = await database.query(query, parameters);
-  return (result.rows || []) as LabOrder[]; // Cast to return type
+  return (result.results || []) as LabOrder[]; // Changed .rows to .results
 }
 
 async function createLabOrderInDB(orderData: LabOrderInput): Promise<LabOrder> {
@@ -145,15 +145,15 @@ async function getLabOrderByIdFromDB(id: number): Promise<LabOrder | null> {
   const result = await database.query("SELECT * FROM lab_orders WHERE id = ?", [
     id,
   ]);
-  const order = result.rows && result.rows.length > 0 ? result.rows[0] : undefined;
+  const order = result.results && result.results.length > 0 ? result.results[0] : undefined; // Changed .rows to .results
 
   if (order) {
     const testsResult = await database.query(
       "SELECT * FROM lab_order_tests WHERE order_id = ?",
       [id]
     );
-    // Assuming testsResult.rows contains objects matching the tests structure in LabOrder
-    (order as LabOrder).tests = (testsResult.rows || []) as {
+    // Assuming testsResult.results contains objects matching the tests structure in LabOrder
+    (order as LabOrder).tests = (testsResult.results || []) as { // Changed .rows to .results
       test_id: number | string;
       status: string;
       name?: string;
@@ -166,8 +166,8 @@ async function getLabOrderByIdFromDB(id: number): Promise<LabOrder | null> {
         "SELECT * FROM lab_results WHERE order_id = ?",
         [id]
       );
-      // Assuming resultsResult.rows contains objects matching the results structure
-      (order as LabOrder).results = (resultsResult.rows || []) as unknown[];
+      // Assuming resultsResult.results contains objects matching the results structure
+      (order as LabOrder).results = (resultsResult.results || []) as unknown[]; // Changed .rows to .results
     }
   }
   return order as LabOrder | null; // Cast to return type

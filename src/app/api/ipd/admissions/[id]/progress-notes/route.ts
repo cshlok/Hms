@@ -29,7 +29,7 @@ export async function GET(
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     // Check if admission exists using db.query
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     const admissionResult = await database.query(
       `
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
@@ -40,8 +40,8 @@ export async function GET(
       [admissionId]
     );
     const admission =
-      admissionResult.rows && admissionResult.rows.length > 0
-        ? (admissionResult.rows[0] as { id: string; primary_doctor_id: number })
+      admissionResult.results && admissionResult.results.length > 0 // Changed .rows to .results
+        ? (admissionResult.results[0] as { id: string; primary_doctor_id: number }) // Changed .rows to .results
         : undefined;
 
     if (!admission) {
@@ -62,7 +62,7 @@ export async function GET(
       session.user.permissions?.includes("progress_notes:view") ?? false;
 
     let forbidden = false;
-    // Check if user is not the primary doctor and doesn't have view_all permission
+    // Check if user is not the primary doctor and doesn-	 have view_all permission
     if (
       isDoctor &&
       admission.primary_doctor_id !== session.user.userId &&
@@ -74,7 +74,7 @@ export async function GET(
     if (!isDoctor && !isNurse && !isAdmin && !canViewOwn) {
       forbidden = true;
     }
-    // Ensure primary doctor can always view their own patient's notes
+    // Ensure primary doctor can always view their own patient-	s notes
     if (isDoctor && admission.primary_doctor_id === session.user.userId) {
       forbidden = false;
     }
@@ -84,7 +84,7 @@ export async function GET(
     }
 
     // Get progress notes using db.query
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     const progressNotesResult = await database.query(
       `
       SELECT pn.*, u.first_name as doctor_first_name, u.last_name as doctor_last_name
@@ -98,7 +98,7 @@ export async function GET(
 
     return NextResponse.json({
       admission,
-      progress_notes: progressNotesResult.rows || [],
+      progress_notes: progressNotesResult.results || [], // Changed .rows to .results
     });
   } catch (error: unknown) {
     console.error("Error fetching progress notes:", error);
@@ -165,14 +165,14 @@ export async function POST(
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     // Check if admission exists and is active using db.query
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     const admissionResult = await database.query(
       "SELECT id, status, primary_doctor_id FROM admissions WHERE id = ?",
       [admissionId]
     );
     const admission =
-      admissionResult.rows && admissionResult.rows.length > 0
-        ? (admissionResult.rows[0] as {
+      admissionResult.results && admissionResult.results.length > 0 // Changed .rows to .results
+        ? (admissionResult.results[0] as { // Changed .rows to .results
             id: string;
             status: string;
             primary_doctor_id: number;
@@ -210,7 +210,7 @@ export async function POST(
     }
 
     // Insert new progress note using db.query
-    // Mock query doesn't return last_row_id
+    // Mock query doesn-	 return last_row_id
     await database.query(
       `
       INSERT INTO progress_notes (

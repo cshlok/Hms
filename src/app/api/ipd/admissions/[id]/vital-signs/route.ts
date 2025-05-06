@@ -32,7 +32,7 @@ export async function GET(
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     // Check if admission exists using db.query
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     const admissionResult = await database.query(
       `
       SELECT a.*, p.first_name as patient_first_name, p.last_name as patient_last_name
@@ -43,8 +43,8 @@ export async function GET(
       [admissionId]
     );
     const admission =
-      admissionResult.rows && admissionResult.rows.length > 0
-        ? admissionResult.rows[0]
+      admissionResult.results && admissionResult.results.length > 0 // Changed .rows to .results
+        ? admissionResult.results[0] // Changed .rows to .results
         : undefined;
 
     if (!admission) {
@@ -67,7 +67,7 @@ export async function GET(
     }
 
     // Get vital signs using db.query
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     const vitalSignsResult = await database.query(
       `
       SELECT vs.*, u.first_name as recorded_by_first_name, u.last_name as recorded_by_last_name
@@ -81,7 +81,7 @@ export async function GET(
 
     return NextResponse.json({
       admission,
-      vital_signs: vitalSignsResult.rows || [],
+      vital_signs: vitalSignsResult.results || [], // Changed .rows to .results
     });
   } catch (error: unknown) {
     console.error("Error fetching vital signs:", error);
@@ -139,14 +139,14 @@ export async function POST(
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     // Check if admission exists and is active using db.query
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     const admissionResult = await database.query(
       "SELECT id, status FROM admissions WHERE id = ?",
       [admissionId]
     );
     const admission =
-      admissionResult.rows && admissionResult.rows.length > 0
-        ? (admissionResult.rows[0] as { id: string; status: string })
+      admissionResult.results && admissionResult.results.length > 0 // Changed .rows to .results
+        ? (admissionResult.results[0] as { id: string; status: string }) // Changed .rows to .results
         : undefined;
 
     if (!admission) {
@@ -164,7 +164,7 @@ export async function POST(
     }
 
     // Insert new vital signs record using db.query
-    // Mock query doesn't return last_row_id
+    // Mock query doesn-	 return last_row_id
     await database.query(
       `
       INSERT INTO vital_signs_records (

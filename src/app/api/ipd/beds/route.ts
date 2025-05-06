@@ -50,10 +50,10 @@ export async function GET(request: NextRequest) {
 
     query += " ORDER BY ward, room_number, bed_number";
 
-    // Use db.query (assuming it exists and returns { rows: [...] } based on db.ts mock)
+    // Use db.query (assuming it exists and returns { results: [...] } based on db.ts mock)
     const bedsResult = await database.query(query, parameters);
 
-    return NextResponse.json(bedsResult.rows || []);
+    return NextResponse.json(bedsResult.results || []); // Changed .rows to .results
   } catch (error: unknown) {
     console.error("Error fetching beds:", error);
     const errorMessage =
@@ -117,14 +117,14 @@ export async function POST(request: NextRequest) {
     const database = await getDB(); // Fixed: Await the promise returned by getDB()
 
     // Check if bed number already exists in the same room using db.query
-    // Assuming db.query exists and returns { rows: [...] } based on db.ts mock
+    // Assuming db.query exists and returns { results: [...] } based on db.ts mock
     const existingBedResult = await database.query(
       "SELECT id FROM beds WHERE bed_number = ? AND room_number = ? AND ward = ?",
       [data.bed_number, data.room_number, data.ward]
     );
     const existingBed =
-      existingBedResult.rows && existingBedResult.rows.length > 0
-        ? existingBedResult.rows[0]
+      existingBedResult.results && existingBedResult.results.length > 0 // Changed .rows to .results
+        ? existingBedResult.results[0] // Changed .rows to .results
         : undefined;
 
     if (existingBed) {
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert new bed using db.query
-    // Mock query doesn't return last_row_id
+    // Mock query doesn-	 return last_row_id
     await database.query(
       `
       INSERT INTO beds (bed_number, room_number, ward, category, status, price_per_day, features)
@@ -167,3 +167,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     // Execute query using DB.query
     const testsResult = await DB.query(query, parameters);
 
-    return NextResponse.json(testsResult.rows || []); // Return rows from the result
+    return NextResponse.json(testsResult.results || []); // Changed .rows to .results
   } catch (error: unknown) {
     console.error("Error fetching laboratory tests:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -152,3 +152,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

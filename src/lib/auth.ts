@@ -27,7 +27,7 @@ export const PERMISSIONS = {
   // ... add all other permissions
 };
 
-// Placeholder function for API routes importing 'checkUserRole'
+// Placeholder function for API routes importing "checkUserRole"
 // FIX: Prefix unused parameters with underscore
 export const checkUserRole = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -36,20 +36,20 @@ export const checkUserRole = async (
   _allowedRoles: string[] // FIX: Unused parameter
 ): Promise<boolean> => {
   console.warn(
-    "Authorization function 'checkUserRole' is not implemented yet."
+    "Authorization function "checkUserRole" is not implemented yet."
   );
   // Mock implementation: always returns true
   return true;
 };
 
-// Placeholder function for API routes importing 'getCurrentUser'
+// Placeholder function for API routes importing "getCurrentUser"
 // FIX: Prefix unused parameter with underscore
 export const getCurrentUser = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _request?: NextRequest // FIX: Unused parameter
 ): Promise<User | null> => {
   console.warn(
-    "Authentication function 'getCurrentUser' is not implemented yet."
+    "Authentication function "getCurrentUser" is not implemented yet."
   );
   // Mock implementation: returns a dummy user or null
   // In a real implementation, this would verify a token from cookies or headers
@@ -67,13 +67,13 @@ export const getCurrentUser = async (
   return null;
 };
 
-// Placeholder function for API routes importing 'hasPermission'
+// Placeholder function for API routes importing "hasPermission"
 export const hasPermission = async (
   request: NextRequest,
   requiredPermissions: string | string[]
 ): Promise<boolean> => {
   console.warn(
-    "Authorization function 'hasPermission' is not implemented yet."
+    "Authorization function "hasPermission" is not implemented yet."
   );
   const user = await getCurrentUser(request);
   if (!user) return false;
@@ -85,21 +85,21 @@ export const hasPermission = async (
   return permissionsToCheck.every((p) => user.permissions.includes(p));
 };
 
-// Placeholder function for API routes importing 'clearAuthCookie'
+// Placeholder function for API routes importing "clearAuthCookie"
 // FIX: Prefix unused parameter with underscore
 export const clearAuthCookie = (res: NextResponse) => { // FIX: Renamed response_ to res to match usage
   console.warn(
-    "Authentication function 'clearAuthCookie' is not implemented yet."
+    "Authentication function "clearAuthCookie" is not implemented yet."
   );
   // In a real implementation, this would set the auth cookie to expire
   res.cookies.set("auth_token", "", { expires: new Date(0), path: "/" });
 };
 
-// Placeholder function for API routes importing 'setAuthCookie'
+// Placeholder function for API routes importing "setAuthCookie"
 // FIX: Prefix unused parameter with underscore
 export const setAuthCookie = (res: NextResponse, token: string) => { // FIX: Renamed response_ to res to match usage
   console.warn(
-    "Authentication function 'setAuthCookie' is not implemented yet."
+    "Authentication function "setAuthCookie" is not implemented yet."
   );
   // In a real implementation, this would set the auth cookie
   res.cookies.set("auth_token", token, {
@@ -110,7 +110,7 @@ export const setAuthCookie = (res: NextResponse, token: string) => { // FIX: Ren
   }); // Example: 7 days
 };
 
-// Placeholder function for API routes importing 'verifyPassword'
+// Placeholder function for API routes importing "verifyPassword"
 // FIX: Prefix unused parameters with underscore
 export const verifyPassword = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -123,7 +123,7 @@ export const verifyPassword = async (
   return true;
 };
 
-// Placeholder function for API routes importing 'signToken'
+// Placeholder function for API routes importing "signToken"
 // FIX: Prefix unused parameter with underscore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const signToken = (_payload: object): string => { // FIX: Unused parameter
@@ -152,3 +152,10 @@ export async function authMiddleware(request: NextRequest) {
   // If token exists, let the request proceed (further validation could happen here)
   return NextResponse.next();
 }
+
+// Export hashPassword function
+export const hashPassword = async (password: string): Promise<string> => {
+  console.warn("hashPassword function is not implemented yet. Returning plain password as mock.");
+  // In a real implementation, use a library like bcrypt or argon2
+  return password; // Mock implementation
+};

@@ -110,7 +110,7 @@ export async function GET(request: Request) {
         // 5. Format the final response
         const prescription: Prescription = {
             prescription_id: presResult.prescription_id,
-            consultation_id: presResult.consultation_id as any, // Handle potential null
+            consultation_id: presResult.consultation_id ?? null, // Handle potential null
             patient_id: presResult.patient_id,
             doctor_id: presResult.doctor_id,
             prescription_date: presResult.prescription_date,

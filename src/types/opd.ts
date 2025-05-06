@@ -87,7 +87,7 @@ export interface Consultation {
 
 export interface Prescription {
     prescription_id: number;
-    consultation_id: number;
+    consultation_id: number | null; // FIX: Allow null
     patient_id: number;
     doctor_id: number;
     prescription_date: string;

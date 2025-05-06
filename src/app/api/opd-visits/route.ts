@@ -1,263 +1,202 @@
-// app/api/opd-visits/route.ts
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
-import { IronSessionData } from "@/lib/session";
-import { getIronSession } from "iron-session";
-import { cookies } from "next/headers";
-import { OPDVisit, OPDVisitStatus, OPDVisitType } from "@/types/opd";
+import { NextRequest, NextResponse } from "next/server";
+import { DB } from "@/lib/database";
+import { getSession } from "@/lib/session";
 import { z } from "zod";
+import { Consultation } from "@/types/opd";
+import type { D1ResultWithMeta, D1Database } from "@/types/cloudflare"; // Import D1Database
 
-// Define the expected shape of the database query result for the list
-interface OPDVisitListQueryResult {
-  opd_visit_id: number;
-  patient_id: number;
-  appointment_id: number | null;
-  visit_datetime: string; // Assuming ISO string format
-  visit_type: OPDVisitType; // Use the enum
-  doctor_id: number;
-  department: string | null;
-  status: OPDVisitStatus; // Use the enum
-  notes: string | null;
-  created_by_user_id: number;
-  created_at: string; // Assuming ISO string format
-  updated_at: string; // Assuming ISO string format
-  patient_first_name: string;
-  patient_last_name: string;
-  doctor_full_name: string;
-}
-
-// Define roles allowed to view/manage OPD visits (adjust as needed)
-const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Doctor", "Nurse"];
-const ALLOWED_ROLES_CREATE = ["Admin", "Receptionist"];
-
-// GET handler for listing OPD visits with filters
-const ListVisitsQuerySchema = z.object({
-    patientId: z.coerce.number().int().positive().optional(),
-    doctorId: z.coerce.number().int().positive().optional(),
-    status: z.nativeEnum(OPDVisitStatus).optional(),
-    dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    search: z.string().optional(), // Search patient name
-    limit: z.coerce.number().int().positive().optional().default(50),
-    offset: z.coerce.number().int().nonnegative().optional().default(0),
+// Zod schema for creating an OPD visit
+const opdVisitCreateSchema = z.object({
+    patient_id: z.number(),
+    doctor_id: z.number(),
+    consultation_datetime: z.string().refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid consultation datetime format",
+    }),
+    chief_complaint: z.string().min(1, "Chief complaint is required"),
+    history_of_present_illness: z.string().optional().nullable(),
+    past_medical_history: z.string().optional().nullable(),
+    physical_examination: z.string().optional().nullable(),
+    diagnosis: z.string().optional().nullable(),
+    treatment_plan: z.string().optional().nullable(),
+    follow_up_instructions: z.string().optional().nullable(),
 });
 
-export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
-
-    // 1. Check Authentication & Authorization
-    if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-        });
+// GET /api/opd-visits - Fetch list of OPD visits (with filtering/pagination)
+export async function GET(request: NextRequest) {
+    const session = await getSession();
+    if (!session.isLoggedIn) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     try {
-        const url = new URL(request.url);
-        const queryParams = Object.fromEntries(url.searchParams.entries());
-        const validation = ListVisitsQuerySchema.safeParse(queryParams);
+        const { searchParams } = new URL(request.url); // Corrected: searchParams was already defined
+        const page = Number.parseInt(searchParams.get("page") || "1");
+        const limit = Number.parseInt(searchParams.get("limit") || "10");
+        const offset = (page - 1) * limit;
+        const patientIdFilter = searchParams.get("patient_id");
+        const doctorIdFilter = searchParams.get("doctor_id"); // Corrected: search_params to searchParams
+        const dateFromFilter = searchParams.get("date_from");
+        const dateToFilter = searchParams.get("date_to");
+        const statusFilter = searchParams.get("status");
+        const sortBy = searchParams.get("sort_by") || "consultation_datetime";
+        const sortOrder = searchParams.get("sort_order") || "desc";
 
-        if (!validation.success) {
-            return new Response(JSON.stringify({ error: "Invalid query parameters", details: validation.error.errors }), {
-                status: 400,
-                headers: { "Content-Type": "application/json" },
-            });
-        }
+        const validSortColumns = ["consultation_datetime", "created_at", "status"];
+        const validSortOrders = ["asc", "desc"];
+        const finalSortBy = validSortColumns.includes(sortBy) ? sortBy : "consultation_datetime";
+        const finalSortOrder = validSortOrders.includes(sortOrder) ? sortOrder.toUpperCase() : "DESC";
 
-        const filters = validation.data;
-        const { env } = await getCloudflareContext();
-        const { DB } = env;
-
-        // 2. Build Query
         let query = `
-            SELECT 
-                ov.*, 
+            SELECT
+                c.consultation_id, c.patient_id, c.doctor_id, c.consultation_datetime,
+                c.chief_complaint, c.visit_status,
                 p.first_name as patient_first_name, p.last_name as patient_last_name,
-                u.full_name as doctor_full_name
-            FROM OPDVisits ov
-            JOIN Patients p ON ov.patient_id = p.patient_id
-            JOIN Doctors d ON ov.doctor_id = d.doctor_id
-            JOIN Users u ON d.user_id = u.user_id
-            WHERE 1=1
+                u.name as doctor_name
+            FROM Consultations c
+            JOIN Patients p ON c.patient_id = p.patient_id
+            JOIN Users u ON c.doctor_id = u.id
+            WHERE c.visit_type = 'OPD'
         `;
-        const queryParamsList: (string | number)[] = [];
+        const queryParameters: (string | number)[] = [];
+        let countQuery = `SELECT COUNT(*) as total FROM Consultations WHERE visit_type = 'OPD'`;
+        const countParameters: (string | number)[] = [];
 
-        if (filters.patientId) {
-            query += " AND ov.patient_id = ?";
-            queryParamsList.push(filters.patientId);
+        if (patientIdFilter) {
+            query += " AND c.patient_id = ?";
+            queryParameters.push(Number.parseInt(patientIdFilter));
+            countQuery += " AND patient_id = ?";
+            countParameters.push(Number.parseInt(patientIdFilter));
         }
-        if (filters.doctorId) {
-            query += " AND ov.doctor_id = ?";
-            queryParamsList.push(filters.doctorId);
+        if (doctorIdFilter) {
+            query += " AND c.doctor_id = ?";
+            queryParameters.push(Number.parseInt(doctorIdFilter));
+            countQuery += " AND doctor_id = ?";
+            countParameters.push(Number.parseInt(doctorIdFilter));
         }
-        if (filters.status) {
-            query += " AND ov.status = ?";
-            queryParamsList.push(filters.status);
+        if (dateFromFilter) {
+            query += " AND DATE(c.consultation_datetime) >= ?";
+            queryParameters.push(dateFromFilter);
+            countQuery += " AND DATE(consultation_datetime) >= ?";
+            countParameters.push(dateFromFilter);
         }
-        if (filters.dateFrom) {
-            query += " AND DATE(ov.visit_datetime) >= ?";
-            queryParamsList.push(filters.dateFrom);
+        if (dateToFilter) {
+            query += " AND DATE(c.consultation_datetime) <= ?";
+            queryParameters.push(dateToFilter);
+            countQuery += " AND DATE(consultation_datetime) <= ?";
+            countParameters.push(dateToFilter);
         }
-        if (filters.dateTo) {
-            query += " AND DATE(ov.visit_datetime) <= ?";
-            queryParamsList.push(filters.dateTo);
-        }
-        if (filters.search) {
-            query += " AND (p.first_name LIKE ? OR p.last_name LIKE ?)";
-            const searchTerm = `%${filters.search}%`;
-            queryParamsList.push(searchTerm, searchTerm);
+        if (statusFilter) {
+            query += " AND c.visit_status = ?";
+            queryParameters.push(statusFilter);
+            countQuery += " AND visit_status = ?";
+            countParameters.push(statusFilter);
         }
 
-        query += " ORDER BY ov.visit_datetime DESC LIMIT ? OFFSET ?";
-        queryParamsList.push(filters.limit, filters.offset);
+        query += ` ORDER BY c.${finalSortBy} ${finalSortOrder} LIMIT ? OFFSET ?`;
+        queryParameters.push(limit, offset);
 
-        // 3. Execute Query
-        const results = await DB.prepare(query).bind(...queryParamsList).all<OPDVisitListQueryResult>(); // Use the defined interface
+        const [visitsResult, countResult] = await Promise.all([
+            (DB as D1Database).prepare(query).bind(...queryParameters).all<Consultation>(),
+            (DB as D1Database).prepare(countQuery).bind(...countParameters).first<{ total: number }>()
+        ]);
 
-        // 4. Format Response
-        const visits: OPDVisit[] = results.results?.map(row => ({
-            opd_visit_id: row.opd_visit_id,
-            patient_id: row.patient_id,
-            appointment_id: row.appointment_id,
-            visit_datetime: row.visit_datetime,
-            visit_type: row.visit_type, // Already typed correctly from interface
-            doctor_id: row.doctor_id,
-            department: row.department,
-            status: row.status, // Already typed correctly from interface
-            notes: row.notes,
-            created_by_user_id: row.created_by_user_id,
-            created_at: row.created_at,
-            updated_at: row.updated_at,
-            patient: {
-                patient_id: row.patient_id,
-                first_name: row.patient_first_name,
-                last_name: row.patient_last_name,
+        const results = visitsResult.results || [];
+        const total = countResult?.total || 0;
+
+        return NextResponse.json({
+            data: results,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
             },
-            doctor: {
-                doctor_id: row.doctor_id,
-                user: { fullName: row.doctor_full_name }
-            }
-        })) || [];
-
-        // Optionally, get total count for pagination
-        // const countQuery = query.replace(/SELECT.*?FROM/, "SELECT COUNT(*) as count FROM").replace(/ORDER BY.*?LIMIT.*?OFFSET.*$/, "");
-        // const countResult = await DB.prepare(countQuery).bind(...queryParamsList.slice(0, -2)).first<{ count: number }>();
-        // const totalCount = countResult?.count ?? 0;
-
-        return new Response(JSON.stringify(visits), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
         });
 
-    } catch (error) {
-        console.error("List OPD visits error:", error);
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-        });
+    } catch (error: unknown) {
+        console.error("Error fetching OPD visits:", error);
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        return NextResponse.json(
+            { message: "Error fetching OPD visits", details: errorMessage },
+            { status: 500 }
+        );
     }
 }
 
-// POST handler for creating a new OPD visit
-const CreateVisitSchema = z.object({
-    patient_id: z.number().int().positive(),
-    appointment_id: z.number().int().positive().optional().nullable(),
-    visit_datetime: z.string().datetime().optional(), // Defaults to now
-    visit_type: z.nativeEnum(OPDVisitType).default(OPDVisitType.WalkIn), // Use enum value
-    doctor_id: z.number().int().positive(),
-    department: z.string().optional().nullable(),
-    status: z.nativeEnum(OPDVisitStatus).optional().default(OPDVisitStatus.Waiting), // Use enum value
-    notes: z.string().optional().nullable(),
-});
-
-export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
-
-    // 1. Check Authentication & Authorization
-    if (!session.user || !ALLOWED_ROLES_CREATE.includes(session.user.roleName)) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-        });
+// POST /api/opd-visits - Create a new OPD visit (Consultation record)
+export async function POST(request: NextRequest) {
+    const session = await getSession();
+    if (!session.isLoggedIn) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    if (!session.user) { // Ensure user exists if logged in
+        return NextResponse.json({ message: "User not found in session" }, { status: 500 });
     }
 
     try {
         const body = await request.json();
-        const validation = CreateVisitSchema.safeParse(body);
+        const validationResult = opdVisitCreateSchema.safeParse(body);
 
-        if (!validation.success) {
-            return new Response(JSON.stringify({ error: "Invalid input", details: validation.error.errors }), {
-                status: 400,
-                headers: { "Content-Type": "application/json" },
-            });
+        if (!validationResult.success) {
+            return NextResponse.json(
+                { message: "Invalid input", errors: validationResult.error.errors },
+                { status: 400 }
+            );
         }
 
-        const visitData = validation.data;
-        const { env } = await getCloudflareContext();
-        const { DB } = env;
+        const visitData = validationResult.data;
+        const now = new Date().toISOString();
 
-        // 2. Check if patient and doctor exist
-        const checks = await DB.batch([
-            DB.prepare("SELECT patient_id FROM Patients WHERE patient_id = ? AND is_active = TRUE").bind(visitData.patient_id),
-            DB.prepare("SELECT d.doctor_id FROM Doctors d JOIN Users u ON d.user_id = u.user_id WHERE d.doctor_id = ? AND u.is_active = TRUE").bind(visitData.doctor_id),
-            // Optional: Check if appointment exists and matches patient/doctor if provided            visitData.appointment_id ? DB.prepare(`SELECT appointment_id FROM Appointments WHERE appointment_id = ? AND patient_id = ? AND doctor_id = ? AND status NOT IN ('Completed', 'Cancelled', 'NoShow')`).bind(visitData.appointment_id, visitData.patient_id, visitData.doctor_id) : null
-        ].filter(Boolean) as D1PreparedStatement[]);
-
-        const [patientCheck, doctorCheck, appointmentCheck] = checks;
-
-        if (!patientCheck?.results?.length) {
-            return new Response(JSON.stringify({ error: "Patient not found or inactive" }), { status: 404 });
-        }
-        if (!doctorCheck?.results?.length) {
-            return new Response(JSON.stringify({ error: "Doctor not found or inactive" }), { status: 404 });
-        }
-        if (visitData.appointment_id && !appointmentCheck?.results?.length) {
-            return new Response(JSON.stringify({ error: "Appointment not found, invalid, or already completed/cancelled" }), { status: 404 });
-        }
-
-        // 3. Insert the new OPD visit
-        const insertResult = await DB.prepare(
-            "INSERT INTO OPDVisits (patient_id, appointment_id, visit_datetime, visit_type, doctor_id, department, status, notes, created_by_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        const insertStmt = (DB as D1Database).prepare(
+            `INSERT INTO Consultations (
+                patient_id, doctor_id, consultation_datetime, visit_type, visit_status,
+                chief_complaint, history_of_present_illness, past_medical_history,
+                physical_examination, diagnosis, treatment_plan, follow_up_instructions,
+                created_by_user_id, created_at, updated_at
+            ) VALUES (?, ?, ?, 'OPD', 'Scheduled', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).bind(
             visitData.patient_id,
-            visitData.appointment_id,
-            visitData.visit_datetime || null, // Let DB handle default
-            visitData.visit_type,
             visitData.doctor_id,
-            visitData.department,
-            visitData.status,
-            visitData.notes,
-            session.user.userId
-        ).run();
+            visitData.consultation_datetime,
+            visitData.chief_complaint,
+            visitData.history_of_present_illness,
+            visitData.past_medical_history,
+            visitData.physical_examination,
+            visitData.diagnosis,
+            visitData.treatment_plan,
+            visitData.follow_up_instructions,
+            session.user.userId, // session.user is now guaranteed to be defined
+            now,
+            now
+        );
 
-        if (!insertResult.success) {
-            throw new Error("Failed to create OPD visit");
+        const insertResult = await insertStmt.run() as D1ResultWithMeta;
+
+        if (!insertResult.success || !insertResult.meta || typeof insertResult.meta.last_row_id !== 'number') {
+            console.error("Failed to create OPD visit or get last_row_id:", insertResult);
+            throw new Error("Failed to create OPD visit record");
         }
 
-        const newVisitId = (insertResult.meta as any).last_row_id; // Use type assertion
+        const newVisitId = insertResult.meta.last_row_id;
 
-        // Optional: Update appointment status to CheckedIn if linked
-        if (visitData.appointment_id) {
-            await DB.prepare("UPDATE Appointments SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE appointment_id = ?")
-                  .bind("CheckedIn", visitData.appointment_id)
-                  .run();
+        return NextResponse.json(
+            { message: "OPD visit created successfully", consultationId: newVisitId },
+            { status: 201 }
+        );
+
+    } catch (error: unknown) {
+        console.error("Error creating OPD visit:", error);
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
         }
-
-        // 4. Return the newly created visit ID
-        return new Response(JSON.stringify({ message: "OPD Visit created successfully", opd_visit_id: newVisitId }), {
-            status: 201,
-            headers: { "Content-Type": "application/json" },
-        });
-
-    } catch (error) {
-        console.error("Create OPD visit error:", error);
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-        });
+        return NextResponse.json(
+            { message: "Error creating OPD visit", details: errorMessage },
+            { status: 500 }
+        );
     }
 }
 

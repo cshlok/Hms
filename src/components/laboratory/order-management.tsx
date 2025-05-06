@@ -28,11 +28,6 @@ interface Patient {
   last_name: string;
 }
 
-interface Test {
-  id: string;
-  name: string;
-  price: number;
-}
 
 interface OrderItem {
   id: string;

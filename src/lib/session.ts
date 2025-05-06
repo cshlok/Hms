@@ -1,16 +1,18 @@
-import { SessionOptions, getIronSession } from "iron-session"; // Import CookieStore removed
-import { cookies } from "next/headers"; // Import cookies from next/headers for App Router
-import { User } from "@/types/user"; // Assuming you define a User type
+import { SessionOptions, getIronSession } from "iron-session";
+import { cookies } from "next/headers";
+import { User } from "@/types/user";
 
 // Define and export the shape of the session data
 export interface IronSessionData {
   user?: User;
+  isLoggedIn?: boolean; // Added isLoggedIn property
 }
 
 // Augment the iron-session module to include our IronSessionData definition
 declare module "iron-session" {
   interface IronSessionData {
     user?: User;
+    isLoggedIn?: boolean; // Added isLoggedIn property here too for consistency
   }
 }
 
@@ -39,11 +41,15 @@ export const sessionOptions: SessionOptions = {
 
 // Function to get the session in App Router Route Handlers or Server Components
 export async function getSession() {
-  // FIX: Attempt casting to CookieStore to resolve TS2345
   const session = await getIronSession<IronSessionData>(
-    await cookies(), // Added await
+    await cookies(),
     sessionOptions
   );
+  // Ensure isLoggedIn reflects the presence of a user
+  // This logic might need adjustment based on how login is handled elsewhere
+  if (session.user && session.isLoggedIn === undefined) {
+    session.isLoggedIn = true;
+  }
   return session;
 }
 

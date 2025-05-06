@@ -65,7 +65,7 @@ const RadiologyReportDetail: React.FC = () => {
   const [report, setReport] = useState<RadiologyReport | null>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>();
-  const [_showEditModal, setShowEditModal] = useState<boolean>(false); // Added state for edit modal
+  const [showEditModal, setShowEditModal] = useState<boolean>(false); // Added state for edit modal - RE-ADDED
 
   // FIX: Wrap fetchReportDetails in useCallback
   const fetchReportDetails = useCallback(async (): Promise<void> => {

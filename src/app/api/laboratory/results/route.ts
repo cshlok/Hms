@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
     query += " ORDER BY r.created_at DESC";
 
     const results = await database.query(query, parameters);
-    return NextResponse.json(results.rows || []);
+    return NextResponse.json(results.results || []); // Changed .rows to .results
   } catch (error: unknown) {
     console.error("Error fetching laboratory results:", error);
     const errorMessage =
@@ -161,8 +161,8 @@ export async function POST(request: NextRequest) {
         [body.id]
       );
       const existingResult = (
-        resultResult.rows && resultResult.rows.length > 0
-          ? resultResult.rows[0]
+        resultResult.results && resultResult.results.length > 0 // Changed .rows to .results
+          ? resultResult.results[0] // Changed .rows to .results
           : undefined
       ) as LabResult | null;
 
@@ -229,8 +229,8 @@ export async function POST(request: NextRequest) {
         [body.id]
       );
       const updatedResult =
-        updatedResultResult.rows && updatedResultResult.rows.length > 0
-          ? updatedResultResult.rows[0]
+        updatedResultResult.results && updatedResultResult.results.length > 0 // Changed .rows to .results
+          ? updatedResultResult.results[0] // Changed .rows to .results
           : undefined;
       return NextResponse.json(updatedResult);
     } else {
@@ -255,8 +255,8 @@ export async function POST(request: NextRequest) {
           [body.order_item_id]
         );
         const orderItem = (
-          orderItemResult.rows && orderItemResult.rows.length > 0
-            ? orderItemResult.rows[0]
+          orderItemResult.results && orderItemResult.results.length > 0 // Changed .rows to .results
+            ? orderItemResult.results[0] // Changed .rows to .results
             : undefined
         ) as OrderItem | null;
 
@@ -272,7 +272,7 @@ export async function POST(request: NextRequest) {
             "SELECT * FROM lab_test_parameters WHERE id = ? AND test_id = ?",
             [body.parameter_id, orderItem.test_id]
           );
-          if (!parameterResult.rows || parameterResult.rows.length === 0) {
+          if (!parameterResult.results || parameterResult.results.length === 0) { // Changed .rows to .results (twice)
             return NextResponse.json(
               { error: "Parameter does not belong to the test" },
               { status: 400 }
@@ -280,7 +280,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Insert result (mock DB doesn't return last_row_id reliably)
+        // Insert result (mock DB doesn-	 return last_row_id reliably)
         await database.query(
           `
           INSERT INTO lab_results (order_item_id, parameter_id, result_value, is_abnormal, notes, performed_by, performed_at)
@@ -304,7 +304,7 @@ export async function POST(request: NextRequest) {
             "SELECT id FROM lab_test_parameters WHERE test_id = ?",
             [orderItem.test_id]
           );
-          const parameters = parametersResult.rows || [];
+          const parameters = parametersResult.results || []; // Changed .rows to .results
 
           if (parameters.length > 0) {
             // FIX: Cast parameters to the expected type before mapping
@@ -317,8 +317,8 @@ export async function POST(request: NextRequest) {
             );
             // FIX: Define type for count result
             const resultCount =
-              resultsCountResult.rows && resultsCountResult.rows.length > 0
-                ? (resultsCountResult.rows[0] as { count: number }).count
+              resultsCountResult.results && resultsCountResult.results.length > 0 // Changed .rows to .results (twice)
+                ? (resultsCountResult.results[0] as { count: number }).count // Changed .rows to .results
                 : 0;
             if (resultCount >= parameters.length) {
               // Use >= in case of re-entry
@@ -343,9 +343,9 @@ export async function POST(request: NextRequest) {
           "SELECT status FROM lab_order_items WHERE order_id = ?",
           [orderItem.order_id]
         );
-        // FIX: Cast rows to expected type before using .every()
+        // FIX: Cast results to expected type before using .every()
         const allOrderItemsCompleted = (
-          (orderItemsResult.rows as Array<{ status: string }>) || []
+          (orderItemsResult.results as Array<{ status: string }>) || [] // Changed .rows to .results
         ).every((item) => item.status === "completed");
 
         if (allOrderItemsCompleted) {
@@ -359,7 +359,7 @@ export async function POST(request: NextRequest) {
             "SELECT id FROM lab_reports WHERE order_id = ?",
             [orderItem.order_id]
           );
-          if (!reportResult.rows || reportResult.rows.length === 0) {
+          if (!reportResult.results || reportResult.results.length === 0) { // Changed .rows to .results (twice)
             const reportNumber = `REP${Date.now()}${Math.floor(Math.random() * 100)}`;
             await database.query(
               "INSERT INTO lab_reports (order_id, report_number, generated_by, status) VALUES (?, ?, ?, ?)",
@@ -380,8 +380,8 @@ export async function POST(request: NextRequest) {
           [body.order_item_id]
         ); // Mock fetch
         const newResult =
-          newResultResult.rows && newResultResult.rows.length > 0
-            ? newResultResult.rows[0]
+          newResultResult.results && newResultResult.results.length > 0 // Changed .rows to .results (twice)
+            ? newResultResult.results[0] // Changed .rows to .results
             : { id: mockNewResultId, ...body };
 
         return NextResponse.json(newResult, { status: 201 });
@@ -401,3 +401,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

@@ -41,13 +41,13 @@ export async function GET(/* _request: unknown */) { // Removed unused parameter
 
     // Get active admissions count
     // FIX: Removed generic type argument from db.query
-    // FIX: Use type assertion on the result rows
+    // FIX: Use type assertion on the result results
     const activeAdmissionsResult = await database.query(`
       SELECT COUNT(*) as count FROM admissions WHERE status = 'active'
     `);
     const activeAdmissionsCount = Number.parseInt(
       String(
-        (activeAdmissionsResult.rows?.[0] as CountResult | undefined)?.count ??
+        (activeAdmissionsResult.results?.[0] as CountResult | undefined)?.count ?? // Changed .rows to .results
           0
       ),
       10
@@ -55,20 +55,20 @@ export async function GET(/* _request: unknown */) { // Removed unused parameter
 
     // Get available beds count
     // FIX: Removed generic type argument from db.query
-    // FIX: Use type assertion on the result rows
+    // FIX: Use type assertion on the result results
     const availableBedsResult = await database.query(`
       SELECT COUNT(*) as count FROM beds WHERE status = 'available'
     `);
     const availableBedsCount = Number.parseInt(
       String(
-        (availableBedsResult.rows?.[0] as CountResult | undefined)?.count ?? 0
+        (availableBedsResult.results?.[0] as CountResult | undefined)?.count ?? 0 // Changed .rows to .results
       ),
       10
     );
 
     // Get bed occupancy rate
     // FIX: Removed generic type argument from db.query
-    // FIX: Use type assertion on the result rows
+    // FIX: Use type assertion on the result results
     const bedOccupancyResult = await database.query(`
       SELECT 
         (SELECT COUNT(*) FROM beds WHERE status = 'occupied') as occupied,
@@ -76,7 +76,7 @@ export async function GET(/* _request: unknown */) { // Removed unused parameter
     `);
 
     let occupancyRate = 0;
-    const occupancyRow = bedOccupancyResult.rows?.[0] as
+    const occupancyRow = bedOccupancyResult.results?.[0] as // Changed .rows to .results
       | OccupancyResult
       | undefined;
     if (occupancyRow) {
@@ -87,7 +87,7 @@ export async function GET(/* _request: unknown */) { // Removed unused parameter
 
     // Get recent admissions
     // FIX: Removed generic type argument from db.query
-    // FIX: Use type assertion for rows
+    // FIX: Use type assertion for results
     const recentAdmissionsResult = await database.query(`
       SELECT 
         a.id, a.admission_number, a.admission_date, a.status,
@@ -102,9 +102,9 @@ export async function GET(/* _request: unknown */) { // Removed unused parameter
       LIMIT 5
     `);
 
-    // Assert the type of the rows array
+    // Assert the type of the results array
     const recentAdmissions =
-      (recentAdmissionsResult.rows as RecentAdmission[] | undefined) ?? [];
+      (recentAdmissionsResult.results as RecentAdmission[] | undefined) ?? []; // Changed .rows to .results
 
     return NextResponse.json({
       activeAdmissions: activeAdmissionsCount,
@@ -124,3 +124,4 @@ export async function GET(/* _request: unknown */) { // Removed unused parameter
     );
   }
 }
+

@@ -1,242 +1,246 @@
-// app/api/prescriptions/route.ts
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions, IronSessionData } from "@/lib/session"; // Import IronSessionData
-import { getIronSession } from "iron-session";
-import { cookies } from "next/headers";
-import { Prescription } from "@/types/opd";
+import { NextRequest, NextResponse } from "next/server";
+import { DB } from "@/lib/database";
+import { getSession } from "@/lib/session";
 import { z } from "zod";
+import { Prescription, PrescriptionItem } from "@/types/opd";
+import type { D1ResultWithMeta } from "@/types/cloudflare"; // Import the specific type
 
-// Define roles allowed to view/create prescriptions (adjust as needed)
-const ALLOWED_ROLES_VIEW = ["Admin", "Doctor", "Nurse", "Pharmacist", "Patient"]; // Patient can view own
-const ALLOWED_ROLES_CREATE = ["Doctor"];
-
-// Define the expected shape of the list query result
-interface ListPrescriptionsQueryResult {
-    prescription_id: number;
-    consultation_id: number | null;
-    patient_id: number;
-    doctor_id: number;
-    prescription_date: string; // Assuming date is returned as string
-    notes: string | null;
-    created_at: string;
-    patient_first_name: string;
-    patient_last_name: string;
-    doctor_full_name: string;
-}
-
-// GET handler for listing prescriptions with filters
-const ListPrescriptionsQuerySchema = z.object({
-    patientId: z.coerce.number().int().positive().optional(),
-    doctorId: z.coerce.number().int().positive().optional(),
-    consultationId: z.coerce.number().int().positive().optional(),
-    dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    limit: z.coerce.number().int().positive().optional().default(50),
-    offset: z.coerce.number().int().nonnegative().optional().default(0),
+// Zod schema for creating a prescription
+const prescriptionItemSchema = z.object({
+    inventory_item_id: z.number(),
+    drug_name: z.string().min(1),
+    dosage: z.string().min(1),
+    frequency: z.string().min(1),
+    duration: z.string().min(1),
+    route: z.string().optional().nullable(),
+    instructions: z.string().optional().nullable(),
+    quantity_prescribed: z.number().positive().optional().nullable(),
 });
 
-export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions); // Added await for cookies()
+const prescriptionCreateSchema = z.object({
+    patient_id: z.number(),
+    doctor_id: z.number(), // Or derive from session
+    consultation_id: z.number().optional().nullable(),
+    prescription_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid prescription date format",
+    }),
+    notes: z.string().optional().nullable(),
+    items: z.array(prescriptionItemSchema).min(1, "At least one medication item is required"),
+});
 
-    // 1. Check Authentication & Authorization
-    if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+type PrescriptionCreateBody = z.infer<typeof prescriptionCreateSchema>;
+
+// GET /api/prescriptions - Fetch list of prescriptions (with filtering/pagination)
+export async function GET(request: NextRequest) {
+    const session = await getSession();
+    if (!session.isLoggedIn) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     try {
-        const url = new URL(request.url);
-        const queryParams = Object.fromEntries(url.searchParams.entries());
-        const validation = ListPrescriptionsQuerySchema.safeParse(queryParams);
+        const { searchParams } = new URL(request.url);
+        const page = Number.parseInt(searchParams.get("page") || "1");
+        const limit = Number.parseInt(searchParams.get("limit") || "10");
+        const offset = (page - 1) * limit;
+        const patientIdFilter = searchParams.get("patient_id");
+        const doctorIdFilter = searchParams.get("doctor_id");
+        const consultationIdFilter = searchParams.get("consultation_id");
+        const dateFromFilter = searchParams.get("date_from");
+        const dateToFilter = searchParams.get("date_to");
+        const sortBy = searchParams.get("sort_by") || "prescription_date";
+        const sortOrder = searchParams.get("sort_order") || "desc";
 
-        if (!validation.success) {
-            return new Response(JSON.stringify({ error: "Invalid query parameters", details: validation.error.errors }), { status: 400 });
-        }
+        // Validate sort parameters
+        const validSortColumns = ["prescription_date", "created_at"];
+        const validSortOrders = ["asc", "desc"];
+        const finalSortBy = validSortColumns.includes(sortBy) ? sortBy : "prescription_date";
+        const finalSortOrder = validSortOrders.includes(sortOrder) ? sortOrder.toUpperCase() : "DESC";
 
-        const filters = validation.data;
-        const { env } = await getCloudflareContext(); // Added await
-        const { DB } = env;
-
-        // 2. Build Query
         let query = `
             SELECT
-                pr.*,
+                pr.prescription_id, pr.patient_id, pr.doctor_id, pr.consultation_id,
+                pr.prescription_date, pr.notes, pr.created_at,
                 p.first_name as patient_first_name, p.last_name as patient_last_name,
-                u.full_name as doctor_full_name
+                u.name as doctor_name
             FROM Prescriptions pr
             JOIN Patients p ON pr.patient_id = p.patient_id
-            JOIN Doctors d ON pr.doctor_id = d.doctor_id
-            JOIN Users u ON d.user_id = u.user_id
+            JOIN Users u ON pr.doctor_id = u.id
             WHERE 1=1
         `;
-        const queryParamsList: (string | number)[] = [];
+        const queryParameters: (string | number)[] = [];
+        let countQuery = `SELECT COUNT(*) as total FROM Prescriptions WHERE 1=1`;
+        const countParameters: (string | number)[] = [];
 
-        // Apply filters
-        if (filters.patientId) {
-            // Authorization check for Patients
-            if (session.user.roleName === "Patient") {
-                const patientProfile = await DB.prepare("SELECT patient_id FROM Patients WHERE user_id = ? AND is_active = TRUE").bind(session.user.userId).first<{ patient_id: number }>();
-                if (!patientProfile || filters.patientId !== patientProfile.patient_id) {
-                    return new Response(JSON.stringify({ error: "Forbidden: You can only view your own prescriptions" }), { status: 403 });
-                }
-            }
+        if (patientIdFilter) {
             query += " AND pr.patient_id = ?";
-            queryParamsList.push(filters.patientId);
-        } else if (session.user.roleName === "Patient") {
-             // If no patientId filter, patient sees only their own
-             const patientProfile = await DB.prepare("SELECT patient_id FROM Patients WHERE user_id = ? AND is_active = TRUE").bind(session.user.userId).first<{ patient_id: number }>();
-             if (patientProfile) {
-                 query += " AND pr.patient_id = ?";
-                 queryParamsList.push(patientProfile.patient_id);
-             } else {
-                 return new Response(JSON.stringify([]), { status: 200 }); // Patient has no profile, return empty
-             }
+            queryParameters.push(Number.parseInt(patientIdFilter));
+            countQuery += " AND patient_id = ?";
+            countParameters.push(Number.parseInt(patientIdFilter));
         }
-
-        if (filters.doctorId) {
-            // Authorization check for Doctors
-            if (session.user.roleName === "Doctor") {
-                const userDoctorProfile = await DB.prepare("SELECT doctor_id FROM Doctors WHERE user_id = ?").bind(session.user.userId).first<{ doctor_id: number }>();
-                if (!userDoctorProfile || filters.doctorId !== userDoctorProfile.doctor_id) {
-                    return new Response(JSON.stringify({ error: "Forbidden: Doctors can only view their own prescriptions" }), { status: 403 });
-                }
-            }
+        if (doctorIdFilter) {
             query += " AND pr.doctor_id = ?";
-            queryParamsList.push(filters.doctorId);
-        } else if (session.user.roleName === "Doctor") {
-             // If no doctorId filter, doctor sees only their own
-             const userDoctorProfile = await DB.prepare("SELECT doctor_id FROM Doctors WHERE user_id = ?").bind(session.user.userId).first<{ doctor_id: number }>();
-             if (userDoctorProfile) {
-                 query += " AND pr.doctor_id = ?";
-                 queryParamsList.push(userDoctorProfile.doctor_id);
-             }
+            queryParameters.push(Number.parseInt(doctorIdFilter));
+            countQuery += " AND doctor_id = ?";
+            countParameters.push(Number.parseInt(doctorIdFilter));
         }
-
-        if (filters.consultationId) {
+        if (consultationIdFilter) {
             query += " AND pr.consultation_id = ?";
-            queryParamsList.push(filters.consultationId);
+            queryParameters.push(Number.parseInt(consultationIdFilter));
+            countQuery += " AND consultation_id = ?";
+            countParameters.push(Number.parseInt(consultationIdFilter));
         }
-        if (filters.dateFrom) {
+        if (dateFromFilter) {
             query += " AND DATE(pr.prescription_date) >= ?";
-            queryParamsList.push(filters.dateFrom);
+            queryParameters.push(dateFromFilter);
+            countQuery += " AND DATE(prescription_date) >= ?";
+            countParameters.push(dateFromFilter);
         }
-        if (filters.dateTo) {
+        if (dateToFilter) {
             query += " AND DATE(pr.prescription_date) <= ?";
-            queryParamsList.push(filters.dateTo);
+            queryParameters.push(dateToFilter);
+            countQuery += " AND DATE(prescription_date) <= ?";
+            countParameters.push(dateToFilter);
         }
 
-        query += " ORDER BY pr.prescription_date DESC LIMIT ? OFFSET ?";
-        queryParamsList.push(filters.limit, filters.offset);
+        query += ` ORDER BY pr.${finalSortBy} ${finalSortOrder} LIMIT ? OFFSET ?`;
+        queryParameters.push(limit, offset);
 
-        // 3. Execute Query
-        const results = await DB.prepare(query).bind(...queryParamsList).all<ListPrescriptionsQueryResult>(); // Use defined interface
+        // Execute queries
+        const [prescriptionsResult, countResult] = await Promise.all([
+            DB.prepare(query).bind(...queryParameters).all<Prescription & { patient_first_name?: string, patient_last_name?: string, doctor_name?: string }>(),
+            DB.prepare(countQuery).bind(...countParameters).first<{ total: number }>()
+        ]);
 
-        // 4. Format Response (basic details for list view)
-        const prescriptions: Partial<Prescription>[] = results.results?.map((row: ListPrescriptionsQueryResult) => ({
-            prescription_id: row.prescription_id,
-            consultation_id: row.consultation_id === null ? undefined : row.consultation_id,
-            patient_id: row.patient_id,
-            doctor_id: row.doctor_id,
-            prescription_date: row.prescription_date,
-            notes: row.notes,
-            created_at: row.created_at,
-            patient: {
-                patient_id: row.patient_id,
-                first_name: row.patient_first_name,
-                last_name: row.patient_last_name,
+        const results = prescriptionsResult.results || [];
+        const total = countResult?.total || 0;
+
+        // Optionally fetch items for each prescription (consider performance implications)
+        // This might be better done in the GET /api/prescriptions/[id] endpoint
+
+        return NextResponse.json({
+            data: results,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
             },
-            doctor: {
-                doctor_id: row.doctor_id,
-                user: { fullName: row.doctor_full_name }
-            }
-        })) || [];
+        });
 
-        return new Response(JSON.stringify(prescriptions), { status: 200 });
-
-    } catch (error: unknown) { // Use unknown
-        console.error("List prescriptions error:", error);
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), { status: 500 });
+    } catch (error: unknown) {
+        console.error("Error fetching prescriptions:", error);
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        return NextResponse.json(
+            { message: "Error fetching prescriptions", details: errorMessage },
+            { status: 500 }
+        );
     }
 }
 
-// POST handler for creating a new prescription (shell only, items added separately)
-const CreatePrescriptionSchema = z.object({
-    consultation_id: z.number().int().positive(),
-    prescription_date: z.string().datetime().optional(), // Defaults to now
-    notes: z.string().optional().nullable(),
-    // Items are added via POST /api/prescriptions/{id}/items
-});
-
-export async function POST(request: Request) {
-    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions); // Added await for cookies()
-
-    // 1. Check Authentication & Authorization
-    if (!session.user || !ALLOWED_ROLES_CREATE.includes(session.user.roleName)) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+// POST /api/prescriptions - Create a new prescription
+export async function POST(request: NextRequest) {
+    const session = await getSession();
+    if (!session.isLoggedIn) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    // Add role check if needed (e.g., only doctors)
+    if (session.user.roleName !== "Doctor" && session.user.roleName !== "Admin") {
+         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     try {
         const body = await request.json();
-        const validation = CreatePrescriptionSchema.safeParse(body);
+        const validationResult = prescriptionCreateSchema.safeParse(body);
 
-        if (!validation.success) {
-            return new Response(JSON.stringify({ error: "Invalid input", details: validation.error.errors }), { status: 400 });
+        if (!validationResult.success) {
+            return NextResponse.json(
+                { message: "Invalid input", errors: validationResult.error.errors },
+                { status: 400 }
+            );
         }
 
-        const presData = validation.data;
-        const { env } = await getCloudflareContext(); // Added await
-        const { DB } = env;
+        const prescriptionData = validationResult.data;
+        const now = new Date().toISOString();
+        const doctorId = session.user.userId; // Use doctor ID from session
 
-        // 2. Get Doctor ID from session user
-        const doctorProfile = await DB.prepare("SELECT doctor_id FROM Doctors WHERE user_id = ?").bind(session.user.userId).first<{ doctor_id: number }>();
-        if (!doctorProfile) {
-            return new Response(JSON.stringify({ error: "Doctor profile not found for the current user" }), { status: 404 });
-        }
-        const doctorId = doctorProfile.doctor_id;
+        // Start transaction or use batch
+        const batchOperations = [];
 
-        // 3. Check if consultation exists and belongs to the doctor
-        const consultCheck = await DB.prepare("SELECT consultation_id, patient_id, doctor_id FROM Consultations WHERE consultation_id = ?")
-                                   .bind(presData.consultation_id)
-                                   .first<{ consultation_id: number, patient_id: number, doctor_id: number }>();
-
-        if (!consultCheck) {
-            return new Response(JSON.stringify({ error: "Consultation not found" }), { status: 404 });
-        }
-        if (consultCheck.doctor_id !== doctorId) {
-            return new Response(JSON.stringify({ error: "Forbidden: Cannot create prescription for another doctor\"s consultation" }), { status: 403 });
-        }
-        const patientId = consultCheck.patient_id;
-
-        // 4. Insert the new prescription shell
-        const insertResult = await DB.prepare(
-            "INSERT INTO Prescriptions (consultation_id, patient_id, doctor_id, prescription_date, notes) VALUES (?, ?, ?, ?, ?)"
+        // 1. Insert into Prescriptions table
+        const insertPrescriptionStmt = DB.prepare(
+            `INSERT INTO Prescriptions (patient_id, doctor_id, consultation_id, prescription_date, notes, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`
         ).bind(
-            presData.consultation_id,
-            patientId,
-            doctorId,
-            presData.prescription_date || null, // Let DB handle default
-            presData.notes
-        ).run();
+            prescriptionData.patient_id,
+            doctorId, // Use session user ID
+            prescriptionData.consultation_id,
+            prescriptionData.prescription_date,
+            prescriptionData.notes,
+            now,
+            now
+        );
 
-        if (!insertResult.success) {
-            throw new Error("Failed to create prescription");
+        const insertResult = await insertPrescriptionStmt.run() as D1ResultWithMeta; // Use D1ResultWithMeta
+
+        if (!insertResult.success || !insertResult.meta || typeof insertResult.meta.last_row_id !== 'number') {
+            console.error("Failed to create prescription or get last_row_id:", insertResult);
+            throw new Error("Failed to create prescription record");
         }
 
-        const newPrescriptionId = (insertResult.meta as any).last_row_id; // Added type assertion
+        const newPrescriptionId = insertResult.meta.last_row_id;
 
-        // 5. Return the newly created prescription ID
-        return new Response(JSON.stringify({ message: "Prescription created successfully", prescription_id: newPrescriptionId }), {
-            status: 201,
-            headers: { "Content-Type": "application/json" },
-        });
+        // 2. Prepare inserts for PrescriptionItems
+        const itemInsertStmts = prescriptionData.items.map((item) =>
+            DB.prepare(
+                `INSERT INTO PrescriptionItems (
+                    prescription_id, inventory_item_id, drug_name, dosage, frequency, duration,
+                    route, instructions, quantity_prescribed, created_at
+                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+                newPrescriptionId,
+                item.inventory_item_id,
+                item.drug_name,
+                item.dosage,
+                item.frequency,
+                item.duration,
+                item.route,
+                item.instructions,
+                item.quantity_prescribed,
+                now
+            )
+        );
 
-    } catch (error: unknown) { // Use unknown
-        console.error("Create prescription error:", error);
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-        });
+        // Execute batch insert for items
+        const itemInsertResults = await DB.batch(itemInsertStmts);
+
+        // Check if all item inserts were successful
+        const allItemsInserted = itemInsertResults.every((res) => res.success);
+        if (!allItemsInserted) {
+            console.error("Failed to insert one or more prescription items:", itemInsertResults);
+            // Attempt to rollback/delete the main prescription record
+            await DB.prepare("DELETE FROM Prescriptions WHERE prescription_id = ?").bind(newPrescriptionId).run();
+            throw new Error("Failed to create prescription items");
+        }
+
+        // Return success response
+        return NextResponse.json(
+            { message: "Prescription created successfully", prescriptionId: newPrescriptionId },
+            { status: 201 }
+        );
+
+    } catch (error: unknown) {
+        console.error("Error creating prescription:", error);
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        return NextResponse.json(
+            { message: "Error creating prescription", details: errorMessage },
+            { status: 500 }
+        );
     }
 }
 

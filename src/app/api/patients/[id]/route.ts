@@ -1,241 +1,230 @@
-// app/api/patients/[id]/route.ts
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sessionOptions } from "@/lib/session";
-import { IronSessionData } from "@/lib/session";
-import { getIronSession } from "iron-session";
-import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import { DB } from "@/lib/database";
+import { getSession } from "@/lib/session";
 import { z } from "zod";
-// import { User } from "@/types/user";
 import { Patient } from "@/types/patient";
+import type { D1ResultWithMeta, D1Database } from "@/types/cloudflare"; // Import D1Database
 
-// Define roles allowed to view patient details
-const ALLOWED_ROLES_VIEW = ["Admin", "Receptionist", "Nurse", "Doctor"];
-// Define roles allowed to update patient details
-const ALLOWED_ROLES_UPDATE = ["Admin", "Receptionist", "Nurse"];
-// Define roles allowed to deactivate patient
-const ALLOWED_ROLES_DEACTIVATE = ["Admin", "Receptionist"];
+// Zod schema for patient update
+const patientUpdateSchema = z.object({
+    mrn: z.string().optional(),
+    first_name: z.string().min(1, "First name is required").optional(),
+    last_name: z.string().min(1, "Last name is required").optional(),
+    date_of_birth: z.string().refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid date of birth format",
+    }).optional(),
+    gender: z.enum(["Male", "Female", "Other", "Unknown"]).optional(),
+    contact_number: z.string().optional().nullable(),
+    email: z.string().email("Invalid email address").optional().nullable(),
+    address_line1: z.string().optional().nullable(),
+    address_line2: z.string().optional().nullable(),
+    city: z.string().optional().nullable(),
+    state: z.string().optional().nullable(),
+    postal_code: z.string().optional().nullable(),
+    country: z.string().optional().nullable(),
+    emergency_contact_name: z.string().optional().nullable(),
+    emergency_contact_relation: z.string().optional().nullable(),
+    emergency_contact_number: z.string().optional().nullable(),
+    blood_group: z.string().optional().nullable(),
+    allergies: z.string().optional().nullable(),
+    medical_history_summary: z.string().optional().nullable(),
+    insurance_provider: z.string().optional().nullable(),
+    insurance_policy_number: z.string().optional().nullable(),
+}).partial();
 
-// Helper function to get patient ID from URL
-function getPatientId(pathname: string): number | null {
-    const parts = pathname.split("/");
-    const idStr = parts[parts.length - 1];
-    const id = parseInt(idStr, 10);
-    return isNaN(id) ? null : id;
-}
-
-// GET handler for fetching a specific patient
-export async function GET(request: Request) {
-    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
-    const url = new URL(request.url);
-    const patientId = getPatientId(url.pathname);
-
-    // 1. Check Authentication & Authorization
-    if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-        });
+// GET /api/patients/[id] - Fetch a specific patient by ID
+export async function GET(
+    _request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const session = await getSession();
+    if (!session.isLoggedIn) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    if (patientId === null) {
-        return new Response(JSON.stringify({ error: "Invalid Patient ID" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-        });
+    const { id: patientId } = params;
+    if (!patientId) {
+        return NextResponse.json(
+            { message: "Patient ID is required" },
+            { status: 400 }
+        );
     }
 
     try {
-        const { env } = await getCloudflareContext();
-        const { DB } = env;
-
-        // 2. Retrieve the specific patient
-        const patientResult = await DB.prepare(
-            "SELECT * FROM Patients WHERE patient_id = ? AND is_active = TRUE"
-        ).bind(patientId).first<Patient>();
+        const query = `
+            SELECT
+                p.*,
+                u_created.name as created_by_user_name,
+                u_updated.name as updated_by_user_name
+            FROM Patients p
+            LEFT JOIN Users u_created ON p.created_by_user_id = u_created.id
+            LEFT JOIN Users u_updated ON p.updated_by_user_id = u_updated.id
+            WHERE p.patient_id = ?
+        `;
+        const patientResult = await (DB as D1Database).prepare(query).bind(patientId).first<Patient & { created_by_user_name?: string, updated_by_user_name?: string }>();
 
         if (!patientResult) {
-            return new Response(JSON.stringify({ error: "Patient not found or inactive" }), {
-                status: 404,
-                headers: { "Content-Type": "application/json" },
-            });
+            return NextResponse.json(
+                { message: "Patient not found" },
+                { status: 404 }
+            );
         }
 
-        // 3. Return patient details
-        return new Response(JSON.stringify(patientResult), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        });
+        return NextResponse.json(patientResult);
 
-    } catch (error) {
-        console.error(`Get patient ${patientId} error:`, error);
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-        });
+    } catch (error: unknown) {
+        console.error(`Error fetching patient ${patientId}:`, error);
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        return NextResponse.json(
+            { message: "Error fetching patient details", details: errorMessage },
+            { status: 500 }
+        );
     }
 }
 
-// PUT handler for updating a specific patient
-const PatientUpdateSchema = z.object({
-    // Include fields that can be updated
-    first_name: z.string().min(1).optional(),
-    last_name: z.string().min(1).optional(),
-    date_of_birth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-    gender: z.enum(["Male", "Female", "Other", "Prefer not to say"]).optional(),
-    phone_number: z.string().min(1).optional(),
-    email: z.string().email().optional().or(z.literal("").optional()),
-    address_line1: z.string().optional(),
-    address_line2: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    postal_code: z.string().optional(),
-    country: z.string().optional(),
-    emergency_contact_name: z.string().optional(),
-    emergency_contact_relation: z.string().optional(),
-    emergency_contact_phone: z.string().optional(),
-    blood_group: z.string().optional(),
-    allergies: z.string().optional(),
-    past_medical_history: z.string().optional(),
-    current_medications: z.string().optional(),
-    insurance_provider: z.string().optional(),
-    insurance_policy_number: z.string().optional(),
-}).partial().refine(obj => Object.keys(obj).length > 0, { message: "At least one field must be provided for update" });
-
-export async function PUT(request: Request) {
-    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
-    const url = new URL(request.url);
-    const patientId = getPatientId(url.pathname);
-
-    // 1. Check Authentication & Authorization
-    if (!session.user || !ALLOWED_ROLES_UPDATE.includes(session.user.roleName)) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-        });
+// PUT /api/patients/[id] - Update an existing patient
+export async function PUT(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const session = await getSession();
+    if (!session.isLoggedIn) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    if (!session.user) { // Ensure user exists if logged in
+        return NextResponse.json({ message: "User not found in session" }, { status: 500 });
     }
 
-    if (patientId === null) {
-        return new Response(JSON.stringify({ error: "Invalid Patient ID" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-        });
+    const { id: patientId } = params;
+    if (!patientId) {
+        return NextResponse.json(
+            { message: "Patient ID is required" },
+            { status: 400 }
+        );
     }
 
     try {
         const body = await request.json();
-        const validation = PatientUpdateSchema.safeParse(body);
+        const validationResult = patientUpdateSchema.safeParse(body);
 
-        if (!validation.success) {
-            return new Response(JSON.stringify({ error: "Invalid input", details: validation.error.errors }), {
-                status: 400,
-                headers: { "Content-Type": "application/json" },
-            });
+        if (!validationResult.success) {
+            return NextResponse.json(
+                { message: "Invalid input", errors: validationResult.error.errors },
+                { status: 400 }
+            );
         }
 
-        const updates = validation.data;
+        const updateData = validationResult.data;
 
-        // Construct SET clause dynamically
-        const setClauses: string[] = [];
-        const values: (string | number | null)[] = [];
-        Object.entries(updates).forEach(([key, value]) => {
-            if (value !== undefined) {
-                setClauses.push(`${key} = ?`);
-                values.push(value === "" ? null : value); // Handle empty string for optional email
-            }
-        });
-
-        if (setClauses.length === 0) {
-             return new Response(JSON.stringify({ error: "No fields provided for update" }), {
-                status: 400,
-                headers: { "Content-Type": "application/json" },
-            });
+        if (Object.keys(updateData).length === 0) {
+            return NextResponse.json(
+                { message: "No update fields provided" },
+                { status: 400 }
+            );
         }
 
-        // Add updated_at timestamp
-        setClauses.push("updated_at = CURRENT_TIMESTAMP");
+        const now = new Date().toISOString();
+        const userId = session.user.userId; // session.user is now guaranteed to be defined
 
-        const { env } = await getCloudflareContext();
-        const { DB } = env;
+        const fieldsToUpdate: Record<string, any> = { ...updateData };
+        fieldsToUpdate.updated_at = now;
+        fieldsToUpdate.updated_by_user_id = userId;
 
-        // 2. Update the patient record
-        const updateResult = await DB.prepare(
-            `UPDATE Patients SET ${setClauses.join(", ")} WHERE patient_id = ?`
-        ).bind(...values, patientId).run();
+        const setClauses = Object.keys(fieldsToUpdate)
+            .map((key) => `${key} = ?`)
+            .join(", ");
+        const values = Object.values(fieldsToUpdate);
 
-        if ((updateResult.meta as any).changes === 0) {
-             return new Response(JSON.stringify({ error: "Patient not found or no changes made" }), {
-                status: 404, // Or 304 Not Modified if no actual changes
-                headers: { "Content-Type": "application/json" },
-            });
+        const updateQuery = `UPDATE Patients SET ${setClauses} WHERE patient_id = ?`;
+        values.push(patientId);
+
+        const updateResult = await (DB as D1Database).prepare(updateQuery).bind(...values).run() as D1ResultWithMeta;
+
+        if (!updateResult.success || (updateResult.meta && updateResult.meta.changes === 0)) {
+             console.warn(`Update attempt for patient ${patientId} resulted in 0 changes or failed:`, updateResult);
+             if (!updateResult.success) {
+                throw new Error("Failed to update patient record");
+             }
         }
 
-        // 3. Return success response
-        return new Response(JSON.stringify({ message: "Patient updated successfully" }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        });
+        const fetchUpdatedQuery = `
+            SELECT p.*, u_updated.name as updated_by_user_name
+            FROM Patients p
+            LEFT JOIN Users u_updated ON p.updated_by_user_id = u_updated.id
+            WHERE p.patient_id = ?
+        `;
+        const updatedPatient = await (DB as D1Database).prepare(fetchUpdatedQuery).bind(patientId).first<Patient & { updated_by_user_name?: string }>();
 
-    } catch (error) {
-        console.error(`Update patient ${patientId} error:`, error);
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-        });
+        if (!updatedPatient) {
+             console.error(`Failed to fetch updated patient data for ID ${patientId} after update.`);
+             throw new Error("Failed to retrieve updated patient data");
+        }
+
+        return NextResponse.json(updatedPatient);
+
+    } catch (error: unknown) {
+        console.error(`Error updating patient ${patientId}:`, error);
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        return NextResponse.json(
+            { message: "Error updating patient", details: errorMessage },
+            { status: 500 }
+        );
     }
 }
 
-// DELETE handler for deactivating a patient (soft delete)
-export async function DELETE(request: Request) {
-    const session = await getIronSession<IronSessionData>(await cookies(), sessionOptions);
-    const url = new URL(request.url);
-    const patientId = getPatientId(url.pathname);
-
-    // 1. Check Authentication & Authorization
-    if (!session.user || !ALLOWED_ROLES_DEACTIVATE.includes(session.user.roleName)) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-        });
+// DELETE /api/patients/[id] - Delete a patient (use with caution!)
+export async function DELETE(
+    _request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const session = await getSession();
+    if (!session.isLoggedIn || !session.user || session.user.roleName !== "Admin") { // Added !session.user check
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    if (patientId === null) {
-        return new Response(JSON.stringify({ error: "Invalid Patient ID" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-        });
+    const { id: patientId } = params;
+    if (!patientId) {
+        return NextResponse.json(
+            { message: "Patient ID is required" },
+            { status: 400 }
+        );
     }
 
     try {
-        const { env } = await getCloudflareContext();
-        const { DB } = env;
+        const deleteQuery = "DELETE FROM Patients WHERE patient_id = ?";
+        const deleteResult = await (DB as D1Database).prepare(deleteQuery).bind(patientId).run() as D1ResultWithMeta;
 
-        // 2. Deactivate the patient (set is_active to FALSE)
-        const deleteResult = await DB.prepare(
-            "UPDATE Patients SET is_active = FALSE, updated_at = CURRENT_TIMESTAMP WHERE patient_id = ? AND is_active = TRUE"
-        ).bind(patientId).run();
-
-        if ((deleteResult.meta as any).changes === 0) {
-             return new Response(JSON.stringify({ error: "Patient not found or already inactive" }), {
-                status: 404,
-                headers: { "Content-Type": "application/json" },
-            });
+        if (!deleteResult.success || (deleteResult.meta && deleteResult.meta.changes === 0)) {
+            console.warn(`Delete attempt for patient ${patientId} resulted in 0 changes or failed:`, deleteResult);
+            if (deleteResult.meta?.changes === 0) {
+                 return NextResponse.json({ message: "Patient not found or already deleted" }, { status: 404 });
+            }
+            if (!deleteResult.success) {
+                throw new Error("Failed to delete patient record");
+            }
         }
 
-        // 3. Return success response
-        return new Response(JSON.stringify({ message: "Patient deactivated successfully" }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        });
+        return NextResponse.json(
+            { message: "Patient deleted successfully" },
+            { status: 200 }
+        );
 
-    } catch (error) {
-        console.error(`Deactivate patient ${patientId} error:`, error);
-        const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-        return new Response(JSON.stringify({ error: "Internal Server Error", details: errorMessage }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-        });
+    } catch (error: unknown) {
+        console.error(`Error deleting patient ${patientId}:`, error);
+        let errorMessage = "An unknown error occurred";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+        return NextResponse.json(
+            { message: "Error deleting patient", details: errorMessage },
+            { status: 500 }
+        );
     }
 }
 
