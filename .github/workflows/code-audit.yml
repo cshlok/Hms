@@ -9,45 +9,32 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - run: echo "After checkout"
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18 # Based on package.json devDependencies
-      - run: echo "After Node.js setup"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 8 # Or your desired pnpm version
-      - run: echo "After pnpm setup"
+        # Removed explicit version to allow package.json to define it
 
-      - name: Test echo before install
-        run: echo "This is a test echo before install step"
+      - name: Install dependencies
+        run: pnpm install
 
-      # - name: Install dependencies
-      #   run: pnpm install
+      - name: Run ESLint
+        # Check all relevant file types used in the project
+        run: pnpm eslint . --ext .ts,.tsx,.js,.jsx
 
-      - name: Test echo after install (commented out)
-        run: echo "This is a test echo, install was commented out"
+      - name: Run Prettier check
+        # Check formatting for all relevant files
+        run: pnpm prettier --check "**/*.{ts,tsx,js,jsx,json,md,css}"
 
-      # - name: Run ESLint
-      #   # Check all relevant file types used in the project
-      #   run: pnpm eslint . --ext .ts,.tsx,.js,.jsx
+      - name: Run Tests
+        # Execute the test script defined in package.json
+        run: pnpm test
 
-      # - name: Run Prettier check
-      #   # Check formatting for all relevant files
-      #   run: pnpm prettier --check "**/*.{ts,tsx,js,jsx,json,md,css}"
-
-      # - name: Run Tests
-      #   # Execute the test script defined in package.json
-      #   run: pnpm test
-
-      # - name: Audit vulnerabilities
-      #   # Check for high severity vulnerabilities in dependencies
-      #   run: pnpm audit --audit-level=high
-
-      - name: Final echo test
-        run: echo "Workflow reached the end of echo tests"
+      - name: Audit vulnerabilities
+        # Check for high severity vulnerabilities in dependencies
+        run: pnpm audit --audit-level=high
 
