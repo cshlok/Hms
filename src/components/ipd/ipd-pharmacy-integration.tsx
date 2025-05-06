@@ -56,11 +56,11 @@ const IPDPharmacyIntegration: React.FC<IPDPharmacyIntegrationProperties> = ({
   const [_medicationSchedule, _setMedicationSchedule] = useState< // FIX: Unused variable
     MedicationScheduleItem[]
   >([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [_administrationRecords, _setAdministrationRecords] = useState<
     MedicationAdministrationRecord[]
   >([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [_error, _setError] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [selectedScheduleItem, setSelectedScheduleItem] =

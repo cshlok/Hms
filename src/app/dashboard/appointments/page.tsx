@@ -1,6 +1,6 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -167,5 +167,6 @@ export default function AppointmentsPage() {
 
 // Add Label component import if not globally available
 import { Label } from "@/components/ui/label";
+
 
 

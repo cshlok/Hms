@@ -1,6 +1,6 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic'; // Removed this line
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -42,7 +42,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 // import { Skeleton } from "@/components/ui/skeleton";
-import { X, Plus, Check, ChevronsUpDown } from "lucide-react";
+import { X, Check, ChevronsUpDown } from "lucide-react"; // Removed Plus
 import { cn } from "@/lib/utils"; // Assuming you have this utility
 
 // --- INTERFACES ---
@@ -455,7 +455,7 @@ export default function CreateInvoicePage() {
                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                   <Command shouldFilter={false}>
                     <CommandInput
-                      placeholder="Search by name or code..."
+                      placeholder="Search service by name or code..."
                       value={serviceSearchTerm}
                       onValueChange={setServiceSearchTerm}
                     />
@@ -469,40 +469,31 @@ export default function CreateInvoicePage() {
                         serviceItems.length === 0 &&
                         serviceSearchTerm && (
                           <CommandEmpty>
-                            No service/item found matching &quot;
-                            {serviceSearchTerm}&quot;.
+                            No service found matching &quot;{serviceSearchTerm}
+                            &quot;.
                           </CommandEmpty>
                         )}
                       {!loadingServices &&
                         serviceItems.length === 0 &&
                         !serviceSearchTerm && (
-                          <CommandEmpty>
-                            Type to search for services/items.
-                          </CommandEmpty>
+                          <CommandEmpty>Type to search for services.</CommandEmpty>
                         )}
                       {!loadingServices && serviceItems.length > 0 && (
                         <CommandGroup heading="Search Results">
-                          {serviceItems.map((item) => (
+                          {serviceItems.map((service) => (
                             <CommandItem
-                              key={item.id}
-                              value={`${item.item_name} ${item.item_code}`}
+                              key={service.id}
+                              value={`${service.item_name} ${service.item_code}`}
                               onSelect={() => {
-                                setSelectedServiceItem(item);
+                                // setSelectedServiceItem(service); // Don't set here, add directly
+                                addInvoiceItem(service);
                                 setIsServicePopoverOpen(false);
-                                setServiceSearchTerm(""); // Clear search after selection
+                                setServiceSearchTerm(""); // Clear search
                               }}
                               className="cursor-pointer"
                             >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  selectedServiceItem?.id === item.id
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {item.item_name} ({item.item_code}) - ₹
-                              {item.unit_price.toFixed(2)}
+                              {/* No checkmark needed here as we add directly */}
+                              {service.item_name} ({service.item_code}) - {service.unit_price}
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -512,48 +503,27 @@ export default function CreateInvoicePage() {
                 </PopoverContent>
               </Popover>
             </div>
-            {/* FIX: Add explicit check for selectedServiceItem before calling addInvoiceItem */}
-            <Button
-              onClick={() => {
-                if (selectedServiceItem) {
-                  addInvoiceItem(selectedServiceItem);
-                }
-              }}
-              disabled={!selectedServiceItem}
-              className="w-full sm:w-auto" // Full width on small screens
-            >
-              <Plus className="h-4 w-4 mr-1" /> Add Item
-            </Button>
+            {/* <Button onClick={() => addInvoiceItem(selectedServiceItem)} className="mt-1 sm:mt-0">Add Item</Button> */}
           </div>
 
-          {/* Items Table */}
-          <div className="rounded-md border overflow-x-auto">
-            {" "}
-            {/* Added overflow-x-auto */}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[200px]">Item</TableHead>{" "}
-                  {/* Added min-width */}
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Unit Price (₹)</TableHead>
-                  <TableHead className="text-center">Quantity</TableHead>
-                  <TableHead className="text-right">Subtotal (₹)</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>{" "}
-                  {/* Changed alignment */}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoiceItems.length > 0 ? (
-                  invoiceItems.map((item) => (
+          {/* Added Items Table */}
+          {invoiceItems.length > 0 && (
+            <div className="border rounded-md overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Unit Price</TableHead>
+                    <TableHead className="w-24 text-center">Quantity</TableHead>
+                    <TableHead className="text-right">Subtotal</TableHead>
+                    <TableHead className="w-16"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invoiceItems.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        {item.item_name}{" "}
-                        <span className="text-xs text-muted-foreground">
-                          ({item.item_code})
-                        </span>
-                      </TableCell>{" "}
-                      {/* Improved display */}
+                      <TableCell>{item.item_name}</TableCell>
                       <TableCell>{item.category}</TableCell>
                       <TableCell className="text-right">
                         {item.unit_price.toFixed(2)}
@@ -561,79 +531,43 @@ export default function CreateInvoicePage() {
                       <TableCell className="text-center">
                         <Input
                           type="number"
-                          min="1"
                           value={item.quantity}
-                          onChange={(event) => // Use event parameter
-                            updateItemQuantity(
-                              item.id,
-                              Number.parseInt(event.target.value) || 1 // Use event.target.value
-                            )
+                          onChange={(e) =>
+                            updateItemQuantity(item.id, parseInt(e.target.value, 10) || 1)
                           }
-                          className="w-16 h-8 text-center mx-auto" // Centered input
+                          className="w-20 text-center mx-auto"
+                          min="1"
                         />
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right">
                         {item.subtotal.toFixed(2)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {" "}
-                        {/* Changed alignment */}
+                      <TableCell>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => removeInvoiceItem(item.id)}
-                          aria-label="Remove item"
                         >
-                          {" "}
-                          {/* Added aria-label */}
-                          <X className="h-4 w-4 text-red-500" />
+                          <X className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      {" "}
-                      {/* Added text-muted-foreground */}
-                      No items added to the invoice yet. Use the search above to
-                      add items.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          {" "}
-          {/* Responsive layout and gap */}
-          <div className="text-lg font-semibold">
-            Total Amount: ₹{invoiceTotal.toFixed(2)}
+        <CardFooter className="flex flex-col items-end space-y-2">
+          <div className="text-xl font-semibold">
+            Total: {invoiceTotal.toFixed(2)}
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            {" "}
-            {/* Full width buttons on small screens */}
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex-1 sm:flex-none"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateInvoice}
-              disabled={
-                isSubmitting || !selectedPatient || invoiceItems.length === 0
-              }
-              className="flex-1 sm:flex-none" // Make button grow on small screens
-            >
-              {isSubmitting ? "Creating Invoice..." : "Create Invoice"}
-            </Button>
-          </div>
+          <Button
+            onClick={handleCreateInvoice}
+            disabled={isSubmitting || !selectedPatient || invoiceItems.length === 0}
+          >
+            {isSubmitting ? "Creating Invoice..." : "Create Invoice"}
+          </Button>
         </CardFooter>
       </Card>
     </div>

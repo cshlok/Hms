@@ -630,7 +630,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentPrope
         ref={reference}
         className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 ${className}`}
         {...properties}
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+         
         onClick={(_event_: React.MouseEvent<HTMLElement>) => {
           // Close on overlay click
           setOpen?.(false);
@@ -840,7 +840,7 @@ interface CalendarProperties {
 
 // Calendar component (placeholder - use react-day-picker)
 export const Calendar = ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   mode: _mode = "single", // FIX: Prefix unused variable
   selected,
   onSelect,
@@ -905,7 +905,7 @@ export const Calendar = ({
           className={`p-1.5 rounded-md text-center hover:bg-gray-100 ${
             isSelected ? "bg-blue-600 text-white hover:bg-blue-700" : ""
           }`}
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+           
           onClick={(_event: React.MouseEvent<HTMLElement>) => onSelect?.(currentDate)} // Pass the date object
         >
           {day}
