@@ -16,13 +16,19 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18"
-          cache: "npm" # Changed from pnpm as package.json uses npm
+          # Caching is often handled by pnpm/action-setup or can be configured separately for pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8 # Or your desired pnpm version
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       # - name: Test # Removed test step as no tests are defined
-      #   run: npm test || true
+      #   run: pnpm test || true # If tests were to be added, use pnpm
+

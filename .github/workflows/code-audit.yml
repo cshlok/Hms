@@ -15,21 +15,27 @@ jobs:
         with:
           node-version: 18 # Based on package.json devDependencies
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8 # Or your desired pnpm version
+
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Run ESLint
         # Check all relevant file types used in the project
-        run: npx eslint . --ext .ts,.tsx,.js,.jsx
+        run: pnpm eslint . --ext .ts,.tsx,.js,.jsx
 
       - name: Run Prettier check
         # Check formatting for all relevant files
-        run: npx prettier --check "**/*.{ts,tsx,js,jsx,json,md,css}"
+        run: pnpm prettier --check "**/*.{ts,tsx,js,jsx,json,md,css}"
 
       - name: Run Tests
         # Execute the test script defined in package.json
-        run: npm test
+        run: pnpm test
 
       - name: Audit vulnerabilities
         # Check for high severity vulnerabilities in dependencies
-        run: npm audit --audit-level=high
+        run: pnpm audit --audit-level=high
+
