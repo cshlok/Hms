@@ -1,5 +1,6 @@
-// src/app/dashboard/appointments/new/page.tsx
 "use client";
+
+export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -235,4 +236,5 @@ export default function BookAppointmentPage() {
     </DashboardLayout>
   );
 }
+
 

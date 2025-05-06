@@ -1,5 +1,6 @@
 // OPD Dashboard Page
 "use client";
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";

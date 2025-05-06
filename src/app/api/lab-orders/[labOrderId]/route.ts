@@ -51,11 +51,12 @@ interface LabOrderItemQueryResult {
     result_verified_by_user_full_name: string | null;
 }
 
-export async function GET(_request: Request, { params }: { params: { labOrderId: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ labOrderId: string }> }) {
     // Pass cookies() directly
     const cookieStore = await cookies();
     const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
-    const labOrderId = parseInt(params.labOrderId, 10);
+    const { labOrderId: labOrderIdString } = await params;
+    const labOrderId = parseInt(labOrderIdString, 10);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_VIEW.includes(session.user.roleName)) {
@@ -186,11 +187,12 @@ const UpdateLabOrderSchema = z.object({
     // Other fields? Usually status is updated based on item statuses
 });
 
-export async function PUT(request: Request, { params }: { params: { labOrderId: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ labOrderId: string }> }) {
     // Pass cookies() directly
     const cookieStore = await cookies();
     const session = await getIronSession<IronSessionData>(cookieStore, sessionOptions);
-    const labOrderId = parseInt(params.labOrderId, 10);
+    const { labOrderId: labOrderIdString } = await params;
+    const labOrderId = parseInt(labOrderIdString, 10);
 
     // 1. Check Authentication & Authorization
     if (!session.user || !ALLOWED_ROLES_UPDATE.includes(session.user.roleName)) {

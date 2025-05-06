@@ -1,5 +1,6 @@
 // src/app/dashboard/patients/[id]/page.tsx
 "use client";
+export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";

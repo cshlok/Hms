@@ -1,5 +1,6 @@
-// src/app/dashboard/billing/service-items/page.tsx
 "use client";
+
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -491,8 +492,7 @@ export default function ServiceItemsPage() {
                     {item.unit_price.toFixed(2)}
                   </TableCell>
                   <TableCell>
-                    {/* FIX: Use getStatusBadgeVariant function */}
-                    <Badge variant={getStatusBadgeVariant(item.is_active)}>
+                    <Badge variant={item.is_active ? "default" : "secondary"}>
                       {item.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
@@ -503,11 +503,8 @@ export default function ServiceItemsPage() {
                       onClick={() => openEditModal(item)}
                       title="Edit Item"
                     >
-                      {" "}
-                      {/* Added title */}
                       <Edit className="h-4 w-4" />
                     </Button>
-                    {/* Consider adding a delete button/confirmation dialog here */}
                   </TableCell>
                 </TableRow>
               )))
@@ -515,26 +512,19 @@ export default function ServiceItemsPage() {
               // No Items Found Row
               (<TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={6} // Adjusted colSpan
                   className="h-24 text-center text-muted-foreground"
                 >
                   {searchTerm
                     ? `No service items found matching "${searchTerm}".`
-                    : "No service items available."}
+                    : "No service items available. Click \"Add New\" to create one."}
                 </TableCell>
               </TableRow>)
             )}
           </TableBody>
         </Table>
       </div>
-      {/* Add Pagination if needed */}
     </div>
   );
 }
-
-
-// Helper function to determine badge variant based on status
-const getStatusBadgeVariant = (isActive: boolean): "default" | "secondary" => {
-  return isActive ? "default" : "secondary";
-};
 

@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = 'force-dynamic';
 
 import React, { useState } from "react"; // Added useState
 import { useRouter } from "next/navigation"; // Added useRouter
@@ -8,8 +9,6 @@ import { useRouter } from "next/navigation"; // Added useRouter
 
 // Define interfaces for component props and data structures
 // Removed unused StatCardProperties interface
-
-
 
 interface RecentPrescription {
   id: string;
@@ -26,8 +25,6 @@ interface ExpiringMedication {
   expiry: string;
   stock: number;
 }
-
-
 
 // Main Pharmacy Dashboard Page
 export default function PharmacyPage() {
@@ -145,8 +142,6 @@ export default function PharmacyPage() {
     </div>
   );
 }
-
-
 
 // Recent Prescriptions List Component
 function RecentPrescriptionsList() {

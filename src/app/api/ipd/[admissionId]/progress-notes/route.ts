@@ -16,14 +16,14 @@ const progressNoteCreateSchema = z.object({
 // GET /api/ipd/[admissionId]/progress-notes - Fetch progress notes for an admission
 export async function GET(
     request: NextRequest,
-    { params }: { params: { admissionId: string } }
+    { params }: { params: Promise<{ admissionId: string }> }
 ) {
     const session = await getSession();
     if (!session.isLoggedIn) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { admissionId } = params;
+    const { admissionId } = await params;
     if (!admissionId) {
         return NextResponse.json(
             { message: "Admission ID is required" },
@@ -102,7 +102,7 @@ export async function GET(
 // POST /api/ipd/[admissionId]/progress-notes - Create a new progress note
 export async function POST(
     request: NextRequest,
-    { params }: { params: { admissionId: string } }
+    { params }: { params: Promise<{ admissionId: string }> }
 ) {
     const session = await getSession();
     if (!session.isLoggedIn) {
@@ -112,7 +112,7 @@ export async function POST(
         return NextResponse.json({ message: "User not found in session" }, { status: 500 });
     }
 
-    const { admissionId } = params;
+    const { admissionId } = await params;
     if (!admissionId) {
         return NextResponse.json(
             { message: "Admission ID is required" },

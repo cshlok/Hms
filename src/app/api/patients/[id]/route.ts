@@ -35,14 +35,14 @@ const patientUpdateSchema = z.object({
 // GET /api/patients/[id] - Fetch a specific patient by ID
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getSession();
     if (!session.isLoggedIn) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: patientId } = params;
+    const { id: patientId } = await params;
     if (!patientId) {
         return NextResponse.json(
             { message: "Patient ID is required" },
@@ -88,7 +88,7 @@ export async function GET(
 // PUT /api/patients/[id] - Update an existing patient
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getSession();
     if (!session.isLoggedIn) {
@@ -98,7 +98,7 @@ export async function PUT(
         return NextResponse.json({ message: "User not found in session" }, { status: 500 });
     }
 
-    const { id: patientId } = params;
+    const { id: patientId } = await params;
     if (!patientId) {
         return NextResponse.json(
             { message: "Patient ID is required" },
@@ -181,14 +181,14 @@ export async function PUT(
 // DELETE /api/patients/[id] - Delete a patient (use with caution!)
 export async function DELETE(
     _request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getSession();
     if (!session.isLoggedIn || !session.user || session.user.roleName !== "Admin") { // Added !session.user check
         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const { id: patientId } = params;
+    const { id: patientId } = await params;
     if (!patientId) {
         return NextResponse.json(
             { message: "Patient ID is required" },

@@ -26,14 +26,14 @@ const vitalCreateSchema = z.object({
 // GET /api/patients/[id]/vitals - Fetch vitals for a specific patient
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getSession();
     if (!session.isLoggedIn) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: patientId } = params;
+    const { id: patientId } = await params;
     if (!patientId) {
         return NextResponse.json(
             { message: "Patient ID is required" },
@@ -136,7 +136,7 @@ export async function GET(
 // POST /api/patients/[id]/vitals - Record new vitals for a patient
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getSession();
     if (!session.isLoggedIn) {
@@ -146,7 +146,7 @@ export async function POST(
         return NextResponse.json({ message: "User not found in session" }, { status: 500 });
     }
 
-    const { id: patientId } = params;
+    const { id: patientId } = await params;
     if (!patientId) {
         return NextResponse.json(
             { message: "Patient ID is required" },

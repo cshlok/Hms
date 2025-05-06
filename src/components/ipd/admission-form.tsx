@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, ChangeEvent, FormEvent } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Corrected import path
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,11 +12,10 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select"; // Corrected import path
-import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react"; // Import Loader2 for loading state
+} from "@/components/ui/select";
+import { toast } from "sonner"; // Changed from useToast to sonner
+import { Loader2 } from "lucide-react";
 
-// Define type for form data
 interface AdmissionFormData {
   patient_id: string;
   admission_date: string;
@@ -24,22 +23,18 @@ interface AdmissionFormData {
   primary_doctor_id: string;
   bed_id: string;
   diagnosis: string;
-  estimated_stay: string; // Keep as string for input, parse if needed
+  estimated_stay: string;
 }
 
-// Define type for API error response
 interface ApiErrorResponse {
   error?: string;
-  message?: string; // Include message as potential error key
+  message?: string;
 }
 
-// Define type for API success response
 interface AdmissionResponse {
-  id: string; // Assuming admission ID is returned
-  // Add other relevant fields returned by the API
+  id: string;
 }
 
-// Mock data types (replace with actual types if fetched from API)
 interface MockPatient {
   id: string;
   name: string;
@@ -58,7 +53,7 @@ interface MockBed {
 const AdmissionForm = () => {
   const [formData, setFormData] = useState<AdmissionFormData>({
     patient_id: "",
-    admission_date: new Date().toISOString().split("T")[0], // Default to today
+    admission_date: new Date().toISOString().split("T")[0],
     admission_type: "planned",
     primary_doctor_id: "",
     bed_id: "",
@@ -66,10 +61,8 @@ const AdmissionForm = () => {
     estimated_stay: "",
   });
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  // Removed: const { toast } = useToast();
 
-  // Mock data for dropdowns - replace with API calls in a real app
-  // Ensure IDs are strings to match form state
   const patients: MockPatient[] = [
     { id: "pat1", name: "Rahul Sharma" },
     { id: "pat2", name: "Priya Patel" },
@@ -88,7 +81,6 @@ const AdmissionForm = () => {
     { id: "bed4", number: "301", room: "301", ward: "Private" },
   ];
 
-  // Handler for standard input/textarea changes
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -96,9 +88,7 @@ const AdmissionForm = () => {
     setFormData((previous) => ({ ...previous, [name]: value }));
   };
 
-  // Handler for Select component changes
   const handleSelectChange = (name: keyof AdmissionFormData, value: string) => {
-    // Special handling for admission_type to ensure type safety
     if (name === "admission_type") {
       setFormData((previous) => ({
         ...previous,
@@ -109,23 +99,19 @@ const AdmissionForm = () => {
     }
   };
 
-  // Handler for form submission
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
 
-    // Basic validation (consider more robust validation)
     if (
       !formData.patient_id ||
       !formData.primary_doctor_id ||
       !formData.bed_id ||
       !formData.diagnosis
     ) {
-      toast({
-        title: "Missing Information",
+      toast.error("Missing Information", { // Changed to sonner toast.error
         description:
           "Please fill in all required fields (Patient, Doctor, Bed, Diagnosis).",
-        variant: "destructive",
       });
       setLoading(false);
       return;
@@ -153,12 +139,10 @@ const AdmissionForm = () => {
 
       const newAdmission: AdmissionResponse = await response.json();
 
-      toast({
-        title: "Admission Successful",
+      toast.success("Admission Successful", { // Changed to sonner toast.success
         description: `Patient admitted successfully. Admission ID: ${newAdmission.id}`,
       });
 
-      // Reset form to initial state
       setFormData({
         patient_id: "",
         admission_date: new Date().toISOString().split("T")[0],
@@ -174,10 +158,8 @@ const AdmissionForm = () => {
         error instanceof Error
           ? error.message
           : "An unexpected error occurred.";
-      toast({
-        title: "Admission Failed",
+      toast.error("Admission Failed", { // Changed to sonner toast.error
         description: message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -192,7 +174,6 @@ const AdmissionForm = () => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Patient Select */}
             <div className="space-y-2">
               <Label htmlFor="patient_id">Patient *</Label>
               <Select
@@ -221,7 +202,6 @@ const AdmissionForm = () => {
               </Select>
             </div>
 
-            {/* Admission Date */}
             <div className="space-y-2">
               <Label htmlFor="admission_date">Admission Date *</Label>
               <Input
@@ -235,7 +215,6 @@ const AdmissionForm = () => {
               />
             </div>
 
-            {/* Admission Type Select */}
             <div className="space-y-2">
               <Label htmlFor="admission_type">Admission Type *</Label>
               <Select
@@ -257,7 +236,6 @@ const AdmissionForm = () => {
               </Select>
             </div>
 
-            {/* Primary Doctor Select */}
             <div className="space-y-2">
               <Label htmlFor="primary_doctor_id">Primary Doctor *</Label>
               <Select
@@ -286,7 +264,6 @@ const AdmissionForm = () => {
               </Select>
             </div>
 
-            {/* Bed Select */}
             <div className="space-y-2">
               <Label htmlFor="bed_id">Assign Bed *</Label>
               <Select
@@ -313,7 +290,6 @@ const AdmissionForm = () => {
               </Select>
             </div>
 
-            {/* Estimated Stay */}
             <div className="space-y-2">
               <Label htmlFor="estimated_stay">Estimated Stay (days)</Label>
               <Input
@@ -329,7 +305,6 @@ const AdmissionForm = () => {
             </div>
           </div>
 
-          {/* Diagnosis Textarea */}
           <div className="space-y-2">
             <Label htmlFor="diagnosis">Diagnosis *</Label>
             <Textarea
@@ -344,7 +319,6 @@ const AdmissionForm = () => {
             />
           </div>
 
-          {/* Submit Button */}
           <div className="flex justify-end pt-4">
             <Button type="submit" disabled={loading}>
               {loading ? (
@@ -360,3 +334,4 @@ const AdmissionForm = () => {
 };
 
 export default AdmissionForm;
+
