@@ -97,7 +97,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           patient_id: simulatedPatient.id,
           doctor_id: "doc_67890", // Simulate logged-in doctor ID
         }));
-      } catch (_) { // FIX: Replaced unused _error with _
+      } catch (error) { console.warn("Error in fetchActivePatient:", error); 
         // Handle error appropriately (e.g., show message)
       }
     };
@@ -144,7 +144,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           },
         ];
         setMedications(simulatedMedications);
-      } catch (_) { // FIX: Replaced unused _error with _
+      } catch (error) { console.warn("Error in fetchMedications:", error);
         // Handle error appropriately
       }
     };
@@ -199,7 +199,7 @@ const OPDPharmacyIntegration: React.FC = () => {
           },
         ];
         setPrescriptions(simulatedPrescriptions);
-      } catch (_) { // FIX: Replaced unused _error with _
+      } catch (error) { console.warn("Error in fetchPrescriptions:", error);
         // Handle error appropriately
       } finally {
         setLoading(false);

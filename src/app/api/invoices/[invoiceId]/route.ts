@@ -270,7 +270,7 @@ export async function PUT(request: Request) {
 
         // 4. Execute update
         // Use as any to bypass the type mismatch between D1Result implementations
-        const updateResult = await DB.prepare(query).bind(...queryParams).run() as any;
+        const updateResult = await DB.prepare(query).bind(...queryParams).run() as { success: boolean; meta?: unknown };
 
         // Check success property directly
         if (!updateResult.success) {

@@ -35,7 +35,7 @@ const patientCreateSchema = z.object({
     insurance_policy_number: z.string().optional().nullable(),
 });
 
-type PatientCreateBody = z.infer<typeof patientCreateSchema>;
+// type PatientCreateBody = z.infer<typeof patientCreateSchema>;
 
 // Helper function to generate MRN (example - reuse from register route if identical)
 async function generateMRN(db: D1Database): Promise<string> {
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
 // POST /api/patients - Create a new patient (internal use, registration is separate)
 export async function POST(request: NextRequest) {
     const session = await getSession();
-    if (!session.isLoggedIn) {
+    if (!session.isLoggedIn || !session.user) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
     // Add role check if needed

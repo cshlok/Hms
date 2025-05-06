@@ -159,7 +159,7 @@ export async function PUT(
     // Use type assertion to allow string indexing
     for (const key in updateData) {
         // Add validation/filtering if necessary
-        fieldsToUpdate[key] = (updateData as Record<string, any>)[key]; // Reverted to any to resolve TS2322 temporarily
+        fieldsToUpdate[key] = (updateData as Record<string, unknown>)[key] as (string | number | boolean | undefined); // Replaced any with unknown and explicit cast
     }
 
     fieldsToUpdate.updated_at = now;

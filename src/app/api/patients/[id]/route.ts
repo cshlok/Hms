@@ -129,7 +129,7 @@ export async function PUT(
         const now = new Date().toISOString();
         const userId = session.user.userId; // session.user is now guaranteed to be defined
 
-        const fieldsToUpdate: Record<string, any> = { ...updateData };
+        const fieldsToUpdate: Record<string, string | number | boolean | Date | null | undefined> = { ...updateData };
         fieldsToUpdate.updated_at = now;
         fieldsToUpdate.updated_by_user_id = userId;
 

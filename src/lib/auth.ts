@@ -36,7 +36,7 @@ export const checkUserRole = async (
   _allowedRoles: string[] // FIX: Unused parameter
 ): Promise<boolean> => {
   console.warn(
-    "Authorization function "checkUserRole" is not implemented yet."
+    'Authorization function "checkUserRole" is not implemented yet.'
   );
   // Mock implementation: always returns true
   return true;
@@ -48,8 +48,7 @@ export const getCurrentUser = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _request?: NextRequest // FIX: Unused parameter
 ): Promise<User | null> => {
-  console.warn(
-    "Authentication function "getCurrentUser" is not implemented yet."
+  console.warn(	    'Authentication function "getCurrentUser" is not implemented yet.'
   );
   // Mock implementation: returns a dummy user or null
   // In a real implementation, this would verify a token from cookies or headers
@@ -72,8 +71,7 @@ export const hasPermission = async (
   request: NextRequest,
   requiredPermissions: string | string[]
 ): Promise<boolean> => {
-  console.warn(
-    "Authorization function "hasPermission" is not implemented yet."
+  console.warn(	    'Authorization function "hasPermission" is not implemented yet.'
   );
   const user = await getCurrentUser(request);
   if (!user) return false;
@@ -89,8 +87,7 @@ export const hasPermission = async (
 // FIX: Prefix unused parameter with underscore
 export const clearAuthCookie = (res: NextResponse) => { // FIX: Renamed response_ to res to match usage
   console.warn(
-    "Authentication function "clearAuthCookie" is not implemented yet."
-  );
+	    'Authentication function "clearAuthCookie" is not implemented yet.'  );
   // In a real implementation, this would set the auth cookie to expire
   res.cookies.set("auth_token", "", { expires: new Date(0), path: "/" });
 };
@@ -98,8 +95,7 @@ export const clearAuthCookie = (res: NextResponse) => { // FIX: Renamed response
 // Placeholder function for API routes importing "setAuthCookie"
 // FIX: Prefix unused parameter with underscore
 export const setAuthCookie = (res: NextResponse, token: string) => { // FIX: Renamed response_ to res to match usage
-  console.warn(
-    "Authentication function "setAuthCookie" is not implemented yet."
+  console.warn(	    'Authentication function "setAuthCookie" is not implemented yet.'
   );
   // In a real implementation, this would set the auth cookie
   res.cookies.set("auth_token", token, {

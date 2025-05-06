@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { DB } from "@/lib/database";
 import { getSession } from "@/lib/session";
 import { z } from "zod";
-import { Prescription, PrescriptionItem } from "@/types/opd";
+import { Prescription } from "@/types/opd";
 import type { D1ResultWithMeta } from "@/types/cloudflare"; // Import the specific type
 
 // Zod schema for creating a prescription
@@ -28,7 +28,7 @@ const prescriptionCreateSchema = z.object({
     items: z.array(prescriptionItemSchema).min(1, "At least one medication item is required"),
 });
 
-type PrescriptionCreateBody = z.infer<typeof prescriptionCreateSchema>;
+// type PrescriptionCreateBody = z.infer<typeof prescriptionCreateSchema>;
 
 // GET /api/prescriptions - Fetch list of prescriptions (with filtering/pagination)
 export async function GET(request: NextRequest) {
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
 // POST /api/prescriptions - Create a new prescription
 export async function POST(request: NextRequest) {
     const session = await getSession();
-    if (!session.isLoggedIn) {
+    if (!session.isLoggedIn || !session.user) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
     // Add role check if needed (e.g., only doctors)
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
         const doctorId = session.user.userId; // Use doctor ID from session
 
         // Start transaction or use batch
-        const batchOperations = [];
+        // const batchOperations = [];
 
         // 1. Insert into Prescriptions table
         const insertPrescriptionStmt = DB.prepare(
