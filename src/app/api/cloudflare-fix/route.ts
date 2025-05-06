@@ -60,7 +60,7 @@ export async function GET() {
     // Example: Querying the D1 database
     // FIX: Use environment.DB instead of env.DB
     // FIX: Ensure the type assertion is correct for D1Database methods
-    const { results } = await environment.DB.prepare("SELECT name FROM sqlite_master WHERE type=\'table\'").all();
+    const { results } = await environment.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
 
     return new Response(JSON.stringify({ tables: results }), { // FIX: Return actual results
       status: 200,

@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
     }
 
     const bedCheckResult = await database.prepare(
-      "SELECT bed_id FROM Beds WHERE bed_id = ? AND status = \'Available\'"
+      "SELECT bed_id FROM Beds WHERE bed_id = ? AND status = 'Available'"
     ).bind(admissionData.bed_id).all();
     const bedCheck = bedCheckResult.results && bedCheckResult.results.length > 0;
 
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
           patient_id, doctor_id, admission_date, expected_discharge_date, admission_reason, 
           admission_notes, ward_id, bed_id, admission_type, package_id, insurance_id, 
           insurance_approval_status, insurance_approval_number, status, created_by, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'Active\', ?, CURRENT_TIMESTAMP)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?, CURRENT_TIMESTAMP)
       `
       ).bind(          admissionData.patient_id,
           admissionData.doctor_id,

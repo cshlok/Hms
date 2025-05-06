@@ -103,7 +103,7 @@ const getStatusBadge = (status: Patient["status"]) => {
   }
 };
 
-export default function OPDPatientQueue({ /* date: _date */ }: OPDPatientQueueProperties) {
+export default function OPDPatientQueue(_props: OPDPatientQueueProperties) {
   const { toast } = useToast(); // Initialize toast
 
   // State variables

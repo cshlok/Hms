@@ -143,14 +143,14 @@ export async function POST(
       ["scheduled", "confirmed"].includes(bookingResults[0].status as string)
     ) {
       await DB.prepare(
-        "UPDATE OTBookings SET status = \'in_progress\', updated_at = ? WHERE id = ?"
+        "UPDATE OTBookings SET status = 'in_progress', updated_at = ? WHERE id = ?"
       )
         .bind(now, bookingId)
         .run();
     }
     if (actual_end_time) {
       await DB.prepare(
-        "UPDATE OTBookings SET status = \'completed\', updated_at = ? WHERE id = ?"
+        "UPDATE OTBookings SET status = 'completed', updated_at = ? WHERE id = ?"
       )
         .bind(now, bookingId)
         .run();

@@ -56,9 +56,9 @@ export async function GET(request: NextRequest) {
     let query = `SELECT
                    rr.id, rr.study_id, rr.report_datetime, rr.status,
                    rs.accession_number,
-                   rad.first_name || \' \' || rad.last_name as radiologist_name,
+                   rad.first_name || ' ' || rad.last_name as radiologist_name,
                    ro.patient_id,
-                   p.first_name || \' \' || p.last_name as patient_name,
+                   p.first_name || ' ' || p.last_name as patient_name,
                    pt.name as procedure_name
                  FROM RadiologyReports rr
                  JOIN RadiologyStudies rs ON rr.study_id = rs.id

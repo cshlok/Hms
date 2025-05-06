@@ -80,10 +80,10 @@ export async function GET(
         `SELECT
          rr.*,
          rs.accession_number,
-         rad.first_name || \' \' || rad.last_name as radiologist_name,
-         ver.first_name || \' \' || ver.last_name as verified_by_name,
+         rad.first_name || ' ' || rad.last_name as radiologist_name,
+         ver.first_name || ' ' || ver.last_name as verified_by_name,
          ro.patient_id,
-         p.first_name || \' \' || p.last_name as patient_name,
+         p.first_name || ' ' || p.last_name as patient_name,
          pt.name as procedure_name
        FROM RadiologyReports rr
        JOIN RadiologyStudies rs ON rr.study_id = rs.id

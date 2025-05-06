@@ -71,8 +71,7 @@ export async function POST(request: Request) {
             return new Response(JSON.stringify({ error: "Lab Order not found" }), { status: 404 });
         }
         if (orderCheck.doctor_id !== doctorId) {
-            return new Response(JSON.stringify({ error: "Forbidden: Cannot add items to another doctor\'s lab order" }), { status: 403 });
-        }
+            return new Response(JSON.stringify({ error: "Forbidden: Cannot add items to another doctor's lab order" }), { status: 403 });        }
 
         // 4. Validate all billable items (tests) exist and get their names/details
         const billableItemIds = itemsData.map(item => item.billable_item_id);

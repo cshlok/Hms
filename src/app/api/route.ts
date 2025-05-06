@@ -117,9 +117,9 @@ export async function GET(
         `SELECT
          rs.*,
          ro.patient_id,
-         p.first_name || \' \' || p.last_name as patient_name,
+         p.first_name || ' ' || p.last_name as patient_name,
          pt.name as procedure_name,
-         tech.first_name || \' \' || tech.last_name as technician_name,
+         tech.first_name || ' ' || tech.last_name as technician_name,
          mod.name as modality_name
        FROM RadiologyStudies rs
        JOIN RadiologyOrders ro ON rs.order_id = ro.id
