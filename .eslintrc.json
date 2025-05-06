@@ -1,56 +1,11 @@
 {
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": 2021,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  },
   "env": {
-    "browser": true,
-    "node": true,
-    "es2021": true,
-    "jest": true
+    "jest/globals": true
   },
-  "plugins": [
-    "@typescript-eslint",
-    "react",
-    "react-hooks",
-    "unicorn", // Added eslint-plugin-unicorn
-    "unused-imports" // Added unused-imports plugin
-  ],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:react/recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:unicorn/recommended", // Added unicorn recommended rules
-    "next/core-web-vitals", // Next.js specific rules
-    "prettier" // Add prettier to disable conflicting rules
-  ],
-  "settings": {
-    "react": {
-      "version": "detect" // Automatically detect React version
-    }
-  },
+  "extends": ["plugin:jest/recommended"],
+  "plugins": ["jest"],
   "rules": {
-    // Add or override rules here if needed
-    "react/react-in-jsx-scope": "off", // Not needed with Next.js >= 11 and React >= 17
-    // "@typescript-eslint/no-unused-vars": [
-    //   "warn",
-    //   { "argsIgnorePattern": "^_" }
-    // ], // Warn about unused vars, ignore if prefixed with _
-    "@typescript-eslint/no-explicit-any": "warn", // Warn about explicit any types
-
-    // Rules for unused-imports plugin
-    "no-unused-vars": "off", // Disable base rule
-    "@typescript-eslint/no-unused-vars": "off", // Disable TS rule
-    "unused-imports/no-unused-imports": "error",
-    "unused-imports/no-unused-vars": [
-      "warn",
-      { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" }
-    ]
+    // You can add or override rules specific to test files here
   }
 }
 

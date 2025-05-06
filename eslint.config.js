@@ -5,7 +5,7 @@ const jestPlugin = require("eslint-plugin-jest");
 
 module.exports = [
   {
-    ignores: [".next/", "node_modules/", "eslint.config.js"]
+    ignores: [".next/", "node_modules/", "eslint.config.js", "**/*.test.ts", "**/*.spec.ts", "**/*.test.tsx", "**/*.spec.tsx", "**/__tests__/**/*.ts", "**/__tests__/**/*.tsx"]
   },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
@@ -38,8 +38,7 @@ module.exports = [
       }
     },
     rules: {
-      ...jestPlugin.configs.recommended.rules,
-      "no-undef": "off" // Temporarily disable no-undef for test files
+      ...jestPlugin.configs.recommended.rules
       // Potentially relax or add test-specific rules here if needed
       // e.g., allowing more "any" types in test setup might be acceptable
     }
