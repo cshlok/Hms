@@ -1,0 +1,161 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// General Purpose Models (Example - adjust as needed based on other modules)
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String?   @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  roles     Role[]    // Example for RBAC
+  LabOrder  LabOrder[] // User who ordered the lab test
+  RadiologyRequest RadiologyRequest[] // User who ordered the radiology request
+  LabReport LabReport[] @relation("LabReportTechnician")
+  RadiologyReport RadiologyReport[] @relation("RadiologyReportTechnician")
+  AuditLog  AuditLog[]
+}
+
+model Role {
+  id          String @id @default(cuid())
+  name        String @unique
+  permissions Permission[]
+  users       User[]
+}
+
+model Permission {
+  id      String @id @default(cuid())
+  name    String @unique // e.g., LIS_ORDER_TEST, LIS_UPLOAD_REPORT
+  roles   Role[]
+}
+
+model Patient {
+  id        String    @id @default(cuid())
+  firstName String
+  lastName  String
+  dateOfBirth DateTime
+  // other PHI fields, consider encryption for these
+  // ... more patient details
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  LabOrder LabOrder[]
+  RadiologyRequest RadiologyRequest[]
+}
+
+// LIS Models
+model LabTestItem {
+  id          String    @id @default(cuid())
+  name        String    // e.g., "Complete Blood Count", "Lipid Panel"
+  code        String?   // LOINC code or internal code
+  description String?
+  category    String?   // e.g., "Hematology", "Chemistry"
+  price       Float?
+  LabOrder    LabOrder[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model LabOrder {
+  id          String    @id @default(cuid())
+  patientId   String
+  patient     Patient   @relation(fields: [patientId], references: [id])
+  orderedById String
+  orderedBy   User      @relation(fields: [orderedById], references: [id])
+  testItems   LabTestItem[]
+  orderDate   DateTime  @default(now())
+  status      String    // e.g., "PENDING", "COLLECTED", "PROCESSING", "COMPLETED", "CANCELLED"
+  sampleId    String?   // Barcode or sample identifier
+  collectionDate DateTime?
+  notes       String?
+  LabReport   LabReport? // One order can have one report
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model LabReport {
+  id            String    @id @default(cuid())
+  labOrderId    String    @unique // Each report is tied to one specific order
+  labOrder      LabOrder  @relation(fields: [labOrderId], references: [id])
+  reportDate    DateTime  @default(now())
+  reportedById  String    // Technician/Doctor who reported
+  reportedBy    User      @relation("LabReportTechnician", fields: [reportedById], references: [id])
+  // Metadata for the report file (actual file stored in R2)
+  fileName      String?
+  fileType      String?   // e.g., "application/pdf"
+  fileSize      Int?      // in bytes
+  storagePath   String?   // Path or key in R2
+  // Can also include structured results here if needed, or just link to the file
+  // For example: resultSummary String?
+  status        String    // e.g., "DRAFT", "FINALIZED", "REVISED"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Radiology Models
+model RadiologyProcedure {
+  id          String    @id @default(cuid())
+  name        String    // e.g., "Chest X-Ray", "MRI Brain"
+  code        String?   // CPT code or internal code
+  description String?
+  category    String?   // e.g., "X-RAY", "MRI", "CT"
+  price       Float?
+  RadiologyRequest RadiologyRequest[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model RadiologyRequest {
+  id            String    @id @default(cuid())
+  patientId     String
+  patient       Patient   @relation(fields: [patientId], references: [id])
+  orderedById   String
+  orderedBy     User      @relation(fields: [orderedById], references: [id])
+  procedures    RadiologyProcedure[]
+  requestDate   DateTime  @default(now())
+  scheduledDate DateTime?
+  status        String    // e.g., "PENDING", "SCHEDULED", "COMPLETED", "CANCELLED"
+  reason        String?
+  notes         String?
+  RadiologyReport RadiologyReport? // One request can have one report
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model RadiologyReport {
+  id            String    @id @default(cuid())
+  radiologyRequestId String @unique // Each report is tied to one specific request
+  radiologyRequest RadiologyRequest @relation(fields: [radiologyRequestId], references: [id])
+  reportDate    DateTime  @default(now())
+  reportedById  String    // Radiologist/Technician who reported
+  reportedBy    User      @relation("RadiologyReportTechnician", fields: [reportedById], references: [id])
+  // Metadata for the report file (actual file stored in R2)
+  fileName      String?
+  fileType      String?   // e.g., "application/pdf", "application/dicom"
+  fileSize      Int?      // in bytes
+  storagePath   String?   // Path or key in R2
+  // Can also include findings summary here
+  // For example: findings String?
+  status        String    // e.g., "DRAFT", "FINALIZED", "REVISED"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// Audit Log Model (as per manus prompt 1, good to have)
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  eventType String   // e.g., "LOGIN_SUCCESS", "PATIENT_REGISTERED", "LAB_ORDER_CREATED"
+  details   Json     // JSON object for additional details
+  timestamp DateTime @default(now())
+}
+
