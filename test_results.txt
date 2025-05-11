@@ -1,0 +1,327 @@
+● Validation Warning:
+
+  Unknown option "dir" with value "./" was found. Did you mean "ci"?
+  This is probably a typing mistake. Fixing it will remove this message.
+
+  Configuration Documentation:
+  https://jestjs.io/docs/configuration
+
+● Validation Warning:
+
+  Unknown option "dir" with value "./" was found. Did you mean "ci"?
+  This is probably a typing mistake. Fixing it will remove this message.
+
+  Configuration Documentation:
+  https://jestjs.io/docs/configuration
+
+PASS src/services/encryption_service.test.ts
+  ● Console
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+    console.warn
+      EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION.
+
+      32 |   constructor() {
+      33 |     // In a real service, initialization might involve loading encryption keys securely.
+    > 34 |     console.warn(
+         |             ^
+      35 |       "EncryptionService: Initialized with placeholder encryption. DO NOT USE IN PRODUCTION."
+      36 |     );
+      37 |   }
+
+      at new warn (src/services/encryption_service.ts:34:13)
+      at Object.<anonymous> (src/services/encryption_service.test.ts:9:25)
+
+FAIL src/repositories/patient_repository.test.ts
+  ● Console
+
+    console.error
+      Error creating patient in repository: Error: DB error
+          at Object.<anonymous> (/home/ubuntu/Hms/src/repositories/patient_repository.test.ts:53:51)
+          at Promise.then.completed (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/utils.js:231:10)
+          at _callCircusTest (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at _runTest (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:252:3)
+          at _runTestsForDescribeBlock (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:126:9)
+          at _runTestsForDescribeBlock (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:121:9)
+          at _runTestsForDescribeBlock (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:121:9)
+          at run (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:71:3)
+          at runAndTransformResultsToJestFormat (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+          at jestAdapter (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+          at runTestInternal (/home/ubuntu/Hms/node_modules/.pnpm/jest-runner@29.7.0/node_modules/jest-runner/build/runTest.js:367:16)
+          at runTest (/home/ubuntu/Hms/node_modules/.pnpm/jest-runner@29.7.0/node_modules/jest-runner/build/runTest.js:444:34)
+          at Object.worker (/home/ubuntu/Hms/node_modules/.pnpm/jest-runner@29.7.0/node_modules/jest-runner/build/testWorker.js:106:12)
+
+      65 |       return result.rows[0];
+      66 |     } catch (error) {
+    > 67 |       console.error("Error creating patient in repository:", error);
+         |               ^
+      68 |       // Consider logging more specific details or re-throwing a custom domain error
+      69 |       throw new Error("Failed to create patient.");
+      70 |     }
+
+      at PatientRepository.error [as create] (src/repositories/patient_repository.ts:67:15)
+      at Object.<anonymous> (src/repositories/patient_repository.test.ts:55:7)
+
+    console.error
+      Error creating patient in repository: Error: Patient creation failed, no record returned.
+          at PatientRepository.create (/home/ubuntu/Hms/src/repositories/patient_repository.ts:61:15)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at Object.<anonymous> (/home/ubuntu/Hms/src/repositories/patient_repository.test.ts:62:7)
+
+      65 |       return result.rows[0];
+      66 |     } catch (error) {
+    > 67 |       console.error("Error creating patient in repository:", error);
+         |               ^
+      68 |       // Consider logging more specific details or re-throwing a custom domain error
+      69 |       throw new Error("Failed to create patient.");
+      70 |     }
+
+      at PatientRepository.error [as create] (src/repositories/patient_repository.ts:67:15)
+      at Object.<anonymous> (src/repositories/patient_repository.test.ts:62:7)
+
+    console.error
+      Error finding patient by ID (test-patient-id) in repository: Error: DB error
+          at Object.<anonymous> (/home/ubuntu/Hms/src/repositories/patient_repository.test.ts:100:51)
+          at Promise.then.completed (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/utils.js:231:10)
+          at _callCircusTest (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at _runTest (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:252:3)
+          at _runTestsForDescribeBlock (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:126:9)
+          at _runTestsForDescribeBlock (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:121:9)
+          at _runTestsForDescribeBlock (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:121:9)
+          at run (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/run.js:71:3)
+          at runAndTransformResultsToJestFormat (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+          at jestAdapter (/home/ubuntu/Hms/node_modules/.pnpm/jest-circus@29.7.0/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+          at runTestInternal (/home/ubuntu/Hms/node_modules/.pnpm/jest-runner@29.7.0/node_modules/jest-runner/build/runTest.js:367:16)
+          at runTest (/home/ubuntu/Hms/node_modules/.pnpm/jest-runner@29.7.0/node_modules/jest-runner/build/runTest.js:444:34)
+          at Object.worker (/home/ubuntu/Hms/node_modules/.pnpm/jest-runner@29.7.0/node_modules/jest-runner/build/testWorker.js:106:12)
+
+      91 |       return result.rows[0];
+      92 |     } catch (error) {
+    > 93 |       console.error(`Error finding patient by ID (${id}) in repository:`, error);
+         |               ^
+      94 |       throw new Error("Failed to find patient by ID.");
+      95 |     }
+      96 |   }
+
+      at PatientRepository.error [as findById] (src/repositories/patient_repository.ts:93:15)
+      at Object.<anonymous> (src/repositories/patient_repository.test.ts:102:7)
+
+  ● PatientRepository › create › should throw an error if no record is returned after insert
+
+    expect(received).rejects.toThrow(expected)
+
+    Expected substring: "Patient creation failed, no record returned."
+    Received message:   "Failed to create patient."
+
+          67 |       console.error("Error creating patient in repository:", error);
+          68 |       // Consider logging more specific details or re-throwing a custom domain error
+        > 69 |       throw new Error("Failed to create patient.");
+             |             ^
+          70 |     }
+          71 |   }
+          72 |
+
+      at PatientRepository.create (src/repositories/patient_repository.ts:69:13)
+      at Object.<anonymous> (src/repositories/patient_repository.test.ts:62:7)
+      at Object.toThrow (node_modules/.pnpm/expect@29.7.0/node_modules/expect/build/index.js:218:22)
+      at Object.toThrow (src/repositories/patient_repository.test.ts:62:68)
+
+PASS src/services/audit_log_service.test.ts
+  ● Console
+
+    console.warn
+      AuditLogService: Initialized with placeholder console logging. DO NOT USE IN PRODUCTION FOR AUDIT TRAILS.
+
+      41 |     // If logging to the database, inject the adapter.
+      42 |     // this.db = dbAdapter;
+    > 43 |     console.warn(
+         |             ^
+      44 |       "AuditLogService: Initialized with placeholder console logging. DO NOT USE IN PRODUCTION FOR AUDIT TRAILS."
+      45 |     );
+      46 |   }
+
+      at new warn (src/services/audit_log_service.ts:43:13)
+      at Object.<anonymous> (src/services/audit_log_service.test.ts:10:23)
+
+    console.warn
+      AuditLogService: Initialized with placeholder console logging. DO NOT USE IN PRODUCTION FOR AUDIT TRAILS.
+
+      41 |     // If logging to the database, inject the adapter.
+      42 |     // this.db = dbAdapter;
+    > 43 |     console.warn(
+         |             ^
+      44 |       "AuditLogService: Initialized with placeholder console logging. DO NOT USE IN PRODUCTION FOR AUDIT TRAILS."
+      45 |     );
+      46 |   }
+
+      at new warn (src/services/audit_log_service.ts:43:13)
+      at Object.<anonymous> (src/services/audit_log_service.test.ts:10:23)
+
+    console.warn
+      AuditLogService: Initialized with placeholder console logging. DO NOT USE IN PRODUCTION FOR AUDIT TRAILS.
+
+      41 |     // If logging to the database, inject the adapter.
+      42 |     // this.db = dbAdapter;
+    > 43 |     console.warn(
+         |             ^
+      44 |       "AuditLogService: Initialized with placeholder console logging. DO NOT USE IN PRODUCTION FOR AUDIT TRAILS."
+      45 |     );
+      46 |   }
+
+      at new warn (src/services/audit_log_service.ts:43:13)
+      at Object.<anonymous> (src/services/audit_log_service.test.ts:10:23)
+
+FAIL src/lib/database/postgresql_adapter.test.ts
+  ● Test suite failed to run
+
+    Cannot find module 'pg' from 'src/lib/database/postgresql_adapter.test.ts'
+
+       6 |
+       7 | // Mock the 'pg' module
+    >  8 | jest.mock("pg", () => {
+         |      ^
+       9 |   const mPoolClient = {
+      10 |     query: jest.fn(),
+      11 |     release: jest.fn(),
+
+      at Resolver._throwModNotFoundError (node_modules/.pnpm/jest-resolve@29.7.0/node_modules/jest-resolve/build/resolver.js:427:11)
+      at Object.mock (src/lib/database/postgresql_adapter.test.ts:8:6)
+
+PASS src/lib/authUtils.test.ts
+
+Test Suites: 2 failed, 3 passed, 5 total
+Tests:       1 failed, 24 passed, 25 total
+Snapshots:   0 total
+Time:        1.942 s, estimated 2 s
+Ran all test suites.
