@@ -1,0 +1,80 @@
+name: HMS CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/hms-web # Adjust if your pnpm workspace is set up differently
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10 # Specify pnpm version if needed
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint code
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm tsc --noEmit
+
+      - name: Run Jest tests
+        run: pnpm test --coverage
+
+      # Placeholder for Playwright E2E tests - requires app to be running
+      # You might need to build the app first and serve it, or use a more complex setup
+      # - name: Build Next.js app
+      #   run: pnpm build
+      #
+      # - name: Run Playwright tests
+      #   run: pnpm playwright test
+      #   env:
+      #     CI: true
+      #     # Add any other environment variables Playwright needs
+
+      - name: Build Next.js app
+        run: pnpm build
+
+      # Optional: Upload coverage reports
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }} # if you use Codecov
+      #     directory: ./apps/hms-web/coverage/
+      #     flags: jest
+
