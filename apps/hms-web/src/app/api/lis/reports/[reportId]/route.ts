@@ -1,20 +1,12 @@
 // app/api/lis/reports/[reportId]/route.ts
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { NextRequest } from "next/server";
+import { PrismaClient, Prisma, LabReportStatus, LabOrderStatus } from "@prisma/client";
 import { z } from "zod";
+import { getCurrentUser, hasPermission } from "@/lib/authUtils";
+import { auditLogService } from "@/lib/auditLogUtils";
+import { sendErrorResponse, sendSuccessResponse } from "@/lib/apiResponseUtils";
 
 const prisma = new PrismaClient();
-
-// Placeholder for hasPermission, replace with actual implementation
-const hasPermission = async (userId: string | undefined, permission: string) => {
-  if (permission === "LIS_VIEW_SPECIFIC_REPORT" || permission === "LIS_UPDATE_REPORT_STATUS") return true; // Example
-  return !!userId;
-};
-
-// Placeholder for getCurrentUser, replace with actual implementation
-const getCurrentUser = async () => {
-  return { id: "mockUserId", name: "Mock User" };
-};
 
 interface RouteContext {
   params: {
@@ -22,16 +14,32 @@ interface RouteContext {
   };
 }
 
-export async function GET(request: Request, { params }: RouteContext) {
+const labReportStatusValues = Object.values(LabReportStatus);
+
+export async function GET(request: NextRequest, { params }: RouteContext) {
+  const start = Date.now();
+  let userId: string | undefined;
+  const { reportId } = params;
+
+  if (!z.string().cuid().safeParse(reportId).success) {
+    return sendErrorResponse("Invalid report ID format.", 400, { reportId });
+  }
+
   try {
-    const { reportId } = params;
-    const currentUser = await getCurrentUser();
+    const currentUser = await getCurrentUser(request);
+    userId = currentUser?.id;
 
-    // const canViewReport = await hasPermission(currentUser?.id, "LIS_VIEW_SPECIFIC_REPORT");
-    // if (!canViewReport) {
-    //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    // }
+    if (!currentUser || !userId) {
+      return sendErrorResponse("Unauthorized: User not authenticated.", 401);
+    }
 
+    const canViewReport = await hasPermission(userId, "LIS_VIEW_SPECIFIC_REPORT");
+    if (!canViewReport) {
+      await auditLogService.logEvent(userId, "LIS_VIEW_SPECIFIC_REPORT_ATTEMPT_DENIED", { reportId, path: request.nextUrl.pathname });
+      return sendErrorResponse("Forbidden: You do not have permission to view this LIS report.", 403);
+    }
+
+    console.log(`[LIS_REPORT_ID_GET] User ${userId} fetching lab report ID: ${reportId}`);
     const labReport = await prisma.labReport.findUnique({
       where: { id: reportId },
       include: {
@@ -47,101 +55,210 @@ export async function GET(request: Request, { params }: RouteContext) {
     });
 
     if (!labReport) {
-      return NextResponse.json({ error: "Lab report not found" }, { status: 404 });
+      await auditLogService.logEvent(userId, "LIS_VIEW_SPECIFIC_REPORT_NOT_FOUND", { reportId });
+      return sendErrorResponse("Lab report not found.", 404, { reportId });
     }
+    
+    await auditLogService.logEvent(userId, "LIS_VIEW_SPECIFIC_REPORT_SUCCESS", { reportId, data: labReport });
+    const duration = Date.now() - start;
+    console.log(`[LIS_REPORT_ID_GET] Request processed in ${duration}ms.`);
+    return sendSuccessResponse(labReport);
 
-    return NextResponse.json(labReport);
-  } catch (error) {
-    console.error("[LIS_REPORT_ID_GET]", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("[LIS_REPORT_ID_GET_ERROR]", { userId, reportId, errorMessage: error.message, stack: error.stack, path: request.nextUrl.pathname });
+    await auditLogService.logEvent(userId, "LIS_VIEW_SPECIFIC_REPORT_FAILED", { reportId, path: request.nextUrl.pathname, error: String(error.message) });
+    const duration = Date.now() - start;
+    console.error(`[LIS_REPORT_ID_GET] Request failed after ${duration}ms.`);
+    return sendErrorResponse("Internal Server Error", 500, String(error.message));
   }
 }
 
 const updateLabReportSchema = z.object({
-  status: z.string().optional(), // e.g., DRAFT, FINALIZED, REVISED
-  // Potentially other updatable fields like notes, or if a report can be re-assigned
-  // fileName: z.string().optional(),
-  // fileType: z.string().optional(),
-  // fileSize: z.number().int().positive().optional(),
-  // storagePath: z.string().optional(),
+  status: z.nativeEnum(LabReportStatus, {
+    errorMap: (issue, ctx) => {
+      if (issue.code === z.ZodIssueCode.invalid_enum_value) {
+        return { message: `Invalid status. Must be one of: ${labReportStatusValues.join(", ")}` };
+      }
+      return { message: ctx.defaultError };
+    },
+  }).optional(),
+  observations: z.string().max(5000).optional().nullable(),
+  fileName: z.string().min(1).max(255).optional().nullable(),
+  fileType: z.string().min(1).max(100).optional().nullable(),
+  fileSize: z.number().int().positive().optional().nullable(),
+  storagePath: z.string().min(1).max(1024).optional().nullable(),
 });
 
-export async function PUT(request: Request, { params }: RouteContext) {
+export async function PUT(request: NextRequest, { params }: RouteContext) {
+  const start = Date.now();
+  let userId: string | undefined;
+  const { reportId } = params;
+
+  if (!z.string().cuid().safeParse(reportId).success) {
+    return sendErrorResponse("Invalid report ID format.", 400, { reportId });
+  }
+
   try {
-    const { reportId } = params;
-    const currentUser = await getCurrentUser();
+    const currentUser = await getCurrentUser(request);
+    userId = currentUser?.id;
 
-    // const canUpdateReport = await hasPermission(currentUser?.id, "LIS_UPDATE_REPORT_STATUS");
-    // if (!canUpdateReport) {
-    //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    // }
+    if (!currentUser || !userId) {
+      return sendErrorResponse("Unauthorized: User not authenticated.", 401);
+    }
 
-    const body = await request.json();
+    const canUpdateReport = await hasPermission(userId, "LIS_UPDATE_REPORT_METADATA");
+    if (!canUpdateReport) {
+      await auditLogService.logEvent(userId, "LIS_UPDATE_REPORT_METADATA_ATTEMPT_DENIED", { reportId, path: request.nextUrl.pathname });
+      return sendErrorResponse("Forbidden: You do not have permission to update this LIS report.", 403);
+    }
+
+    const body: unknown = await request.json();
+    console.log(`[LIS_REPORT_ID_PUT] User ${userId} attempting to update lab report ${reportId} with body:`, body);
+
     const validation = updateLabReportSchema.safeParse(body);
-
     if (!validation.success) {
-      return NextResponse.json({ error: "Invalid input", details: validation.error.formErrors }, { status: 400 });
+      console.warn(`[LIS_REPORT_ID_PUT] Validation failed for report ${reportId}:`, validation.error.flatten());
+      await auditLogService.logEvent(userId, "LIS_UPDATE_REPORT_METADATA_VALIDATION_FAILED", { reportId, path: request.nextUrl.pathname, errors: validation.error.flatten() });
+      return sendErrorResponse("Invalid input", 400, validation.error.flatten().fieldErrors);
+    }
+
+    if (Object.keys(validation.data).length === 0) {
+        return sendErrorResponse("No fields provided for update.", 400);
     }
 
     const existingReport = await prisma.labReport.findUnique({
       where: { id: reportId },
+      include: { labOrder: true }
     });
 
     if (!existingReport) {
-      return NextResponse.json({ error: "Lab report not found" }, { status: 404 });
+      await auditLogService.logEvent(userId, "LIS_UPDATE_REPORT_METADATA_FAILED_NOT_FOUND", { reportId });
+      return sendErrorResponse("Lab report not found.", 404, { reportId });
     }
+
+    if (existingReport.status === LabReportStatus.FINALIZED && validation.data.status && validation.data.status !== LabReportStatus.FINALIZED) {
+        if (validation.data.status !== LabReportStatus.REVISED && validation.data.status !== LabReportStatus.ADDENDUM_ADDED) { 
+            await auditLogService.logEvent(userId, "LIS_UPDATE_REPORT_METADATA_INVALID_STATUS_CHANGE_ON_FINALIZED", { reportId, currentStatus: existingReport.status, attemptedStatus: validation.data.status });
+            return sendErrorResponse(`Cannot change status of a FINALIZED report to ${validation.data.status} directly. Consider REVISED or ADDENDUM_ADDED.`, 409);
+        }
+    }
+    
+    const dataToUpdate: Prisma.LabReportUpdateInput = {
+        ...validation.data,
+        updatedById: userId,
+        updatedAt: new Date(),
+      };
 
     const updatedLabReport = await prisma.labReport.update({
       where: { id: reportId },
-      data: validation.data, // Only updates fields present in validation.data
+      data: dataToUpdate,
       include: {
-        labOrder: true,
+        labOrder: { include: { patient: true, testItems: true } },
         reportedBy: true,
       },
     });
-    
-    // Log this action
-    // await prisma.auditLog.create({ data: { userId: currentUser?.id, eventType: "LIS_REPORT_UPDATED", details: { reportId, changes: validation.data } } });
 
-    return NextResponse.json(updatedLabReport);
-  } catch (error) {
-    console.error("[LIS_REPORT_ID_PUT]", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    if (validation.data.status === LabReportStatus.FINALIZED && existingReport.labOrder.status !== LabOrderStatus.REPORT_AVAILABLE) {
+        await prisma.labOrder.update({
+            where: { id: existingReport.labOrderId },
+            data: { status: LabOrderStatus.REPORT_AVAILABLE }
+        });
+        await auditLogService.logEvent(userId, "LIS_ORDER_STATUS_AUTO_UPDATED_TO_REPORT_AVAILABLE_ON_REPORT_FINALIZE", { labOrderId: existingReport.labOrderId, reportId });
+    }
+
+    console.log(`[LIS_REPORT_ID_PUT] User ${userId} successfully updated lab report ID: ${reportId}`);
+    await auditLogService.logEvent(userId, "LIS_UPDATE_REPORT_METADATA_SUCCESS", { reportId, changes: validation.data, updatedData: updatedLabReport });
+    const duration = Date.now() - start;
+    console.log(`[LIS_REPORT_ID_PUT] Request processed in ${duration}ms.`);
+    return sendSuccessResponse(updatedLabReport);
+
+  } catch (error: any) {
+    console.error("[LIS_REPORT_ID_PUT_ERROR]", { userId, reportId, errorMessage: error.message, stack: error.stack, path: request.nextUrl.pathname });
+    let errStatus = 500;
+    let errMessage = "Internal Server Error";
+    let errDetails: string | undefined = error.message;
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      errDetails = error.message; 
+      if (error.code === "P2025") { 
+        errStatus = 404;
+        errMessage = "Lab report not found.";
+        errDetails = `Lab report with ID ${reportId} not found for update.`;
+      }
+    }
+    await auditLogService.logEvent(userId, "LIS_UPDATE_REPORT_METADATA_FAILED", { reportId, path: request.nextUrl.pathname, error: errMessage, details: String(errDetails) });
+    const duration = Date.now() - start;
+    console.error(`[LIS_REPORT_ID_PUT] Request failed after ${duration}ms.`);
+    return sendErrorResponse(errMessage, errStatus, String(errDetails));
   }
 }
 
-// Optional: DELETE endpoint if reports can be deleted (consider soft delete)
-export async function DELETE(request: Request, { params }: RouteContext) {
-  try {
-    const { reportId } = params;
-    const currentUser = await getCurrentUser();
+export async function DELETE(request: NextRequest, { params }: RouteContext) {
+  const start = Date.now();
+  let userId: string | undefined;
+  const { reportId } = params;
 
-    // const canDeleteReport = await hasPermission(currentUser?.id, "LIS_DELETE_REPORT");
-    // if (!canDeleteReport) {
-    //   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    // }
+  if (!z.string().cuid().safeParse(reportId).success) {
+    return sendErrorResponse("Invalid report ID format.", 400, { reportId });
+  }
+
+  try {
+    const currentUser = await getCurrentUser(request);
+    userId = currentUser?.id;
+
+    if (!currentUser || !userId) {
+      return sendErrorResponse("Unauthorized: User not authenticated.", 401);
+    }
+
+    const canDeleteReport = await hasPermission(userId, "LIS_DELETE_REPORT_METADATA");
+    if (!canDeleteReport) {
+      await auditLogService.logEvent(userId, "LIS_DELETE_REPORT_METADATA_ATTEMPT_DENIED", { reportId, path: request.nextUrl.pathname });
+      return sendErrorResponse("Forbidden: You do not have permission to delete this LIS report metadata.", 403);
+    }
+
+    console.log(`[LIS_REPORT_ID_DELETE] User ${userId} attempting to delete lab report ID: ${reportId}`);
 
     const existingReport = await prisma.labReport.findUnique({
       where: { id: reportId },
     });
 
     if (!existingReport) {
-      return NextResponse.json({ error: "Lab report not found" }, { status: 404 });
+      await auditLogService.logEvent(userId, "LIS_DELETE_REPORT_METADATA_FAILED_NOT_FOUND", { reportId });
+      return sendErrorResponse("Lab report not found.", 404, { reportId });
     }
 
-    // Instead of actual deletion, consider updating a status to "ARCHIVED" or similar (soft delete)
-    // For hard delete:
+    if (existingReport.status === LabReportStatus.FINALIZED) {
+        await auditLogService.logEvent(userId, "LIS_DELETE_REPORT_METADATA_DENIED_FINALIZED", { reportId, status: existingReport.status });
+        return sendErrorResponse("Cannot delete a FINALIZED report. Consider archiving or revising.", 409);
+    }
+
     await prisma.labReport.delete({
       where: { id: reportId },
     });
 
-    // Log this action
-    // await prisma.auditLog.create({ data: { userId: currentUser?.id, eventType: "LIS_REPORT_DELETED", details: { reportId } } });
+    await auditLogService.logEvent(userId, "LIS_DELETE_REPORT_METADATA_SUCCESS", { reportId, deletedReportDetails: existingReport });
+    const duration = Date.now() - start;
+    console.log(`[LIS_REPORT_ID_DELETE] User ${userId} successfully deleted lab report ID: ${reportId}. Request processed in ${duration}ms.`);
+    return sendSuccessResponse(null, 204);
 
-    return NextResponse.json({ message: "Lab report deleted successfully" }, { status: 200 }); // Or 204 No Content
-  } catch (error) {
-    console.error("[LIS_REPORT_ID_DELETE]", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("[LIS_REPORT_ID_DELETE_ERROR]", { userId, reportId, errorMessage: error.message, stack: error.stack, path: request.nextUrl.pathname });
+    let errStatus = 500;
+    let errMessage = "Internal Server Error";
+    let errDetails: string | undefined = error.message;
+
+     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        errDetails = error.message; 
+      if (error.code === "P2025") { 
+        errStatus = 404;
+        errMessage = "Lab report not found.";
+        errDetails = `Lab report with ID ${reportId} not found for deletion.`;
+      }
+    }
+    await auditLogService.logEvent(userId, "LIS_DELETE_REPORT_METADATA_FAILED", { reportId, path: request.nextUrl.pathname, error: errMessage, details: String(errDetails) });
+    const duration = Date.now() - start;
+    console.error(`[LIS_REPORT_ID_DELETE] Request failed after ${duration}ms.`);
+    return sendErrorResponse(errMessage, errStatus, String(errDetails));
   }
 }
 
