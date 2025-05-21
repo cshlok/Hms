@@ -3,9 +3,7 @@
 const nextJest = require("next/jest")();
 
 // Providing the path to your Next.js app to load next.config.js and .env files in your test environment
-const createJestConfig = nextJest({
-  dir: "./",
-});
+const createJestConfig = nextJest({});
 
 // Add any custom config to be passed to Jest
 /** @type {import("jest").Config} */
