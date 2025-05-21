@@ -1,0 +1,198 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --- Enums ---
+enum LabOrderStatus {
+  PENDING_SAMPLE
+  SAMPLE_COLLECTED
+  SAMPLE_RECEIVED
+  PROCESSING
+  REPORT_AVAILABLE
+  COMPLETED // Final state, report is available and verified
+  CANCELLED
+}
+
+enum LabReportStatus {
+  DRAFT
+  PRELIMINARY
+  FINALIZED
+  REVISED
+  ADDENDUM_ADDED
+  CANCELLED // If the report itself is cancelled/retracted
+}
+
+enum RadiologyRequestStatus {
+  PENDING_SCHEDULE
+  SCHEDULED
+  PATIENT_ARRIVED
+  IN_PROGRESS
+  COMPLETED // Procedure done, report pending
+  REPORT_AVAILABLE
+  CANCELLED
+}
+
+enum RadiologyReportStatus {
+  DRAFT
+  PRELIMINARY
+  FINALIZED
+  REVISED
+  ADDENDUM_ADDED
+  CANCELLED
+}
+
+// General Purpose Models
+model User {
+  id               String    @id @default(cuid())
+  name             String?
+  email            String?   @unique
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  roles            Role[]
+  LabOrder         LabOrder[] // User who ordered the lab test
+  RadiologyRequest RadiologyRequest[] // User who ordered the radiology request
+  LabReport        LabReport[] @relation("LabReportTechnician")
+  RadiologyReport  RadiologyReport[] @relation("RadiologyReportTechnician")
+  AuditLog         AuditLog[]
+}
+
+model Role {
+  id          String @id @default(cuid())
+  name        String @unique
+  permissions Permission[]
+  users       User[]
+}
+
+model Permission {
+  id    String @id @default(cuid())
+  name  String @unique // e.g., LIS_ORDER_TEST, LIS_UPLOAD_REPORT
+  roles Role[]
+}
+
+model Patient {
+  id               String    @id @default(cuid())
+  firstName        String
+  lastName         String
+  dateOfBirth      DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  LabOrder         LabOrder[]
+  RadiologyRequest RadiologyRequest[]
+}
+
+// LIS Models
+model LabTestItem {
+  id          String     @id @default(cuid())
+  name        String
+  code        String?
+  description String?
+  category    String?
+  price       Float?
+  LabOrder    LabOrder[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model LabOrder {
+  id             String         @id @default(cuid())
+  patientId      String
+  patient        Patient        @relation(fields: [patientId], references: [id])
+  orderedById    String
+  orderedBy      User           @relation(fields: [orderedById], references: [id])
+  testItems      LabTestItem[]
+  orderDate      DateTime       @default(now())
+  status         LabOrderStatus @default(PENDING_SAMPLE)
+  sampleId       String?
+  collectionDate DateTime?
+  notes          String?
+  LabReport      LabReport?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model LabReport {
+  id           String          @id @default(cuid())
+  labOrderId   String          @unique
+  labOrder     LabOrder        @relation(fields: [labOrderId], references: [id])
+  reportDate   DateTime        @default(now())
+  reportedById String
+  reportedBy   User            @relation("LabReportTechnician", fields: [reportedById], references: [id])
+  fileName     String?
+  fileType     String?
+  fileSize     Int?
+  storagePath  String?
+  status       LabReportStatus @default(DRAFT)
+  observations String? // Added observations field as per previous code
+  updatedById  String?  // Added as per previous code PUT logic
+  // updatedBy    User?    @relation("LabReportUpdater", fields: [updatedById], references: [id]) // Optional: if you want to link to User table
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+// Radiology Models
+model RadiologyProcedure {
+  id               String             @id @default(cuid())
+  name             String
+  code             String?
+  description      String?
+  category         String?
+  price            Float?
+  RadiologyRequest RadiologyRequest[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model RadiologyRequest {
+  id              String                 @id @default(cuid())
+  patientId       String
+  patient         Patient                @relation(fields: [patientId], references: [id])
+  orderedById     String
+  orderedBy       User                   @relation(fields: [orderedById], references: [id])
+  procedures      RadiologyProcedure[]
+  requestDate     DateTime               @default(now())
+  scheduledDate   DateTime?
+  status          RadiologyRequestStatus @default(PENDING_SCHEDULE)
+  reason          String?
+  notes           String?
+  RadiologyReport RadiologyReport?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+}
+
+model RadiologyReport {
+  id                 String                @id @default(cuid())
+  radiologyRequestId String                @unique
+  radiologyRequest   RadiologyRequest      @relation(fields: [radiologyRequestId], references: [id])
+  reportDate         DateTime              @default(now())
+  reportedById       String
+  reportedBy         User                  @relation("RadiologyReportTechnician", fields: [reportedById], references: [id])
+  fileName           String?
+  fileType           String?
+  fileSize           Int?
+  storagePath        String?
+  status             RadiologyReportStatus @default(DRAFT)
+  findings           String? // Added findings field as per previous code
+  updatedById        String? // Added as per previous code PUT logic
+  // updatedBy          User?    @relation("RadiologyReportUpdater", fields: [updatedById], references: [id]) // Optional
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+}
+
+// Audit Log Model
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  eventType String
+  details   Json
+  timestamp DateTime @default(now())
+}
+
