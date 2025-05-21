@@ -1,0 +1,159 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --- Billing Module --- //
+
+model Charge {
+  id            String    @id @default(cuid())
+  patientId     String
+  serviceId     String    // Could link to a ServiceDefinition model
+  amount        Decimal   // Use Decimal for monetary values
+  dateOfService DateTime
+  providerId    String    // Could link to a Provider/Doctor model
+  notes         String?
+  status        String    @default("pending_invoice") // e.g., pending_invoice, invoiced, paid, cancelled
+  invoiceId     String?   // Link to an Invoice
+  Invoice       Invoice?  @relation(fields: [invoiceId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Invoice {
+  id             String       @id @default(cuid())
+  patientId      String
+  invoiceNumber  String       @unique // Or generate sequentially
+  issueDate      DateTime     @default(now())
+  dueDate        DateTime
+  totalAmount    Decimal
+  paidAmount     Decimal      @default(0.00)
+  status         String       @default("unpaid") // e.g., unpaid, partially_paid, paid, void, overdue
+  charges        Charge[]
+  payments       Payment[]
+  billingPackage BillingPackage? @relation(fields: [billingPackageId], references: [id])
+  billingPackageId String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  // Invoice     Invoice  @relation(fields: [invoiceId], references: [id]) // Prisma implicitly creates this back-relation
+  description String
+  quantity    Int
+  unitPrice   Decimal
+  totalPrice  Decimal
+  chargeId    String? // Optional link back to the original charge
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  invoiceId       String
+  Invoice         Invoice  @relation(fields: [invoiceId], references: [id])
+  paymentDate     DateTime @default(now())
+  amountPaid      Decimal
+  paymentMethod   String   // e.g., credit_card, cash, bank_transfer, insurance
+  transactionId   String?  @unique // From payment gateway or internal ref
+  notes           String?
+  status          String   @default("completed") // e.g., completed, pending, failed, refunded
+  refundedAmount  Decimal? @default(0.00)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BillingPackage {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  price       Decimal
+  serviceIds  String[]  // List of service IDs included in the package
+  isActive    Boolean   @default(true)
+  invoices    Invoice[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// --- Insurance Module --- //
+
+model InsurancePolicy {
+  id                 String    @id @default(cuid())
+  patientId          String
+  insurerName        String
+  policyNumber       String    @unique
+  groupNumber        String?
+  coverageStartDate  DateTime
+  coverageEndDate    DateTime
+  coverageDetails    String?
+  subscriberName     String?
+  subscriberDob      DateTime?
+  relationship       String?   // e.g., Self, Spouse, Child
+  claims             Claim[]
+  eligibilityChecks  EligibilityCheck[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Claim {
+  id                String    @id @default(cuid())
+  insurancePolicyId String
+  InsurancePolicy   InsurancePolicy @relation(fields: [insurancePolicyId], references: [id])
+  invoiceId         String    // Link to the hospital invoice
+  tpaClaimId        String?   @unique // Claim ID from TPA/Insurer
+  submissionDate    DateTime  @default(now())
+  claimAmount       Decimal
+  paidByInsurer     Decimal?  @default(0.00)
+  patientResponsibility Decimal?
+  status            String    // e.g., submitted, pending_adjudication, approved, denied, requires_information, paid
+  adjudicationDate  DateTime?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model PreAuthorization {
+  id                String    @id @default(cuid())
+  patientId         String
+  insurancePolicyId String?
+  // InsurancePolicy   InsurancePolicy? @relation(fields: [insurancePolicyId], references: [id])
+  serviceId         String    // Service requiring pre-auth
+  requestDate       DateTime  @default(now())
+  status            String    // e.g., pending, approved, denied, requires_more_info
+  authNumber        String?   @unique
+  expiryDate        DateTime?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model EligibilityCheck {
+  id                String    @id @default(cuid())
+  insurancePolicyId String
+  InsurancePolicy   InsurancePolicy @relation(fields: [insurancePolicyId], references: [id])
+  checkDate         DateTime  @default(now())
+  isEligible        Boolean
+  coverageDetails   String?
+  checkedByUserId   String?
+  source            String?   // e.g., "TPA_API", "Manual"
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+// --- Shared/User Module (Placeholder for context) --- //
+// model User {
+//   id        String    @id @default(cuid())
+//   email     String    @unique
+//   name      String?
+//   // ... other user fields
+//   createdAt DateTime  @default(now())
+//   updatedAt DateTime  @updatedAt
+// }
+
