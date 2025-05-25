@@ -1,0 +1,357 @@
+// HR & Asset Management Module Schema Extensions
+
+// Employee Management (FHIR Practitioner)
+model Employee {
+  id                String              @id @default(cuid())
+  userId            String?             @unique
+  user              User?               @relation(fields: [userId], references: [id])
+  employeeId        String              @unique // Employee ID number
+  active            Boolean             @default(true)
+  firstName         String
+  lastName          String
+  middleName        String?
+  gender            Gender?
+  birthDate         DateTime?
+  photo             String?             // URL to employee photo
+  email             String?
+  phone             String?
+  address           Json?               // Structured address data
+  joiningDate       DateTime
+  terminationDate   DateTime?
+  emergencyContact  Json?               // Emergency contact information
+  department        Department?         @relation(fields: [departmentId], references: [id])
+  departmentId      String?
+  positions         EmployeePosition[]
+  qualifications    Qualification[]
+  attendanceRecords Attendance[]
+  leaves            Leave[]
+  payrolls          EmployeePayroll[]
+  assignedAssets    AssetAssignment[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+// Department
+model Department {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  code        String     @unique
+  description String?
+  parentId    String?    // For hierarchical departments
+  parent      Department? @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children    Department[] @relation("DepartmentHierarchy")
+  employees   Employee[]
+  positions   Position[]
+  assets      Asset[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// Position (FHIR PractitionerRole)
+model Position {
+  id             String             @id @default(cuid())
+  title          String
+  code           String             @unique
+  description    String?
+  departmentId   String?
+  department     Department?        @relation(fields: [departmentId], references: [id])
+  employeePositions EmployeePosition[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+// Employee Position (Many-to-Many with additional data)
+model EmployeePosition {
+  id          String    @id @default(cuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  positionId  String
+  position    Position  @relation(fields: [positionId], references: [id])
+  isPrimary   Boolean   @default(false)
+  startDate   DateTime
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([employeeId, positionId, startDate])
+}
+
+// Qualification (FHIR Practitioner.qualification)
+model Qualification {
+  id          String    @id @default(cuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  code        String    // Qualification code
+  name        String    // Qualification name
+  issuer      String?   // Issuing organization
+  identifier  String?   // License/certification number
+  startDate   DateTime
+  endDate     DateTime?
+  attachment  String?   // URL to certificate document
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Attendance Management
+model Attendance {
+  id                String           @id @default(cuid())
+  employeeId        String
+  employee          Employee         @relation(fields: [employeeId], references: [id])
+  date              DateTime         @db.Date
+  checkInTime       DateTime?
+  checkOutTime      DateTime?
+  status            AttendanceStatus @default(PRESENT)
+  biometricVerified Boolean          @default(false)
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([employeeId, date])
+}
+
+// Leave Management
+model Leave {
+  id          String       @id @default(cuid())
+  employeeId  String
+  employee    Employee     @relation(fields: [employeeId], references: [id])
+  leaveType   LeaveType
+  startDate   DateTime     @db.Date
+  endDate     DateTime     @db.Date
+  status      LeaveStatus  @default(PENDING)
+  reason      String?
+  approvedById String?
+  approvedBy  User?        @relation(fields: [approvedById], references: [id])
+  approvedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+// Payroll Management
+model Payroll {
+  id             String         @id @default(cuid())
+  periodStart    DateTime       @db.Date
+  periodEnd      DateTime       @db.Date
+  processedDate  DateTime
+  status         PayrollStatus  @default(DRAFT)
+  totalAmount    Decimal        @db.Decimal(10, 2)
+  employeeCount  Int
+  processedById  String
+  processedBy    User           @relation(fields: [processedById], references: [id])
+  notes          String?
+  employeePayrolls EmployeePayroll[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([periodStart, periodEnd])
+}
+
+model EmployeePayroll {
+  id              String          @id @default(cuid())
+  payrollId       String
+  payroll         Payroll         @relation(fields: [payrollId], references: [id])
+  employeeId      String
+  employee        Employee        @relation(fields: [employeeId], references: [id])
+  basicSalary     Decimal         @db.Decimal(10, 2)
+  allowances      Json            // Array of {name, amount, type}
+  deductions      Json            // Array of {name, amount, type}
+  tax             Decimal         @db.Decimal(10, 2)
+  netSalary       Decimal         @db.Decimal(10, 2)
+  paymentStatus   PaymentStatus   @default(PENDING)
+  paymentDate     DateTime?
+  paymentReference String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([payrollId, employeeId])
+}
+
+// Asset Management
+model Asset {
+  id                String            @id @default(cuid())
+  assetId           String            @unique // Asset ID/Tag number
+  name              String
+  description       String?
+  assetType         AssetType
+  status            AssetStatus       @default(ACTIVE)
+  serialNumber      String?
+  modelNumber       String?
+  manufacturer      String?
+  manufactureDate   DateTime?
+  purchaseDate      DateTime?
+  purchaseCost      Decimal?          @db.Decimal(10, 2)
+  expirationDate    DateTime?
+  departmentId      String?
+  department        Department?       @relation(fields: [departmentId], references: [id])
+  location          String?
+  assignments       AssetAssignment[]
+  maintenanceRecords MaintenanceRecord[]
+  isBiomedical      Boolean           @default(false)
+  biomedicalDetails BiomedicalEquipment?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model AssetAssignment {
+  id          String    @id @default(cuid())
+  assetId     String
+  asset       Asset     @relation(fields: [assetId], references: [id])
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  assignedAt  DateTime  @default(now())
+  returnedAt  DateTime?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([assetId, employeeId, assignedAt])
+}
+
+model MaintenanceRecord {
+  id                String              @id @default(cuid())
+  assetId           String
+  asset             Asset               @relation(fields: [assetId], references: [id])
+  maintenanceType   MaintenanceType
+  scheduledDate     DateTime
+  completedDate     DateTime?
+  status            MaintenanceStatus   @default(SCHEDULED)
+  performedBy       String?             // Name of person/vendor who performed maintenance
+  cost              Decimal?            @db.Decimal(10, 2)
+  notes             String?
+  attachments       Json?               // Array of attachment URLs
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+// Biomedical Equipment Management
+model BiomedicalEquipment {
+  id                  String                @id @default(cuid())
+  assetId             String                @unique
+  asset               Asset                 @relation(fields: [assetId], references: [id])
+  deviceType          String
+  udiDeviceIdentifier String?               // Unique Device Identifier
+  regulatoryStatus    RegulatoryStatus      @default(REGISTERED)
+  riskClassification  RiskClassification    @default(LOW)
+  lastCalibrationDate DateTime?
+  nextCalibrationDate DateTime?
+  calibrationFrequency Int?                 // In days
+  calibrationRecords  CalibrationRecord[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+}
+
+model CalibrationRecord {
+  id                  String                @id @default(cuid())
+  biomedicalEquipmentId String
+  biomedicalEquipment BiomedicalEquipment   @relation(fields: [biomedicalEquipmentId], references: [id])
+  calibrationType     CalibrationType
+  performedDate       DateTime
+  performedBy         String                // Name of person/vendor who performed calibration
+  status              CalibrationStatus     @default(PASSED)
+  notes               String?
+  attachments         Json?                 // Array of attachment URLs
+  nextDueDate         DateTime
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+}
+
+// Enums
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HALF_DAY
+  ON_LEAVE
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  MATERNITY
+  PATERNITY
+  UNPAID
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PayrollStatus {
+  DRAFT
+  PROCESSING
+  COMPLETED
+  ERROR
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum AssetType {
+  FURNITURE
+  IT_EQUIPMENT
+  MEDICAL_EQUIPMENT
+  VEHICLE
+  BUILDING
+  OTHER
+}
+
+enum AssetStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  DISPOSED
+  LOST
+}
+
+enum MaintenanceType {
+  PREVENTIVE
+  CORRECTIVE
+  INSPECTION
+  CALIBRATION
+  OTHER
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum RegulatoryStatus {
+  REGISTERED
+  PENDING
+  NOT_REQUIRED
+}
+
+enum RiskClassification {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum CalibrationType {
+  INITIAL
+  PERIODIC
+  UNSCHEDULED
+}
+
+enum CalibrationStatus {
+  PASSED
+  FAILED
+  INCOMPLETE
+}
