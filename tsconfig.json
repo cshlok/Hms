@@ -1,53 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".", // Explicitly set baseUrl for clarity
+    "sourceMap": true,
+    "declaration": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./apps/hms-web/src/*" // Adjusted path to point to the hms-web app's src directory
-      ]
-    },
-    "types": [
-      "@cloudflare/workers-types"
-    ]
+      "@/*": ["src/*"]
+    }
   },
-  "include": [
-    "apps/hms-web/.next/types/**/*.ts", // Make include paths more specific if this tsconfig is for hms-web
-    "apps/hms-web/env.d.ts",
-    "apps/hms-web/next-env.d.ts",
-    "apps/hms-web/src/**/*.ts",
-    "apps/hms-web/src/**/*.tsx", // This might be at root or within apps/hms-web
-    "next.config.mjs",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-    // "home/ubuntu/logs_and_configs" // This seems like an absolute path, usually exclude is relative
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
