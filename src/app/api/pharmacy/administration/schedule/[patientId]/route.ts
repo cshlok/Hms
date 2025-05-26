@@ -237,7 +237,7 @@ function generateScheduleTimes(frequency: string, start: Date, end: Date): Date[
     const match = frequency.match(/every\s+(\d+)\s+hours/i);
     if (match && match[1]) {
       const hours = parseInt(match[1], 10);
-      let time = new Date(start);
+      const time = new Date(start);
       time.setMinutes(0, 0, 0);
       time.setHours(Math.ceil(time.getHours() / hours) * hours);
       

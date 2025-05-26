@@ -1,403 +1,339 @@
 /**
- * Domain-Driven Design Implementation for Pharmacy Module
+ * Domain Models for Pharmacy Module
  * 
- * This file implements the core domain models and entities for the
- * Pharmacy & Prescriptions module following DDD principles.
+ * This file contains the domain models for the pharmacy module,
+ * following domain-driven design principles.
  */
 
-// Core Domain Models
-export namespace PharmacyDomain {
-  // Value Objects
-  export class Dosage {
-    constructor(
-      public readonly value: number,
-      public readonly unit: string,
-      public readonly route: string,
-      public readonly frequency: string,
-      public readonly duration?: number,
-      public readonly durationUnit?: string
-    ) {}
+import { z } from 'zod';
 
-    public toString(): string {
-      let result = `${this.value} ${this.unit} ${this.route} ${this.frequency}`;
-      if (this.duration && this.durationUnit) {
-        result += ` for ${this.duration} ${this.durationUnit}`;
-      }
-      return result;
-    }
-  }
+// Define domain models using ES2015 module syntax instead of namespace
+export interface Medication {
+  id: string;
+  name: string;
+  brandName: string;
+  ndc: string;
+  form: string;
+  strength: number;
+  unit: string;
+  isControlled: boolean;
+  isHighAlert: boolean;
+  controlledSubstanceSchedule?: string;
+  therapeuticClass?: string;
+  manufacturer?: string;
+  description?: string;
+  warnings?: string[];
+  contraindications?: string[];
+  interactions?: string[];
+  sideEffects?: string[];
+  storageRequirements?: string;
+  requiresRefrigeration?: boolean;
+  requiresControlledStorage?: boolean;
+}
 
-  export class MedicationCode {
-    constructor(
-      public readonly system: string,
-      public readonly code: string,
-      public readonly display: string
-    ) {}
-  }
+export interface MedicationInventory {
+  id: string;
+  medicationId: string;
+  locationId: string;
+  batchNumber: string;
+  lotNumber: string;
+  expirationDate: Date;
+  quantity: number;
+  reorderThreshold: number;
+  reorderQuantity: number;
+  lastCountDate: Date;
+  status: 'active' | 'expired' | 'recalled' | 'depleted';
+  cost: number;
+  supplier: string;
+  receivedDate: Date;
+  notes?: string;
+}
 
-  export class StrengthValue {
-    constructor(
-      public readonly numerator: number,
-      public readonly numeratorUnit: string,
-      public readonly denominator?: number,
-      public readonly denominatorUnit?: string
-    ) {}
+export interface MedicationOrder {
+  id: string;
+  patientId: string;
+  providerId: string;
+  medicationId: string;
+  status: 'draft' | 'active' | 'on-hold' | 'cancelled' | 'completed' | 'entered-in-error' | 'stopped' | 'unknown';
+  orderDate: Date;
+  dosage: Record<string, unknown>;
+  frequency: string;
+  route: string;
+  duration: string;
+  startDate?: Date;
+  endDate?: Date;
+  indication?: string;
+  notes?: string;
+  isStatOrder?: boolean;
+  prn?: boolean;
+  prnReason?: string;
+  reconciliationId?: string;
+}
 
-    public toString(): string {
-      if (this.denominator && this.denominatorUnit) {
-        return `${this.numerator} ${this.numeratorUnit}/${this.denominator} ${this.denominatorUnit}`;
-      }
-      return `${this.numerator} ${this.numeratorUnit}`;
-    }
-  }
+export interface MedicationDispense {
+  id: string;
+  patientId: string;
+  providerId: string;
+  medicationId: string;
+  prescriptionId: string;
+  dispenserId: string;
+  status: 'preparation' | 'in-progress' | 'cancelled' | 'on-hold' | 'completed' | 'entered-in-error' | 'stopped' | 'declined' | 'unknown';
+  dispenseDate: Date;
+  quantity: number;
+  daysSupply: number;
+  batchNumber?: string;
+  lotNumber?: string;
+  expirationDate?: Date;
+  notes?: string;
+  locationId: string;
+  verifierId?: string;
+  verificationDate?: Date;
+  isPartialFill?: boolean;
+  remainingQuantity?: number;
+  labelInstructions?: string;
+  patientInstructions?: string;
+}
 
-  // Entities
-  export class Medication {
-    constructor(
-      public readonly id: string,
-      public readonly name: string,
-      public readonly genericName: string,
-      public readonly form: string,
-      public readonly codes: MedicationCode[],
-      public readonly ingredients: MedicationIngredient[],
-      public readonly status: 'active' | 'inactive' | 'entered-in-error',
-      public readonly manufacturer?: string,
-      public readonly description?: string,
-      public readonly imageUrl?: string
-    ) {}
+export interface MedicationAdministration {
+  id: string;
+  patientId: string;
+  providerId: string;
+  medicationId: string;
+  prescriptionId: string;
+  status: 'in-progress' | 'not-done' | 'on-hold' | 'completed' | 'entered-in-error' | 'stopped' | 'unknown';
+  administrationDate: Date;
+  dosage: number;
+  unit: string;
+  route: string;
+  site?: string;
+  notes?: string;
+  verifierId?: string;
+  verificationMethod?: 'barcode' | 'manual' | 'override';
+  reasonNotAdministered?: string;
+  adverseReaction?: boolean;
+  adverseReactionDetails?: string;
+}
 
-    public isActive(): boolean {
-      return this.status === 'active';
-    }
-  }
+export interface MedicationReconciliation {
+  id: string;
+  patientId: string;
+  providerId: string;
+  sourceType: 'admission' | 'discharge' | 'transfer';
+  targetType: 'inpatient' | 'outpatient';
+  reconciliationDate: Date;
+  status: 'in-progress' | 'completed' | 'cancelled';
+  discrepancies: MedicationDiscrepancy[];
+  actions: ReconciliationAction[];
+}
 
-  export class MedicationIngredient {
-    constructor(
-      public readonly id: string,
-      public readonly substanceId: string,
-      public readonly substanceName: string,
-      public readonly strength: StrengthValue,
-      public readonly isActive: boolean = true
-    ) {}
-  }
-
-  export class Prescription {
-    constructor(
-      public readonly id: string,
-      public readonly patientId: string,
-      public readonly prescriberId: string,
-      public readonly medicationId: string,
-      public readonly dosage: Dosage,
-      public readonly quantity: number,
-      public readonly refills: number,
-      public readonly dateWritten: Date,
-      public readonly status: 'active' | 'on-hold' | 'cancelled' | 'completed' | 'entered-in-error' | 'stopped' | 'draft' | 'unknown',
-      public readonly priority: 'routine' | 'urgent' | 'asap' | 'stat',
-      public readonly notes?: string,
-      public readonly reasonCode?: string,
-      public readonly reasonText?: string,
-      public readonly substitutionAllowed: boolean = true,
-      public readonly priorAuthorizationNumber?: string,
-      public readonly priorAuthorizationStatus?: string,
-      public readonly validityPeriod?: { start: Date; end: Date }
-    ) {}
-
-    public isActive(): boolean {
-      return ['active', 'on-hold'].includes(this.status);
-    }
-
-    public canBeDispensed(): boolean {
-      return this.isActive() && this.quantity > 0;
-    }
-
-    public isExpired(): boolean {
-      if (!this.validityPeriod) return false;
-      return new Date() > this.validityPeriod.end;
-    }
-  }
-
-  export class Dispensing {
-    constructor(
-      public readonly id: string,
-      public readonly prescriptionId: string,
-      public readonly medicationId: string,
-      public readonly patientId: string,
-      public readonly dispenserId: string,
-      public readonly quantity: number,
-      public readonly dispensedAt: Date,
-      public readonly status: 'preparation' | 'in-progress' | 'cancelled' | 'on-hold' | 'completed' | 'entered-in-error' | 'stopped',
-      public readonly notes?: string,
-      public readonly substitutionType?: 'therapeutic' | 'generic' | 'none',
-      public readonly substitutionReason?: string,
-      public readonly daysSupply?: number,
-      public readonly whenHandedOver?: Date,
-      public readonly destination?: string,
-      public readonly inventoryBatchIds?: string[]
-    ) {}
-
-    public isComplete(): boolean {
-      return this.status === 'completed';
-    }
-  }
-
-  export class MedicationAdministration {
-    constructor(
-      public readonly id: string,
-      public readonly patientId: string,
-      public readonly medicationId: string,
-      public readonly prescriptionId?: string,
-      public readonly dispensingId?: string,
-      public readonly performerId: string,
-      public readonly dosage: Dosage,
-      public readonly administeredAt: Date,
-      public readonly status: 'in-progress' | 'not-done' | 'on-hold' | 'completed' | 'entered-in-error' | 'stopped' | 'unknown',
-      public readonly statusReason?: string,
-      public readonly notes?: string,
-      public readonly reasonCode?: string,
-      public readonly reasonText?: string,
-      public readonly device?: string,
-      public readonly site?: string,
-      public readonly route?: string,
-      public readonly verificationStatus?: 'unverified' | 'verified'
-    ) {}
-
-    public isComplete(): boolean {
-      return this.status === 'completed';
-    }
-
-    public isVerified(): boolean {
-      return this.verificationStatus === 'verified';
-    }
-  }
-
-  export class InventoryItem {
-    constructor(
-      public readonly id: string,
-      public readonly medicationId: string,
-      public readonly locationId: string,
-      public readonly batchNumber: string,
-      public readonly lotNumber?: string,
-      public readonly expirationDate: Date,
-      public readonly quantity: number,
-      public readonly unitCost: number,
-      public readonly status: 'available' | 'on-hold' | 'reserved' | 'dispensed' | 'expired' | 'destroyed',
-      public readonly receivedDate: Date,
-      public readonly notes?: string,
-      public readonly manufacturer?: string,
-      public readonly isControlledSubstance: boolean = false,
-      public readonly controlledSubstanceSchedule?: string,
-      public readonly storageConditions?: string[]
-    ) {}
-
-    public isAvailable(): boolean {
-      return this.status === 'available' && this.quantity > 0 && new Date() < this.expirationDate;
-    }
-
-    public isExpired(): boolean {
-      return new Date() >= this.expirationDate;
-    }
-
-    public isControlled(): boolean {
-      return this.isControlledSubstance;
-    }
-  }
-
-  // Domain Events
-  export interface DomainEvent {
-    eventId: string;
-    eventType: string;
+export interface MedicationDiscrepancy {
+  id: string;
+  medicationId: string;
+  relatedMedicationId?: string;
+  discrepancyType: 'omission' | 'addition' | 'dosing' | 'frequency' | 'route' | 'duplication';
+  description: string;
+  severity: 'high' | 'medium' | 'low';
+  status: 'unresolved' | 'resolved';
+  resolution?: {
+    action: 'continue' | 'discontinue' | 'modify' | 'substitute';
+    providerId: string;
     timestamp: Date;
-    aggregateId: string;
-    aggregateType: string;
-    data: any;
-  }
+    notes: string;
+  };
+}
 
-  export class PrescriptionCreatedEvent implements DomainEvent {
-    public readonly eventId: string;
-    public readonly eventType: string = 'PrescriptionCreated';
-    public readonly timestamp: Date;
-    public readonly aggregateId: string;
-    public readonly aggregateType: string = 'Prescription';
-    public readonly data: any;
+export interface ReconciliationAction {
+  id: string;
+  discrepancyId: string;
+  action: 'continue' | 'discontinue' | 'modify' | 'substitute';
+  providerId: string;
+  timestamp: Date;
+  notes: string;
+}
 
-    constructor(prescription: Prescription) {
-      this.eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      this.timestamp = new Date();
-      this.aggregateId = prescription.id;
-      this.data = prescription;
-    }
-  }
+export interface MedicationReconciliationResult {
+  reconciliation: MedicationReconciliation;
+  sourceMedications: Medication[];
+  targetMedications: Medication[];
+  discrepancies: MedicationDiscrepancy[];
+}
 
-  export class DispensingCompletedEvent implements DomainEvent {
-    public readonly eventId: string;
-    public readonly eventType: string = 'DispensingCompleted';
-    public readonly timestamp: Date;
-    public readonly aggregateId: string;
-    public readonly aggregateType: string = 'Dispensing';
-    public readonly data: any;
+export interface MedicationReconciliationSummary {
+  id: string;
+  patientId: string;
+  providerId: string;
+  sourceType: 'admission' | 'discharge' | 'transfer';
+  targetType: 'inpatient' | 'outpatient';
+  reconciliationDate: Date;
+  status: 'in-progress' | 'completed' | 'cancelled';
+  discrepancyCount: number;
+  resolvedCount: number;
+}
 
-    constructor(dispensing: Dispensing) {
-      this.eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      this.timestamp = new Date();
-      this.aggregateId = dispensing.id;
-      this.data = dispensing;
-    }
-  }
+export interface MedicationReconciliationReport {
+  reconciliationId: string;
+  patientId: string;
+  patientName: string;
+  providerId: string;
+  providerName: string;
+  reconciliationDate: Date;
+  sourceType: 'admission' | 'discharge' | 'transfer';
+  targetType: 'inpatient' | 'outpatient';
+  status: 'in-progress' | 'completed' | 'cancelled';
+  summary: {
+    totalDiscrepancies: number;
+    resolvedDiscrepancies: number;
+    highSeverityCount: number;
+    mediumSeverityCount: number;
+    lowSeverityCount: number;
+  };
+  discrepancies: Array<MedicationDiscrepancy & {
+    resolution?: {
+      action: 'continue' | 'discontinue' | 'modify' | 'substitute';
+      providerId: string;
+      timestamp: Date;
+      notes: string;
+    };
+  }>;
+}
 
-  export class MedicationAdministeredEvent implements DomainEvent {
-    public readonly eventId: string;
-    public readonly eventType: string = 'MedicationAdministered';
-    public readonly timestamp: Date;
-    public readonly aggregateId: string;
-    public readonly aggregateType: string = 'MedicationAdministration';
-    public readonly data: any;
+export interface DrugInteractionResult {
+  hasInteraction: boolean;
+  isOverridden?: boolean;
+  overrideReason?: string;
+  medications: Medication[];
+  interactionType: 'drug-drug';
+  severity?: 'severe' | 'moderate' | 'mild';
+  description?: string;
+  reference?: string;
+}
 
-    constructor(administration: MedicationAdministration) {
-      this.eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      this.timestamp = new Date();
-      this.aggregateId = administration.id;
-      this.data = administration;
-    }
-  }
+export interface DrugAllergyInteractionResult {
+  hasInteraction: boolean;
+  medication: Medication;
+  interactionType: 'drug-allergy';
+  allergen?: string;
+  allergyClass?: string;
+  severity?: 'severe' | 'moderate' | 'mild';
+  reaction?: string;
+}
 
-  export class InventoryUpdatedEvent implements DomainEvent {
-    public readonly eventId: string;
-    public readonly eventType: string = 'InventoryUpdated';
-    public readonly timestamp: Date;
-    public readonly aggregateId: string;
-    public readonly aggregateType: string = 'InventoryItem';
-    public readonly data: any;
+export interface DrugConditionInteractionResult {
+  hasInteraction: boolean;
+  medication: Medication;
+  condition?: Record<string, unknown>;
+  interactionType: 'drug-condition';
+  severity?: 'severe' | 'moderate' | 'mild';
+  description?: string;
+  reference?: string;
+}
 
-    constructor(inventoryItem: InventoryItem, previousQuantity: number) {
-      this.eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      this.timestamp = new Date();
-      this.aggregateId = inventoryItem.id;
-      this.data = {
-        inventoryItem,
-        previousQuantity,
-        quantityChange: inventoryItem.quantity - previousQuantity
-      };
-    }
-  }
+export interface DrugLabInteractionResult {
+  hasInteraction: boolean;
+  medication: Medication;
+  labResult?: Record<string, unknown>;
+  interactionType: 'drug-lab';
+  severity?: 'severe' | 'moderate' | 'mild';
+  description?: string;
+  reference?: string;
+}
 
-  // Domain Services
-  export interface MedicationService {
-    findById(id: string): Promise<Medication | null>;
-    search(query: any): Promise<Medication[]>;
-    create(medication: Medication): Promise<Medication>;
-    update(medication: Medication): Promise<Medication>;
-    deactivate(id: string): Promise<void>;
-  }
+export interface BatchInteractionResult {
+  patientId: string;
+  medicationIds: string[];
+  drugDrugInteractions: DrugInteractionResult[];
+  drugAllergyInteractions: DrugAllergyInteractionResult[];
+  drugConditionInteractions: DrugConditionInteractionResult[];
+  drugLabInteractions: DrugLabInteractionResult[];
+  hasSevereInteractions: boolean;
+  interactionCount: number;
+}
 
-  export interface PrescriptionService {
-    findById(id: string): Promise<Prescription | null>;
-    findByPatientId(patientId: string): Promise<Prescription[]>;
-    create(prescription: Prescription): Promise<Prescription>;
-    updateStatus(id: string, status: string, reason?: string): Promise<Prescription>;
-    cancel(id: string, reason: string): Promise<Prescription>;
-  }
+export interface InteractionOverride {
+  id: string;
+  interactionId: string;
+  patientId: string;
+  providerId: string;
+  reason: string;
+  expiresAt: Date;
+  createdAt: Date;
+}
 
-  export interface DispensingService {
-    findById(id: string): Promise<Dispensing | null>;
-    findByPrescriptionId(prescriptionId: string): Promise<Dispensing[]>;
-    create(dispensing: Dispensing): Promise<Dispensing>;
-    complete(id: string): Promise<Dispensing>;
-    cancel(id: string, reason: string): Promise<Dispensing>;
-  }
+// Validation schemas using Zod
+export const MedicationSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  brandName: z.string(),
+  ndc: z.string(),
+  form: z.string(),
+  strength: z.number().positive(),
+  unit: z.string(),
+  isControlled: z.boolean(),
+  isHighAlert: z.boolean(),
+  controlledSubstanceSchedule: z.string().optional(),
+  therapeuticClass: z.string().optional(),
+  manufacturer: z.string().optional(),
+  description: z.string().optional(),
+  warnings: z.array(z.string()).optional(),
+  contraindications: z.array(z.string()).optional(),
+  interactions: z.array(z.string()).optional(),
+  sideEffects: z.array(z.string()).optional(),
+  storageRequirements: z.string().optional(),
+  requiresRefrigeration: z.boolean().optional(),
+  requiresControlledStorage: z.boolean().optional()
+});
 
-  export interface MedicationAdministrationService {
-    findById(id: string): Promise<MedicationAdministration | null>;
-    findByPatientId(patientId: string): Promise<MedicationAdministration[]>;
-    create(administration: MedicationAdministration): Promise<MedicationAdministration>;
-    verify(id: string, verifierId: string): Promise<MedicationAdministration>;
-    cancel(id: string, reason: string): Promise<MedicationAdministration>;
-  }
+export const MedicationInventorySchema = z.object({
+  id: z.string(),
+  medicationId: z.string(),
+  locationId: z.string(),
+  batchNumber: z.string(),
+  lotNumber: z.string(),
+  expirationDate: z.date(),
+  quantity: z.number().int().nonnegative(),
+  reorderThreshold: z.number().int().nonnegative(),
+  reorderQuantity: z.number().int().positive(),
+  lastCountDate: z.date(),
+  status: z.enum(['active', 'expired', 'recalled', 'depleted']),
+  cost: z.number().nonnegative(),
+  supplier: z.string(),
+  receivedDate: z.date(),
+  notes: z.string().optional()
+});
 
-  export interface InventoryService {
-    findById(id: string): Promise<InventoryItem | null>;
-    findByMedicationId(medicationId: string): Promise<InventoryItem[]>;
-    findAvailableByMedicationId(medicationId: string): Promise<InventoryItem[]>;
-    create(inventoryItem: InventoryItem): Promise<InventoryItem>;
-    updateQuantity(id: string, quantity: number): Promise<InventoryItem>;
-    reserve(id: string, quantity: number): Promise<InventoryItem>;
-    release(id: string, quantity: number): Promise<InventoryItem>;
-    dispense(id: string, quantity: number): Promise<InventoryItem>;
-  }
+export const MedicationOrderSchema = z.object({
+  id: z.string(),
+  patientId: z.string(),
+  providerId: z.string(),
+  medicationId: z.string(),
+  status: z.enum([
+    'draft', 'active', 'on-hold', 'cancelled', 'completed', 
+    'entered-in-error', 'stopped', 'unknown'
+  ]),
+  orderDate: z.date(),
+  dosage: z.record(z.unknown()),
+  frequency: z.string(),
+  route: z.string(),
+  duration: z.string(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
+  indication: z.string().optional(),
+  notes: z.string().optional(),
+  isStatOrder: z.boolean().optional(),
+  prn: z.boolean().optional(),
+  prnReason: z.string().optional(),
+  reconciliationId: z.string().optional()
+});
 
-  export interface DrugInteractionService {
-    checkInteractions(medicationIds: string[]): Promise<DrugInteraction[]>;
-    checkInteractionsForPatient(patientId: string, newMedicationId: string): Promise<DrugInteraction[]>;
-  }
+// Factory functions to create domain objects with validation
+export function createMedication(data: Medication): Medication {
+  return MedicationSchema.parse(data);
+}
 
-  export interface DrugInteraction {
-    medicationIds: string[];
-    medicationNames: string[];
-    severity: 'contraindicated' | 'severe' | 'moderate' | 'mild' | 'unknown';
-    description: string;
-    reference?: string;
-    recommendation?: string;
-  }
+export function createMedicationInventory(data: MedicationInventory): MedicationInventory {
+  return MedicationInventorySchema.parse(data);
+}
 
-  // Repositories
-  export interface MedicationRepository {
-    findById(id: string): Promise<Medication | null>;
-    findAll(): Promise<Medication[]>;
-    search(query: any): Promise<Medication[]>;
-    save(medication: Medication): Promise<Medication>;
-    update(medication: Medication): Promise<Medication>;
-    delete(id: string): Promise<void>;
-  }
-
-  export interface PrescriptionRepository {
-    findById(id: string): Promise<Prescription | null>;
-    findByPatientId(patientId: string): Promise<Prescription[]>;
-    findByPrescriberId(prescriberId: string): Promise<Prescription[]>;
-    findByMedicationId(medicationId: string): Promise<Prescription[]>;
-    findByStatus(status: string): Promise<Prescription[]>;
-    save(prescription: Prescription): Promise<Prescription>;
-    update(prescription: Prescription): Promise<Prescription>;
-    delete(id: string): Promise<void>;
-  }
-
-  export interface DispensingRepository {
-    findById(id: string): Promise<Dispensing | null>;
-    findByPrescriptionId(prescriptionId: string): Promise<Dispensing[]>;
-    findByPatientId(patientId: string): Promise<Dispensing[]>;
-    findByMedicationId(medicationId: string): Promise<Dispensing[]>;
-    findByStatus(status: string): Promise<Dispensing[]>;
-    save(dispensing: Dispensing): Promise<Dispensing>;
-    update(dispensing: Dispensing): Promise<Dispensing>;
-    delete(id: string): Promise<void>;
-  }
-
-  export interface MedicationAdministrationRepository {
-    findById(id: string): Promise<MedicationAdministration | null>;
-    findByPatientId(patientId: string): Promise<MedicationAdministration[]>;
-    findByPrescriptionId(prescriptionId: string): Promise<MedicationAdministration[]>;
-    findByMedicationId(medicationId: string): Promise<MedicationAdministration[]>;
-    findByStatus(status: string): Promise<MedicationAdministration[]>;
-    save(administration: MedicationAdministration): Promise<MedicationAdministration>;
-    update(administration: MedicationAdministration): Promise<MedicationAdministration>;
-    delete(id: string): Promise<void>;
-  }
-
-  export interface InventoryRepository {
-    findById(id: string): Promise<InventoryItem | null>;
-    findByMedicationId(medicationId: string): Promise<InventoryItem[]>;
-    findByLocationId(locationId: string): Promise<InventoryItem[]>;
-    findByStatus(status: string): Promise<InventoryItem[]>;
-    findExpiring(daysThreshold: number): Promise<InventoryItem[]>;
-    findLowStock(thresholdPercentage: number): Promise<InventoryItem[]>;
-    save(inventoryItem: InventoryItem): Promise<InventoryItem>;
-    update(inventoryItem: InventoryItem): Promise<InventoryItem>;
-    delete(id: string): Promise<void>;
-  }
-
-  export interface EventRepository {
-    save(event: DomainEvent): Promise<void>;
-    findByAggregateId(aggregateId: string): Promise<DomainEvent[]>;
-    findByAggregateType(aggregateType: string): Promise<DomainEvent[]>;
-    findByEventType(eventType: string): Promise<DomainEvent[]>;
-    findByTimeRange(startTime: Date, endTime: Date): Promise<DomainEvent[]>;
-  }
+export function createMedicationOrder(data: MedicationOrder): MedicationOrder {
+  return MedicationOrderSchema.parse(data);
 }
