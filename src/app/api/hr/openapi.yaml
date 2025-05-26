@@ -1,0 +1,2426 @@
+openapi: 3.0.0
+info:
+  title: HR & Asset Management API
+  description: API documentation for the Human Resources & Asset Management module of the Hospital Management System
+  version: 1.0.0
+  contact:
+    name: HMS Support
+    email: support@hms.example.com
+servers:
+  - url: /api
+    description: API base URL
+tags:
+  - name: Staff
+    description: Staff management operations
+  - name: Attendance
+    description: Attendance tracking operations
+  - name: Payroll
+    description: Payroll processing operations
+  - name: Assets
+    description: Asset management operations
+  - name: Biomedical
+    description: Biomedical equipment management operations
+  - name: Integration
+    description: Integration with other HMS modules
+
+paths:
+  /hr/staff:
+    get:
+      summary: List employees
+      description: Returns a paginated list of employees with optional filtering
+      tags:
+        - Staff
+      parameters:
+        - name: skip
+          in: query
+          description: Number of records to skip for pagination
+          schema:
+            type: integer
+            default: 0
+        - name: take
+          in: query
+          description: Number of records to return per page
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          description: Search term for employee name or ID
+          schema:
+            type: string
+        - name: departmentId
+          in: query
+          description: Filter by department ID
+          schema:
+            type: string
+        - name: isActive
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  employees:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employee'
+                  total:
+                    type: integer
+                  skip:
+                    type: integer
+                  take:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create employee
+      description: Creates a new employee record
+      tags:
+        - Staff
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeInput'
+      responses:
+        '200':
+          description: Employee created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/staff/{id}:
+    get:
+      summary: Get employee
+      description: Returns a specific employee by ID
+      tags:
+        - Staff
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employee ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update employee
+      description: Updates an existing employee record
+      tags:
+        - Staff
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employee ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdateInput'
+      responses:
+        '200':
+          description: Employee updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete employee
+      description: Deletes an employee record (soft delete)
+      tags:
+        - Staff
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employee ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Employee deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/staff/{id}/positions:
+    post:
+      summary: Add position
+      description: Adds a new position to an employee
+      tags:
+        - Staff
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employee ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PositionInput'
+      responses:
+        '200':
+          description: Position added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Position'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/staff/{id}/qualifications:
+    post:
+      summary: Add qualification
+      description: Adds a new qualification to an employee
+      tags:
+        - Staff
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employee ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QualificationInput'
+      responses:
+        '200':
+          description: Qualification added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Qualification'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/attendance:
+    get:
+      summary: List attendance records
+      description: Returns a paginated list of attendance records with optional filtering
+      tags:
+        - Attendance
+      parameters:
+        - name: skip
+          in: query
+          description: Number of records to skip for pagination
+          schema:
+            type: integer
+            default: 0
+        - name: take
+          in: query
+          description: Number of records to return per page
+          schema:
+            type: integer
+            default: 10
+        - name: employeeId
+          in: query
+          description: Filter by employee ID
+          schema:
+            type: string
+        - name: departmentId
+          in: query
+          description: Filter by department ID
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          description: Filter by start date (ISO format)
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: Filter by end date (ISO format)
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          description: Filter by attendance status
+          schema:
+            type: string
+            enum: [PRESENT, ABSENT, LATE, HALF_DAY]
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  records:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Attendance'
+                  total:
+                    type: integer
+                  skip:
+                    type: integer
+                  take:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Record attendance
+      description: Records a new attendance entry (check-in)
+      tags:
+        - Attendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceInput'
+      responses:
+        '200':
+          description: Attendance recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/attendance/checkout:
+    post:
+      summary: Record checkout
+      description: Records an attendance checkout
+      tags:
+        - Attendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - employeeId
+              properties:
+                employeeId:
+                  type: string
+                  description: Employee ID
+                checkoutTime:
+                  type: string
+                  format: date-time
+                  description: Checkout time (defaults to current time if not provided)
+                notes:
+                  type: string
+                  description: Additional notes
+      responses:
+        '200':
+          description: Checkout recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+        '400':
+          description: Validation error or no active check-in found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/biometrics/templates:
+    post:
+      summary: Register biometric template
+      description: Registers a new biometric template for an employee
+      tags:
+        - Attendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - employeeId
+                - templateType
+                - templateData
+              properties:
+                employeeId:
+                  type: string
+                  description: Employee ID
+                templateType:
+                  type: string
+                  enum: [FINGERPRINT, FACE, IRIS]
+                  description: Type of biometric template
+                templateData:
+                  type: string
+                  format: byte
+                  description: Base64 encoded biometric template data
+                deviceId:
+                  type: string
+                  description: ID of the device used for registration
+      responses:
+        '200':
+          description: Template registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  templateId:
+                    type: string
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/biometrics/verify:
+    post:
+      summary: Verify biometric
+      description: Verifies a biometric sample against stored templates
+      tags:
+        - Attendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sampleData
+              properties:
+                employeeId:
+                  type: string
+                  description: Employee ID (if known)
+                sampleData:
+                  type: string
+                  format: byte
+                  description: Base64 encoded biometric sample data
+                templateType:
+                  type: string
+                  enum: [FINGERPRINT, FACE, IRIS]
+                  description: Type of biometric template
+                deviceId:
+                  type: string
+                  description: ID of the device used for verification
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  employeeId:
+                    type: string
+                  score:
+                    type: number
+                    format: float
+                  threshold:
+                    type: number
+                    format: float
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/payroll/salary-structures:
+    get:
+      summary: List salary structures
+      description: Returns a paginated list of salary structures with optional filtering
+      tags:
+        - Payroll
+      parameters:
+        - name: skip
+          in: query
+          description: Number of records to skip for pagination
+          schema:
+            type: integer
+            default: 0
+        - name: take
+          in: query
+          description: Number of records to return per page
+          schema:
+            type: integer
+            default: 10
+        - name: employeeId
+          in: query
+          description: Filter by employee ID
+          schema:
+            type: string
+        - name: departmentId
+          in: query
+          description: Filter by department ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  structures:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SalaryStructure'
+                  total:
+                    type: integer
+                  skip:
+                    type: integer
+                  take:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create salary structure
+      description: Creates a new salary structure for an employee
+      tags:
+        - Payroll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalaryStructureInput'
+      responses:
+        '200':
+          description: Salary structure created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalaryStructure'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/payroll/periods:
+    get:
+      summary: List payroll periods
+      description: Returns a paginated list of payroll periods
+      tags:
+        - Payroll
+      parameters:
+        - name: skip
+          in: query
+          description: Number of records to skip for pagination
+          schema:
+            type: integer
+            default: 0
+        - name: take
+          in: query
+          description: Number of records to return per page
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [DRAFT, PROCESSING, APPROVED, PAID]
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  periods:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PayrollPeriod'
+                  total:
+                    type: integer
+                  skip:
+                    type: integer
+                  take:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create payroll period
+      description: Creates a new payroll period
+      tags:
+        - Payroll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayrollPeriodInput'
+      responses:
+        '200':
+          description: Payroll period created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayrollPeriod'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/payroll/periods/{id}/entries:
+    get:
+      summary: List payroll entries
+      description: Returns payroll entries for a specific period
+      tags:
+        - Payroll
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Payroll period ID
+          schema:
+            type: string
+        - name: departmentId
+          in: query
+          description: Filter by department ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PayrollEntry'
+                  period:
+                    $ref: '#/components/schemas/PayrollPeriod'
+        '404':
+          description: Payroll period not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Generate payroll entries
+      description: Generates payroll entries for a specific period
+      tags:
+        - Payroll
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Payroll period ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payroll entries generated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PayrollEntry'
+        '400':
+          description: Validation error or period not in DRAFT status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Payroll period not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/assets:
+    get:
+      summary: List assets
+      description: Returns a paginated list of assets with optional filtering
+      tags:
+        - Assets
+      parameters:
+        - name: skip
+          in: query
+          description: Number of records to skip for pagination
+          schema:
+            type: integer
+            default: 0
+        - name: take
+          in: query
+          description: Number of records to return per page
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          description: Search term for asset name or serial number
+          schema:
+            type: string
+        - name: assetType
+          in: query
+          description: Filter by asset type
+          schema:
+            type: string
+            enum: [EQUIPMENT, FURNITURE, IT, VEHICLE, OTHER]
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [AVAILABLE, IN_USE, UNDER_MAINTENANCE, DISPOSED, LOST]
+        - name: departmentId
+          in: query
+          description: Filter by department ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+                  total:
+                    type: integer
+                  skip:
+                    type: integer
+                  take:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create asset
+      description: Creates a new asset
+      tags:
+        - Assets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetInput'
+      responses:
+        '200':
+          description: Asset created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/assets/{id}:
+    get:
+      summary: Get asset
+      description: Returns a specific asset by ID
+      tags:
+        - Assets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Asset ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update asset
+      description: Updates an existing asset
+      tags:
+        - Assets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Asset ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetUpdateInput'
+      responses:
+        '200':
+          description: Asset updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/assets/{id}/maintenance:
+    get:
+      summary: Get maintenance records
+      description: Returns maintenance records for a specific asset
+      tags:
+        - Assets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Asset ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaintenanceRecord'
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Record maintenance
+      description: Records maintenance for a specific asset
+      tags:
+        - Assets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Asset ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceInput'
+      responses:
+        '200':
+          description: Maintenance recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRecord'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/biomedical:
+    get:
+      summary: List biomedical equipment
+      description: Returns a paginated list of biomedical equipment with optional filtering
+      tags:
+        - Biomedical
+      parameters:
+        - name: skip
+          in: query
+          description: Number of records to skip for pagination
+          schema:
+            type: integer
+            default: 0
+        - name: take
+          in: query
+          description: Number of records to return per page
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          description: Search term for equipment name or serial number
+          schema:
+            type: string
+        - name: equipmentType
+          in: query
+          description: Filter by equipment type
+          schema:
+            type: string
+            enum: [DIAGNOSTIC, THERAPEUTIC, MONITORING, LABORATORY, SURGICAL, LIFE_SUPPORT, OTHER]
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [AVAILABLE, IN_USE, UNDER_MAINTENANCE, DISPOSED, LOST]
+        - name: departmentId
+          in: query
+          description: Filter by department ID
+          schema:
+            type: string
+        - name: regulatoryClass
+          in: query
+          description: Filter by regulatory class
+          schema:
+            type: string
+            enum: [CLASS_I, CLASS_II, CLASS_III]
+        - name: riskLevel
+          in: query
+          description: Filter by risk level
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        - name: calibrationDue
+          in: query
+          description: Filter by calibration due status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  equipment:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BiomedicalEquipment'
+                  total:
+                    type: integer
+                  skip:
+                    type: integer
+                  take:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Create biomedical equipment
+      description: Creates a new biomedical equipment
+      tags:
+        - Biomedical
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BiomedicalEquipmentInput'
+      responses:
+        '200':
+          description: Biomedical equipment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BiomedicalEquipment'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/biomedical/{id}:
+    get:
+      summary: Get biomedical equipment
+      description: Returns a specific biomedical equipment by ID
+      tags:
+        - Biomedical
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Biomedical equipment ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BiomedicalEquipment'
+        '404':
+          description: Biomedical equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update biomedical equipment
+      description: Updates an existing biomedical equipment
+      tags:
+        - Biomedical
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Biomedical equipment ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BiomedicalEquipmentUpdateInput'
+      responses:
+        '200':
+          description: Biomedical equipment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BiomedicalEquipment'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Biomedical equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete biomedical equipment
+      description: Deletes a biomedical equipment
+      tags:
+        - Biomedical
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Biomedical equipment ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Biomedical equipment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '404':
+          description: Biomedical equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/biomedical/{id}/calibration:
+    get:
+      summary: Get calibration records
+      description: Returns calibration records for a specific biomedical equipment
+      tags:
+        - Biomedical
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Biomedical equipment ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CalibrationRecord'
+        '404':
+          description: Biomedical equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Record calibration
+      description: Records calibration for a specific biomedical equipment
+      tags:
+        - Biomedical
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Biomedical equipment ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalibrationInput'
+      responses:
+        '200':
+          description: Calibration recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalibrationRecord'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '404':
+          description: Biomedical equipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hr/biomedical/statistics:
+    get:
+      summary: Get biomedical statistics
+      description: Returns statistics for biomedical equipment
+      tags:
+        - Biomedical
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalEquipment:
+                    type: integer
+                  equipmentByType:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        count:
+                          type: integer
+                  equipmentByRegulatoryClass:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        class:
+                          type: string
+                        count:
+                          type: integer
+                  equipmentByRiskLevel:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        level:
+                          type: string
+                        count:
+                          type: integer
+                  equipmentByDepartment:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        departmentId:
+                          type: string
+                        departmentName:
+                          type: string
+                        count:
+                          type: integer
+                  calibrationDue:
+                    type: integer
+                  calibrationUpcoming:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /integration/clinical/staff:
+    get:
+      summary: Get staff for clinical module
+      description: Returns staff information for integration with clinical modules
+      tags:
+        - Integration
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmployeeIntegration'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Employee:
+      type: object
+      properties:
+        id:
+          type: string
+        employeeId:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER]
+        address:
+          type: string
+        emergencyContact:
+          type: string
+        emergencyPhone:
+          type: string
+        joinDate:
+          type: string
+          format: date
+        terminationDate:
+          type: string
+          format: date
+        isActive:
+          type: boolean
+        department:
+          $ref: '#/components/schemas/Department'
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Position'
+        qualifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Qualification'
+
+    EmployeeInput:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER]
+        address:
+          type: string
+        emergencyContact:
+          type: string
+        emergencyPhone:
+          type: string
+        joinDate:
+          type: string
+          format: date
+        departmentId:
+          type: string
+
+    EmployeeUpdateInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER]
+        address:
+          type: string
+        emergencyContact:
+          type: string
+        emergencyPhone:
+          type: string
+        joinDate:
+          type: string
+          format: date
+        terminationDate:
+          type: string
+          format: date
+        isActive:
+          type: boolean
+        departmentId:
+          type: string
+
+    Department:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [CLINICAL, ADMINISTRATIVE, SUPPORT]
+        description:
+          type: string
+        parentDepartmentId:
+          type: string
+        parentDepartment:
+          $ref: '#/components/schemas/Department'
+
+    Position:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        employeeId:
+          type: string
+        departmentId:
+          type: string
+        department:
+          $ref: '#/components/schemas/Department'
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        isPrimary:
+          type: boolean
+
+    PositionInput:
+      type: object
+      required:
+        - title
+        - departmentId
+        - startDate
+      properties:
+        title:
+          type: string
+        departmentId:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        isPrimary:
+          type: boolean
+
+    Qualification:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [DEGREE, LICENSE, CERTIFICATION, TRAINING]
+        name:
+          type: string
+        issuedBy:
+          type: string
+        issuedDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        attachmentUrl:
+          type: string
+        verificationStatus:
+          type: string
+          enum: [PENDING, VERIFIED, REJECTED]
+
+    QualificationInput:
+      type: object
+      required:
+        - type
+        - name
+        - issuedBy
+        - issuedDate
+      properties:
+        type:
+          type: string
+          enum: [DEGREE, LICENSE, CERTIFICATION, TRAINING]
+        name:
+          type: string
+        issuedBy:
+          type: string
+        issuedDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        attachmentUrl:
+          type: string
+
+    Attendance:
+      type: object
+      properties:
+        id:
+          type: string
+        employeeId:
+          type: string
+        employee:
+          $ref: '#/components/schemas/Employee'
+        date:
+          type: string
+          format: date
+        checkinTime:
+          type: string
+          format: date-time
+        checkoutTime:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [PRESENT, ABSENT, LATE, HALF_DAY]
+        notes:
+          type: string
+        verificationMethod:
+          type: string
+          enum: [BIOMETRIC, MANUAL, SYSTEM]
+
+    AttendanceInput:
+      type: object
+      required:
+        - employeeId
+      properties:
+        employeeId:
+          type: string
+        checkinTime:
+          type: string
+          format: date-time
+        notes:
+          type: string
+        verificationMethod:
+          type: string
+          enum: [BIOMETRIC, MANUAL, SYSTEM]
+        biometricVerificationId:
+          type: string
+
+    SalaryStructure:
+      type: object
+      properties:
+        id:
+          type: string
+        employeeId:
+          type: string
+        employee:
+          $ref: '#/components/schemas/Employee'
+        baseSalary:
+          type: number
+          format: float
+        effectiveDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        components:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+                enum: [ALLOWANCE, DEDUCTION, BONUS]
+              amount:
+                type: number
+                format: float
+              calculationType:
+                type: string
+                enum: [FIXED, PERCENTAGE, FORMULA]
+              formula:
+                type: string
+
+    SalaryStructureInput:
+      type: object
+      required:
+        - employeeId
+        - baseSalary
+        - effectiveDate
+      properties:
+        employeeId:
+          type: string
+        baseSalary:
+          type: number
+          format: float
+        effectiveDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        components:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - type
+              - amount
+              - calculationType
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+                enum: [ALLOWANCE, DEDUCTION, BONUS]
+              amount:
+                type: number
+                format: float
+              calculationType:
+                type: string
+                enum: [FIXED, PERCENTAGE, FORMULA]
+              formula:
+                type: string
+
+    PayrollPeriod:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        paymentDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [DRAFT, PROCESSING, APPROVED, PAID]
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        approvedBy:
+          type: string
+        approvedAt:
+          type: string
+          format: date-time
+        paidBy:
+          type: string
+        paidAt:
+          type: string
+          format: date-time
+
+    PayrollPeriodInput:
+      type: object
+      required:
+        - name
+        - startDate
+        - endDate
+        - paymentDate
+      properties:
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        paymentDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [DRAFT]
+          default: DRAFT
+
+    PayrollEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        periodId:
+          type: string
+        employeeId:
+          type: string
+        employee:
+          $ref: '#/components/schemas/Employee'
+        baseSalary:
+          type: number
+          format: float
+        grossSalary:
+          type: number
+          format: float
+        deductions:
+          type: number
+          format: float
+        netSalary:
+          type: number
+          format: float
+        components:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+                enum: [BASE, ALLOWANCE, DEDUCTION, BONUS]
+              amount:
+                type: number
+                format: float
+              calculationType:
+                type: string
+                enum: [FIXED, PERCENTAGE, FORMULA, ATTENDANCE_BASED]
+              originalAmount:
+                type: number
+                format: float
+
+    Asset:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        assetType:
+          type: string
+          enum: [EQUIPMENT, FURNITURE, IT, VEHICLE, OTHER]
+        serialNumber:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        purchaseDate:
+          type: string
+          format: date
+        purchasePrice:
+          type: number
+          format: float
+        warrantyExpiryDate:
+          type: string
+          format: date
+        location:
+          type: string
+        departmentId:
+          type: string
+        department:
+          $ref: '#/components/schemas/Department'
+        assignedToId:
+          type: string
+        assignedTo:
+          $ref: '#/components/schemas/Employee'
+        status:
+          type: string
+          enum: [AVAILABLE, IN_USE, UNDER_MAINTENANCE, DISPOSED, LOST]
+        lastMaintenanceDate:
+          type: string
+          format: date
+        nextMaintenanceDate:
+          type: string
+          format: date
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        maintenanceRecords:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceRecord'
+        assetHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetHistory'
+
+    AssetInput:
+      type: object
+      required:
+        - name
+        - assetType
+        - status
+      properties:
+        name:
+          type: string
+        assetType:
+          type: string
+          enum: [EQUIPMENT, FURNITURE, IT, VEHICLE, OTHER]
+        serialNumber:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        purchaseDate:
+          type: string
+          format: date
+        purchasePrice:
+          type: number
+          format: float
+        warrantyExpiryDate:
+          type: string
+          format: date
+        location:
+          type: string
+        departmentId:
+          type: string
+        assignedToId:
+          type: string
+        status:
+          type: string
+          enum: [AVAILABLE, IN_USE, UNDER_MAINTENANCE, DISPOSED, LOST]
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    AssetUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        assetType:
+          type: string
+          enum: [EQUIPMENT, FURNITURE, IT, VEHICLE, OTHER]
+        serialNumber:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        purchaseDate:
+          type: string
+          format: date
+        purchasePrice:
+          type: number
+          format: float
+        warrantyExpiryDate:
+          type: string
+          format: date
+        location:
+          type: string
+        departmentId:
+          type: string
+        assignedToId:
+          type: string
+        status:
+          type: string
+          enum: [AVAILABLE, IN_USE, UNDER_MAINTENANCE, DISPOSED, LOST]
+        lastMaintenanceDate:
+          type: string
+          format: date
+        nextMaintenanceDate:
+          type: string
+          format: date
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    MaintenanceRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        assetId:
+          type: string
+        maintenanceType:
+          type: string
+          enum: [PREVENTIVE, CORRECTIVE, CALIBRATION, INSPECTION]
+        date:
+          type: string
+          format: date
+        performedBy:
+          type: string
+        cost:
+          type: number
+          format: float
+        description:
+          type: string
+        nextMaintenanceDate:
+          type: string
+          format: date
+
+    MaintenanceInput:
+      type: object
+      required:
+        - maintenanceType
+        - date
+        - description
+      properties:
+        maintenanceType:
+          type: string
+          enum: [PREVENTIVE, CORRECTIVE, CALIBRATION, INSPECTION]
+        date:
+          type: string
+          format: date
+        performedBy:
+          type: string
+        cost:
+          type: number
+          format: float
+        description:
+          type: string
+        nextMaintenanceDate:
+          type: string
+          format: date
+
+    AssetHistory:
+      type: object
+      properties:
+        id:
+          type: string
+        assetId:
+          type: string
+        type:
+          type: string
+          enum: [ACQUISITION, ASSIGNMENT, STATUS_CHANGE, MAINTENANCE, DISPOSAL]
+        date:
+          type: string
+          format: date-time
+        employeeId:
+          type: string
+        employee:
+          $ref: '#/components/schemas/Employee'
+        details:
+          type: object
+
+    BiomedicalEquipment:
+      type: object
+      properties:
+        id:
+          type: string
+        assetId:
+          type: string
+        asset:
+          $ref: '#/components/schemas/Asset'
+        equipmentType:
+          type: string
+          enum: [DIAGNOSTIC, THERAPEUTIC, MONITORING, LABORATORY, SURGICAL, LIFE_SUPPORT, OTHER]
+        deviceIdentifier:
+          type: string
+        regulatoryClass:
+          type: string
+          enum: [CLASS_I, CLASS_II, CLASS_III]
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        lastCalibrationDate:
+          type: string
+          format: date
+        nextCalibrationDate:
+          type: string
+          format: date
+        calibrationFrequency:
+          type: integer
+        certifications:
+          type: array
+          items:
+            type: string
+        isReusable:
+          type: boolean
+        sterilizationRequired:
+          type: boolean
+        lastSterilizationDate:
+          type: string
+          format: date
+        calibrationRecords:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalibrationRecord'
+
+    BiomedicalEquipmentInput:
+      type: object
+      required:
+        - name
+        - equipmentType
+        - status
+      properties:
+        name:
+          type: string
+        equipmentType:
+          type: string
+          enum: [DIAGNOSTIC, THERAPEUTIC, MONITORING, LABORATORY, SURGICAL, LIFE_SUPPORT, OTHER]
+        serialNumber:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        purchaseDate:
+          type: string
+          format: date
+        purchasePrice:
+          type: number
+          format: float
+        warrantyExpiryDate:
+          type: string
+          format: date
+        location:
+          type: string
+        departmentId:
+          type: string
+        assignedToId:
+          type: string
+        status:
+          type: string
+          enum: [AVAILABLE, IN_USE, UNDER_MAINTENANCE, DISPOSED, LOST]
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        deviceIdentifier:
+          type: string
+        regulatoryClass:
+          type: string
+          enum: [CLASS_I, CLASS_II, CLASS_III]
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        lastCalibrationDate:
+          type: string
+          format: date
+        nextCalibrationDate:
+          type: string
+          format: date
+        calibrationFrequency:
+          type: integer
+        certifications:
+          type: array
+          items:
+            type: string
+        isReusable:
+          type: boolean
+        sterilizationRequired:
+          type: boolean
+        lastSterilizationDate:
+          type: string
+          format: date
+
+    BiomedicalEquipmentUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        equipmentType:
+          type: string
+          enum: [DIAGNOSTIC, THERAPEUTIC, MONITORING, LABORATORY, SURGICAL, LIFE_SUPPORT, OTHER]
+        serialNumber:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        purchaseDate:
+          type: string
+          format: date
+        purchasePrice:
+          type: number
+          format: float
+        warrantyExpiryDate:
+          type: string
+          format: date
+        location:
+          type: string
+        departmentId:
+          type: string
+        assignedToId:
+          type: string
+        status:
+          type: string
+          enum: [AVAILABLE, IN_USE, UNDER_MAINTENANCE, DISPOSED, LOST]
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        deviceIdentifier:
+          type: string
+        regulatoryClass:
+          type: string
+          enum: [CLASS_I, CLASS_II, CLASS_III]
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        lastCalibrationDate:
+          type: string
+          format: date
+        nextCalibrationDate:
+          type: string
+          format: date
+        calibrationFrequency:
+          type: integer
+        certifications:
+          type: array
+          items:
+            type: string
+        isReusable:
+          type: boolean
+        sterilizationRequired:
+          type: boolean
+        lastSterilizationDate:
+          type: string
+          format: date
+
+    CalibrationRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        biomedicalEquipmentId:
+          type: string
+        date:
+          type: string
+          format: date
+        performedBy:
+          type: string
+        result:
+          type: string
+          enum: [PASS, FAIL, ADJUSTED]
+        notes:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: string
+
+    CalibrationInput:
+      type: object
+      required:
+        - date
+        - result
+      properties:
+        date:
+          type: string
+          format: date
+        performedBy:
+          type: string
+        result:
+          type: string
+          enum: [PASS, FAIL, ADJUSTED]
+        notes:
+          type: string
+        nextCalibrationDate:
+          type: string
+          format: date
+        attachments:
+          type: array
+          items:
+            type: string
+
+    EmployeeIntegration:
+      type: object
+      properties:
+        id:
+          type: string
+        employeeId:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        positions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              department:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+        qualifications:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              name:
+                type: string
+              issuedBy:
+                type: string
+              issuedDate:
+                type: string
+                format: date
+              expiryDate:
+                type: string
+                format: date
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: object
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: object
