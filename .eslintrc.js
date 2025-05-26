@@ -7,6 +7,7 @@ module.exports = {
     ecmaFeatures: {
       jsx: true,
     },
+    // Correctly configure the project option to use the tsconfig.json
     project: ['./tsconfig.json'],
   },
   settings: {
@@ -36,13 +37,29 @@ module.exports = {
     'plugin:import/typescript',
     'plugin:jsx-a11y/recommended',
     'plugin:prettier/recommended',
+    'next/core-web-vitals',
   ],
+  plugins: ['@typescript-eslint', 'react', 'prettier'],
   rules: {
-    'react/react-in-jsx-scope': 'off',
-    'react/prop-types': 'off',
+    // General ESLint rules
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'no-unused-vars': 'off', // Handled by TypeScript
+    'no-use-before-define': 'off', // Handled by TypeScript
+    
+    // TypeScript specific rules
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-non-null-assertion': 'warn',
+    
+    // React specific rules
+    'react/prop-types': 'off', // Not needed with TypeScript
+    'react/react-in-jsx-scope': 'off', // Not needed with Next.js
+    'react/display-name': 'off',
+    'react/jsx-filename-extension': ['warn', { extensions: ['.jsx', '.tsx'] }],
+    
+    // Import rules
     'import/order': [
       'error',
       {
@@ -51,10 +68,17 @@ module.exports = {
         alphabetize: { order: 'asc', caseInsensitive: true },
       },
     ],
+    
+    // Accessibility rules
+    'jsx-a11y/anchor-is-valid': 'off', // Next.js uses its own Link component
+    
+    // Prettier rules
+    'prettier/prettier': ['error', {}, { usePrettierrc: true }],
   },
   overrides: [
+    // Override rules for specific file patterns
     {
-      files: ['**/*.test.ts', '**/*.test.tsx', '**/__tests__/**/*.ts', '**/__tests__/**/*.tsx'],
+      files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx', '**/__tests__/**/*.ts', '**/__tests__/**/*.tsx'],
       env: {
         jest: true,
       },
@@ -62,5 +86,11 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'off',
       },
     },
+    {
+      files: ['src/app/api/**/*.ts'],
+      rules: {
+        'import/no-anonymous-default-export': 'off',
+      },
+    },
   ],
-}
+};
