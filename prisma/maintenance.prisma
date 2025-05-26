@@ -1,0 +1,162 @@
+// This file defines the Prisma schema updates for the Maintenance Management System
+// These models will be added to the main schema.prisma file
+
+// Maintenance Request Model
+model MaintenanceRequest {
+  id            String      @id @default(cuid())
+  locationId    String
+  location      Location    @relation(fields: [locationId], references: [id])
+  assetId       String?
+  asset         Asset?      @relation(fields: [assetId], references: [id])
+  requestType   String      // REPAIR, PREVENTIVE, INSTALLATION, INSPECTION
+  description   String
+  priority      String      // LOW, MEDIUM, HIGH, EMERGENCY
+  status        String      // PENDING, ASSIGNED, IN_PROGRESS, ON_HOLD, COMPLETED, CANCELLED
+  requestedById String
+  requestedByUser User      @relation(fields: [requestedById], references: [id])
+  scheduledDate DateTime?
+  completedDate DateTime?
+  estimatedHours Float?
+  actualHours   Float?
+  notes         String?
+  workOrders    MaintenanceWorkOrder[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([locationId])
+  @@index([assetId])
+  @@index([requestedById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Maintenance Work Order Model
+model MaintenanceWorkOrder {
+  id            String      @id @default(cuid())
+  requestId     String
+  request       MaintenanceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  description   String
+  status        String      // PENDING, IN_PROGRESS, ON_HOLD, COMPLETED, CANCELLED
+  assignedToId  String?
+  assignedToUser User?      @relation(fields: [assignedToId], references: [id])
+  startTime     DateTime?
+  endTime       DateTime?
+  duration      Float?      // Duration in hours
+  laborCost     Float?
+  materialCost  Float?
+  notes         String?
+  parts         MaintenancePart[]
+  createdById   String
+  createdByUser User        @relation("WorkOrderCreator", fields: [createdById], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([requestId])
+  @@index([assignedToId])
+  @@index([status])
+}
+
+// Maintenance Part Model
+model MaintenancePart {
+  id            String      @id @default(cuid())
+  workOrderId   String
+  workOrder     MaintenanceWorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  partName      String
+  partNumber    String?
+  quantity      Int
+  unitCost      Float
+  totalCost     Float
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([workOrderId])
+}
+
+// Asset Model
+model Asset {
+  id            String      @id @default(cuid())
+  name          String
+  assetType     String      // EQUIPMENT, FACILITY, VEHICLE, IT
+  locationId    String
+  location      Location    @relation(fields: [locationId], references: [id])
+  serialNumber  String?
+  manufacturer  String?
+  model         String?
+  purchaseDate  DateTime?
+  warrantyExpiry DateTime?
+  lastMaintenanceDate DateTime?
+  nextMaintenanceDate DateTime?
+  status        String      // OPERATIONAL, NEEDS_REPAIR, UNDER_MAINTENANCE, DECOMMISSIONED
+  maintenanceRequests MaintenanceRequest[]
+  maintenanceSchedules MaintenanceSchedule[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([locationId])
+  @@index([assetType])
+  @@index([status])
+}
+
+// Maintenance Schedule Model
+model MaintenanceSchedule {
+  id            String      @id @default(cuid())
+  assetId       String?
+  asset         Asset?      @relation(fields: [assetId], references: [id])
+  locationId    String?
+  location      Location?   @relation(fields: [locationId], references: [id])
+  scheduleType  String      // DAILY, WEEKLY, MONTHLY, QUARTERLY, ANNUAL
+  frequency     Int         // How often the schedule repeats (e.g., every 3 months)
+  dayOfWeek     Int?        // 0-6 for Sunday-Saturday
+  timeOfDay     DateTime?   // Time of day for the task
+  taskTemplate  String      // Template for tasks to be created
+  isActive      Boolean     @default(true)
+  lastRun       DateTime?
+  nextRun       DateTime?
+  createdById   String
+  createdByUser User        @relation(fields: [createdById], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([assetId])
+  @@index([locationId])
+  @@index([scheduleType])
+  @@index([isActive])
+}
+
+// Maintenance Vendor Model
+model MaintenanceVendor {
+  id            String      @id @default(cuid())
+  name          String
+  contactPerson String?
+  email         String?
+  phone         String?
+  address       String?
+  specialties   String[]
+  contractNumber String?
+  contractStart DateTime?
+  contractEnd   DateTime?
+  rating        Float?      // 1-5 rating
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([name])
+}
+
+// Maintenance Inventory Model
+model MaintenanceInventory {
+  id            String      @id @default(cuid())
+  itemName      String
+  itemType      String      // PART, TOOL, SUPPLY
+  partNumber    String?
+  currentStock  Int
+  minimumStock  Int
+  unit          String      // PIECE, BOX, KG, etc.
+  location      String?     // Storage location
+  cost          Float?      // Cost per unit
+  lastRestocked DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([itemType])
+}

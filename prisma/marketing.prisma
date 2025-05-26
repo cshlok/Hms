@@ -1,0 +1,363 @@
+// This file defines the Prisma schema updates for the Marketing CRM Module
+// These models will be added to the main schema.prisma file
+
+// Marketing Campaign Model
+model MarketingCampaign {
+  id                String              @id @default(cuid())
+  name              String
+  description       String?
+  type              String              // EMAIL, SMS, SOCIAL_MEDIA, EVENT, PRINT, DIGITAL_AD, OTHER
+  status            String              // DRAFT, SCHEDULED, ACTIVE, PAUSED, COMPLETED, CANCELLED
+  startDate         DateTime
+  endDate           DateTime?
+  budget            Float?
+  targetAudience    Json?               // Target demographics, interests, etc.
+  goals             String[]            // Campaign goals
+  kpis              Json?               // Key Performance Indicators
+  createdById       String
+  createdByUser     User                @relation("CampaignCreatedBy", fields: [createdById], references: [id])
+  updatedById       String?
+  updatedByUser     User?               @relation("CampaignUpdatedBy", fields: [updatedById], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  channels          CampaignChannel[]
+  segments          CampaignSegment[]
+  activities        MarketingActivity[]
+  leads             Lead[]
+  analytics         CampaignAnalytics[]
+
+  @@index([type])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([createdById])
+}
+
+// Campaign Channel Model
+model CampaignChannel {
+  id                String              @id @default(cuid())
+  campaignId        String
+  campaign          MarketingCampaign   @relation(fields: [campaignId], references: [id])
+  channelType       String              // EMAIL, SMS, SOCIAL_MEDIA, EVENT, PRINT, DIGITAL_AD, OTHER
+  channelName       String              // Specific channel name (e.g., "Facebook", "Email Newsletter")
+  content           Json?               // Channel-specific content
+  schedule          Json?               // Delivery schedule
+  status            String              // DRAFT, SCHEDULED, ACTIVE, COMPLETED, CANCELLED
+  metrics           Json?               // Channel-specific metrics
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  messages          MarketingMessage[]
+
+  @@index([campaignId])
+  @@index([channelType])
+  @@index([status])
+}
+
+// Marketing Message Model
+model MarketingMessage {
+  id                String              @id @default(cuid())
+  channelId         String
+  channel           CampaignChannel     @relation(fields: [channelId], references: [id])
+  subject           String?             // For email, SMS
+  content           String              // Message content
+  template          String?             // Template identifier
+  mediaUrls         String[]            // URLs to images, videos, etc.
+  scheduledDate     DateTime?
+  sentDate          DateTime?
+  status            String              // DRAFT, SCHEDULED, SENT, FAILED
+  metadata          Json?               // Additional message data
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  interactions      MessageInteraction[]
+
+  @@index([channelId])
+  @@index([status])
+  @@index([scheduledDate])
+  @@index([sentDate])
+}
+
+// Message Interaction Model
+model MessageInteraction {
+  id                String              @id @default(cuid())
+  messageId         String
+  message           MarketingMessage    @relation(fields: [messageId], references: [id])
+  contactId         String?
+  contact           Contact?            @relation(fields: [contactId], references: [id])
+  interactionType   String              // OPEN, CLICK, REPLY, UNSUBSCRIBE, BOUNCE
+  timestamp         DateTime            @default(now())
+  metadata          Json?               // Additional interaction data
+  ipAddress         String?
+  userAgent         String?
+  url               String?             // For click interactions
+
+  @@index([messageId])
+  @@index([contactId])
+  @@index([interactionType])
+  @@index([timestamp])
+}
+
+// Contact Model (for marketing purposes)
+model Contact {
+  id                String              @id @default(cuid())
+  firstName         String?
+  lastName          String?
+  email             String?             @unique
+  phone             String?
+  address           Json?
+  dateOfBirth       DateTime?
+  gender            String?
+  occupation        String?
+  organization      String?
+  source            String?             // How the contact was acquired
+  status            String              // ACTIVE, INACTIVE, UNSUBSCRIBED, BOUNCED
+  tags              String[]
+  preferences       Json?               // Communication preferences
+  patientId         String?             // Link to patient if applicable
+  patient           Patient?            @relation(fields: [patientId], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  notes             ContactNote[]
+  interactions      MessageInteraction[]
+  activities        MarketingActivity[]
+  segmentMembers    SegmentMember[]
+  leads             Lead[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([status])
+  @@index([patientId])
+  @@index([source])
+}
+
+// Contact Note Model
+model ContactNote {
+  id                String              @id @default(cuid())
+  contactId         String
+  contact           Contact             @relation(fields: [contactId], references: [id])
+  content           String
+  createdById       String
+  createdByUser     User                @relation(fields: [createdById], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([contactId])
+  @@index([createdById])
+}
+
+// Marketing Activity Model
+model MarketingActivity {
+  id                String              @id @default(cuid())
+  campaignId        String?
+  campaign          MarketingCampaign?  @relation(fields: [campaignId], references: [id])
+  contactId         String?
+  contact           Contact?            @relation(fields: [contactId], references: [id])
+  activityType      String              // EMAIL_SENT, SMS_SENT, WEBSITE_VISIT, FORM_SUBMISSION, EVENT_REGISTRATION, etc.
+  description       String?
+  timestamp         DateTime            @default(now())
+  metadata          Json?               // Additional activity data
+  url               String?             // Related URL if applicable
+  ipAddress         String?
+  userAgent         String?
+
+  @@index([campaignId])
+  @@index([contactId])
+  @@index([activityType])
+  @@index([timestamp])
+}
+
+// Contact Segment Model
+model ContactSegment {
+  id                String              @id @default(cuid())
+  name              String
+  description       String?
+  criteria          Json?               // Segmentation criteria
+  isActive          Boolean             @default(true)
+  createdById       String
+  createdByUser     User                @relation(fields: [createdById], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  members           SegmentMember[]
+  campaigns         CampaignSegment[]
+
+  @@index([name])
+  @@index([isActive])
+  @@index([createdById])
+}
+
+// Segment Member Model
+model SegmentMember {
+  id                String              @id @default(cuid())
+  segmentId         String
+  segment           ContactSegment      @relation(fields: [segmentId], references: [id])
+  contactId         String
+  contact           Contact             @relation(fields: [contactId], references: [id])
+  addedAt           DateTime            @default(now())
+  removedAt         DateTime?
+  isActive          Boolean             @default(true)
+
+  @@unique([segmentId, contactId])
+  @@index([segmentId])
+  @@index([contactId])
+  @@index([isActive])
+}
+
+// Campaign Segment Model (Many-to-Many)
+model CampaignSegment {
+  id                String              @id @default(cuid())
+  campaignId        String
+  campaign          MarketingCampaign   @relation(fields: [campaignId], references: [id])
+  segmentId         String
+  segment           ContactSegment      @relation(fields: [segmentId], references: [id])
+  createdAt         DateTime            @default(now())
+
+  @@unique([campaignId, segmentId])
+  @@index([campaignId])
+  @@index([segmentId])
+}
+
+// Lead Model
+model Lead {
+  id                String              @id @default(cuid())
+  contactId         String
+  contact           Contact             @relation(fields: [contactId], references: [id])
+  campaignId        String?
+  campaign          MarketingCampaign?  @relation(fields: [campaignId], references: [id])
+  source            String              // WEBSITE, REFERRAL, EVENT, ADVERTISEMENT, etc.
+  status            String              // NEW, CONTACTED, QUALIFIED, CONVERTED, LOST
+  score             Int?                // Lead score
+  assignedToId      String?
+  assignedToUser    User?               @relation("LeadAssignedTo", fields: [assignedToId], references: [id])
+  notes             String?
+  convertedToPatientId String?
+  convertedToPatient Patient?           @relation(fields: [convertedToPatientId], references: [id])
+  conversionDate    DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  activities        LeadActivity[]
+
+  @@index([contactId])
+  @@index([campaignId])
+  @@index([source])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([convertedToPatientId])
+}
+
+// Lead Activity Model
+model LeadActivity {
+  id                String              @id @default(cuid())
+  leadId            String
+  lead              Lead                @relation(fields: [leadId], references: [id])
+  activityType      String              // NOTE, CALL, EMAIL, MEETING, STATUS_CHANGE, etc.
+  description       String
+  performedById     String
+  performedByUser   User                @relation(fields: [performedById], references: [id])
+  timestamp         DateTime            @default(now())
+  metadata          Json?               // Additional activity data
+
+  @@index([leadId])
+  @@index([activityType])
+  @@index([performedById])
+  @@index([timestamp])
+}
+
+// Campaign Analytics Model
+model CampaignAnalytics {
+  id                String              @id @default(cuid())
+  campaignId        String
+  campaign          MarketingCampaign   @relation(fields: [campaignId], references: [id])
+  date              DateTime
+  metrics           Json                // Various metrics (impressions, clicks, conversions, etc.)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([campaignId])
+  @@index([date])
+}
+
+// Marketing Template Model
+model MarketingTemplate {
+  id                String              @id @default(cuid())
+  name              String
+  description       String?
+  type              String              // EMAIL, SMS, SOCIAL_POST, LANDING_PAGE, etc.
+  content           String              // HTML, text, or JSON content
+  variables         Json?               // Template variables
+  previewImage      String?             // URL to template preview image
+  isActive          Boolean             @default(true)
+  createdById       String
+  createdByUser     User                @relation(fields: [createdById], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([type])
+  @@index([isActive])
+  @@index([createdById])
+}
+
+// Marketing Event Model
+model MarketingEvent {
+  id                String              @id @default(cuid())
+  name              String
+  description       String?
+  eventType         String              // WEBINAR, CONFERENCE, WORKSHOP, HEALTH_CAMP, etc.
+  startDate         DateTime
+  endDate           DateTime
+  location          String?
+  virtualLink       String?
+  capacity          Int?
+  registrationLink  String?
+  status            String              // PLANNED, OPEN, FULL, ONGOING, COMPLETED, CANCELLED
+  createdById       String
+  createdByUser     User                @relation(fields: [createdById], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  registrations     EventRegistration[]
+
+  @@index([eventType])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([createdById])
+}
+
+// Event Registration Model
+model EventRegistration {
+  id                String              @id @default(cuid())
+  eventId           String
+  event             MarketingEvent      @relation(fields: [eventId], references: [id])
+  contactId         String?
+  patientId         String?
+  patient           Patient?            @relation(fields: [patientId], references: [id])
+  name              String
+  email             String
+  phone             String?
+  status            String              // REGISTERED, CONFIRMED, ATTENDED, NO_SHOW, CANCELLED
+  registrationDate  DateTime            @default(now())
+  metadata          Json?               // Additional registration data
+
+  @@index([eventId])
+  @@index([patientId])
+  @@index([status])
+  @@index([registrationDate])
+}
+
+// Add relations to existing models
+model User {
+  // Existing fields...
+  createdCampaigns      MarketingCampaign[]   @relation("CampaignCreatedBy")
+  updatedCampaigns      MarketingCampaign[]   @relation("CampaignUpdatedBy")
+  contactNotes          ContactNote[]
+  createdSegments       ContactSegment[]
+  assignedLeads         Lead[]                @relation("LeadAssignedTo")
+  leadActivities        LeadActivity[]
+  createdTemplates      MarketingTemplate[]
+  createdEvents         MarketingEvent[]
+}
+
+model Patient {
+  // Existing fields...
+  marketingContact      Contact[]
+  convertedFromLeads    Lead[]
+  eventRegistrations    EventRegistration[]
+}

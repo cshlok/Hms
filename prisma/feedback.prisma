@@ -1,0 +1,247 @@
+// This file defines the Prisma schema updates for the Feedback & Complaint Management System
+// These models will be added to the main schema.prisma file
+
+// Feedback Model
+model Feedback {
+  id                String              @id @default(cuid())
+  type              String              // PATIENT_SATISFACTION, SERVICE_QUALITY, STAFF_PERFORMANCE, FACILITY_CONDITION, OTHER
+  source            String              // PATIENT, VISITOR, STAFF, OTHER
+  rating            Int                 // 1-5 star rating
+  comments          String?             // Free text comments
+  submittedById     String?
+  submittedByUser   User?               @relation("FeedbackSubmittedBy", fields: [submittedById], references: [id])
+  patientId         String?
+  patient           Patient?            @relation(fields: [patientId], references: [id])
+  departmentId      String?
+  department        Department?         @relation(fields: [departmentId], references: [id])
+  serviceId         String?             // Can reference any service (housekeeping, maintenance, dietary, etc.)
+  serviceType       String?             // Type of service (HOUSEKEEPING, MAINTENANCE, DIETARY, AMBULANCE, etc.)
+  status            String              // NEW, REVIEWED, ADDRESSED, CLOSED
+  reviewedById      String?
+  reviewedByUser    User?               @relation("FeedbackReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt        DateTime?
+  reviewNotes       String?
+  tags              String[]
+  anonymous         Boolean             @default(false)
+  contactInfo       Json?               // Contact information if feedback is not linked to a user
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  responses         FeedbackResponse[]
+  attachments       FeedbackAttachment[]
+  followUpActions   FollowUpAction[]
+
+  @@index([type])
+  @@index([source])
+  @@index([status])
+  @@index([patientId])
+  @@index([departmentId])
+  @@index([serviceType])
+  @@index([createdAt])
+}
+
+// Feedback Response Model
+model FeedbackResponse {
+  id                String              @id @default(cuid())
+  feedbackId        String
+  feedback          Feedback            @relation(fields: [feedbackId], references: [id])
+  responseText      String
+  respondedById     String
+  respondedByUser   User                @relation(fields: [respondedById], references: [id])
+  isPublic          Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([feedbackId])
+  @@index([respondedById])
+}
+
+// Feedback Attachment Model
+model FeedbackAttachment {
+  id                String              @id @default(cuid())
+  feedbackId        String
+  feedback          Feedback            @relation(fields: [feedbackId], references: [id])
+  fileUrl           String
+  fileName          String
+  fileType          String
+  fileSize          Int
+  uploadedById      String
+  uploadedByUser    User                @relation(fields: [uploadedById], references: [id])
+  createdAt         DateTime            @default(now())
+
+  @@index([feedbackId])
+}
+
+// Complaint Model
+model Complaint {
+  id                String              @id @default(cuid())
+  title             String
+  description       String
+  category          String              // CLINICAL, ADMINISTRATIVE, FACILITY, STAFF, BILLING, OTHER
+  severity          String              // LOW, MEDIUM, HIGH, CRITICAL
+  status            String              // SUBMITTED, UNDER_INVESTIGATION, RESOLVED, CLOSED, ESCALATED
+  submittedById     String?
+  submittedByUser   User?               @relation("ComplaintSubmittedBy", fields: [submittedById], references: [id])
+  patientId         String?
+  patient           Patient?            @relation(fields: [patientId], references: [id])
+  departmentId      String?
+  department        Department?         @relation(fields: [departmentId], references: [id])
+  assignedToId      String?
+  assignedToUser    User?               @relation("ComplaintAssignedTo", fields: [assignedToId], references: [id])
+  resolutionDetails String?
+  resolutionDate    DateTime?
+  resolvedById      String?
+  resolvedByUser    User?               @relation("ComplaintResolvedBy", fields: [resolvedById], references: [id])
+  escalatedToId     String?
+  escalatedToUser   User?               @relation("ComplaintEscalatedTo", fields: [escalatedToId], references: [id])
+  escalationReason  String?
+  escalationDate    DateTime?
+  dueDate           DateTime?
+  anonymous         Boolean             @default(false)
+  contactInfo       Json?               // Contact information if complaint is not linked to a user
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  activities        ComplaintActivity[]
+  attachments       ComplaintAttachment[]
+  followUpActions   FollowUpAction[]
+
+  @@index([category])
+  @@index([severity])
+  @@index([status])
+  @@index([patientId])
+  @@index([departmentId])
+  @@index([assignedToId])
+  @@index([createdAt])
+  @@index([dueDate])
+}
+
+// Complaint Activity Model
+model ComplaintActivity {
+  id                String              @id @default(cuid())
+  complaintId       String
+  complaint         Complaint           @relation(fields: [complaintId], references: [id])
+  activityType      String              // STATUS_CHANGE, COMMENT, ASSIGNMENT, ESCALATION, RESOLUTION
+  description       String
+  performedById     String
+  performedByUser   User                @relation(fields: [performedById], references: [id])
+  createdAt         DateTime            @default(now())
+
+  @@index([complaintId])
+  @@index([activityType])
+  @@index([performedById])
+}
+
+// Complaint Attachment Model
+model ComplaintAttachment {
+  id                String              @id @default(cuid())
+  complaintId       String
+  complaint         Complaint           @relation(fields: [complaintId], references: [id])
+  fileUrl           String
+  fileName          String
+  fileType          String
+  fileSize          Int
+  uploadedById      String
+  uploadedByUser    User                @relation(fields: [uploadedById], references: [id])
+  createdAt         DateTime            @default(now())
+
+  @@index([complaintId])
+}
+
+// Follow-up Action Model
+model FollowUpAction {
+  id                String              @id @default(cuid())
+  actionType        String              // TRAINING, PROCESS_CHANGE, FACILITY_IMPROVEMENT, STAFF_COUNSELING, OTHER
+  description       String
+  status            String              // PLANNED, IN_PROGRESS, COMPLETED, CANCELLED
+  dueDate           DateTime?
+  completedDate     DateTime?
+  assignedToId      String?
+  assignedToUser    User?               @relation(fields: [assignedToId], references: [id])
+  feedbackId        String?
+  feedback          Feedback?           @relation(fields: [feedbackId], references: [id])
+  complaintId       String?
+  complaint         Complaint?          @relation(fields: [complaintId], references: [id])
+  createdById       String
+  createdByUser     User                @relation("FollowUpActionCreatedBy", fields: [createdById], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([actionType])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([feedbackId])
+  @@index([complaintId])
+  @@index([dueDate])
+}
+
+// Feedback Survey Template Model
+model FeedbackSurveyTemplate {
+  id                String              @id @default(cuid())
+  name              String
+  description       String?
+  serviceType       String              // GENERAL, HOUSEKEEPING, MAINTENANCE, DIETARY, AMBULANCE, etc.
+  questions         Json                // Array of question objects with type, text, options, etc.
+  isActive          Boolean             @default(true)
+  createdById       String
+  createdByUser     User                @relation(fields: [createdById], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  surveys           FeedbackSurvey[]
+
+  @@index([serviceType])
+  @@index([isActive])
+}
+
+// Feedback Survey Model
+model FeedbackSurvey {
+  id                String              @id @default(cuid())
+  templateId        String
+  template          FeedbackSurveyTemplate @relation(fields: [templateId], references: [id])
+  responses         Json                // Responses to survey questions
+  submittedById     String?
+  submittedByUser   User?               @relation(fields: [submittedById], references: [id])
+  patientId         String?
+  patient           Patient?            @relation(fields: [patientId], references: [id])
+  serviceId         String?             // Can reference any service
+  serviceType       String?             // Type of service
+  anonymous         Boolean             @default(false)
+  contactInfo       Json?               // Contact information if survey is not linked to a user
+  createdAt         DateTime            @default(now())
+
+  @@index([templateId])
+  @@index([submittedById])
+  @@index([patientId])
+  @@index([serviceType])
+  @@index([createdAt])
+}
+
+// Add relations to existing models
+model User {
+  // Existing fields...
+  submittedFeedback       Feedback[]           @relation("FeedbackSubmittedBy")
+  reviewedFeedback        Feedback[]           @relation("FeedbackReviewedBy")
+  feedbackResponses       FeedbackResponse[]
+  feedbackAttachments     FeedbackAttachment[]
+  submittedComplaints     Complaint[]          @relation("ComplaintSubmittedBy")
+  assignedComplaints      Complaint[]          @relation("ComplaintAssignedTo")
+  resolvedComplaints      Complaint[]          @relation("ComplaintResolvedBy")
+  escalatedComplaints     Complaint[]          @relation("ComplaintEscalatedTo")
+  complaintActivities     ComplaintActivity[]
+  complaintAttachments    ComplaintAttachment[]
+  assignedFollowUpActions FollowUpAction[]
+  createdFollowUpActions  FollowUpAction[]     @relation("FollowUpActionCreatedBy")
+  createdSurveyTemplates  FeedbackSurveyTemplate[]
+  submittedSurveys        FeedbackSurvey[]
+}
+
+model Patient {
+  // Existing fields...
+  feedback               Feedback[]
+  complaints             Complaint[]
+  surveys                FeedbackSurvey[]
+}
+
+model Department {
+  // Existing fields...
+  feedback               Feedback[]
+  complaints             Complaint[]
+}

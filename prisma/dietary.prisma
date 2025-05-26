@@ -1,0 +1,153 @@
+// This file defines the Prisma schema updates for the Dietary Management System
+// These models will be added to the main schema.prisma file
+
+// Dietary Request Model
+model DietaryRequest {
+  id            String      @id @default(cuid())
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  requestType   String      // REGULAR_MEAL, SPECIAL_DIET, NUTRITIONAL_CONSULTATION
+  status        String      // PENDING, APPROVED, IN_PREPARATION, DELIVERED, COMPLETED, CANCELLED
+  startDate     DateTime
+  endDate       DateTime?
+  mealPreferences String[]
+  dietaryRestrictions String[]
+  allergies     String[]
+  specialInstructions String?
+  requestedById String
+  requestedByUser User      @relation(fields: [requestedById], references: [id])
+  approvedById  String?
+  approvedByUser User?      @relation("DietaryRequestApprover", fields: [approvedById], references: [id])
+  mealPlans     MealPlan[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([patientId])
+  @@index([requestedById])
+  @@index([status])
+  @@index([startDate])
+}
+
+// Meal Plan Model
+model MealPlan {
+  id            String      @id @default(cuid())
+  requestId     String
+  request       DietaryRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  date          DateTime
+  meals         Meal[]
+  nutritionalSummary Json?
+  status        String      // PLANNED, PREPARED, DELIVERED, CONSUMED, CANCELLED
+  notes         String?
+  createdById   String
+  createdByUser User        @relation(fields: [createdById], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([requestId])
+  @@index([date])
+  @@index([status])
+}
+
+// Meal Model
+model Meal {
+  id            String      @id @default(cuid())
+  mealPlanId    String
+  mealPlan      MealPlan    @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  mealType      String      // BREAKFAST, LUNCH, DINNER, SNACK
+  menuItems     MenuItem[]
+  calories      Int?
+  protein       Float?      // in grams
+  carbohydrates Float?      // in grams
+  fat           Float?      // in grams
+  status        String      // PLANNED, PREPARED, DELIVERED, CONSUMED, CANCELLED
+  deliveryTime  DateTime?
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([mealPlanId])
+  @@index([mealType])
+  @@index([status])
+}
+
+// Menu Item Model
+model MenuItem {
+  id            String      @id @default(cuid())
+  mealId        String
+  meal          Meal        @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  category      String      // MAIN_COURSE, SIDE_DISH, DESSERT, BEVERAGE, etc.
+  ingredients   String[]
+  calories      Int?
+  protein       Float?      // in grams
+  carbohydrates Float?      // in grams
+  fat           Float?      // in grams
+  isSpecialDiet Boolean     @default(false)
+  dietaryFlags  String[]    // VEGETARIAN, VEGAN, GLUTEN_FREE, DAIRY_FREE, etc.
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([mealId])
+  @@index([category])
+}
+
+// Dietary Inventory Model
+model DietaryInventory {
+  id            String      @id @default(cuid())
+  itemName      String
+  category      String      // PROTEIN, GRAIN, VEGETABLE, FRUIT, DAIRY, etc.
+  currentStock  Float
+  unit          String      // KG, LITER, PIECE, etc.
+  minimumStock  Float
+  expiryDate    DateTime?
+  location      String?     // Storage location
+  cost          Float?      // Cost per unit
+  lastRestocked DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([category])
+  @@index([expiryDate])
+}
+
+// Nutritional Profile Model
+model NutritionalProfile {
+  id            String      @id @default(cuid())
+  patientId     String      @unique
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  height        Float?      // in cm
+  weight        Float?      // in kg
+  bmi           Float?
+  dietaryPreferences String[]
+  dietaryRestrictions String[]
+  allergies     String[]
+  medicalConditions String[]
+  nutritionalRequirements Json?
+  notes         String?
+  lastUpdatedById String
+  lastUpdatedByUser User    @relation(fields: [lastUpdatedById], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([patientId])
+}
+
+// Menu Template Model
+model MenuTemplate {
+  id            String      @id @default(cuid())
+  name          String
+  description   String?
+  mealType      String      // BREAKFAST, LUNCH, DINNER, SNACK
+  category      String      // REGULAR, DIABETIC, LOW_SODIUM, etc.
+  items         Json        // Array of menu items with nutritional info
+  isActive      Boolean     @default(true)
+  createdById   String
+  createdByUser User        @relation(fields: [createdById], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([mealType])
+  @@index([category])
+  @@index([isActive])
+}

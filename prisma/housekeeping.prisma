@@ -1,0 +1,109 @@
+// This file defines the Prisma schema updates for the Housekeeping Management System
+// These models will be added to the main schema.prisma file
+
+// Housekeeping Request Model
+model HousekeepingRequest {
+  id            String      @id @default(cuid())
+  locationId    String
+  location      Location    @relation(fields: [locationId], references: [id])
+  requestType   String      // REGULAR_CLEANING, DEEP_CLEANING, SPILL_CLEANUP, TERMINAL_CLEANING, etc.
+  description   String
+  priority      String      // LOW, MEDIUM, HIGH, URGENT
+  status        String      // PENDING, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED
+  requestedById String
+  requestedByUser User      @relation(fields: [requestedById], references: [id])
+  scheduledDate DateTime?
+  completedDate DateTime?
+  notes         String?
+  tasks         HousekeepingTask[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([locationId])
+  @@index([requestedById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Housekeeping Task Model
+model HousekeepingTask {
+  id            String      @id @default(cuid())
+  requestId     String
+  request       HousekeepingRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  description   String
+  status        String      // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+  assignedToId  String?
+  assignedToUser User?      @relation(fields: [assignedToId], references: [id])
+  startTime     DateTime?
+  endTime       DateTime?
+  duration      Int?        // Duration in minutes
+  notes         String?
+  createdById   String
+  createdByUser User        @relation("TaskCreator", fields: [createdById], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([requestId])
+  @@index([assignedToId])
+  @@index([status])
+}
+
+// Housekeeping Schedule Model
+model HousekeepingSchedule {
+  id            String      @id @default(cuid())
+  locationId    String
+  location      Location    @relation(fields: [locationId], references: [id])
+  scheduleType  String      // DAILY, WEEKLY, MONTHLY, QUARTERLY, ANNUAL
+  frequency     Int         // How often the schedule repeats (e.g., every 2 days)
+  dayOfWeek     Int?        // 0-6 for Sunday-Saturday
+  timeOfDay     DateTime?   // Time of day for the task
+  taskTemplate  String      // Template for tasks to be created
+  isActive      Boolean     @default(true)
+  lastRun       DateTime?
+  nextRun       DateTime?
+  createdById   String
+  createdByUser User        @relation(fields: [createdById], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([locationId])
+  @@index([scheduleType])
+  @@index([isActive])
+}
+
+// Housekeeping Inspection Model
+model HousekeepingInspection {
+  id            String      @id @default(cuid())
+  locationId    String
+  location      Location    @relation(fields: [locationId], references: [id])
+  inspectionType String     // ROUTINE, FOLLOW_UP, COMPLAINT_BASED
+  inspectorId   String
+  inspector     User        @relation(fields: [inspectorId], references: [id])
+  score         Float?      // Inspection score (e.g., 0-100)
+  status        String      // SCHEDULED, COMPLETED, FAILED
+  findings      String?     // Detailed findings
+  recommendations String?   // Recommendations for improvement
+  inspectionDate DateTime
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([locationId])
+  @@index([inspectorId])
+  @@index([status])
+}
+
+// Housekeeping Inventory Model
+model HousekeepingInventory {
+  id            String      @id @default(cuid())
+  itemName      String
+  itemType      String      // CLEANING_AGENT, EQUIPMENT, SUPPLIES
+  currentStock  Int
+  minimumStock  Int
+  unit          String      // BOTTLE, BOX, PIECE, etc.
+  location      String?     // Storage location
+  lastRestocked DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([itemType])
+}

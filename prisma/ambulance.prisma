@@ -1,0 +1,176 @@
+// This file defines the Prisma schema updates for the Ambulance Management System
+// These models will be added to the main schema.prisma file
+
+// Ambulance Model
+model Ambulance {
+  id                String              @id @default(cuid())
+  registrationNumber String              @unique
+  vehicleType       String              // BASIC_LIFE_SUPPORT, ADVANCED_LIFE_SUPPORT, PATIENT_TRANSPORT
+  status            String              // AVAILABLE, ON_DUTY, UNDER_MAINTENANCE, OUT_OF_SERVICE
+  capacity          Int
+  features          String[]
+  currentLocationId String?
+  currentLocation   Location?           @relation(fields: [currentLocationId], references: [id])
+  lastMaintenanceDate DateTime?
+  nextMaintenanceDate DateTime?
+  crew              AmbulanceCrew[]
+  trips             AmbulanceTrip[]
+  maintenanceRecords AmbulanceMaintenance[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([status])
+  @@index([vehicleType])
+  @@index([currentLocationId])
+}
+
+// Ambulance Crew Model
+model AmbulanceCrew {
+  id                String              @id @default(cuid())
+  ambulanceId       String
+  ambulance         Ambulance           @relation(fields: [ambulanceId], references: [id])
+  userId            String
+  user              User                @relation(fields: [userId], references: [id])
+  role              String              // DRIVER, PARAMEDIC, EMERGENCY_MEDICAL_TECHNICIAN, DOCTOR, NURSE
+  status            String              // ON_DUTY, OFF_DUTY, ON_LEAVE
+  shiftStart        DateTime?
+  shiftEnd          DateTime?
+  trips             AmbulanceTrip[]     @relation("CrewTrips")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@unique([ambulanceId, userId])
+  @@index([ambulanceId])
+  @@index([userId])
+  @@index([status])
+}
+
+// Ambulance Trip Model
+model AmbulanceTrip {
+  id                String              @id @default(cuid())
+  ambulanceId       String
+  ambulance         Ambulance           @relation(fields: [ambulanceId], references: [id])
+  tripType          String              // EMERGENCY, NON_EMERGENCY, TRANSFER, RETURN
+  status            String              // SCHEDULED, EN_ROUTE_TO_PICKUP, ARRIVED_AT_PICKUP, EN_ROUTE_TO_DESTINATION, ARRIVED_AT_DESTINATION, COMPLETED, CANCELLED
+  priority          String              // HIGH, MEDIUM, LOW
+  patientId         String?
+  patient           Patient?            @relation(fields: [patientId], references: [id])
+  requestedById     String
+  requestedByUser   User                @relation("TripRequestedBy", fields: [requestedById], references: [id])
+  pickupLocationId  String?
+  pickupLocation    Location?           @relation("TripPickupLocation", fields: [pickupLocationId], references: [id])
+  dropLocationId    String?
+  dropLocation      Location?           @relation("TripDropLocation", fields: [dropLocationId], references: [id])
+  scheduledTime     DateTime
+  startTime         DateTime?
+  endTime           DateTime?
+  duration          Int?                // in minutes
+  distance          Float?              // in kilometers
+  notes             String?
+  medicalDetails    Json?
+  crew              AmbulanceCrew[]     @relation("CrewTrips")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([ambulanceId])
+  @@index([patientId])
+  @@index([status])
+  @@index([tripType])
+  @@index([priority])
+  @@index([scheduledTime])
+}
+
+// Ambulance Maintenance Model
+model AmbulanceMaintenance {
+  id                String              @id @default(cuid())
+  ambulanceId       String
+  ambulance         Ambulance           @relation(fields: [ambulanceId], references: [id])
+  maintenanceType   String              // ROUTINE, REPAIR, INSPECTION, EMERGENCY
+  status            String              // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
+  description       String
+  scheduledDate     DateTime
+  completedDate     DateTime?
+  cost              Float?
+  performedById     String?
+  performedByUser   User?               @relation(fields: [performedById], references: [id])
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([ambulanceId])
+  @@index([maintenanceType])
+  @@index([status])
+  @@index([scheduledDate])
+}
+
+// Ambulance Inventory Model
+model AmbulanceInventory {
+  id                String              @id @default(cuid())
+  ambulanceId       String
+  ambulance         Ambulance           @relation(fields: [ambulanceId], references: [id])
+  itemName          String
+  itemType          String              // MEDICATION, EQUIPMENT, SUPPLY
+  quantity          Int
+  expiryDate        DateTime?
+  lastRestockedDate DateTime?
+  minimumQuantity   Int
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@unique([ambulanceId, itemName])
+  @@index([ambulanceId])
+  @@index([itemType])
+  @@index([expiryDate])
+}
+
+// Ambulance Route Model
+model AmbulanceRoute {
+  id                String              @id @default(cuid())
+  tripId            String              @unique
+  trip              AmbulanceTrip       @relation(fields: [tripId], references: [id])
+  routeData         Json                // Stores route coordinates, waypoints, etc.
+  estimatedDistance Float               // in kilometers
+  estimatedDuration Int                 // in minutes
+  actualDistance    Float?              // in kilometers
+  actualDuration    Int?                // in minutes
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([tripId])
+}
+
+// Ambulance Emergency Contact Model
+model EmergencyContact {
+  id                String              @id @default(cuid())
+  name              String
+  phone             String
+  relationship      String?
+  patientId         String
+  patient           Patient             @relation(fields: [patientId], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([patientId])
+}
+
+// Add relations to existing models
+model Patient {
+  // Existing fields...
+  ambulanceTrips    AmbulanceTrip[]
+  emergencyContacts EmergencyContact[]
+}
+
+model User {
+  // Existing fields...
+  ambulanceCrew     AmbulanceCrew[]
+  requestedTrips    AmbulanceTrip[]     @relation("TripRequestedBy")
+  performedMaintenance AmbulanceMaintenance[]
+}
+
+model Location {
+  // Existing fields...
+  ambulances        Ambulance[]
+  pickupTrips       AmbulanceTrip[]     @relation("TripPickupLocation")
+  dropTrips         AmbulanceTrip[]     @relation("TripDropLocation")
+}
