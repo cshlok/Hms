@@ -1,138 +1,195 @@
 /**
- * Audit logging module for HMS Diagnostics
+ * Audit Logger Service for HMS Support Services
  * 
- * This module provides comprehensive audit logging functionality for all
- * diagnostic operations, ensuring HIPAA compliance and maintaining a
- * complete audit trail of all actions performed on sensitive data.
+ * This service provides comprehensive HIPAA-compliant audit logging
+ * for all operations within the HMS Support Services module.
  */
 
-import { DB } from './database';
+import { prisma } from '@/lib/prisma';
+import { SecurityService } from '@/lib/security.service';
 
-/**
- * Audit log entry type definition
- */
-export interface AuditLogEntry {
-  userId: number;
-  action: 'create' | 'read' | 'update' | 'delete' | 'acknowledge' | 'retrieve' | 'store' | 'sync';
-  resource: string;
-  resourceId?: number;
-  details?: Record<string, any>;
-  ipAddress?: string;
+export interface AuditLogContext {
+  requestId?: string;
+  userId: string;
+  userRoles?: string[];
   userAgent?: string;
+  method?: string;
+  url?: string;
+  ipAddress?: string;
 }
 
-/**
- * Creates an audit log entry in the database
- * 
- * @param entry The audit log entry to create
- * @returns Promise resolving to the created audit log entry ID
- */
-export async function auditLog(entry: AuditLogEntry): Promise<number> {
-  try {
-    const db = DB();
-    
-    // Sanitize details to prevent sensitive data leakage
-    const sanitizedDetails = entry.details ? JSON.stringify(entry.details) : null;
-    
-    const result = await db.query(
-      `INSERT INTO audit_logs 
-       (user_id, action, resource, resource_id, details, ip_address, user_agent, created_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-      [
-        entry.userId,
-        entry.action,
-        entry.resource,
-        entry.resourceId || null,
-        sanitizedDetails,
-        entry.ipAddress || null,
-        entry.userAgent || null
-      ]
-    );
-    
-    return result.insertId;
-  } catch (error) {
-    console.error('Failed to create audit log entry:', error);
-    // Don't throw - audit logging should never break the main flow
-    return 0;
+export interface AuditLogEntry {
+  action: string;
+  resourceId: string;
+  userId: string;
+  details: Record<string, any>;
+  severity?: 'info' | 'warning' | 'error' | 'critical';
+}
+
+export class AuditLogger {
+  private context: AuditLogContext;
+  
+  constructor(context: AuditLogContext) {
+    this.context = {
+      requestId: context.requestId || crypto.randomUUID(),
+      userId: context.userId || 'anonymous',
+      userRoles: context.userRoles || [],
+      userAgent: context.userAgent,
+      method: context.method,
+      url: context.url ? SecurityService.sanitizeUrl(context.url) : undefined,
+      ipAddress: context.ipAddress
+    };
   }
-}
-
-/**
- * Retrieves audit logs for a specific resource
- * 
- * @param resource The resource type to retrieve logs for
- * @param resourceId Optional resource ID to filter by
- * @param limit Maximum number of logs to retrieve
- * @returns Promise resolving to array of audit log entries
- */
-export async function getAuditLogs(
-  resource: string,
-  resourceId?: number,
-  limit: number = 100
-): Promise<any[]> {
-  try {
-    const db = DB();
+  
+  /**
+   * Logs an audit event to the database and console
+   * @param entry The audit log entry to record
+   * @returns The created audit log entry
+   */
+  public async log(entry: AuditLogEntry): Promise<any> {
+    try {
+      // Sanitize details to remove any PHI/PII
+      const sanitizedDetails = this.sanitizeDetails(entry.details);
+      
+      // Determine severity if not provided
+      const severity = entry.severity || this.determineSeverity(entry.action);
+      
+      // Create the audit log entry
+      const logEntry = await prisma.auditLog.create({
+        data: {
+          requestId: this.context.requestId,
+          timestamp: new Date(),
+          action: entry.action,
+          resourceId: entry.resourceId,
+          userId: entry.userId,
+          userRoles: this.context.userRoles,
+          userAgent: this.context.userAgent,
+          method: this.context.method,
+          url: this.context.url,
+          ipAddress: this.context.ipAddress,
+          details: sanitizedDetails,
+          severity
+        }
+      });
+      
+      // Also log to console for development/debugging
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[AUDIT] ${severity.toUpperCase()} - ${entry.action} - User: ${entry.userId} - Resource: ${entry.resourceId}`);
+      }
+      
+      return logEntry;
+    } catch (error) {
+      // Fallback to console logging if database logging fails
+      console.error('Failed to write audit log to database:', error);
+      console.log(`[AUDIT] ${entry.action} - User: ${entry.userId} - Resource: ${entry.resourceId} - Details:`, entry.details);
+      
+      // In production, we might want to use a more robust fallback
+      if (process.env.NODE_ENV === 'production') {
+        // Send to external logging service or write to file
+        this.fallbackLogging(entry);
+      }
+      
+      return null;
+    }
+  }
+  
+  /**
+   * Sanitizes log details to remove any PHI/PII
+   * @param details The details object to sanitize
+   * @returns Sanitized details object
+   */
+  private sanitizeDetails(details: Record<string, any>): Record<string, any> {
+    const sanitized: Record<string, any> = {};
     
-    let query = `
-      SELECT al.*, u.username, u.first_name, u.last_name
-      FROM audit_logs al
-      LEFT JOIN users u ON al.user_id = u.id
-      WHERE al.resource = ?
-    `;
+    // Define sensitive field patterns
+    const sensitiveFields = [
+      'password', 'secret', 'token', 'key', 'auth',
+      'ssn', 'socialSecurity', 'dob', 'dateOfBirth', 'birthDate',
+      'address', 'phone', 'email', 'medicalRecord', 'diagnosis',
+      'treatment', 'medication', 'insurance', 'payment', 'credit',
+      'debit', 'card', 'account', 'license', 'patient'
+    ];
     
-    const params: any[] = [resource];
-    
-    if (resourceId) {
-      query += ' AND al.resource_id = ?';
-      params.push(resourceId);
+    // Process each field in the details object
+    for (const [key, value] of Object.entries(details)) {
+      // Check if this is a sensitive field
+      const isSensitive = sensitiveFields.some(field => 
+        key.toLowerCase().includes(field.toLowerCase())
+      );
+      
+      if (isSensitive) {
+        // Redact sensitive fields
+        sanitized[key] = '[REDACTED]';
+      } else if (typeof value === 'object' && value !== null) {
+        // Recursively sanitize nested objects
+        sanitized[key] = this.sanitizeDetails(value);
+      } else if (typeof value === 'string') {
+        // Check for patterns in string values
+        sanitized[key] = SecurityService.sanitizeErrorMessage(value);
+      } else {
+        // Pass through non-sensitive values
+        sanitized[key] = value;
+      }
     }
     
-    query += ' ORDER BY al.created_at DESC LIMIT ?';
-    params.push(limit);
-    
-    const result = await db.query(query, params);
-    
-    return result.results.map((log: any) => ({
-      ...log,
-      details: log.details ? JSON.parse(log.details) : null
-    }));
-  } catch (error) {
-    console.error('Failed to retrieve audit logs:', error);
-    return [];
+    return sanitized;
   }
-}
-
-/**
- * Retrieves audit logs for a specific user
- * 
- * @param userId The user ID to retrieve logs for
- * @param limit Maximum number of logs to retrieve
- * @returns Promise resolving to array of audit log entries
- */
-export async function getUserAuditLogs(
-  userId: number,
-  limit: number = 100
-): Promise<any[]> {
-  try {
-    const db = DB();
+  
+  /**
+   * Determines the severity level based on the action
+   * @param action The audit action
+   * @returns The severity level
+   */
+  private determineSeverity(action: string): 'info' | 'warning' | 'error' | 'critical' {
+    // Security-related actions are higher severity
+    if (action.includes('login') || action.includes('auth') || action.includes('permission')) {
+      return 'warning';
+    }
     
-    const query = `
-      SELECT al.*, u.username, u.first_name, u.last_name
-      FROM audit_logs al
-      LEFT JOIN users u ON al.user_id = u.id
-      WHERE al.user_id = ?
-      ORDER BY al.created_at DESC
-      LIMIT ?
-    `;
+    // Error actions are error severity
+    if (action.includes('error') || action.includes('fail') || action.includes('exception')) {
+      return 'error';
+    }
     
-    const result = await db.query(query, [userId, limit]);
+    // Data modification actions are warning severity
+    if (
+      action.includes('create') || 
+      action.includes('update') || 
+      action.includes('delete') || 
+      action.includes('modify')
+    ) {
+      return 'warning';
+    }
     
-    return result.results.map((log: any) => ({
-      ...log,
-      details: log.details ? JSON.parse(log.details) : null
+    // Security breaches or critical operations
+    if (
+      action.includes('breach') || 
+      action.includes('security.violation') || 
+      action.includes('critical')
+    ) {
+      return 'critical';
+    }
+    
+    // Default to info
+    return 'info';
+  }
+  
+  /**
+   * Fallback logging mechanism when database logging fails
+   * @param entry The audit log entry to record
+   */
+  private fallbackLogging(entry: AuditLogEntry): void {
+    // In a real implementation, this would write to a file or external service
+    // For this example, we'll just log to console
+    console.warn('[AUDIT FALLBACK] Failed to write to database, using fallback logging');
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      requestId: this.context.requestId,
+      action: entry.action,
+      resourceId: entry.resourceId,
+      userId: entry.userId,
+      severity: entry.severity || this.determineSeverity(entry.action),
+      details: this.sanitizeDetails(entry.details)
     }));
-  } catch (error) {
-    console.error('Failed to retrieve user audit logs:', error);
-    return [];
   }
 }

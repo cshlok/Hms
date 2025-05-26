@@ -1,163 +1,286 @@
-import { encryptionService } from '@/lib/services/encryption.service';
-import { auditService } from '@/lib/services/audit.service';
-import { ErrorHandler } from '@/lib/error-handler';
-
 /**
- * Security Service for HMS Support Services Management
- * Provides centralized security functions including:
- * - Data encryption/decryption
- * - Input sanitization
- * - HIPAA compliance validation
- * - Security logging
+ * Security Service for HMS Support Services
+ * 
+ * This service provides HIPAA-compliant security features including:
+ * - Field-level encryption for PHI/PII
+ * - Token verification and management
+ * - Data sanitization
+ * - Security utilities
  */
+
+import * as crypto from 'crypto';
+import { AuditLogger } from '@/lib/audit';
+
 export class SecurityService {
+  private static readonly ENCRYPTION_ALGORITHM = 'aes-256-gcm';
+  private static readonly ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-for-development-only-change-in-prod';
+  private static readonly IV_LENGTH = 16;
+  private static readonly AUTH_TAG_LENGTH = 16;
+  private static readonly JWT_SECRET = process.env.JWT_SECRET || 'default-jwt-secret-for-development-only-change-in-prod';
+  
   /**
-   * Encrypt sensitive data using the encryption service
-   * @param data Data to encrypt
-   * @returns Encrypted data
+   * Encrypts sensitive field data using AES-256-GCM
+   * @param data The data to encrypt
+   * @returns Encrypted data string (format: iv:authTag:encryptedData)
    */
-  public static encryptSensitiveData(data: any): string {
+  public static encryptField(data: string): string {
+    if (!data) return data;
+    
     try {
-      return encryptionService.encryptData(data);
+      // Generate a random initialization vector
+      const iv = crypto.randomBytes(this.IV_LENGTH);
+      
+      // Create cipher
+      const cipher = crypto.createCipheriv(
+        this.ENCRYPTION_ALGORITHM, 
+        Buffer.from(this.ENCRYPTION_KEY), 
+        iv
+      );
+      
+      // Encrypt the data
+      let encrypted = cipher.update(data, 'utf8', 'hex');
+      encrypted += cipher.final('hex');
+      
+      // Get the authentication tag
+      const authTag = cipher.getAuthTag().toString('hex');
+      
+      // Return the IV, auth tag, and encrypted data as a single string
+      return `${iv.toString('hex')}:${authTag}:${encrypted}`;
     } catch (error) {
       console.error('Encryption error:', error);
-      throw ErrorHandler.createError(
-        'Failed to encrypt sensitive data',
-        'INTERNAL',
-        'INTERNAL_SERVER_ERROR'
-      );
+      throw new Error('Failed to encrypt data');
     }
   }
-
+  
   /**
-   * Decrypt sensitive data using the encryption service
-   * @param encryptedData Encrypted data to decrypt
+   * Decrypts encrypted field data
+   * @param encryptedData The encrypted data string (format: iv:authTag:encryptedData)
    * @returns Decrypted data
    */
-  public static decryptSensitiveData(encryptedData: string): any {
+  public static decryptField(encryptedData: string): string {
+    if (!encryptedData || !encryptedData.includes(':')) return encryptedData;
+    
     try {
-      return encryptionService.decryptData(encryptedData);
+      // Split the encrypted data into its components
+      const [ivHex, authTagHex, encryptedHex] = encryptedData.split(':');
+      
+      // Convert hex strings back to buffers
+      const iv = Buffer.from(ivHex, 'hex');
+      const authTag = Buffer.from(authTagHex, 'hex');
+      
+      // Create decipher
+      const decipher = crypto.createDecipheriv(
+        this.ENCRYPTION_ALGORITHM, 
+        Buffer.from(this.ENCRYPTION_KEY), 
+        iv
+      );
+      
+      // Set the authentication tag
+      decipher.setAuthTag(authTag);
+      
+      // Decrypt the data
+      let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+      
+      return decrypted;
     } catch (error) {
       console.error('Decryption error:', error);
-      throw ErrorHandler.createError(
-        'Failed to decrypt sensitive data',
-        'INTERNAL',
-        'INTERNAL_SERVER_ERROR'
-      );
+      throw new Error('Failed to decrypt data');
     }
   }
-
+  
   /**
-   * Sanitize input data to prevent injection attacks
-   * @param input Input data to sanitize
-   * @returns Sanitized data
+   * Verifies a JWT token and returns the decoded payload
+   * @param token The JWT token to verify
+   * @returns Decoded token payload
    */
-  public static sanitizeInput(input: string): string {
-    if (!input) return '';
-    
-    // Remove potentially dangerous HTML/script tags
-    return input
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-      .replace(/<[^>]*>/g, '')
-      // Prevent SQL injection attempts
-      .replace(/'/g, ''')
-      .replace(/"/g, '"')
-      .replace(/;/g, '；')
-      .replace(/--/g, '－－')
-      .replace(/\/\*/g, '／＊')
-      .replace(/\*\//g, '＊／')
-      .replace(/union\s+select/gi, 'ｕｎｉｏｎ ｓｅｌｅｃｔ')
-      .replace(/exec\s+/gi, 'ｅｘｅｃ ')
-      .trim();
-  }
-
-  /**
-   * Validate that data is HIPAA compliant
-   * @param data Data to validate
-   * @param context Context of the data (for logging)
-   * @returns True if compliant, throws error if not
-   */
-  public static validateHipaaCompliance(data: any, context: string): boolean {
-    // Check for common PHI patterns that should be encrypted
-    const phiPatterns = [
-      // Patient identifiers
-      /\b(?:patient|person|individual)\s+(?:id|identifier|number)\s*[:=]?\s*\w+/i,
-      // Medical Record Numbers
-      /\b(?:mrn|medical\s+record\s+number)\s*[:=]?\s*\w+/i,
-      // Social Security Numbers
-      /\b\d{3}-\d{2}-\d{4}\b/,
-      // Dates of birth
-      /\b(?:dob|date\s+of\s+birth)\s*[:=]?\s*[\w\/-]+/i,
-      // Email addresses
-      /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/,
-      // Phone numbers
-      /\b(?:\+\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/,
-      // Addresses
-      /\b\d+\s+[A-Za-z\s,]+(?:street|st|avenue|ave|road|rd|boulevard|blvd|drive|dr|lane|ln|court|ct|plaza|plz|square|sq|parkway|pkwy)\b/i,
-    ];
-
-    const dataString = JSON.stringify(data);
-    
-    for (const pattern of phiPatterns) {
-      if (pattern.test(dataString)) {
-        // Log the compliance issue (without including the actual data)
-        auditService.logActivity({
-          action: 'HIPAA_COMPLIANCE_VIOLATION',
-          resourceType: 'SECURITY',
-          resourceId: 'data-validation',
-          userId: null,
-          metadata: {
-            context,
-            pattern: pattern.toString(),
-          },
-        });
-        
-        throw ErrorHandler.createError(
-          'Data contains unencrypted PHI (Protected Health Information)',
-          'BAD_REQUEST',
-          'VALIDATION_ERROR'
-        );
+  public static async verifyToken(token: string): Promise<any> {
+    try {
+      // In a real implementation, this would use a proper JWT library
+      // For this example, we'll simulate token verification
+      
+      // Split the token into parts
+      const [headerB64, payloadB64, signature] = token.split('.');
+      
+      // Decode the payload
+      const payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString());
+      
+      // Check if token is expired
+      if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+        throw new Error('Token expired');
       }
-    }
-    
-    return true;
-  }
-
-  /**
-   * Log security-related events
-   * @param action Security action
-   * @param userId User ID
-   * @param metadata Additional metadata
-   */
-  public static logSecurityEvent(action: string, userId: string | null, metadata: any): void {
-    auditService.logActivity({
-      action,
-      resourceType: 'SECURITY',
-      resourceId: 'security-event',
-      userId,
-      metadata,
-    });
-  }
-
-  /**
-   * Validate and sanitize an object's string properties
-   * @param obj Object to sanitize
-   * @returns Sanitized object
-   */
-  public static sanitizeObject(obj: Record<string, any>): Record<string, any> {
-    const sanitized: Record<string, any> = {};
-    
-    for (const [key, value] of Object.entries(obj)) {
-      if (typeof value === 'string') {
-        sanitized[key] = this.sanitizeInput(value);
-      } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-        sanitized[key] = this.sanitizeObject(value);
-      } else {
-        sanitized[key] = value;
+      
+      // Verify signature (simplified for example)
+      const expectedSignature = crypto
+        .createHmac('sha256', this.JWT_SECRET)
+        .update(`${headerB64}.${payloadB64}`)
+        .digest('base64url');
+      
+      if (signature !== expectedSignature) {
+        throw new Error('Invalid token signature');
       }
+      
+      return payload;
+    } catch (error) {
+      console.error('Token verification error:', error);
+      throw new Error('Invalid token');
     }
+  }
+  
+  /**
+   * Sanitizes a URL to remove sensitive information
+   * @param url The URL to sanitize
+   * @returns Sanitized URL
+   */
+  public static sanitizeUrl(url: string): string {
+    if (!url) return url;
+    
+    try {
+      const urlObj = new URL(url);
+      
+      // Remove sensitive query parameters
+      const sensitiveParams = ['token', 'password', 'secret', 'key', 'auth'];
+      sensitiveParams.forEach(param => {
+        if (urlObj.searchParams.has(param)) {
+          urlObj.searchParams.set(param, '[REDACTED]');
+        }
+      });
+      
+      return urlObj.toString();
+    } catch (error) {
+      // If URL parsing fails, do basic redaction
+      return url.replace(/([?&](token|password|secret|key|auth)=)[^&]+/gi, '$1[REDACTED]');
+    }
+  }
+  
+  /**
+   * Sanitizes error messages to prevent leaking sensitive information
+   * @param message The error message to sanitize
+   * @returns Sanitized error message
+   */
+  public static sanitizeErrorMessage(message: string): string {
+    if (!message) return message;
+    
+    // Redact potential PHI/PII patterns
+    const sanitized = message
+      // Redact email addresses
+      .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL REDACTED]')
+      // Redact phone numbers
+      .replace(/(\+\d{1,3}[\s-])?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/g, '[PHONE REDACTED]')
+      // Redact SSNs
+      .replace(/\d{3}-\d{2}-\d{4}/g, '[SSN REDACTED]')
+      // Redact credit card numbers
+      .replace(/\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}/g, '[CC REDACTED]')
+      // Redact patient IDs (assuming format like P12345678)
+      .replace(/\b[P]\d{8}\b/g, '[PATIENT ID REDACTED]')
+      // Redact names (this is a simplified approach)
+      .replace(/\b(Mr\.|Mrs\.|Ms\.|Dr\.)\s+[A-Z][a-z]+\s+[A-Z][a-z]+\b/g, '[NAME REDACTED]');
     
     return sanitized;
+  }
+  
+  /**
+   * Checks if a user has the required role
+   * @param userRoles The user's roles
+   * @param requiredRole The required role
+   * @returns True if the user has the required role
+   */
+  public static hasRole(userRoles: string[], requiredRole: string): boolean {
+    if (!userRoles || !Array.isArray(userRoles)) return false;
+    
+    // Admin role has access to everything
+    if (userRoles.includes('admin')) return true;
+    
+    return userRoles.includes(requiredRole);
+  }
+  
+  /**
+   * Checks if a user has any of the required roles
+   * @param userRoles The user's roles
+   * @param requiredRoles The required roles
+   * @returns True if the user has any of the required roles
+   */
+  public static hasAnyRole(userRoles: string[], requiredRoles: string[]): boolean {
+    if (!userRoles || !Array.isArray(userRoles) || !requiredRoles || !Array.isArray(requiredRoles)) {
+      return false;
+    }
+    
+    // Admin role has access to everything
+    if (userRoles.includes('admin')) return true;
+    
+    return requiredRoles.some(role => userRoles.includes(role));
+  }
+  
+  /**
+   * Generates a secure hash of data
+   * @param data The data to hash
+   * @returns Hashed data
+   */
+  public static hashData(data: string): string {
+    return crypto
+      .createHash('sha256')
+      .update(data)
+      .digest('hex');
+  }
+  
+  /**
+   * Validates a password against security requirements
+   * @param password The password to validate
+   * @returns Validation result with success flag and message
+   */
+  public static validatePassword(password: string): { valid: boolean; message?: string } {
+    if (!password) {
+      return { valid: false, message: 'Password is required' };
+    }
+    
+    if (password.length < 12) {
+      return { valid: false, message: 'Password must be at least 12 characters long' };
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+      return { valid: false, message: 'Password must contain at least one uppercase letter' };
+    }
+    
+    if (!/[a-z]/.test(password)) {
+      return { valid: false, message: 'Password must contain at least one lowercase letter' };
+    }
+    
+    if (!/[0-9]/.test(password)) {
+      return { valid: false, message: 'Password must contain at least one number' };
+    }
+    
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      return { valid: false, message: 'Password must contain at least one special character' };
+    }
+    
+    return { valid: true };
+  }
+  
+  /**
+   * Masks sensitive data for display
+   * @param data The data to mask
+   * @param type The type of data to mask
+   * @returns Masked data
+   */
+  public static maskSensitiveData(data: string, type: 'email' | 'phone' | 'ssn' | 'creditCard'): string {
+    if (!data) return data;
+    
+    switch (type) {
+      case 'email':
+        const [username, domain] = data.split('@');
+        return `${username.charAt(0)}${'*'.repeat(username.length - 2)}${username.charAt(username.length - 1)}@${domain}`;
+        
+      case 'phone':
+        return data.replace(/^(\d{3})\d{3}(\d{4})$/, '$1-***-$2');
+        
+      case 'ssn':
+        return data.replace(/^(\d{3})-\d{2}-(\d{4})$/, '$1-**-$2');
+        
+      case 'creditCard':
+        return data.replace(/^(\d{4})\d+(\d{4})$/, '$1-****-****-$2');
+        
+      default:
+        return data;
+    }
   }
 }

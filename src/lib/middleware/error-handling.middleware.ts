@@ -1,119 +1,179 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { validatePermission } from '@/lib/permissions';
-import { ErrorHandler } from '@/lib/error-handler';
-import { auditService } from '@/lib/services/audit.service';
-
 /**
- * Global error handler middleware for Support Services Management API routes
- * Implements consistent error handling, logging, and HIPAA-compliant responses
+ * Enhanced Error Handling Middleware for HMS Support Services
+ * 
+ * This middleware provides comprehensive error handling for all API routes
+ * in the HMS Support Services module, with HIPAA-compliant logging and
+ * standardized error responses.
  */
-export async function withErrorHandling(
+
+import { NextRequest, NextResponse } from 'next/server';
+import { 
+  ValidationError, 
+  NotFoundError, 
+  AuthorizationError, 
+  DatabaseError, 
+  ExternalServiceError,
+  RateLimitError,
+  ConflictError
+} from '@/lib/errors';
+import { AuditLogger } from '@/lib/audit';
+import { SecurityService } from '@/lib/security.service';
+
+export async function errorHandlingMiddleware(
   request: NextRequest,
-  handler: (request: NextRequest) => Promise<NextResponse>,
-  options: {
-    requiredPermission?: string;
-    auditAction?: string;
-    skipAuth?: boolean;
-  } = {}
+  handler: (request: NextRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
-    // Authentication check (unless explicitly skipped)
-    if (!options.skipAuth) {
-      const session = await getServerSession(authOptions);
-      if (!session?.user) {
-        auditService.logActivity({
-          action: 'UNAUTHORIZED_ACCESS',
-          resourceType: 'API',
-          resourceId: request.nextUrl.pathname,
-          userId: null,
-          metadata: {
-            method: request.method,
-            path: request.nextUrl.pathname,
-            ip: request.headers.get('x-forwarded-for') || 'unknown',
-          },
-        });
-        
-        return NextResponse.json(
-          { error: 'Unauthorized access' },
-          { status: 401 }
-        );
-      }
-
-      // Permission check (if required permission is specified)
-      if (options.requiredPermission) {
-        const hasPermission = await validatePermission(
-          session.user.id,
-          options.requiredPermission
-        );
-        
-        if (!hasPermission) {
-          auditService.logActivity({
-            action: 'PERMISSION_DENIED',
-            resourceType: 'API',
-            resourceId: request.nextUrl.pathname,
-            userId: session.user.id,
-            metadata: {
-              method: request.method,
-              path: request.nextUrl.pathname,
-              requiredPermission: options.requiredPermission,
-            },
-          });
-          
-          return NextResponse.json(
-            { error: 'Permission denied' },
-            { status: 403 }
-          );
-        }
-      }
-
-      // Audit trail for the request (if audit action is specified)
-      if (options.auditAction) {
-        auditService.logActivity({
-          action: options.auditAction,
-          resourceType: 'API',
-          resourceId: request.nextUrl.pathname,
-          userId: session.user.id,
-          metadata: {
-            method: request.method,
-            path: request.nextUrl.pathname,
-          },
-        });
+    // Extract request information for logging
+    const requestId = crypto.randomUUID();
+    const method = request.method;
+    const url = request.url;
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+    const contentType = request.headers.get('content-type');
+    const authHeader = request.headers.get('authorization');
+    
+    // Extract user information from auth token if present
+    let userId = 'anonymous';
+    let userRoles: string[] = [];
+    
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const decodedToken = await SecurityService.verifyToken(token);
+        userId = decodedToken.userId;
+        userRoles = decodedToken.roles || [];
+      } catch (error) {
+        // Token verification failed, continue as anonymous
+        console.warn(`Token verification failed: ${error}`);
       }
     }
-
+    
+    // Create audit context
+    const auditLogger = new AuditLogger({
+      requestId,
+      userId,
+      userRoles,
+      userAgent,
+      method,
+      url
+    });
+    
+    // Log request (sanitizing sensitive data)
+    await auditLogger.log({
+      action: 'api.request',
+      resourceId: requestId,
+      userId,
+      details: {
+        method,
+        url: SecurityService.sanitizeUrl(url),
+        contentType,
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+    // Attach audit logger to request for use in handlers
+    const requestWithContext = new NextRequest(request, {
+      auditLogger,
+      userId,
+      userRoles,
+      requestId
+    });
+    
     // Execute the handler
-    return await handler(request);
-  } catch (error) {
-    // Use the ErrorHandler to process the error
-    const { status, message, errorCode, shouldLog } = ErrorHandler.processError(error);
+    const response = await handler(requestWithContext);
     
-    // Log the error if needed
-    if (shouldLog) {
-      console.error(`API Error (${status}):`, error);
-      
-      // Audit log for errors
-      const session = await getServerSession(authOptions);
-      auditService.logActivity({
-        action: 'API_ERROR',
-        resourceType: 'API',
-        resourceId: request.nextUrl.pathname,
-        userId: session?.user?.id || null,
-        metadata: {
-          method: request.method,
-          path: request.nextUrl.pathname,
-          errorCode,
-          status,
-        },
-      });
+    // Log successful response (excluding sensitive data)
+    await auditLogger.log({
+      action: 'api.response',
+      resourceId: requestId,
+      userId,
+      details: {
+        status: response.status,
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+    return response;
+  } catch (error) {
+    console.error('API Error:', error);
+    
+    // Default error values
+    let status = 500;
+    let message = 'Internal server error';
+    let code = 'INTERNAL_SERVER_ERROR';
+    let details = {};
+    
+    // Map known error types to appropriate responses
+    if (error instanceof ValidationError) {
+      status = 400;
+      message = error.message;
+      code = 'VALIDATION_ERROR';
+      details = error.details || {};
+    } else if (error instanceof NotFoundError) {
+      status = 404;
+      message = error.message;
+      code = 'NOT_FOUND';
+    } else if (error instanceof AuthorizationError) {
+      status = 403;
+      message = error.message;
+      code = 'FORBIDDEN';
+    } else if (error instanceof RateLimitError) {
+      status = 429;
+      message = error.message;
+      code = 'RATE_LIMIT_EXCEEDED';
+    } else if (error instanceof ConflictError) {
+      status = 409;
+      message = error.message;
+      code = 'CONFLICT';
+    } else if (error instanceof ExternalServiceError) {
+      status = 502;
+      message = 'External service error';
+      code = 'EXTERNAL_SERVICE_ERROR';
+      // Don't expose external service details in response
+      details = { service: error.serviceName };
+    } else if (error instanceof DatabaseError) {
+      status = 500;
+      message = 'Database operation failed';
+      code = 'DATABASE_ERROR';
+      // Don't expose database details in response
     }
     
-    // Return a sanitized error response (HIPAA compliant)
+    // Log error with appropriate sanitization for HIPAA compliance
+    try {
+      const auditLogger = new AuditLogger({
+        requestId: crypto.randomUUID(),
+        userId: 'system',
+        method: request.method,
+        url: request.url
+      });
+      
+      await auditLogger.log({
+        action: 'api.error',
+        resourceId: crypto.randomUUID(),
+        userId: 'system',
+        details: {
+          errorType: error.constructor.name,
+          errorCode: code,
+          errorMessage: SecurityService.sanitizeErrorMessage(message),
+          status,
+          url: SecurityService.sanitizeUrl(request.url),
+          method: request.method,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (loggingError) {
+      console.error('Error logging failed:', loggingError);
+    }
+    
+    // Return standardized error response
     return NextResponse.json(
       {
-        error: message,
-        code: errorCode,
+        success: false,
+        error: {
+          code,
+          message,
+          details: Object.keys(details).length > 0 ? details : undefined
+        }
       },
       { status }
     );

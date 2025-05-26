@@ -1,736 +1,634 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
-import { toast } from '@/components/ui/use-toast';
-import { Loader2, Plus, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { Badge } from '@/components/ui/badge';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from '@/components/ui/use-toast';
+import { CampaignType, CampaignStatus } from '@/lib/models/marketing';
+import { useRouter } from 'next/navigation';
 
-// Form schema
+// Form schema for campaign creation/editing
 const campaignFormSchema = z.object({
   name: z.string().min(3, {
-    message: "Campaign name must be at least 3 characters",
+    message: "Campaign name must be at least 3 characters.",
   }),
   description: z.string().optional(),
   type: z.string({
-    required_error: "Please select a campaign type",
+    required_error: "Please select a campaign type.",
   }),
-  status: z.string().default('DRAFT'),
+  status: z.string({
+    required_error: "Please select a campaign status.",
+  }),
   startDate: z.date({
-    required_error: "Start date is required",
+    required_error: "Start date is required.",
   }),
   endDate: z.date().optional(),
   budget: z.number().optional(),
-  targetAudience: z.any().optional(),
-  goals: z.array(z.string()).default([]),
-  kpis: z.any().optional(),
+  targetAudience: z.record(z.any()).optional(),
+  goals: z.array(z.string()).min(1, {
+    message: "At least one goal is required.",
+  }),
 });
 
 type CampaignFormValues = z.infer<typeof campaignFormSchema>;
 
 interface CampaignFormProps {
-  onSuccess?: (data: any) => void;
-  defaultValues?: Partial<CampaignFormValues>;
   campaignId?: string;
+  onSuccess?: (campaign: any) => void;
 }
 
-export default function CampaignForm({ onSuccess, defaultValues, campaignId }: CampaignFormProps) {
-  const { data: session } = useSession();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(!!campaignId);
-  const [activeTab, setActiveTab] = useState('details');
-  const [newGoal, setNewGoal] = useState('');
-  const [segments, setSegments] = useState<any[]>([]);
+export default function CampaignForm({ campaignId, onSuccess }: CampaignFormProps) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [campaign, setCampaign] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<string>("details");
+  const [goalInput, setGoalInput] = useState<string>("");
   const [selectedSegments, setSelectedSegments] = useState<any[]>([]);
   const [availableSegments, setAvailableSegments] = useState<any[]>([]);
 
-  // Initialize form
+  // Initialize form with default values or existing campaign data
   const form = useForm<CampaignFormValues>({
     resolver: zodResolver(campaignFormSchema),
     defaultValues: {
-      name: defaultValues?.name || '',
-      description: defaultValues?.description || '',
-      type: defaultValues?.type || '',
-      status: defaultValues?.status || 'DRAFT',
-      startDate: defaultValues?.startDate || new Date(),
-      endDate: defaultValues?.endDate,
-      budget: defaultValues?.budget || undefined,
-      targetAudience: defaultValues?.targetAudience || {},
-      goals: defaultValues?.goals || [],
-      kpis: defaultValues?.kpis || {},
+      name: "",
+      description: "",
+      type: "EMAIL",
+      status: "DRAFT",
+      goals: [],
+      targetAudience: {},
     },
   });
 
-  // Load campaign data if editing
+  // Fetch campaign data if editing an existing campaign
   useEffect(() => {
-    if (campaignId) {
-      loadCampaignData();
-    }
+    const fetchCampaign = async () => {
+      if (!campaignId) return;
+      
+      setIsLoading(true);
+      try {
+        const response = await fetch(`/api/support-services/marketing/campaigns/${campaignId}`);
+        if (!response.ok) throw new Error('Failed to fetch campaign');
+        
+        const data = await response.json();
+        setCampaign(data);
+        
+        // Set form values from campaign data
+        form.reset({
+          name: data.name,
+          description: data.description || "",
+          type: data.type,
+          status: data.status,
+          startDate: new Date(data.startDate),
+          endDate: data.endDate ? new Date(data.endDate) : undefined,
+          budget: data.budget || undefined,
+          targetAudience: data.targetAudience || {},
+          goals: data.goals || [],
+        });
+        
+        // Fetch campaign segments
+        if (data.segments && data.segments.length > 0) {
+          setSelectedSegments(data.segments.map((s: any) => s.segment));
+        }
+      } catch (error) {
+        console.error('Error fetching campaign:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load campaign data. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    // Load segments
-    loadSegments();
-  }, [campaignId]);
+    fetchCampaign();
+  }, [campaignId, form]);
 
-  const loadCampaignData = async () => {
-    try {
-      const response = await fetch(`/api/support-services/marketing/campaigns/${campaignId}`);
-      if (!response.ok) {
-        throw new Error('Failed to load campaign data');
+  // Fetch available segments
+  useEffect(() => {
+    const fetchSegments = async () => {
+      try {
+        const response = await fetch('/api/support-services/marketing/segments?isActive=true');
+        if (!response.ok) throw new Error('Failed to fetch segments');
+        
+        const data = await response.json();
+        setAvailableSegments(data.data || []);
+      } catch (error) {
+        console.error('Error fetching segments:', error);
       }
-      
-      const campaignData = await response.json();
-      
-      // Set form values
-      form.reset({
-        name: campaignData.name,
-        description: campaignData.description || '',
-        type: campaignData.type,
-        status: campaignData.status,
-        startDate: new Date(campaignData.startDate),
-        endDate: campaignData.endDate ? new Date(campaignData.endDate) : undefined,
-        budget: campaignData.budget,
-        targetAudience: campaignData.targetAudience || {},
-        goals: campaignData.goals || [],
-        kpis: campaignData.kpis || {},
-      });
-      
-      // Set selected segments
-      if (campaignData.segments && campaignData.segments.length > 0) {
-        const selectedSegs = campaignData.segments.map((seg: any) => seg.segment);
-        setSelectedSegments(selectedSegs);
-      }
-      
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error loading campaign data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load campaign data",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
-  };
-
-  const loadSegments = async () => {
-    try {
-      const response = await fetch('/api/support-services/marketing/segments?isActive=true');
-      if (!response.ok) {
-        throw new Error('Failed to load segments');
-      }
-      
-      const data = await response.json();
-      setSegments(data.data);
-      updateAvailableSegments(data.data, selectedSegments);
-    } catch (error) {
-      console.error('Error loading segments:', error);
-    }
-  };
-
-  const updateAvailableSegments = (allSegments: any[], selected: any[]) => {
-    const selectedIds = selected.map(seg => seg.id);
-    setAvailableSegments(allSegments.filter(seg => !selectedIds.includes(seg.id)));
-  };
+    };
+    
+    fetchSegments();
+  }, []);
 
   // Handle form submission
   const onSubmit = async (values: CampaignFormValues) => {
-    setIsSubmitting(true);
+    setIsLoading(true);
+    
     try {
-      const endpoint = campaignId 
-        ? `/api/support-services/marketing/campaigns/${campaignId}`
+      const url = campaignId 
+        ? `/api/support-services/marketing/campaigns/${campaignId}` 
         : '/api/support-services/marketing/campaigns';
       
-      const method = campaignId ? 'PATCH' : 'POST';
+      const method = campaignId ? 'PUT' : 'POST';
       
-      const response = await fetch(endpoint, {
+      const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(values),
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to save campaign');
-      }
-
-      const data = await response.json();
+      
+      if (!response.ok) throw new Error('Failed to save campaign');
+      
+      const savedCampaign = await response.json();
       
       toast({
-        title: campaignId ? "Campaign Updated" : "Campaign Created",
-        description: campaignId 
-          ? "The campaign has been updated successfully." 
-          : "The campaign has been created successfully.",
+        title: "Success",
+        description: `Campaign ${campaignId ? 'updated' : 'created'} successfully.`,
       });
-
-      // If we have a new campaign ID and selected segments, add them
-      if (data.id && selectedSegments.length > 0) {
-        await addSegmentsToCampaign(data.id);
-      }
-
-      // Call onSuccess callback if provided
+      
       if (onSuccess) {
-        onSuccess(data);
+        onSuccess(savedCampaign);
+      } else {
+        router.push(`/marketing/campaigns/${savedCampaign.id}`);
       }
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error saving campaign:', error);
       toast({
         title: "Error",
-        description: error.message || "An error occurred while saving the campaign",
+        description: "Failed to save campaign. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  const addSegmentsToCampaign = async (cId: string) => {
-    const campaignIdToUse = campaignId || cId;
-    
-    for (const segment of selectedSegments) {
-      try {
-        await fetch(`/api/support-services/marketing/campaigns/${campaignIdToUse}/segments/${segment.id}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      } catch (error) {
-        console.error(`Error adding segment ${segment.id} to campaign:`, error);
-      }
-    }
-  };
-
+  // Handle adding a goal
   const handleAddGoal = () => {
-    if (newGoal.trim() === '') return;
+    if (!goalInput.trim()) return;
     
-    const currentGoals = form.getValues('goals') || [];
-    form.setValue('goals', [...currentGoals, newGoal]);
-    setNewGoal('');
+    const currentGoals = form.getValues("goals") || [];
+    form.setValue("goals", [...currentGoals, goalInput.trim()]);
+    setGoalInput("");
   };
 
+  // Handle removing a goal
   const handleRemoveGoal = (index: number) => {
-    const currentGoals = form.getValues('goals') || [];
-    form.setValue('goals', currentGoals.filter((_, i) => i !== index));
+    const currentGoals = form.getValues("goals") || [];
+    form.setValue("goals", currentGoals.filter((_, i) => i !== index));
   };
 
-  const handleAddSegment = (segmentId: string) => {
-    const segment = segments.find(seg => seg.id === segmentId);
-    if (!segment) return;
+  // Handle adding a segment to the campaign
+  const handleAddSegment = async (segmentId: string) => {
+    if (!campaignId) return;
     
-    setSelectedSegments([...selectedSegments, segment]);
-    updateAvailableSegments(segments, [...selectedSegments, segment]);
+    try {
+      const response = await fetch(`/api/support-services/marketing/campaigns/${campaignId}/segments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ segmentId }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to add segment');
+      
+      // Update selected segments
+      const segment = availableSegments.find(s => s.id === segmentId);
+      if (segment) {
+        setSelectedSegments(prev => [...prev, segment]);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Segment added to campaign.",
+      });
+    } catch (error) {
+      console.error('Error adding segment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add segment. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
-
-  const handleRemoveSegment = (segmentId: string) => {
-    setSelectedSegments(selectedSegments.filter(seg => seg.id !== segmentId));
-    updateAvailableSegments(segments, selectedSegments.filter(seg => seg.id !== segmentId));
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>{campaignId ? 'Edit Campaign' : 'Create New Campaign'}</CardTitle>
         <CardDescription>
           {campaignId 
-            ? 'Update the details of your marketing campaign.' 
-            : 'Create a new marketing campaign to reach your target audience.'}
+            ? 'Update your marketing campaign details' 
+            : 'Create a new marketing campaign to reach your target audience'}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 w-[400px]">
-            <TabsTrigger value="details">Basic Details</TabsTrigger>
-            <TabsTrigger value="targeting">Targeting</TabsTrigger>
-            <TabsTrigger value="goals">Goals & KPIs</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="details">Campaign Details</TabsTrigger>
+            <TabsTrigger value="audience" disabled={!campaignId}>Target Audience</TabsTrigger>
+            <TabsTrigger value="channels" disabled={!campaignId}>Channels</TabsTrigger>
           </TabsList>
-
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <TabsContent value="details" className="space-y-4 mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Campaign Name</Label>
-                  <Input
-                    id="name"
-                    {...form.register('name')}
-                    placeholder="Enter campaign name"
-                    disabled={isSubmitting}
-                  />
-                  {form.formState.errors.name && (
-                    <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
+          
+          <TabsContent value="details">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Campaign Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter campaign name" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        A descriptive name for your marketing campaign
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="type">Campaign Type</Label>
-                  <Controller
-                    name="type"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger id="type">
-                          <SelectValue placeholder="Select campaign type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="EMAIL">Email Campaign</SelectItem>
-                          <SelectItem value="SMS">SMS Campaign</SelectItem>
-                          <SelectItem value="SOCIAL_MEDIA">Social Media Campaign</SelectItem>
-                          <SelectItem value="EVENT">Event Campaign</SelectItem>
-                          <SelectItem value="PRINT">Print Campaign</SelectItem>
-                          <SelectItem value="DIGITAL_AD">Digital Ad Campaign</SelectItem>
-                          <SelectItem value="OTHER">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {form.formState.errors.type && (
-                    <p className="text-sm text-red-500">{form.formState.errors.type.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  {...form.register('description')}
-                  placeholder="Enter campaign description"
-                  className="min-h-[100px]"
-                  disabled={isSubmitting}
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Controller
-                    name="status"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger id="status">
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="DRAFT">Draft</SelectItem>
-                          <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-                          <SelectItem value="ACTIVE">Active</SelectItem>
-                          <SelectItem value="PAUSED">Paused</SelectItem>
-                          <SelectItem value="COMPLETED">Completed</SelectItem>
-                          <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="startDate">Start Date</Label>
-                  <Controller
-                    name="startDate"
-                    control={form.control}
-                    render={({ field }) => (
-                      <DatePicker
-                        date={field.value}
-                        onSelect={field.onChange}
-                        disabled={isSubmitting}
-                      />
-                    )}
-                  />
-                  {form.formState.errors.startDate && (
-                    <p className="text-sm text-red-500">{form.formState.errors.startDate.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="endDate">End Date (Optional)</Label>
-                  <Controller
-                    name="endDate"
-                    control={form.control}
-                    render={({ field }) => (
-                      <DatePicker
-                        date={field.value}
-                        onSelect={field.onChange}
-                        disabled={isSubmitting}
-                      />
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="budget">Budget (Optional)</Label>
-                <Input
-                  id="budget"
-                  type="number"
-                  step="0.01"
-                  {...form.register('budget', { valueAsNumber: true })}
-                  placeholder="Enter campaign budget"
-                  disabled={isSubmitting}
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="targeting" className="space-y-4 mt-4">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Target Audience</h3>
                 
-                <div className="space-y-4 border rounded-md p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="targetAudience.ageRange">Age Range</Label>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          id="targetAudience.ageMin"
-                          type="number"
-                          placeholder="Min"
-                          className="w-24"
-                          onChange={(e) => {
-                            const currentTarget = form.getValues('targetAudience') || {};
-                            form.setValue('targetAudience', {
-                              ...currentTarget,
-                              ageRange: {
-                                ...(currentTarget.ageRange || {}),
-                                min: parseInt(e.target.value)
-                              }
-                            });
-                          }}
-                          defaultValue={form.getValues('targetAudience')?.ageRange?.min || ''}
-                          disabled={isSubmitting}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter campaign description" 
+                          className="min-h-[100px]" 
+                          {...field} 
                         />
-                        <span>to</span>
-                        <Input
-                          id="targetAudience.ageMax"
-                          type="number"
-                          placeholder="Max"
-                          className="w-24"
-                          onChange={(e) => {
-                            const currentTarget = form.getValues('targetAudience') || {};
-                            form.setValue('targetAudience', {
-                              ...currentTarget,
-                              ageRange: {
-                                ...(currentTarget.ageRange || {}),
-                                max: parseInt(e.target.value)
-                              }
-                            });
-                          }}
-                          defaultValue={form.getValues('targetAudience')?.ageRange?.max || ''}
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="targetAudience.gender">Gender</Label>
-                      <Select
-                        onValueChange={(value) => {
-                          const currentTarget = form.getValues('targetAudience') || {};
-                          form.setValue('targetAudience', {
-                            ...currentTarget,
-                            gender: value
-                          });
-                        }}
-                        defaultValue={form.getValues('targetAudience')?.gender || ''}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger id="targetAudience.gender">
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ALL">All</SelectItem>
-                          <SelectItem value="MALE">Male</SelectItem>
-                          <SelectItem value="FEMALE">Female</SelectItem>
-                          <SelectItem value="OTHER">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="targetAudience.location">Location</Label>
-                    <Input
-                      id="targetAudience.location"
-                      placeholder="Enter target location"
-                      onChange={(e) => {
-                        const currentTarget = form.getValues('targetAudience') || {};
-                        form.setValue('targetAudience', {
-                          ...currentTarget,
-                          location: e.target.value
-                        });
-                      }}
-                      defaultValue={form.getValues('targetAudience')?.location || ''}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="targetAudience.interests">Interests (comma separated)</Label>
-                    <Input
-                      id="targetAudience.interests"
-                      placeholder="E.g., health, wellness, fitness"
-                      onChange={(e) => {
-                        const currentTarget = form.getValues('targetAudience') || {};
-                        form.setValue('targetAudience', {
-                          ...currentTarget,
-                          interests: e.target.value.split(',').map(i => i.trim())
-                        });
-                      }}
-                      defaultValue={form.getValues('targetAudience')?.interests?.join(', ') || ''}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-
-                <h3 className="text-lg font-medium mt-6">Segments</h3>
-                <div className="border rounded-md p-4">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="segment">Add Segment</Label>
-                      <div className="flex space-x-2">
-                        <Select
-                          disabled={availableSegments.length === 0 || isSubmitting}
-                          onValueChange={handleAddSegment}
+                      </FormControl>
+                      <FormDescription>
+                        Detailed description of the campaign's purpose and objectives
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Campaign Type</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
                         >
-                          <SelectTrigger id="segment" className="flex-1">
-                            <SelectValue placeholder={availableSegments.length === 0 ? "No segments available" : "Select segment"} />
-                          </SelectTrigger>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select campaign type" />
+                            </SelectTrigger>
+                          </FormControl>
                           <SelectContent>
-                            {availableSegments.map(segment => (
-                              <SelectItem key={segment.id} value={segment.id}>
-                                {segment.name}
-                              </SelectItem>
-                            ))}
+                            <SelectItem value="EMAIL">Email</SelectItem>
+                            <SelectItem value="SMS">SMS</SelectItem>
+                            <SelectItem value="SOCIAL_MEDIA">Social Media</SelectItem>
+                            <SelectItem value="EVENT">Event</SelectItem>
+                            <SelectItem value="PRINT">Print</SelectItem>
+                            <SelectItem value="DIGITAL_AD">Digital Ad</SelectItem>
+                            <SelectItem value="OTHER">Other</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Selected Segments</Label>
-                      <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border rounded-md">
-                        {selectedSegments.length === 0 ? (
-                          <p className="text-sm text-gray-500">No segments selected</p>
-                        ) : (
-                          selectedSegments.map(segment => (
-                            <Badge key={segment.id} variant="secondary" className="flex items-center gap-1">
-                              {segment.name}
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveSegment(segment.id)}
-                                className="text-gray-500 hover:text-gray-700"
-                                disabled={isSubmitting}
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                        <FormDescription>
+                          The primary channel for this campaign
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="DRAFT">Draft</SelectItem>
+                            <SelectItem value="SCHEDULED">Scheduled</SelectItem>
+                            <SelectItem value="ACTIVE">Active</SelectItem>
+                            <SelectItem value="PAUSED">Paused</SelectItem>
+                            <SelectItem value="COMPLETED">Completed</SelectItem>
+                            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Current status of the campaign
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="goals" className="space-y-4 mt-4">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Campaign Goals</h3>
                 
-                <div className="space-y-4 border rounded-md p-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="newGoal">Add Goal</Label>
-                    <div className="flex space-x-2">
-                      <Input
-                        id="newGoal"
-                        value={newGoal}
-                        onChange={(e) => setNewGoal(e.target.value)}
-                        placeholder="Enter campaign goal"
-                        disabled={isSubmitting}
-                        className="flex-1"
-                      />
-                      <Button 
-                        type="button" 
-                        onClick={handleAddGoal}
-                        disabled={isSubmitting || newGoal.trim() === ''}
-                      >
-                        <Plus className="h-4 w-4 mr-1" /> Add
-                      </Button>
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Start Date</FormLabel>
+                        <DatePicker
+                          date={field.value}
+                          setDate={field.onChange}
+                        />
+                        <FormDescription>
+                          When the campaign will start
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="endDate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>End Date (Optional)</FormLabel>
+                        <DatePicker
+                          date={field.value}
+                          setDate={field.onChange}
+                        />
+                        <FormDescription>
+                          When the campaign will end
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="budget"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Budget (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="Enter budget amount" 
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Allocated budget for this campaign
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div>
+                  <FormLabel>Campaign Goals</FormLabel>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Input
+                      placeholder="Enter a campaign goal"
+                      value={goalInput}
+                      onChange={(e) => setGoalInput(e.target.value)}
+                    />
+                    <Button type="button" onClick={handleAddGoal}>Add</Button>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label>Current Goals</Label>
-                    <div className="flex flex-col gap-2 min-h-[40px]">
-                      {form.watch('goals').length === 0 ? (
-                        <p className="text-sm text-gray-500">No goals added</p>
-                      ) : (
-                        form.watch('goals').map((goal, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 border rounded-md">
-                            <span>{goal}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveGoal(index)}
-                              className="text-gray-500 hover:text-gray-700"
-                              disabled={isSubmitting}
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                  <FormDescription className="mt-2">
+                    Define the objectives you want to achieve with this campaign
+                  </FormDescription>
+                  
+                  <div className="mt-4 space-y-2">
+                    {form.watch("goals")?.map((goal, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 border rounded">
+                        <span>{goal}</span>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleRemoveGoal(index)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  {form.formState.errors.goals && (
+                    <p className="text-sm font-medium text-destructive mt-2">
+                      {form.formState.errors.goals.message}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => router.back()}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? 'Saving...' : campaignId ? 'Update Campaign' : 'Create Campaign'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </TabsContent>
+          
+          <TabsContent value="audience">
+            {campaignId ? (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium">Target Segments</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Select audience segments to target with this campaign
+                  </p>
+                  
+                  <div className="mt-4">
+                    <Select onValueChange={handleAddSegment}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Add a segment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableSegments
+                          .filter(segment => !selectedSegments.some(s => s.id === segment.id))
+                          .map(segment => (
+                            <SelectItem key={segment.id} value={segment.id}>
+                              {segment.name}
+                            </SelectItem>
+                          ))
+                        }
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="mt-4 space-y-2">
+                    {selectedSegments.map(segment => (
+                      <div key={segment.id} className="flex items-center justify-between p-3 border rounded">
+                        <div>
+                          <h4 className="font-medium">{segment.name}</h4>
+                          <p className="text-sm text-muted-foreground">{segment.description}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm">View</Button>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {selectedSegments.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No segments added yet</p>
+                    )}
                   </div>
                 </div>
-
-                <h3 className="text-lg font-medium mt-6">Key Performance Indicators</h3>
-                <div className="space-y-4 border rounded-md p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="kpis.impressions">Target Impressions</Label>
-                      <Input
-                        id="kpis.impressions"
-                        type="number"
-                        placeholder="Enter target impressions"
-                        onChange={(e) => {
-                          const currentKpis = form.getValues('kpis') || {};
-                          form.setValue('kpis', {
-                            ...currentKpis,
-                            impressions: parseInt(e.target.value)
-                          });
-                        }}
-                        defaultValue={form.getValues('kpis')?.impressions || ''}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="kpis.clicks">Target Clicks</Label>
-                      <Input
-                        id="kpis.clicks"
-                        type="number"
-                        placeholder="Enter target clicks"
-                        onChange={(e) => {
-                          const currentKpis = form.getValues('kpis') || {};
-                          form.setValue('kpis', {
-                            ...currentKpis,
-                            clicks: parseInt(e.target.value)
-                          });
-                        }}
-                        defaultValue={form.getValues('kpis')?.clicks || ''}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="kpis.leads">Target Leads</Label>
-                      <Input
-                        id="kpis.leads"
-                        type="number"
-                        placeholder="Enter target leads"
-                        onChange={(e) => {
-                          const currentKpis = form.getValues('kpis') || {};
-                          form.setValue('kpis', {
-                            ...currentKpis,
-                            leads: parseInt(e.target.value)
-                          });
-                        }}
-                        defaultValue={form.getValues('kpis')?.leads || ''}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="kpis.conversions">Target Conversions</Label>
-                      <Input
-                        id="kpis.conversions"
-                        type="number"
-                        placeholder="Enter target conversions"
-                        onChange={(e) => {
-                          const currentKpis = form.getValues('kpis') || {};
-                          form.setValue('kpis', {
-                            ...currentKpis,
-                            conversions: parseInt(e.target.value)
-                          });
-                        }}
-                        defaultValue={form.getValues('kpis')?.conversions || ''}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="kpis.roi">Target ROI (%)</Label>
-                    <Input
-                      id="kpis.roi"
-                      type="number"
-                      placeholder="Enter target ROI percentage"
-                      onChange={(e) => {
-                        const currentKpis = form.getValues('kpis') || {};
-                        form.setValue('kpis', {
-                          ...currentKpis,
-                          roi: parseFloat(e.target.value)
-                        });
-                      }}
-                      defaultValue={form.getValues('kpis')?.roi || ''}
-                      disabled={isSubmitting}
-                    />
+                
+                <div>
+                  <h3 className="text-lg font-medium">Custom Audience Criteria</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Define custom criteria for targeting specific audiences
+                  </p>
+                  
+                  {/* Custom audience criteria builder would go here */}
+                  <div className="mt-4 p-4 border rounded bg-muted">
+                    <p className="text-sm">Advanced audience targeting options will be available soon.</p>
                   </div>
                 </div>
               </div>
-            </TabsContent>
-
-            <div className="mt-6 flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  if (onSuccess) onSuccess(null);
-                }}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {campaignId ? 'Updating...' : 'Creating...'}
-                  </>
-                ) : (
-                  campaignId ? 'Update Campaign' : 'Create Campaign'
-                )}
-              </Button>
-            </div>
-          </form>
+            ) : (
+              <div className="p-4 text-center">
+                <p>Please save the campaign first to configure target audience.</p>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="channels">
+            {campaignId ? (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium">Campaign Channels</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Configure the channels used for this marketing campaign
+                  </p>
+                  
+                  <div className="mt-4 space-y-4">
+                    <div className="p-4 border rounded">
+                      <h4 className="font-medium">Email Channel</h4>
+                      <div className="mt-2 grid grid-cols-2 gap-4">
+                        <div>
+                          <FormLabel>Email Template</FormLabel>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select template" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="template1">Monthly Newsletter</SelectItem>
+                              <SelectItem value="template2">Promotional Offer</SelectItem>
+                              <SelectItem value="template3">Event Invitation</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <FormLabel>Send Schedule</FormLabel>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select schedule" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="immediate">Immediate</SelectItem>
+                              <SelectItem value="scheduled">Scheduled</SelectItem>
+                              <SelectItem value="recurring">Recurring</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex justify-end">
+                        <Button>Configure Email</Button>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border rounded">
+                      <h4 className="font-medium">SMS Channel</h4>
+                      <div className="mt-2">
+                        <FormLabel>Message Template</FormLabel>
+                        <Textarea placeholder="Enter SMS message template" className="mt-1" />
+                      </div>
+                      <div className="mt-4 flex justify-end">
+                        <Button>Configure SMS</Button>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border rounded">
+                      <h4 className="font-medium">Add Channel</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Add additional channels to this campaign
+                      </p>
+                      <div className="mt-4 flex justify-end">
+                        <Button variant="outline">Add Channel</Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 text-center">
+                <p>Please save the campaign first to configure channels.</p>
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </CardContent>
+      <CardFooter className="flex justify-between">
+        <div>
+          {campaignId && (
+            <Button variant="outline" className="text-destructive">
+              Delete Campaign
+            </Button>
+          )}
+        </div>
+        <div className="flex space-x-2">
+          {activeTab !== "details" && (
+            <Button 
+              variant="outline" 
+              onClick={() => setActiveTab(activeTab === "audience" ? "details" : "audience")}
+            >
+              {activeTab === "channels" ? "Previous" : "Cancel"}
+            </Button>
+          )}
+          {activeTab !== "channels" && campaignId && (
+            <Button 
+              onClick={() => setActiveTab(activeTab === "details" ? "audience" : "channels")}
+            >
+              Next
+            </Button>
+          )}
+        </div>
+      </CardFooter>
     </Card>
   );
 }
