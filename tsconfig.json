@@ -30,7 +30,8 @@
     "baseUrl": ".", // Explicitly set baseUrl for clarity
     "paths": {
       "@/*": [
-        "./apps/hms-web/src/*" // Adjusted path to point to the hms-web app's src directory
+        "./apps/hms-web/src/*", // Adjusted path to point to the hms-web app's src directory
+        "./src/*" // Added path for root src directory to support Support Services modules
       ]
     },
     "types": [
@@ -44,7 +45,10 @@
     "apps/hms-web/src/**/*.ts",
     "apps/hms-web/src/**/*.tsx", // This might be at root or within apps/hms-web
     "next.config.mjs",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "src/**/*.ts", // Added to include Support Services modules
+    "src/**/*.tsx", // Added to include Support Services components
+    "prisma/**/*.prisma" // Added to include Prisma schema files
   ],
   "exclude": [
     "node_modules"

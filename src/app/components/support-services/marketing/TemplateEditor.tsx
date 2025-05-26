@@ -376,7 +376,7 @@ export default function TemplateEditor({ templateId, onSuccess }: TemplateEditor
                     {Object.entries(formData.variables).map(([key, description]) => (
                       <div key={key} className="flex items-center justify-between p-2 border rounded">
                         <div>
-                          <span className="font-medium">{{'{{'}} {key} {{'}}'}}</span>
+                          <span className="font-medium">{`{{${key}}}`}</span>
                           {description !== key && (
                             <p className="text-sm text-muted-foreground">{description}</p>
                           )}
@@ -418,7 +418,7 @@ export default function TemplateEditor({ templateId, onSuccess }: TemplateEditor
               <div className="space-y-2">
                 <Label>Template Content</Label>
                 <p className="text-sm text-muted-foreground">
-                  Use {{'{{'}} variableName {{'}}'}} syntax for variables
+                  Use {`{{variableName}}`} syntax for variables
                 </p>
                 
                 <div className="border rounded-md">
@@ -460,20 +460,22 @@ export default function TemplateEditor({ templateId, onSuccess }: TemplateEditor
                 
                 <div className="space-y-2 mt-2">
                   {Object.entries(formData.variables).map(([key, description]) => (
-                    <div key={key} className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      <Label htmlFor={`preview-${key}`} className="flex items-center">
-                        {{'{{'}} {key} {{'}}'}}
-                        <span className="text-sm text-muted-foreground ml-2">
-                          ({description})
-                        </span>
-                      </Label>
-                      <Input
-                        id={`preview-${key}`}
-                        name={key}
-                        value={previewData[key] || ''}
-                        onChange={handlePreviewDataChange}
-                        placeholder={`Value for ${key}`}
-                      />
+                    <div key={key} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                      <div className="md:col-span-1">
+                        <Label htmlFor={`preview-${key}`}>{`${key}`}</Label>
+                        {description !== key && (
+                          <p className="text-xs text-muted-foreground">{description}</p>
+                        )}
+                      </div>
+                      <div className="md:col-span-2">
+                        <Input
+                          id={`preview-${key}`}
+                          name={key}
+                          value={previewData[key] || ''}
+                          onChange={handlePreviewDataChange}
+                          placeholder={`Value for ${key}`}
+                        />
+                      </div>
                     </div>
                   ))}
                   
@@ -486,7 +488,6 @@ export default function TemplateEditor({ templateId, onSuccess }: TemplateEditor
                   <Button 
                     type="button" 
                     onClick={handleRenderPreview}
-                    disabled={isLoading}
                   >
                     Generate Preview
                   </Button>
@@ -494,14 +495,12 @@ export default function TemplateEditor({ templateId, onSuccess }: TemplateEditor
               </div>
               
               <div className="space-y-2 border-t pt-4">
-                <Label>Template Preview</Label>
-                <div className="border rounded-md p-4 min-h-[300px] bg-white">
+                <Label>Preview Result</Label>
+                <div className="p-4 border rounded-md bg-white min-h-[200px]">
                   {renderedContent ? (
                     <div dangerouslySetInnerHTML={{ __html: renderedContent }} />
                   ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Click "Generate Preview" to see how your template will look
-                    </p>
+                    <p className="text-muted-foreground">Click "Generate Preview" to see the rendered template</p>
                   )}
                 </div>
               </div>
