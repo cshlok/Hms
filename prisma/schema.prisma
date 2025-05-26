@@ -6,193 +6,455 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// --- Enums ---
-enum LabOrderStatus {
-  PENDING_SAMPLE
-  SAMPLE_COLLECTED
-  SAMPLE_RECEIVED
-  PROCESSING
-  REPORT_AVAILABLE
-  COMPLETED // Final state, report is available and verified
-  CANCELLED
-}
-
-enum LabReportStatus {
-  DRAFT
-  PRELIMINARY
-  FINALIZED
-  REVISED
-  ADDENDUM_ADDED
-  CANCELLED // If the report itself is cancelled/retracted
-}
-
-enum RadiologyRequestStatus {
-  PENDING_SCHEDULE
-  SCHEDULED
-  PATIENT_ARRIVED
-  IN_PROGRESS
-  COMPLETED // Procedure done, report pending
-  REPORT_AVAILABLE
-  CANCELLED
-}
-
-enum RadiologyReportStatus {
-  DRAFT
-  PRELIMINARY
-  FINALIZED
-  REVISED
-  ADDENDUM_ADDED
-  CANCELLED
-}
-
-// General Purpose Models
-model User {
-  id               String    @id @default(cuid())
-  name             String?
-  email            String?   @unique
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  roles            Role[]
-  LabOrder         LabOrder[] // User who ordered the lab test
-  RadiologyRequest RadiologyRequest[] // User who ordered the radiology request
-  LabReport        LabReport[] @relation("LabReportTechnician")
-  RadiologyReport  RadiologyReport[] @relation("RadiologyReportTechnician")
-  AuditLog         AuditLog[]
-}
-
-model Role {
-  id          String @id @default(cuid())
-  name        String @unique
-  permissions Permission[]
-  users       User[]
-}
-
-model Permission {
-  id    String @id @default(cuid())
-  name  String @unique // e.g., LIS_ORDER_TEST, LIS_UPLOAD_REPORT
-  roles Role[]
-}
-
+// Patient model (simplified, as it would be defined in another module)
 model Patient {
-  id               String    @id @default(cuid())
-  firstName        String
-  lastName         String
-  dateOfBirth      DateTime
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  LabOrder         LabOrder[]
-  RadiologyRequest RadiologyRequest[]
+  id                String            @id @default(uuid())
+  mrn               String            @unique
+  firstName         String
+  lastName          String
+  dateOfBirth       DateTime
+  gender            String
+  address           String?
+  phone             String?
+  email             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  // Relations
+  bills             Bill[]
+  insurancePolicies InsurancePolicy[]
+  subscribedPolicies InsurancePolicy[] @relation("Subscriber")
 }
 
-// LIS Models
-model LabTestItem {
-  id          String     @id @default(cuid())
-  name        String
-  code        String?
-  description String?
-  category    String?
-  price       Float?
-  LabOrder    LabOrder[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+// Financial Management Models
+
+// Billing & Invoicing
+model Bill {
+  id                String            @id @default(uuid())
+  billNumber        String            @unique
+  patientId         String
+  patient           Patient           @relation(fields: [patientId], references: [id])
+  visitId           String?
+  visitType         String            // OPD, IPD, ER, OTHER
+  billDate          DateTime          @default(now())
+  billType          String            // Regular, Package, Consolidated
+  packageId         String?
+  totalAmount       Float
+  discountAmount    Float             @default(0)
+  discountReason    String?
+  taxAmount         Float             @default(0)
+  netAmount         Float
+  paidAmount        Float             @default(0)
+  outstandingAmount Float
+  status            String            // draft, pending, verified, approved, sent, partial, paid, overdue, cancelled, refunded
+  verifiedBy        String?
+  verifiedAt        DateTime?
+  approvedBy        String?
+  approvedAt        DateTime?
+  cancelledBy       String?
+  cancelledAt       DateTime?
+  cancellationReason String?
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  createdBy         String
+  departmentId      String?
+  insuranceClaimId  String?           @unique
+  // Relations
+  billItems         BillItem[]
+  payments          Payment[]
+  insuranceClaim    InsuranceClaim?
+
+  @@index([patientId])
+  @@index([status])
+  @@index([billDate])
 }
 
-model LabOrder {
-  id             String         @id @default(cuid())
-  patientId      String
-  patient        Patient        @relation(fields: [patientId], references: [id])
-  orderedById    String
-  orderedBy      User           @relation(fields: [orderedById], references: [id])
-  testItems      LabTestItem[]
-  orderDate      DateTime       @default(now())
-  status         LabOrderStatus @default(PENDING_SAMPLE)
-  sampleId       String?
-  collectionDate DateTime?
-  notes          String?
-  LabReport      LabReport?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+model BillItem {
+  id                String            @id @default(uuid())
+  billId            String
+  bill              Bill              @relation(fields: [billId], references: [id])
+  serviceItemId     String
+  serviceItem       ServiceItem       @relation(fields: [serviceItemId], references: [id])
+  quantity          Int
+  unitPrice         Float
+  totalPrice        Float
+  discount          Float             @default(0)
+  tax               Float             @default(0)
+  description       String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([billId])
 }
 
-model LabReport {
-  id           String          @id @default(cuid())
-  labOrderId   String          @unique
-  labOrder     LabOrder        @relation(fields: [labOrderId], references: [id])
-  reportDate   DateTime        @default(now())
-  reportedById String
-  reportedBy   User            @relation("LabReportTechnician", fields: [reportedById], references: [id])
-  fileName     String?
-  fileType     String?
-  fileSize     Int?
-  storagePath  String?
-  status       LabReportStatus @default(DRAFT)
-  observations String? // Added observations field as per previous code
-  updatedById  String?  // Added as per previous code PUT logic
-  // updatedBy    User?    @relation("LabReportUpdater", fields: [updatedById], references: [id]) // Optional: if you want to link to User table
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+model ServiceItem {
+  id                String            @id @default(uuid())
+  code              String            @unique
+  name              String
+  description       String?
+  category          String
+  unitPrice         Float
+  taxRate           Float             @default(0)
+  cptCode           String?
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  // Relations
+  billItems         BillItem[]
+  claimItems        ClaimItem[]
+
+  @@index([category])
+  @@index([active])
 }
 
-// Radiology Models
-model RadiologyProcedure {
-  id               String             @id @default(cuid())
-  name             String
-  code             String?
-  description      String?
-  category         String?
-  price            Float?
-  RadiologyRequest RadiologyRequest[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+model ServicePackage {
+  id                String            @id @default(uuid())
+  code              String            @unique
+  name              String
+  description       String?
+  totalPrice        Float
+  discountPercentage Float            @default(0)
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  // Relations
+  packageItems      PackageItem[]
+
+  @@index([active])
 }
 
-model RadiologyRequest {
-  id              String                 @id @default(cuid())
-  patientId       String
-  patient         Patient                @relation(fields: [patientId], references: [id])
-  orderedById     String
-  orderedBy       User                   @relation(fields: [orderedById], references: [id])
-  procedures      RadiologyProcedure[]
-  requestDate     DateTime               @default(now())
-  scheduledDate   DateTime?
-  status          RadiologyRequestStatus @default(PENDING_SCHEDULE)
-  reason          String?
-  notes           String?
-  RadiologyReport RadiologyReport?
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
+model PackageItem {
+  id                String            @id @default(uuid())
+  packageId         String
+  package           ServicePackage    @relation(fields: [packageId], references: [id])
+  serviceItemId     String
+  quantity          Int
+  unitPrice         Float
+  totalPrice        Float
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([packageId])
 }
 
-model RadiologyReport {
-  id                 String                @id @default(cuid())
-  radiologyRequestId String                @unique
-  radiologyRequest   RadiologyRequest      @relation(fields: [radiologyRequestId], references: [id])
-  reportDate         DateTime              @default(now())
-  reportedById       String
-  reportedBy         User                  @relation("RadiologyReportTechnician", fields: [reportedById], references: [id])
-  fileName           String?
-  fileType           String?
-  fileSize           Int?
-  storagePath        String?
-  status             RadiologyReportStatus @default(DRAFT)
-  findings           String? // Added findings field as per previous code
-  updatedById        String? // Added as per previous code PUT logic
-  // updatedBy          User?    @relation("RadiologyReportUpdater", fields: [updatedById], references: [id]) // Optional
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
+model DiscountRule {
+  id                String            @id @default(uuid())
+  code              String            @unique
+  name              String
+  description       String?
+  discountType      String            // percentage, fixed
+  discountValue     Float
+  minBillAmount     Float?
+  maxDiscountAmount Float?
+  applicableServices String?          // comma-separated service IDs or categories
+  startDate         DateTime?
+  endDate           DateTime?
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([active])
 }
 
-// Audit Log Model
-model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
-  eventType String
-  details   Json
-  timestamp DateTime @default(now())
+// Payment Processing
+model Payment {
+  id                String            @id @default(uuid())
+  invoiceId         String
+  invoice           Bill              @relation(fields: [invoiceId], references: [id])
+  amount            Float
+  paymentMethod     String            // cash, check, credit_card, debit_card, bank_transfer, online_payment, insurance, mobile_payment
+  paymentDate       DateTime
+  referenceNumber   String?
+  status            String            // pending, processing, completed, failed, refunded, partially_refunded, cancelled
+  paidBy            String?
+  notes             String?
+  gatewayResponse   String?
+  refundAmount      Float?
+  refundDate        DateTime?
+  refundReason      String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([invoiceId])
+  @@index([paymentDate])
+  @@index([status])
 }
 
+model PaymentGateway {
+  id                String            @id @default(uuid())
+  name              String
+  code              String            @unique
+  description       String?
+  gatewayType       String            // credit_card, bank_transfer, online_payment, mobile_payment
+  configJson        String?           // JSON configuration for the gateway
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([active])
+}
+
+// Insurance & TPA Management
+model InsuranceProvider {
+  id                String            @id @default(uuid())
+  name              String
+  code              String            @unique
+  address           String?
+  phone             String?
+  email             String?
+  contactPerson     String?
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  // Relations
+  insurancePolicies InsurancePolicy[]
+
+  @@index([active])
+}
+
+model InsurancePolicy {
+  id                    String              @id @default(uuid())
+  patientId             String
+  patient               Patient             @relation(fields: [patientId], references: [id])
+  insuranceProviderId   String
+  insuranceProvider     InsuranceProvider   @relation(fields: [insuranceProviderId], references: [id])
+  policyNumber          String
+  groupNumber           String?
+  groupName             String?
+  subscriberId          String
+  subscriber            Patient             @relation("Subscriber", fields: [subscriberId], references: [id])
+  relationship          String              // self, spouse, child, other
+  startDate             DateTime
+  endDate               DateTime?
+  coverageType          String              // primary, secondary, tertiary
+  planType              String              // HMO, PPO, EPO, POS, HDHP, other
+  copayAmount           Float?
+  coinsurancePercentage Float?
+  deductibleAmount      Float?
+  deductibleMet         Float?
+  outOfPocketMax        Float?
+  outOfPocketMet        Float?
+  status                String              // active, inactive, expired
+  notes                 String?
+  lastVerificationId    String?
+  lastVerifiedAt        DateTime?
+  lastEligibilityStatus String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  // Relations
+  verifications         PolicyVerification[]
+  claims                InsuranceClaim[]
+
+  @@index([patientId])
+  @@index([insuranceProviderId])
+  @@index([status])
+  @@unique([patientId, insuranceProviderId, policyNumber])
+}
+
+model PolicyVerification {
+  id                    String            @id @default(uuid())
+  policyId              String
+  policy                InsurancePolicy   @relation(fields: [policyId], references: [id])
+  verificationMethod    String            // phone, portal, api, fax, email
+  verificationReference String?
+  verifiedBy            String
+  verifiedAt            DateTime
+  eligibilityStatus     String            // eligible, ineligible, pending
+  coverageDetails       String?
+  notes                 String?
+  createdAt             DateTime          @default(now())
+
+  @@index([policyId])
+  @@index([verifiedAt])
+}
+
+model InsuranceClaim {
+  id                    String            @id @default(uuid())
+  claimNumber           String            @unique
+  invoiceId             String
+  invoice               Bill              @relation(fields: [invoiceId], references: [id])
+  insurancePolicyId     String
+  insurancePolicy       InsurancePolicy   @relation(fields: [insurancePolicyId], references: [id])
+  status                String            // draft, pending, submitted, in_progress, additional_info_needed, approved, partially_approved, denied, appealed, closed
+  totalAmount           Float
+  approvedAmount        Float?
+  deniedAmount          Float?
+  submittedBy           String?
+  submittedAt           DateTime?
+  submissionMethod      String?           // electronic, paper, fax, portal
+  submissionReference   String?
+  preAuthorizationNumber String?
+  notes                 String?
+  lastResponseId        String?
+  lastResponseDate      DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  // Relations
+  diagnoses             ClaimDiagnosis[]
+  items                 ClaimItem[]
+  followUps             ClaimFollowUp[]
+  responses             ClaimResponse[]
+
+  @@index([insurancePolicyId])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+model ClaimDiagnosis {
+  id                    String            @id @default(uuid())
+  claimId               String
+  claim                 InsuranceClaim    @relation(fields: [claimId], references: [id])
+  code                  String
+  description           String
+  primary               Boolean           @default(false)
+  createdAt             DateTime          @default(now())
+
+  @@index([claimId])
+}
+
+model ClaimItem {
+  id                    String            @id @default(uuid())
+  claimId               String
+  claim                 InsuranceClaim    @relation(fields: [claimId], references: [id])
+  serviceItemId         String
+  serviceItem           ServiceItem       @relation(fields: [serviceItemId], references: [id])
+  serviceDate           DateTime
+  cptCode               String?
+  unitPrice             Float
+  quantity              Int
+  totalPrice            Float
+  approvedAmount        Float?
+  deniedAmount          Float?
+  notes                 String?
+  createdAt             DateTime          @default(now())
+
+  @@index([claimId])
+}
+
+model ClaimFollowUp {
+  id                    String            @id @default(uuid())
+  claimId               String
+  claim                 InsuranceClaim    @relation(fields: [claimId], references: [id])
+  followUpDate          DateTime
+  followUpType          String            // call, email, fax, portal
+  followUpBy            String
+  notes                 String?
+  outcome               String?
+  nextSteps             String?
+  createdAt             DateTime          @default(now())
+
+  @@index([claimId])
+  @@index([followUpDate])
+}
+
+model ClaimResponse {
+  id                    String            @id @default(uuid())
+  claimId               String
+  claim                 InsuranceClaim    @relation(fields: [claimId], references: [id])
+  responseDate          DateTime
+  responseReference     String
+  status                String            // approved, partially_approved, denied, pending_additional_info
+  approvedAmount        Float?
+  deniedAmount          Float?
+  denialReason          String?
+  notes                 String?
+  paymentExpectedDate   DateTime?
+  additionalInfoRequested String?
+  createdAt             DateTime          @default(now())
+
+  @@index([claimId])
+  @@index([responseDate])
+}
+
+// Revenue Cycle Management
+model RevenueCycleStage {
+  id                    String            @id @default(uuid())
+  name                  String
+  description           String?
+  order                 Int
+  active                Boolean           @default(true)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([active])
+}
+
+model AccountsReceivable {
+  id                    String            @id @default(uuid())
+  invoiceId             String            @unique
+  patientId             String
+  amount                Float
+  dueDate               DateTime
+  agingDays             Int
+  status                String            // current, overdue, in_collection, written_off
+  lastActionDate        DateTime?
+  lastActionType        String?
+  nextActionDate        DateTime?
+  nextActionType        String?
+  notes                 String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([patientId])
+  @@index([status])
+  @@index([agingDays])
+}
+
+model Denial {
+  id                    String            @id @default(uuid())
+  claimId               String
+  denialCode            String
+  denialReason          String
+  denialDate            DateTime
+  appealStatus          String            // not_appealed, appeal_pending, appeal_successful, appeal_denied
+  appealDate            DateTime?
+  appealNotes           String?
+  resolutionStatus      String            // unresolved, resolved_favorable, resolved_unfavorable, written_off
+  resolutionDate        DateTime?
+  resolutionNotes       String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([claimId])
+  @@index([denialCode])
+  @@index([appealStatus])
+  @@index([resolutionStatus])
+}
+
+// Financial Reporting & Analytics
+model FinancialKPI {
+  id                    String            @id @default(uuid())
+  name                  String
+  description           String?
+  category              String            // revenue, expense, profitability, efficiency, collection
+  calculation           String?           // Formula or description of calculation
+  target                Float?
+  unit                  String?           // currency, percentage, days, ratio
+  displayOrder          Int?
+  active                Boolean           @default(true)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([category])
+  @@index([active])
+}
+
+model FinancialReport {
+  id                    String            @id @default(uuid())
+  name                  String
+  description           String?
+  reportType            String            // revenue, expenses, profit_loss, accounts_receivable, insurance_claims, payment_collection
+  parameters            String?           // JSON string of report parameters
+  schedule              String?           // daily, weekly, monthly, quarterly, yearly
+  lastRunDate           DateTime?
+  nextRunDate           DateTime?
+  createdBy             String
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([reportType])
+}

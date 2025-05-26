@@ -1,314 +1,239 @@
-import { NextRequest, NextResponse } from "next/server";
-// import { v4 as uuidv4 } from "uuid"; // Unused import
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { 
+  withErrorHandling, 
+  validateBody, 
+  validateQuery, 
+  checkPermission, 
+  createSuccessResponse,
+  createPaginatedResponse
+} from '@/lib/core/middleware';
+import { ValidationError, NotFoundError } from '@/lib/core/errors';
+import { logger } from '@/lib/core/logging';
+import { convertToFHIRCoverage } from '@/lib/core/fhir';
 
-// Define interface for Insurance Provider data (kept for reference, but not used in this file's logic)
-// interface InsuranceProvider {
-//   id: number | string;
-//   name: string;
-//   contact_person?: string;
-//   contact_email?: string;
-//   contact_phone?: string;
-//   address?: string;
-//   is_active: number; // Assuming 1 for active, 0 for inactive
-// }
+// Schema for insurance policy creation
+const createPolicySchema = z.object({
+  patientId: z.string().uuid(),
+  insuranceProviderId: z.string().uuid(),
+  policyNumber: z.string(),
+  groupNumber: z.string().optional(),
+  groupName: z.string().optional(),
+  subscriberId: z.string().uuid().optional(),
+  relationship: z.enum(['self', 'spouse', 'child', 'other']).default('self'),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().optional(),
+  coverageType: z.enum(['primary', 'secondary', 'tertiary']).default('primary'),
+  planType: z.enum(['HMO', 'PPO', 'EPO', 'POS', 'HDHP', 'other']),
+  copayAmount: z.number().optional(),
+  coinsurancePercentage: z.number().optional(),
+  deductibleAmount: z.number().optional(),
+  deductibleMet: z.number().optional(),
+  outOfPocketMax: z.number().optional(),
+  outOfPocketMet: z.number().optional(),
+  notes: z.string().optional(),
+});
 
-// Define interface for Patient Insurance Policy data
-interface InsurancePolicy {
-  id: number | string;
-  patient_id: number | string;
-  provider_id: number | string;
-  policy_number: string;
-  group_number?: string | undefined;
-  subscriber_name?: string | undefined;
-  subscriber_dob?: string | undefined; // YYYY-MM-DD
-  relationship_to_patient?: string;
-  effective_date: string; // YYYY-MM-DD
-  expiry_date: string; // YYYY-MM-DD
-  coverage_details?: string | undefined;
-  is_primary: number; // Assuming 1 for primary, 0 for secondary
-  is_active: number; // Assuming 1 for active, 0 for inactive
-  verification_status?: string | undefined; // e.g., "Verified", "Pending", "Rejected"
-  verified_by_id?: number | string | undefined;
-  verified_at?: string | undefined; // ISO string
-  created_at?: string; // ISO string
-  updated_at?: string; // ISO string
-}
+// Schema for insurance policy query parameters
+const policyQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional().default(1),
+  pageSize: z.coerce.number().int().positive().max(100).optional().default(20),
+  patientId: z.string().uuid().optional(),
+  insuranceProviderId: z.string().uuid().optional(),
+  status: z.enum(['active', 'inactive', 'expired']).optional(),
+  coverageType: z.enum(['primary', 'secondary', 'tertiary']).optional(),
+  planType: z.enum(['HMO', 'PPO', 'EPO', 'POS', 'HDHP', 'other']).optional(),
+  sortBy: z.enum(['startDate', 'endDate', 'createdAt']).optional().default('startDate'),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+  format: z.enum(['json', 'fhir']).optional().default('json'),
+});
 
-// Mock data store for insurance providers (replace with actual DB interaction)
-// const mockProviders: InsuranceProvider[] = [ // Unused variable
-//   { id: 1, name: "MediCare Insurance", contact_person: "Alice Brown", contact_email: "alice@medicare.com", contact_phone: "555-1111", address: "123 Insurance St", is_active: 1 },
-//   { id: 2, name: "HealthGuard Plus", contact_person: "Bob White", contact_email: "bob@healthguard.com", contact_phone: "555-2222", address: "456 Provider Ave", is_active: 1 },
-// ];
-// const nextProviderId = 3; // Unused variable
-
-// Mock data store for patient insurance policies (replace with actual DB interaction)
-const mockPolicies: InsurancePolicy[] = [
-  {
-    id: 101,
-    patient_id: 101,
-    provider_id: 1,
-    policy_number: "MC123456789",
-    group_number: "GRP100",
-    subscriber_name: "John Doe",
-    subscriber_dob: "1980-05-15",
-    relationship_to_patient: "Self",
-    effective_date: "2024-01-01",
-    expiry_date: "2024-12-31",
-    coverage_details: "Full coverage, $500 deductible",
-    is_primary: 1,
-    is_active: 1,
-    verification_status: "Verified",
-    verified_by_id: 501, // User ID
-    verified_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
-    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 102,
-    patient_id: 102,
-    provider_id: 2,
-    policy_number: "HG987654321",
-    group_number: "GRP200",
-    subscriber_name: "Jane Smith",
-    subscriber_dob: "1985-08-20",
-    relationship_to_patient: "Self",
-    effective_date: "2024-03-01",
-    expiry_date: "2025-02-28",
-    coverage_details: "Basic coverage, $1000 deductible",
-    is_primary: 1,
-    is_active: 1,
-    verification_status: "Pending",
-    verified_by_id: undefined,
-    verified_at: undefined,
-    created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-let nextPolicyId = 103;
-
-// Define interface for patient insurance policy creation input
-interface InsurancePolicyInput {
-  patient_id: number | string;
-  provider_id: number | string;
-  policy_number: string;
-  group_number?: string;
-  subscriber_name?: string;
-  subscriber_dob?: string; // YYYY-MM-DD
-  relationship_to_patient?: string;
-  effective_date: string; // YYYY-MM-DD
-  expiry_date: string; // YYYY-MM-DD
-  coverage_details?: string;
-  is_primary?: boolean;
-  is_active?: boolean; // Defaults to true
-}
-
-// Define interface for patient insurance policy update input - Belongs in [id]/route.ts
-// interface InsurancePolicyUpdateInput {
-//   provider_id?: number | string;
-//   policy_number?: string;
-//   group_number?: string;
-//   subscriber_name?: string;
-//   subscriber_dob?: string;
-//   relationship_to_patient?: string;
-//   effective_date?: string;
-//   expiry_date?: string;
-//   coverage_details?: string;
-//   is_primary?: boolean;
-//   is_active?: boolean;
-//   verification_status?: string; // e.g., "Verified", "Pending", "Rejected"
-//   verified_by_id?: number | string | null;
-//   verified_at?: string | null; // ISO string
-// }
-
-// Define interface for patient insurance policy filters
-interface InsurancePolicyFilters {
-  patient_id?: string | undefined;
-  provider_id?: string | undefined;
-  is_active?: string | undefined; // Expecting "true" or "false"
-}
-
-// Helper function to simulate DB interaction (GET Policies)
-async function getPatientInsurancePoliciesFromDB(
-  filters: InsurancePolicyFilters = {}
-) {
-  console.log(
-    "Simulating DB fetch for patient insurance policies with filters:",
-    filters
-  );
-  let filteredPolicies = [...mockPolicies];
-
-  // FIX: Check filters.patient_id before parsing (TS2345)
-  if (filters.patient_id) {
-      const patientId = Number.parseInt(filters.patient_id);
-    if (!Number.isNaN(patientId)) {
-      filteredPolicies = filteredPolicies.filter(
-        (p) => p.patient_id === patientId
-      );
+// GET handler for retrieving all insurance policies with filtering and pagination
+export const GET = withErrorHandling(async (req: NextRequest) => {
+  // Validate query parameters
+  const query = validateQuery(policyQuerySchema)(req);
+  
+  // Check permissions
+  await checkPermission(permissionService, 'read', 'insurancePolicy')(req);
+  
+  // Build filter conditions
+  const where: any = {};
+  
+  if (query.patientId) {
+    where.patientId = query.patientId;
+  }
+  
+  if (query.insuranceProviderId) {
+    where.insuranceProviderId = query.insuranceProviderId;
+  }
+  
+  if (query.status) {
+    if (query.status === 'active') {
+      const today = new Date();
+      where.startDate = { lte: today };
+      where.OR = [
+        { endDate: null },
+        { endDate: { gte: today } }
+      ];
+    } else if (query.status === 'expired') {
+      const today = new Date();
+      where.endDate = { lt: today };
+    } else if (query.status === 'inactive') {
+      where.status = 'inactive';
     }
   }
-  // FIX: Check filters.provider_id before parsing (TS2345)
-  if (filters.provider_id) {
-    const providerId = Number.parseInt(filters.provider_id);
-    if (!Number.isNaN(providerId)) {
-      filteredPolicies = filteredPolicies.filter(
-        (p) => p.provider_id === providerId
-      );
-    }
+  
+  if (query.coverageType) {
+    where.coverageType = query.coverageType;
   }
-  // FIX: Check filters.is_active before using (TS18049)
-  if (filters.is_active !== undefined && filters.is_active !== undefined) {
-    const activeBool = String(filters.is_active).toLowerCase() === "true";
-    filteredPolicies = filteredPolicies.filter(
-      (p) => (p.is_active === 1) === activeBool
-    );
+  
+  if (query.planType) {
+    where.planType = query.planType;
   }
-
-  // FIX: Ensure created_at exists before sorting (or handle potential undefined)
-  return filteredPolicies.sort((a, b) => {
-    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-    return dateB - dateA;
-  });
-}
-
-// Helper function to simulate DB interaction (GET Policy by ID) - Belongs in [id]/route.ts
-// async function getPatientInsurancePolicyByIdFromDB(id: number) { // Unused function
-//   console.log("Simulating DB fetch for patient insurance policy ID:", id);
-//   const policy = mockPolicies.find(p => p.id === id);
-//   if (!policy) {
-//     throw new Error("Patient insurance policy not found");
-//   }
-//   return policy;
-// }
-
-// Helper function to simulate DB interaction (POST Policy)
-async function createPatientInsurancePolicyInDB(
-  data: InsurancePolicyInput
-): Promise<InsurancePolicy> {
-  // Added return type
-  console.log("Simulating DB create for patient insurance policy:", data);
-  const now = new Date().toISOString();
-  // FIX: Ensure created object matches InsurancePolicy interface
-  const newPolicy: InsurancePolicy = {
-    id: nextPolicyId++,
-    patient_id: data.patient_id,
-    provider_id: data.provider_id,
-    policy_number: data.policy_number,
-    group_number: data.group_number || undefined,
-    subscriber_name: data.subscriber_name || undefined,
-    subscriber_dob: data.subscriber_dob || undefined,
-    relationship_to_patient: data.relationship_to_patient || "Self",
-    effective_date: data.effective_date,
-    expiry_date: data.expiry_date,
-    coverage_details: data.coverage_details || undefined,
-    is_primary: data.is_primary ? 1 : 0,
-    is_active: data.is_active === false ? 0 : 1, // Default active
-    verification_status: "Pending",
-    verified_by_id: undefined,
-    verified_at: undefined,
-    created_at: now,
-    updated_at: now,
-  };
-  mockPolicies.push(newPolicy);
-  return newPolicy;
-}
-
-// Helper function to simulate DB interaction (PUT Policy) - Belongs in [id]/route.ts
-// async function updatePatientInsurancePolicyInDB(id: number, data: InsurancePolicyUpdateInput) { // Unused function
-//   console.log("Simulating DB update for patient insurance policy ID:", id, "with data:", data);
-//   const policyIndex = mockPolicies.findIndex(p => p.id === id);
-//   if (policyIndex === -1) {
-//     throw new Error("Patient insurance policy not found");
-//   }
-//   const now = new Date().toISOString();
-//   // FIX: Ensure updated object matches InsurancePolicy interface
-//   const updatedPolicy = {
-//     ...mockPolicies[policyIndex],
-//     ...data,
-//     is_primary: data.is_primary !== undefined ? (data.is_primary ? 1 : 0) : mockPolicies[policyIndex].is_primary,
-//     is_active: data.is_active !== undefined ? (data.is_active ? 1 : 0) : mockPolicies[policyIndex].is_active,
-//     updated_at: now
-//   };
-//   mockPolicies[policyIndex] = updatedPolicy;
-//   return updatedPolicy;
-// }
-
-/**
- * GET /api/insurance/policies
- * Retrieves a list of patient insurance policies, potentially filtered by patient_id.
- */
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const filters: InsurancePolicyFilters = {
-      patient_id: searchParams.get("patient_id") ?? undefined,
-      provider_id: searchParams.get("provider_id") ?? undefined,
-      is_active: searchParams.get("is_active") ?? undefined, // "true" or "false"
-    };
-
-    const policies = await getPatientInsurancePoliciesFromDB(filters);
-    return NextResponse.json({ policies });
-  } catch (error: unknown) {
-    console.error("Error fetching patient insurance policies:", error);
-    let errorMessage = "An unknown error occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json(
-      {
-        error: "Failed to fetch patient insurance policies",
-        details: errorMessage,
+  
+  // Execute query with pagination
+  const [policies, total] = await Promise.all([
+    prisma.insurancePolicy.findMany({
+      where,
+      orderBy: {
+        [query.sortBy]: query.sortOrder,
       },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * POST /api/insurance/policies
- * Creates a new patient insurance policy.
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    // Apply type assertion
-    const policyData = body as InsurancePolicyInput;
-
-    // Basic validation (add more comprehensive validation)
-    if (
-      !policyData.patient_id ||
-      !policyData.provider_id ||
-      !policyData.policy_number ||
-      !policyData.effective_date ||
-      !policyData.expiry_date
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Missing required fields (patient_id, provider_id, policy_number, effective_date, expiry_date)",
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+      include: {
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            mrn: true,
+            dateOfBirth: true,
+          },
         },
-        { status: 400 }
-      );
-    }
-
-    // Simulate creating the patient insurance policy in the database
-    const newPolicy = await createPatientInsurancePolicyInDB(policyData);
-
-    return NextResponse.json({ policy: newPolicy }, { status: 201 });
-  } catch (error: unknown) {
-    console.error("Error creating patient insurance policy:", error);
-    let errorMessage = "An unknown error occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json(
-      {
-        error: "Failed to create patient insurance policy",
-        details: errorMessage,
+        subscriber: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        insuranceProvider: true,
       },
-      { status: 500 }
-    );
+    }),
+    prisma.insurancePolicy.count({ where }),
+  ]);
+  
+  // Convert to FHIR format if requested
+  if (query.format === 'fhir') {
+    const fhirCoverages = policies.map(policy => convertToFHIRCoverage(policy));
+    return createPaginatedResponse(fhirCoverages, query.page, query.pageSize, total);
   }
-}
+  
+  // Return standard JSON response
+  return createPaginatedResponse(policies, query.page, query.pageSize, total);
+});
 
-// Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
+// POST handler for creating a new insurance policy
+export const POST = withErrorHandling(async (req: NextRequest) => {
+  // Validate request body
+  const data = await validateBody(createPolicySchema)(req);
+  
+  // Check permissions
+  await checkPermission(permissionService, 'create', 'insurancePolicy')(req);
+  
+  // Check if patient exists
+  const patient = await prisma.patient.findUnique({
+    where: { id: data.patientId },
+  });
+  
+  if (!patient) {
+    throw new NotFoundError(`Patient with ID ${data.patientId} not found`);
+  }
+  
+  // Check if insurance provider exists
+  const provider = await prisma.insuranceProvider.findUnique({
+    where: { id: data.insuranceProviderId },
+  });
+  
+  if (!provider) {
+    throw new NotFoundError(`Insurance provider with ID ${data.insuranceProviderId} not found`);
+  }
+  
+  // Check if subscriber exists if provided
+  if (data.subscriberId && data.subscriberId !== data.patientId) {
+    const subscriber = await prisma.patient.findUnique({
+      where: { id: data.subscriberId },
+    });
+    
+    if (!subscriber) {
+      throw new NotFoundError(`Subscriber with ID ${data.subscriberId} not found`);
+    }
+  } else {
+    // If subscriber is not provided, use patient as subscriber
+    data.subscriberId = data.patientId;
+    data.relationship = 'self';
+  }
+  
+  // Determine policy status
+  const today = new Date();
+  let status = 'inactive';
+  
+  if (data.startDate <= today && (!data.endDate || data.endDate >= today)) {
+    status = 'active';
+  } else if (data.endDate && data.endDate < today) {
+    status = 'expired';
+  }
+  
+  // Create policy in database
+  const policy = await prisma.insurancePolicy.create({
+    data: {
+      patientId: data.patientId,
+      insuranceProviderId: data.insuranceProviderId,
+      policyNumber: data.policyNumber,
+      groupNumber: data.groupNumber,
+      groupName: data.groupName,
+      subscriberId: data.subscriberId,
+      relationship: data.relationship,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      coverageType: data.coverageType,
+      planType: data.planType,
+      copayAmount: data.copayAmount,
+      coinsurancePercentage: data.coinsurancePercentage,
+      deductibleAmount: data.deductibleAmount,
+      deductibleMet: data.deductibleMet,
+      outOfPocketMax: data.outOfPocketMax,
+      outOfPocketMet: data.outOfPocketMet,
+      status,
+      notes: data.notes,
+    },
+    include: {
+      patient: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          mrn: true,
+        },
+      },
+      subscriber: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+      insuranceProvider: true,
+    },
+  });
+  
+  logger.info('Insurance policy created', { 
+    policyId: policy.id, 
+    policyNumber: policy.policyNumber,
+    patientId: policy.patientId,
+    providerId: policy.insuranceProviderId
+  });
+  
+  return createSuccessResponse(policy);
+});

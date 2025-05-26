@@ -1,274 +1,313 @@
-import { NextRequest, NextResponse } from "next/server";
-// import { v4 as uuidv4 } from "uuid"; // Unused import
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { 
+  withErrorHandling, 
+  validateBody, 
+  validateQuery, 
+  checkPermission, 
+  createSuccessResponse,
+  createPaginatedResponse
+} from '@/lib/core/middleware';
+import { ValidationError, NotFoundError, BusinessLogicError } from '@/lib/core/errors';
+import { 
+  claimStatusSchema,
+  icd10CodeSchema,
+  cptCodeSchema
+} from '@/lib/core/validation';
+import { convertToFHIRClaim } from '@/lib/core/fhir';
+import { logger } from '@/lib/core/logging';
 
-// Define interface for Insurance Claim data
-interface InsuranceClaim {
-  id: number | string;
-  patient_insurance_id: number | string;
-  invoice_id: number | string;
-  claim_number: string;
-  claim_date: string; // ISO string (Submission date)
-  claim_amount: number;
-  approved_amount?: number; // Use undefined for optional numbers
-  status: string; // e.g., "Submitted", "Approved", "Rejected", "Pending Information"
-  approval_date?: string | undefined; // ISO string or undefined
-  rejection_date?: string | undefined; // ISO string or undefined
-  rejection_reason?: string | undefined;
-  payment_date?: string | undefined; // ISO string or undefined
-  payment_reference?: string | undefined;
-  notes?: string;
-  created_at?: string; // ISO string
-  updated_at?: string; // ISO string
-}
+// Schema for claim creation
+const createClaimSchema = z.object({
+  invoiceId: z.string().uuid(),
+  insurancePolicyId: z.string().uuid(),
+  diagnoses: z.array(z.object({
+    code: icd10CodeSchema,
+    description: z.string(),
+    primary: z.boolean().default(false),
+  })).min(1),
+  items: z.array(z.object({
+    serviceItemId: z.string().uuid(),
+    serviceDate: z.coerce.date(),
+    cptCode: cptCodeSchema.optional(),
+    unitPrice: z.number().positive(),
+    quantity: z.number().int().positive(),
+    totalPrice: z.number().positive(),
+    notes: z.string().optional(),
+  })).min(1),
+  preAuthorizationNumber: z.string().optional(),
+  notes: z.string().optional(),
+});
 
-// Mock data store for insurance claims (replace with actual DB interaction)
-const mockClaims: InsuranceClaim[] = [
-  {
-    id: 1,
-    patient_insurance_id: 101,
-    invoice_id: 201,
-    claim_amount: 5000,
-    status: "Submitted", // Renamed from claim_status
-    claim_number: "CLM001",
-    claim_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // Renamed from submission_date
-    approval_date: undefined,
-    rejection_date: undefined,
-    rejection_reason: undefined,
-    approved_amount: undefined, // Changed from null
-    payment_date: undefined,
-    payment_reference: undefined,
-    notes: "Initial claim submission",
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 2,
-    patient_insurance_id: 102,
-    invoice_id: 202,
-    claim_amount: 8500,
-    status: "Approved", // Renamed from claim_status
-    claim_number: "CLM002",
-    claim_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // Renamed from submission_date
-    approval_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    rejection_date: undefined,
-    rejection_reason: undefined,
-    approved_amount: 8000,
-    payment_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    payment_reference: "PAY123456",
-    notes: "Partial approval due to policy limits",
-    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-let nextClaimId = 3;
+// Schema for claim query parameters
+const claimQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional().default(1),
+  pageSize: z.coerce.number().int().positive().max(100).optional().default(20),
+  patientId: z.string().uuid().optional(),
+  invoiceId: z.string().uuid().optional(),
+  insurancePolicyId: z.string().uuid().optional(),
+  status: claimStatusSchema.optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'status']).optional().default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+  format: z.enum(['json', 'fhir']).optional().default('json'),
+});
 
-// Define interface for insurance claim creation input
-interface InsuranceClaimInput {
-  patient_insurance_id: number | string;
-  invoice_id: number | string;
-  claim_amount: number;
-  status?: string; // Optional, defaults to "Submitted"
-  claim_number?: string; // Optional, might be auto-generated
-  claim_date?: string; // Optional, defaults to now (Submission date)
-  notes?: string;
-}
-
-// Define interface for insurance claim update input
-// interface InsuranceClaimUpdateInput { // Likely belongs in [id]/route.ts
-//   status?: string;
-//   approval_date?: string | null;
-//   rejection_date?: string | null;
-//   rejection_reason?: string | null;
-//   approved_amount?: number | null;
-//   payment_date?: string | null;
-//   payment_reference?: string | null;
-//   notes?: string;
-// }
-
-// Define interface for insurance claim filters
-interface InsuranceClaimFilters {
-  status?: string | undefined;
-  patient_insurance_id?: string | undefined;
-  date_from?: string | undefined;
-  date_to?: string | undefined;
-}
-
-// Helper function to simulate DB interaction (GET)
-async function getInsuranceClaimsFromDB(filters: InsuranceClaimFilters = {}) {
-  console.log(
-    "Simulating DB fetch for insurance claims with filters:",
-    filters
-  );
-  let filteredClaims = [...mockClaims];
-
-  // FIX: Check if filters.status exists before using it (TS18049)
-  if (filters.status) {
-    // FIX: Use status field, check filters.status before toLowerCase (TS2339)
-    filteredClaims = filteredClaims.filter(
-      (c) => c.status.toLowerCase() === filters.status!.toLowerCase()
-    );
-  }
-
-  // FIX: Check if filters.patient_insurance_id exists before parsing (TS2345)
-  if (filters.patient_insurance_id) {
-    const patientInsuranceId = Number.parseInt(filters.patient_insurance_id);
-    if (!Number.isNaN(patientInsuranceId)) {
-      filteredClaims = filteredClaims.filter(
-        (c) => c.patient_insurance_id === patientInsuranceId
-      );
-    }
-  }
-
-  // Add date filtering if needed (using claim_date)
-  if (filters.date_from) {
-    filteredClaims = filteredClaims.filter(
-      (c) => new Date(c.claim_date) >= new Date(filters.date_from!)
-    );
-  }
-  if (filters.date_to) {
-    filteredClaims = filteredClaims.filter(
-      (c) => new Date(c.claim_date) <= new Date(filters.date_to!)
-    );
-  }
-
-  // FIX: Sort using claim_date (TS2339)
-  return filteredClaims.sort(
-    (a, b) =>
-      new Date(b.claim_date).getTime() - new Date(a.claim_date).getTime()
-  );
-}
-
-// Helper function to simulate DB interaction (GET by ID) - Likely belongs in [id]/route.ts
-// async function getInsuranceClaimByIdFromDB(id: number) { // Commented out - unused
-//   console.log("Simulating DB fetch for insurance claim ID:", id);
-//   const claim = mockClaims.find(c => c.id === id);
-//   if (!claim) {
-//     throw new Error("Insurance claim not found");
-//   }
-//   return claim;
-// }
-
-// Helper function to simulate DB interaction (POST)
-async function createInsuranceClaimInDB(
-  data: InsuranceClaimInput
-): Promise<InsuranceClaim> {
-  // Added return type
-  console.log("Simulating DB create for insurance claim:", data);
-  const now = new Date().toISOString();
-  // FIX: Ensure created object matches InsuranceClaim interface (TS2345)
-  const newClaim: InsuranceClaim = {
-    id: nextClaimId++,
-    patient_insurance_id: data.patient_insurance_id,
-    invoice_id: data.invoice_id,
-    claim_amount: data.claim_amount,
-    status: data.status || "Submitted", // Use status
-    claim_number:
-      data.claim_number || `CLM${String(nextClaimId - 1).padStart(3, "0")}`,
-    claim_date: data.claim_date || now, // Use claim_date
-    // Initialize optional fields explicitly if needed, otherwise they are undefined
-    // approval_date: null,
-    // rejection_date: null,
-    // rejection_reason: null,
-    // approved_amount: undefined,
-    // payment_date: null,
-    // payment_reference: null,
-    notes: data.notes || "",
-    created_at: now,
-    updated_at: now,
-  };
-  mockClaims.push(newClaim);
-  return newClaim;
-}
-
-// Helper function to simulate DB interaction (PUT) - Likely belongs in [id]/route.ts
-// async function updateInsuranceClaimInDB(id: number, data: InsuranceClaimUpdateInput) { // Commented out - unused
-//   console.log("Simulating DB update for insurance claim ID:", id, "with data:", data);
-//   const claimIndex = mockClaims.findIndex(c => c.id === id);
-//   if (claimIndex === -1) {
-//     throw new Error("Insurance claim not found");
-//   }
-//   const now = new Date().toISOString();
-//   // FIX: Ensure updated object matches InsuranceClaim interface
-//   const updatedClaim = {
-//     ...mockClaims[claimIndex],
-//     ...data,
-//     // Ensure null is allowed for optional number fields if needed, or handle conversion
-//     approved_amount: data.approved_amount === undefined ? undefined : data.approved_amount,
-//     updated_at: now
-//   };
-//   mockClaims[claimIndex] = updatedClaim;
-//   return updatedClaim;
-// }
-
-/**
- * GET /api/insurance/claims
- * Retrieves a list of insurance claims, potentially filtered.
- */
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const filters: InsuranceClaimFilters = {
-      status: searchParams.get("status") ?? undefined,
-      patient_insurance_id: searchParams.get("patient_insurance_id") ?? undefined,
-      date_from: searchParams.get("date_from") ?? undefined,
-      date_to: searchParams.get("date_to") ?? undefined,
+// GET handler for retrieving all claims with filtering and pagination
+export const GET = withErrorHandling(async (req: NextRequest) => {
+  // Validate query parameters
+  const query = validateQuery(claimQuerySchema)(req);
+  
+  // Check permissions
+  await checkPermission(permissionService, 'read', 'claim')(req);
+  
+  // Build filter conditions
+  const where: any = {};
+  
+  if (query.patientId) {
+    where.invoice = {
+      patientId: query.patientId
     };
-
-    const claims = await getInsuranceClaimsFromDB(filters);
-    return NextResponse.json({ claims });
-  } catch (error: unknown) {
-    console.error("Error fetching insurance claims:", error);
-    let errorMessage = "An unknown error occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json(
-      { error: "Failed to fetch insurance claims", details: errorMessage },
-      { status: 500 }
-    );
   }
-}
-
-/**
- * POST /api/insurance/claims
- * Creates a new insurance claim.
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    // Apply type assertion
-    const claimData = body as InsuranceClaimInput;
-
-    // Basic validation (add more comprehensive validation)
-    if (
-      !claimData.patient_insurance_id ||
-      !claimData.invoice_id ||
-      !claimData.claim_amount
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Missing required fields (patient_insurance_id, invoice_id, claim_amount)",
+  
+  if (query.invoiceId) {
+    where.invoiceId = query.invoiceId;
+  }
+  
+  if (query.insurancePolicyId) {
+    where.insurancePolicyId = query.insurancePolicyId;
+  }
+  
+  if (query.status) {
+    where.status = query.status;
+  }
+  
+  if (query.startDate && query.endDate) {
+    try {
+      const startDate = new Date(query.startDate);
+      const endDate = new Date(query.endDate);
+      
+      if (startDate > endDate) {
+        throw new ValidationError('Start date must be before end date', 'INVALID_DATE_RANGE');
+      }
+      
+      where.createdAt = {
+        gte: startDate,
+        lte: endDate,
+      };
+    } catch (error) {
+      throw new ValidationError('Invalid date range', 'INVALID_DATE_RANGE');
+    }
+  }
+  
+  // Execute query with pagination
+  const [claims, total] = await Promise.all([
+    prisma.insuranceClaim.findMany({
+      where,
+      orderBy: {
+        [query.sortBy]: query.sortOrder,
+      },
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+      include: {
+        invoice: {
+          select: {
+            id: true,
+            billNumber: true,
+            patientId: true,
+            patient: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                mrn: true,
+              },
+            },
+          },
         },
-        { status: 400 }
-      );
-    }
+        insurancePolicy: {
+          select: {
+            id: true,
+            policyNumber: true,
+            insuranceProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        diagnoses: true,
+        items: {
+          include: {
+            serviceItem: true,
+          },
+        },
+        followUps: true,
+      },
+    }),
+    prisma.insuranceClaim.count({ where }),
+  ]);
+  
+  // Convert to FHIR format if requested
+  if (query.format === 'fhir') {
+    const fhirClaims = claims.map(claim => convertToFHIRClaim(claim));
+    return createPaginatedResponse(fhirClaims, query.page, query.pageSize, total);
+  }
+  
+  // Return standard JSON response
+  return createPaginatedResponse(claims, query.page, query.pageSize, total);
+});
 
-    // Simulate creating the insurance claim in the database
-    const newClaim = await createInsuranceClaimInDB(claimData);
-
-    return NextResponse.json({ claim: newClaim }, { status: 201 });
-  } catch (error: unknown) {
-    console.error("Error creating insurance claim:", error);
-    let errorMessage = "An unknown error occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json(
-      { error: "Failed to create insurance claim", details: errorMessage },
-      { status: 500 }
+// POST handler for creating a new claim
+export const POST = withErrorHandling(async (req: NextRequest) => {
+  // Validate request body
+  const data = await validateBody(createClaimSchema)(req);
+  
+  // Check permissions
+  await checkPermission(permissionService, 'create', 'claim')(req);
+  
+  // Retrieve invoice
+  const invoice = await prisma.bill.findUnique({
+    where: { id: data.invoiceId },
+  });
+  
+  if (!invoice) {
+    throw new NotFoundError(`Invoice with ID ${data.invoiceId} not found`);
+  }
+  
+  // Check if invoice is in a valid state for claim
+  if (!['approved', 'paid'].includes(invoice.status)) {
+    throw new BusinessLogicError(
+      'Claims can only be created for approved or paid invoices',
+      'INVALID_INVOICE_STATUS',
+      { currentStatus: invoice.status }
     );
   }
-}
-
-// Note: GET by ID, PUT, and DELETE handlers should be in the [id]/route.ts file.
+  
+  // Check if insurance policy exists
+  const insurancePolicy = await prisma.insurancePolicy.findUnique({
+    where: { id: data.insurancePolicyId },
+    include: {
+      insuranceProvider: true,
+    },
+  });
+  
+  if (!insurancePolicy) {
+    throw new NotFoundError(`Insurance policy with ID ${data.insurancePolicyId} not found`);
+  }
+  
+  // Check if policy is active
+  if (insurancePolicy.status !== 'active') {
+    throw new BusinessLogicError(
+      'Insurance policy is not active',
+      'INACTIVE_INSURANCE_POLICY',
+      { policyStatus: insurancePolicy.status }
+    );
+  }
+  
+  // Check if patient on invoice matches policy beneficiary
+  if (invoice.patientId !== insurancePolicy.patientId) {
+    throw new BusinessLogicError(
+      'Invoice patient does not match insurance policy beneficiary',
+      'PATIENT_MISMATCH',
+      { 
+        invoicePatientId: invoice.patientId,
+        policyPatientId: insurancePolicy.patientId
+      }
+    );
+  }
+  
+  // Generate claim number
+  const claimCount = await prisma.insuranceClaim.count();
+  const claimNumber = `CLM-${new Date().getFullYear()}-${(claimCount + 1).toString().padStart(6, '0')}`;
+  
+  // Calculate total amount
+  const totalAmount = data.items.reduce((sum, item) => sum + item.totalPrice, 0);
+  
+  // Create claim in database
+  const claim = await prisma.$transaction(async (prisma) => {
+    // Create claim record
+    const newClaim = await prisma.insuranceClaim.create({
+      data: {
+        claimNumber,
+        invoiceId: data.invoiceId,
+        insurancePolicyId: data.insurancePolicyId,
+        status: 'draft',
+        totalAmount,
+        preAuthorizationNumber: data.preAuthorizationNumber,
+        notes: data.notes,
+        diagnoses: {
+          create: data.diagnoses,
+        },
+        items: {
+          create: data.items.map(item => ({
+            serviceItemId: item.serviceItemId,
+            serviceDate: item.serviceDate,
+            cptCode: item.cptCode,
+            unitPrice: item.unitPrice,
+            quantity: item.quantity,
+            totalPrice: item.totalPrice,
+            notes: item.notes,
+          })),
+        },
+      },
+      include: {
+        invoice: {
+          select: {
+            id: true,
+            billNumber: true,
+            patientId: true,
+            patient: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                mrn: true,
+              },
+            },
+          },
+        },
+        insurancePolicy: {
+          select: {
+            id: true,
+            policyNumber: true,
+            insuranceProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        diagnoses: true,
+        items: {
+          include: {
+            serviceItem: true,
+          },
+        },
+      },
+    });
+    
+    // Update invoice to link claim
+    await prisma.bill.update({
+      where: { id: data.invoiceId },
+      data: {
+        insuranceClaimId: newClaim.id,
+      },
+    });
+    
+    return newClaim;
+  });
+  
+  logger.info('Insurance claim created', { 
+    claimId: claim.id, 
+    claimNumber,
+    invoiceId: data.invoiceId,
+    insurancePolicyId: data.insurancePolicyId
+  });
+  
+  return createSuccessResponse(claim);
+});

@@ -1,242 +1,401 @@
-import { NextRequest, NextResponse } from "next/server";
-import { DB } from "@/lib/database"; // Assuming DB is correctly typed or mocked
-import { Invoice } from "@/types/billing"; // Import Invoice type
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { 
+  withErrorHandling, 
+  validateBody, 
+  checkPermission, 
+  createSuccessResponse 
+} from '@/lib/core/middleware';
+import { ValidationError, NotFoundError, AuthorizationError } from '@/lib/core/errors';
+import { invoiceStatusSchema, moneySchema } from '@/lib/core/validation';
+import { convertToFHIRInvoice } from '@/lib/core/fhir';
+import { logger } from '@/lib/core/logging';
 
-// NOTE: Removed unused UpdateBookingBody interface related to OT Bookings.
+// Schema for invoice update
+const updateInvoiceSchema = z.object({
+  status: invoiceStatusSchema.optional(),
+  discountAmount: moneySchema.optional(),
+  discountReason: z.string().optional(),
+  notes: z.string().optional(),
+  items: z.array(z.object({
+    id: z.string().uuid().optional(), // Existing item ID if updating
+    serviceItemId: z.string().uuid(),
+    quantity: z.number().int().positive(),
+    unitPrice: moneySchema,
+    discount: moneySchema.optional(),
+    tax: moneySchema.optional(),
+    description: z.string().optional(),
+  })).optional(),
+});
 
-// GET /api/ot/bookings - Get list of OT bookings (with filtering/pagination)
-// NOTE: This GET handler seems out of place in a file named invoices/[id]/route.ts
-// It should likely be in /api/ot/bookings/route.ts or similar.
-// Keeping it for now but it might need relocation.
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const page = Number.parseInt(searchParams.get("page") || "1");
-    const limit = Number.parseInt(searchParams.get("limit") || "10");
-    const offset = (page - 1) * limit;
-    const statusFilter = searchParams.get("status");
-    const dateFilter = searchParams.get("date"); // e.g., YYYY-MM-DD
-    const theatreFilter = searchParams.get("theatre_id");
-    const surgeonFilter = searchParams.get("surgeon_id");
+// Schema for invoice verification
+const verifyInvoiceSchema = z.object({
+  verifiedBy: z.string(),
+  notes: z.string().optional(),
+});
 
-    // const DB = (process.env.DB as unknown) as D1Database; // Using Mock DB instead
+// Schema for invoice approval
+const approveInvoiceSchema = z.object({
+  approvedBy: z.string(),
+  notes: z.string().optional(),
+});
 
-    let query = `
-      SELECT 
-        b.id, b.patient_id, b.surgery_type_id, b.theatre_id, b.lead_surgeon_id, 
-        b.scheduled_start_time, b.scheduled_end_time, b.status, b.priority,
-        p.name as patient_name, p.mrn as patient_mrn,
-        s.name as surgery_name,
-        t.name as theatre_name,
-        u.name as surgeon_name
-      FROM OTBookings b
-      JOIN Patients p ON b.patient_id = p.id
-      JOIN SurgeryTypes s ON b.surgery_type_id = s.id
-      JOIN OperationTheatres t ON b.theatre_id = t.id
-      JOIN Users u ON b.lead_surgeon_id = u.id
-      WHERE 1=1
-    `;
-    const queryParameters: (string | number)[] = [];
+// Schema for invoice cancellation
+const cancelInvoiceSchema = z.object({
+  cancelledBy: z.string(),
+  cancellationReason: z.string(),
+});
 
-    if (statusFilter) {
-      query += " AND b.status = ?";
-      queryParameters.push(statusFilter);
-    }
-    if (dateFilter) {
-      // Assuming scheduled_start_time is stored as DATETIME or similar
-      query += " AND DATE(b.scheduled_start_time) = ?";
-      queryParameters.push(dateFilter);
-    }
-    if (theatreFilter) {
-      query += " AND b.theatre_id = ?";
-      queryParameters.push(theatreFilter);
-    }
-    if (surgeonFilter) {
-      query += " AND b.lead_surgeon_id = ?";
-      queryParameters.push(surgeonFilter);
-    }
-
-    query += ` ORDER BY b.scheduled_start_time ASC LIMIT ? OFFSET ?`;
-    queryParameters.push(limit, offset);
-
-    // Fixed: Use DB.query instead of prepare/bind/all
-    const bookingsResult = await DB.query(query, queryParameters);
-    const results = bookingsResult.results || []; // Changed .rows to .results
-
-    // Also fetch total count for pagination
-    let countQuery = `SELECT COUNT(*) as total FROM OTBookings WHERE 1=1`;
-    const countParameters: (string | number)[] = [];
-    if (statusFilter) {
-      countQuery += " AND status = ?";
-      countParameters.push(statusFilter);
-    }
-    if (dateFilter) {
-      countQuery += " AND DATE(scheduled_start_time) = ?";
-      countParameters.push(dateFilter);
-    }
-    if (theatreFilter) {
-      countQuery += " AND theatre_id = ?";
-      countParameters.push(theatreFilter);
-    }
-    if (surgeonFilter) {
-      countQuery += " AND lead_surgeon_id = ?";
-      countParameters.push(surgeonFilter);
-    }
-
-    // Fixed: Use DB.query instead of prepare/bind/first
-    // Assuming DB.query returns { results: T[] } and we take the first row
-    const countResult = await DB.query(countQuery, countParameters);
-    const total =
-      countResult.results && countResult.results.length > 0 // Changed .rows to .results
-        ? (countResult.results[0] as { total: number }).total // Changed .rows to .results
-        : 0;
-
-    return NextResponse.json({
-      data: results,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+// GET handler for retrieving a specific invoice
+export const GET = withErrorHandling(async (req: NextRequest, { params }: { params: { id: string } }) => {
+  // Check permissions
+  await checkPermission(permissionService, 'read', 'invoice')(req);
+  
+  // Get format from query parameters
+  const url = new URL(req.url);
+  const format = url.searchParams.get('format') || 'json';
+  
+  // Retrieve invoice from database
+  const invoice = await prisma.bill.findUnique({
+    where: { id: params.id },
+    include: {
+      patient: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          mrn: true,
+        },
       },
+      billItems: true,
+      payments: true,
+    },
+  });
+  
+  if (!invoice) {
+    throw new NotFoundError(`Invoice with ID ${params.id} not found`);
+  }
+  
+  // Convert to FHIR format if requested
+  if (format === 'fhir') {
+    const fhirInvoice = convertToFHIRInvoice(invoice);
+    return createSuccessResponse(fhirInvoice);
+  }
+  
+  // Return standard JSON response
+  return createSuccessResponse(invoice);
+});
+
+// PUT handler for updating an invoice
+export const PUT = withErrorHandling(async (req: NextRequest, { params }: { params: { id: string } }) => {
+  // Validate request body
+  const data = await validateBody(updateInvoiceSchema)(req);
+  
+  // Check permissions
+  await checkPermission(permissionService, 'update', 'invoice')(req);
+  
+  // Retrieve existing invoice
+  const existingInvoice = await prisma.bill.findUnique({
+    where: { id: params.id },
+    include: { billItems: true },
+  });
+  
+  if (!existingInvoice) {
+    throw new NotFoundError(`Invoice with ID ${params.id} not found`);
+  }
+  
+  // Check if invoice can be updated (only draft invoices can be updated)
+  if (existingInvoice.status !== 'draft') {
+    throw new ValidationError(
+      'Only draft invoices can be updated',
+      'INVOICE_UPDATE_FORBIDDEN',
+      { currentStatus: existingInvoice.status }
+    );
+  }
+  
+  // Prepare update data
+  const updateData: any = {};
+  
+  if (data.status) updateData.status = data.status;
+  if (data.discountAmount !== undefined) updateData.discountAmount = data.discountAmount;
+  if (data.discountReason) updateData.discountReason = data.discountReason;
+  if (data.notes) updateData.notes = data.notes;
+  
+  // Handle item updates if provided
+  let totalAmount = existingInvoice.totalAmount;
+  let totalTax = existingInvoice.taxAmount;
+  
+  if (data.items) {
+    // Reset totals if items are being updated
+    totalAmount = 0;
+    totalTax = 0;
+    
+    // Delete existing items
+    await prisma.billItem.deleteMany({
+      where: { billId: params.id },
     });
-  } catch (error: unknown) {
-    // FIX: Use unknown instead of any
-    console.error("Error fetching OT bookings:", error);
-    let errorMessage = "An unknown error occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json(
-      { message: "Error fetching OT bookings", details: errorMessage },
-      { status: 500 }
+    
+    // Create new items
+    const billItems = data.items.map(item => {
+      const itemTotal = item.quantity * item.unitPrice;
+      const itemDiscount = item.discount || 0;
+      const itemTax = item.tax || 0;
+      
+      totalAmount += itemTotal - itemDiscount + itemTax;
+      totalTax += itemTax;
+      
+      return {
+        billId: params.id,
+        serviceItemId: item.serviceItemId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: itemTotal,
+        discount: itemDiscount,
+        tax: itemTax,
+        description: item.description,
+      };
+    });
+    
+    // Create new items
+    await prisma.billItem.createMany({
+      data: billItems,
+    });
+    
+    // Apply discount
+    totalAmount -= (data.discountAmount || existingInvoice.discountAmount);
+    
+    // Update totals
+    updateData.totalAmount = totalAmount;
+    updateData.taxAmount = totalTax;
+    updateData.netAmount = totalAmount;
+    updateData.outstandingAmount = totalAmount - (existingInvoice.paidAmount || 0);
+  }
+  
+  // Update invoice
+  const updatedInvoice = await prisma.bill.update({
+    where: { id: params.id },
+    data: updateData,
+    include: {
+      billItems: true,
+      patient: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          mrn: true,
+        },
+      },
+    },
+  });
+  
+  logger.info('Invoice updated', { invoiceId: updatedInvoice.id });
+  
+  return createSuccessResponse(updatedInvoice);
+});
+
+// DELETE handler for deleting an invoice
+export const DELETE = withErrorHandling(async (req: NextRequest, { params }: { params: { id: string } }) => {
+  // Check permissions
+  await checkPermission(permissionService, 'delete', 'invoice')(req);
+  
+  // Retrieve existing invoice
+  const existingInvoice = await prisma.bill.findUnique({
+    where: { id: params.id },
+  });
+  
+  if (!existingInvoice) {
+    throw new NotFoundError(`Invoice with ID ${params.id} not found`);
+  }
+  
+  // Check if invoice can be deleted (only draft invoices can be deleted)
+  if (existingInvoice.status !== 'draft') {
+    throw new ValidationError(
+      'Only draft invoices can be deleted',
+      'INVOICE_DELETE_FORBIDDEN',
+      { currentStatus: existingInvoice.status }
     );
   }
-}
+  
+  // Delete invoice items first
+  await prisma.billItem.deleteMany({
+    where: { billId: params.id },
+  });
+  
+  // Delete invoice
+  await prisma.bill.delete({
+    where: { id: params.id },
+  });
+  
+  logger.info('Invoice deleted', { invoiceId: params.id });
+  
+  return createSuccessResponse({ success: true, message: 'Invoice deleted successfully' });
+});
 
-// POST /api/ot/bookings - Create a new OT booking
-// ... (POST handler code - assuming it exists and might need similar type fixes)
+// PATCH handler for invoice operations (verify, approve, cancel)
+export const PATCH = withErrorHandling(async (req: NextRequest, { params }: { params: { id: string } }) => {
+  // Get operation from query parameters
+  const url = new URL(req.url);
+  const operation = url.searchParams.get('operation');
+  
+  if (!operation) {
+    throw new ValidationError('Operation parameter is required', 'MISSING_OPERATION');
+  }
+  
+  // Retrieve existing invoice
+  const existingInvoice = await prisma.bill.findUnique({
+    where: { id: params.id },
+  });
+  
+  if (!existingInvoice) {
+    throw new NotFoundError(`Invoice with ID ${params.id} not found`);
+  }
+  
+  // Handle different operations
+  switch (operation) {
+    case 'verify':
+      return verifyInvoice(req, params.id, existingInvoice);
+    case 'approve':
+      return approveInvoice(req, params.id, existingInvoice);
+    case 'cancel':
+      return cancelInvoice(req, params.id, existingInvoice);
+    default:
+      throw new ValidationError(`Unknown operation: ${operation}`, 'INVALID_OPERATION');
+  }
+});
 
-// PUT /api/billing/invoices/[id] - Update an existing Invoice (assuming OT Booking code was incorrect)
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
-) {
-  try {
-    const { id: invoiceId } = await params; // FIX: Await params and destructure id (Next.js 15+)
-    if (!invoiceId) {
-      return NextResponse.json(
-        { message: "Invoice ID is required" },
-        { status: 400 }
-      );
-    }
-
-    const body = await request.json();
-    // Define interface for Invoice update body if needed, or use partial type
-    // Assuming an Invoice type/interface exists elsewhere
-    const updateData = body as Partial<Invoice>; // Replaced Record<string, any> with Partial<Invoice>
-
-    // const DB = (process.env.DB as unknown) as D1Database; // Using Mock DB instead
-    const now = new Date().toISOString();
-
-    // Construct the update query dynamically for Invoices table
-    const fieldsToUpdate: Record<string, string | number | boolean | undefined> = {};
-
-    // Add fields relevant to Invoice update
-    // Example: fieldsToUpdate.status = updateData.status;
-    // Example: fieldsToUpdate.due_date = updateData.due_date;
-    // ... add other updatable invoice fields
-
-    // Ensure at least one field is being updated
-    if (Object.keys(updateData).length === 0) { // Check updateData instead of fieldsToUpdate initially
-      return NextResponse.json(
-        { message: "No update fields provided" },
-        { status: 400 }
-      );
-    }
-
-    // Populate fieldsToUpdate based on updateData
-    // Use type assertion to allow string indexing
-    for (const key in updateData) {
-        // Add validation/filtering if necessary
-        fieldsToUpdate[key] = (updateData as Record<string, unknown>)[key] as (string | number | boolean | undefined); // Replaced any with unknown and explicit cast
-    }
-
-    fieldsToUpdate.updated_at = now;
-
-    const setClauses = Object.keys(fieldsToUpdate)
-      .map((key) => `${key} = ?`)
-      .join(", ");
-    const values = Object.values(fieldsToUpdate);
-
-    const updateQuery = `UPDATE Invoices SET ${setClauses} WHERE id = ?`; // Assuming table name is Invoices
-    values.push(invoiceId);
-
-    await DB.query(updateQuery, values);
-
-    // Fetch the updated invoice details
-    const fetchUpdatedQuery = `SELECT * FROM Invoices WHERE id = ?`;
-    const updatedResult = await DB.query(fetchUpdatedQuery, [invoiceId]);
-    const updatedInvoiceData =
-      updatedResult.results && updatedResult.results.length > 0 // Changed .rows to .results
-        ? updatedResult.results[0] // Changed .rows to .results
-        : undefined;
-
-    if (!updatedInvoiceData) {
-        // Fallback or error if fetch fails
-        return NextResponse.json({ message: "Invoice updated, but failed to fetch details" }, { status: 200 });
-    }
-
-    return NextResponse.json(updatedInvoiceData);
-  } catch (error: unknown) {
-    console.error("Error updating Invoice:", error);
-    let errorMessage = "An unknown error occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json(
-      { message: "Error updating Invoice", details: errorMessage },
-      { status: 500 }
+// Helper function to verify an invoice
+async function verifyInvoice(req: NextRequest, invoiceId: string, existingInvoice: any) {
+  // Check permissions
+  await checkPermission(permissionService, 'verify', 'invoice')(req);
+  
+  // Validate request body
+  const data = await validateBody(verifyInvoiceSchema)(req);
+  
+  // Check if invoice can be verified
+  if (existingInvoice.status !== 'draft') {
+    throw new ValidationError(
+      'Only draft invoices can be verified',
+      'INVOICE_VERIFY_FORBIDDEN',
+      { currentStatus: existingInvoice.status }
     );
   }
+  
+  // Update invoice
+  const updatedInvoice = await prisma.bill.update({
+    where: { id: invoiceId },
+    data: {
+      status: 'verified',
+      verifiedBy: data.verifiedBy,
+      verifiedAt: new Date(),
+      notes: data.notes,
+    },
+    include: {
+      billItems: true,
+      patient: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          mrn: true,
+        },
+      },
+    },
+  });
+  
+  logger.info('Invoice verified', { invoiceId, verifiedBy: data.verifiedBy });
+  
+  return createSuccessResponse(updatedInvoice);
 }
 
-// DELETE /api/billing/invoices/[id] - Delete an Invoice
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> } // FIX: Use Promise type for params (Next.js 15+)
-) {
-  try {
-    const { id: invoiceId } = await params; // FIX: Await params and destructure id (Next.js 15+)
-    if (!invoiceId) {
-      return NextResponse.json(
-        { message: "Invoice ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // const DB = (process.env.DB as unknown) as D1Database; // Using Mock DB instead
-
-    // Perform delete operation
-    const deleteQuery = "DELETE FROM Invoices WHERE id = ?"; // Assuming table name is Invoices
-    await DB.query(deleteQuery, [invoiceId]);
-
-    // Cannot check info.meta.changes with the current mock
-
-    return NextResponse.json(
-      { message: "Invoice deleted successfully" },
-      { status: 200 } // Use 200 or 204 No Content
-    );
-  } catch (error: unknown) {
-    console.error("Error deleting Invoice:", error);
-    let errorMessage = "An unknown error occurred";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json(
-      { message: "Error deleting Invoice", details: errorMessage },
-      { status: 500 }
+// Helper function to approve an invoice
+async function approveInvoice(req: NextRequest, invoiceId: string, existingInvoice: any) {
+  // Check permissions
+  await checkPermission(permissionService, 'approve', 'invoice')(req);
+  
+  // Validate request body
+  const data = await validateBody(approveInvoiceSchema)(req);
+  
+  // Check if invoice can be approved
+  if (existingInvoice.status !== 'verified') {
+    throw new ValidationError(
+      'Only verified invoices can be approved',
+      'INVOICE_APPROVE_FORBIDDEN',
+      { currentStatus: existingInvoice.status }
     );
   }
+  
+  // Update invoice
+  const updatedInvoice = await prisma.bill.update({
+    where: { id: invoiceId },
+    data: {
+      status: 'approved',
+      approvedBy: data.approvedBy,
+      approvedAt: new Date(),
+      notes: data.notes,
+    },
+    include: {
+      billItems: true,
+      patient: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          mrn: true,
+        },
+      },
+    },
+  });
+  
+  logger.info('Invoice approved', { invoiceId, approvedBy: data.approvedBy });
+  
+  return createSuccessResponse(updatedInvoice);
 }
 
+// Helper function to cancel an invoice
+async function cancelInvoice(req: NextRequest, invoiceId: string, existingInvoice: any) {
+  // Check permissions
+  await checkPermission(permissionService, 'cancel', 'invoice')(req);
+  
+  // Validate request body
+  const data = await validateBody(cancelInvoiceSchema)(req);
+  
+  // Check if invoice can be cancelled
+  if (!['draft', 'verified', 'approved'].includes(existingInvoice.status)) {
+    throw new ValidationError(
+      'Only draft, verified, or approved invoices can be cancelled',
+      'INVOICE_CANCEL_FORBIDDEN',
+      { currentStatus: existingInvoice.status }
+    );
+  }
+  
+  // Update invoice
+  const updatedInvoice = await prisma.bill.update({
+    where: { id: invoiceId },
+    data: {
+      status: 'cancelled',
+      cancelledBy: data.cancelledBy,
+      cancelledAt: new Date(),
+      cancellationReason: data.cancellationReason,
+    },
+    include: {
+      billItems: true,
+      patient: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          mrn: true,
+        },
+      },
+    },
+  });
+  
+  logger.info('Invoice cancelled', { 
+    invoiceId, 
+    cancelledBy: data.cancelledBy,
+    reason: data.cancellationReason
+  });
+  
+  return createSuccessResponse(updatedInvoice);
+}
