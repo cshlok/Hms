@@ -120,7 +120,7 @@ export class ContactService {
       const decryptedContact = this.decryptContactData(contact);
       
       // Generate FHIR representation if requested
-      let result: any = decryptedContact;
+      const result: any = decryptedContact;
       if (includeFHIR) {
         result.fhir = this.generateContactFHIR(decryptedContact);
       }

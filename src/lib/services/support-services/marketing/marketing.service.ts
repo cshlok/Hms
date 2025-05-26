@@ -107,7 +107,7 @@ export class MarketingCampaignService {
       }
       
       // Generate FHIR representation if requested
-      let result: any = campaign;
+      const result: any = campaign;
       if (includeFHIR) {
         result.fhir = this.generateCampaignFHIR(campaign);
       }
