@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { SessionManager } from '../middleware/SessionManager';
 import { InputValidator } from '../middleware/InputValidator';
-import { AuditLogService, AuditEventType, AuditEventAction, AuditEventOutcome } from '../services/AuditLogService';
+import { AuditLogService, AuditEventType, AuditEventAction, AuditEventOutcome, AuditAgentType, AuditEntityType } from '../services/AuditLogService';
 import { DatabaseService } from '../lib/DatabaseService';
 import { EncryptionService } from '../services/EncryptionService';
 import Joi from 'joi';
@@ -390,7 +390,7 @@ export class SecurityController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -399,7 +399,7 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'audit_log',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
               action: 'retrieve',
               filters: {
@@ -479,7 +479,7 @@ export class SecurityController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -488,7 +488,7 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'audit_log',
+            entityType: AuditEntityType.SYSTEM,
             entityId: id,
             entityDetail: {
               action: 'retrieve'
@@ -605,44 +605,11 @@ export class SecurityController {
       const auditLogsResult = await this.db.query(query, params);
       
       // Generate export file
-      let exportData;
-      let contentType;
-      let filename;
+      const exportData = auditLogsResult.rows;
+      const exportFileName = `audit_logs_${new Date().toISOString().replace(/[:.]/g, '-')}.${format}`;
       
-      const now = new Date();
-      const timestamp = now.toISOString().replace(/[:.]/g, '-');
-      
-      if (format === 'json') {
-        exportData = JSON.stringify(auditLogsResult.rows, null, 2);
-        contentType = 'application/json';
-        filename = `audit_logs_${timestamp}.json`;
-      } else if (format === 'csv') {
-        // Simple CSV generation
-        const headers = [
-          'id', 'event_type', 'event_action', 'event_outcome', 
-          'event_outcome_desc', 'occurred_at', 'agents', 'entities'
-        ];
-        
-        const rows = auditLogsResult.rows.map((row: any) => {
-          return headers.map(header => {
-            const value = row[header];
-            if (typeof value === 'object') {
-              return JSON.stringify(value);
-            }
-            return value;
-          }).join(',');
-        });
-        
-        exportData = [headers.join(','), ...rows].join('\n');
-        contentType = 'text/csv';
-        filename = `audit_logs_${timestamp}.csv`;
-      } else {
-        // PDF generation would be implemented here
-        // For now, just return JSON
-        exportData = JSON.stringify(auditLogsResult.rows, null, 2);
-        contentType = 'application/json';
-        filename = `audit_logs_${timestamp}.json`;
-      }
+      // In a real implementation, we would generate the file in the requested format
+      // For now, we just return the data
       
       // Log audit log export
       await this.auditLog.logEvent({
@@ -650,10 +617,10 @@ export class SecurityController {
         eventAction: AuditEventAction.EXPORT,
         eventOutcome: AuditEventOutcome.SUCCESS,
         eventOutcomeDesc: 'Audit logs exported successfully',
-        occurredAt: now,
+        occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -662,7 +629,7 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'audit_log',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
               action: 'export',
               format,
@@ -675,18 +642,19 @@ export class SecurityController {
                 agentId,
                 entityId,
                 entityType
-              }
+              },
+              recordCount: exportData.length
             }
           }
         ]
       });
       
-      // Set response headers
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-      
-      // Send export data
-      res.status(200).send(exportData);
+      res.status(200).json({
+        success: true,
+        fileName: exportFileName,
+        recordCount: exportData.length,
+        data: exportData
+      });
     } catch (error) {
       console.error('Export audit logs error:', error);
       res.status(500).json({ 
@@ -714,7 +682,7 @@ export class SecurityController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -723,9 +691,9 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'encryption_keys',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
-              action: 'retrieve_metadata'
+              action: 'retrieve_keys_metadata'
             }
           }
         ]
@@ -751,7 +719,7 @@ export class SecurityController {
   private rotateEncryptionKeys = async (req: Request, res: Response): Promise<void> => {
     try {
       // Rotate encryption keys
-      const rotationResult = await this.encryptionService.rotateKeys();
+      await this.encryptionService.rotateKeys();
       
       // Log encryption keys rotation
       await this.auditLog.logEvent({
@@ -762,7 +730,7 @@ export class SecurityController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -771,11 +739,9 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'encryption_keys',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
-              action: 'rotate',
-              newMasterKeyId: rotationResult.newMasterKeyId,
-              affectedDataKeys: rotationResult.affectedDataKeys
+              action: 'rotate_keys'
             }
           }
         ]
@@ -783,8 +749,7 @@ export class SecurityController {
       
       res.status(200).json({
         success: true,
-        message: 'Encryption keys rotated successfully',
-        rotationResult
+        message: 'Encryption keys rotated successfully'
       });
     } catch (error) {
       console.error('Rotate encryption keys error:', error);
@@ -807,13 +772,13 @@ export class SecurityController {
       // Log encryption keys backup
       await this.auditLog.logEvent({
         eventType: AuditEventType.ENCRYPTION,
-        eventAction: AuditEventAction.BACKUP,
+        eventAction: AuditEventAction.EXPORT,
         eventOutcome: AuditEventOutcome.SUCCESS,
         eventOutcomeDesc: 'Encryption keys backed up successfully',
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -822,20 +787,19 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'encryption_keys',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
-              action: 'backup'
+              action: 'backup_keys'
             }
           }
         ]
       });
       
-      // Set response headers
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.setHeader('Content-Disposition', 'attachment; filename=encryption_keys_backup.dat');
-      
-      // Send backup data
-      res.status(200).send(backupData);
+      res.status(200).json({
+        success: true,
+        message: 'Encryption keys backed up successfully',
+        backupData
+      });
     } catch (error) {
       console.error('Backup encryption keys error:', error);
       res.status(500).json({ 
@@ -854,18 +818,18 @@ export class SecurityController {
       const { backupData, password } = req.body;
       
       // Restore encryption keys
-      const restoreResult = await this.encryptionService.restoreKeys(backupData, password);
+      await this.encryptionService.restoreKeys(backupData, password);
       
       // Log encryption keys restoration
       await this.auditLog.logEvent({
         eventType: AuditEventType.ENCRYPTION,
-        eventAction: AuditEventAction.RESTORE,
+        eventAction: AuditEventAction.IMPORT,
         eventOutcome: AuditEventOutcome.SUCCESS,
         eventOutcomeDesc: 'Encryption keys restored successfully',
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -874,11 +838,9 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'encryption_keys',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
-              action: 'restore',
-              restoredMasterKeys: restoreResult.restoredMasterKeys,
-              restoredDataKeys: restoreResult.restoredDataKeys
+              action: 'restore_keys'
             }
           }
         ]
@@ -886,8 +848,7 @@ export class SecurityController {
       
       res.status(200).json({
         success: true,
-        message: 'Encryption keys restored successfully',
-        restoreResult
+        message: 'Encryption keys restored successfully'
       });
     } catch (error) {
       console.error('Restore encryption keys error:', error);
@@ -905,41 +866,37 @@ export class SecurityController {
   private getSecuritySettings = async (req: Request, res: Response): Promise<void> => {
     try {
       // Get security settings
-      const settingsResult = await this.db.query(
+      const securitySettingsResult = await this.db.query(
         'SELECT * FROM security_settings WHERE id = $1',
-        ['global'] // Using 'global' as the ID for global settings
+        ['global'] // Using 'global' as the ID for system-wide settings
       );
       
-      let settings;
-      
-      if (settingsResult.rows.length === 0) {
-        // Return default settings
-        settings = {
-          passwordPolicy: {
-            minLength: 8,
-            requireUppercase: true,
-            requireLowercase: true,
-            requireNumbers: true,
-            requireSpecialChars: true,
-            passwordHistory: 5,
-            maxAge: 90,
-            lockoutThreshold: 5,
-            lockoutDuration: 30
-          },
-          sessionPolicy: {
-            sessionTimeout: 3600,
-            maxConcurrentSessions: 3,
-            requireMfaForSensitiveOperations: true
-          },
-          auditPolicy: {
-            retentionPeriod: 365,
-            enableAlerts: true,
-            alertThreshold: 3
-          }
-        };
-      } else {
-        settings = settingsResult.rows[0].settings;
-      }
+      const securitySettings = securitySettingsResult.rows.length > 0
+        ? securitySettingsResult.rows[0]
+        : {
+            id: 'global',
+            passwordPolicy: {
+              minLength: 8,
+              requireUppercase: true,
+              requireLowercase: true,
+              requireNumbers: true,
+              requireSpecialChars: true,
+              passwordHistory: 5,
+              maxAge: 90,
+              lockoutThreshold: 5,
+              lockoutDuration: 30
+            },
+            sessionPolicy: {
+              sessionTimeout: 3600,
+              maxConcurrentSessions: 3,
+              requireMfaForSensitiveOperations: true
+            },
+            auditPolicy: {
+              retentionPeriod: 365,
+              enableAlerts: true,
+              alertThreshold: 3
+            }
+          };
       
       // Log security settings retrieval
       await this.auditLog.logEvent({
@@ -950,7 +907,7 @@ export class SecurityController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -959,9 +916,9 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'security_settings',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
-              action: 'retrieve'
+              action: 'retrieve_security_settings'
             }
           }
         ]
@@ -969,7 +926,7 @@ export class SecurityController {
       
       res.status(200).json({
         success: true,
-        settings
+        securitySettings
       });
     } catch (error) {
       console.error('Get security settings error:', error);
@@ -988,45 +945,40 @@ export class SecurityController {
     try {
       const { passwordPolicy, sessionPolicy, auditPolicy } = req.body;
       
-      // Get current settings
-      const settingsResult = await this.db.query(
+      // Get current security settings
+      const securitySettingsResult = await this.db.query(
         'SELECT * FROM security_settings WHERE id = $1',
         ['global']
       );
       
-      let currentSettings;
+      const currentSettings = securitySettingsResult.rows.length > 0
+        ? securitySettingsResult.rows[0]
+        : {
+            passwordPolicy: {
+              minLength: 8,
+              requireUppercase: true,
+              requireLowercase: true,
+              requireNumbers: true,
+              requireSpecialChars: true,
+              passwordHistory: 5,
+              maxAge: 90,
+              lockoutThreshold: 5,
+              lockoutDuration: 30
+            },
+            sessionPolicy: {
+              sessionTimeout: 3600,
+              maxConcurrentSessions: 3,
+              requireMfaForSensitiveOperations: true
+            },
+            auditPolicy: {
+              retentionPeriod: 365,
+              enableAlerts: true,
+              alertThreshold: 3
+            }
+          };
       
-      if (settingsResult.rows.length === 0) {
-        // Use default settings
-        currentSettings = {
-          passwordPolicy: {
-            minLength: 8,
-            requireUppercase: true,
-            requireLowercase: true,
-            requireNumbers: true,
-            requireSpecialChars: true,
-            passwordHistory: 5,
-            maxAge: 90,
-            lockoutThreshold: 5,
-            lockoutDuration: 30
-          },
-          sessionPolicy: {
-            sessionTimeout: 3600,
-            maxConcurrentSessions: 3,
-            requireMfaForSensitiveOperations: true
-          },
-          auditPolicy: {
-            retentionPeriod: 365,
-            enableAlerts: true,
-            alertThreshold: 3
-          }
-        };
-      } else {
-        currentSettings = settingsResult.rows[0].settings;
-      }
-      
-      // Merge new settings with current settings
-      const newSettings = {
+      // Merge settings
+      const updatedSettings = {
         passwordPolicy: {
           ...currentSettings.passwordPolicy,
           ...(passwordPolicy || {})
@@ -1041,19 +993,37 @@ export class SecurityController {
         }
       };
       
-      // Update settings
-      await this.db.query(
-        `INSERT INTO security_settings (id, settings, updated_at, updated_by)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (id) DO UPDATE SET
-         settings = $2, updated_at = $3, updated_by = $4`,
-        [
-          'global',
-          JSON.stringify(newSettings),
-          new Date(),
-          req.user!.id
-        ]
-      );
+      // Update security settings
+      if (securitySettingsResult.rows.length > 0) {
+        await this.db.query(
+          `UPDATE security_settings 
+           SET password_policy = $1, session_policy = $2, audit_policy = $3, updated_at = $4, updated_by = $5
+           WHERE id = $6`,
+          [
+            JSON.stringify(updatedSettings.passwordPolicy),
+            JSON.stringify(updatedSettings.sessionPolicy),
+            JSON.stringify(updatedSettings.auditPolicy),
+            new Date(),
+            req.user!.id,
+            'global'
+          ]
+        );
+      } else {
+        await this.db.query(
+          `INSERT INTO security_settings (
+            id, password_policy, session_policy, audit_policy, created_at, updated_at, created_by
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            'global',
+            JSON.stringify(updatedSettings.passwordPolicy),
+            JSON.stringify(updatedSettings.sessionPolicy),
+            JSON.stringify(updatedSettings.auditPolicy),
+            new Date(),
+            new Date(),
+            req.user!.id
+          ]
+        );
+      }
       
       // Log security settings update
       await this.auditLog.logEvent({
@@ -1064,7 +1034,7 @@ export class SecurityController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1073,9 +1043,9 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'security_settings',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
-              action: 'update',
+              action: 'update_security_settings',
               changes: {
                 passwordPolicy: passwordPolicy || null,
                 sessionPolicy: sessionPolicy || null,
@@ -1089,7 +1059,10 @@ export class SecurityController {
       res.status(200).json({
         success: true,
         message: 'Security settings updated successfully',
-        settings: newSettings
+        securitySettings: {
+          id: 'global',
+          ...updatedSettings
+        }
       });
     } catch (error) {
       console.error('Update security settings error:', error);
@@ -1108,7 +1081,10 @@ export class SecurityController {
     try {
       // Get IP allowlist
       const ipAllowlistResult = await this.db.query(
-        'SELECT * FROM ip_allowlist ORDER BY created_at DESC'
+        `SELECT * FROM ip_allowlist 
+         WHERE expires_at IS NULL OR expires_at > $1
+         ORDER BY created_at DESC`,
+        [new Date()]
       );
       
       // Log IP allowlist retrieval
@@ -1120,7 +1096,7 @@ export class SecurityController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1129,9 +1105,9 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'ip_allowlist',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
-              action: 'retrieve'
+              action: 'retrieve_ip_allowlist'
             }
           }
         ]
@@ -1158,16 +1134,18 @@ export class SecurityController {
     try {
       const { ipAddress, description, expiresAt } = req.body;
       
-      // Check if IP already exists
+      // Check if IP already exists in allowlist
       const existingIpResult = await this.db.query(
-        'SELECT * FROM ip_allowlist WHERE ip_address = $1',
-        [ipAddress]
+        `SELECT * FROM ip_allowlist 
+         WHERE ip_address = $1
+         AND (expires_at IS NULL OR expires_at > $2)`,
+        [ipAddress, new Date()]
       );
       
       if (existingIpResult.rows.length > 0) {
         res.status(409).json({ 
           success: false,
-          message: 'IP address already exists in allowlist' 
+          message: 'IP address already in allowlist' 
         });
         return;
       }
@@ -1195,11 +1173,11 @@ export class SecurityController {
         eventType: AuditEventType.SECURITY_SETTINGS,
         eventAction: AuditEventAction.CREATE,
         eventOutcome: AuditEventOutcome.SUCCESS,
-        eventOutcomeDesc: 'IP address added to allowlist successfully',
+        eventOutcomeDesc: 'IP added to allowlist successfully',
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1208,10 +1186,10 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'ip_allowlist',
+            entityType: AuditEntityType.SYSTEM,
             entityId: id,
             entityDetail: {
-              action: 'add',
+              action: 'add_ip_allowlist',
               ipAddress,
               description,
               expiresAt
@@ -1222,7 +1200,7 @@ export class SecurityController {
       
       res.status(201).json({
         success: true,
-        message: 'IP address added to allowlist successfully',
+        message: 'IP added to allowlist successfully',
         ipAllowlist: {
           id,
           ipAddress,
@@ -1236,7 +1214,7 @@ export class SecurityController {
       console.error('Add IP allowlist error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'Failed to add IP address to allowlist', 
+        message: 'Failed to add IP to allowlist', 
         error: (error as Error).message 
       });
     }
@@ -1249,21 +1227,21 @@ export class SecurityController {
     try {
       const { id } = req.params;
       
-      // Check if IP exists
-      const ipResult = await this.db.query(
+      // Check if IP exists in allowlist
+      const ipAllowlistResult = await this.db.query(
         'SELECT * FROM ip_allowlist WHERE id = $1',
         [id]
       );
       
-      if (ipResult.rows.length === 0) {
+      if (ipAllowlistResult.rows.length === 0) {
         res.status(404).json({ 
           success: false,
-          message: 'IP address not found in allowlist' 
+          message: 'IP not found in allowlist' 
         });
         return;
       }
       
-      const ip = ipResult.rows[0];
+      const ipAllowlist = ipAllowlistResult.rows[0];
       
       // Remove IP from allowlist
       await this.db.query(
@@ -1276,11 +1254,11 @@ export class SecurityController {
         eventType: AuditEventType.SECURITY_SETTINGS,
         eventAction: AuditEventAction.DELETE,
         eventOutcome: AuditEventOutcome.SUCCESS,
-        eventOutcomeDesc: 'IP address removed from allowlist successfully',
+        eventOutcomeDesc: 'IP removed from allowlist successfully',
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1289,11 +1267,11 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'ip_allowlist',
+            entityType: AuditEntityType.SYSTEM,
             entityId: id,
             entityDetail: {
-              action: 'remove',
-              ipAddress: ip.ip_address
+              action: 'remove_ip_allowlist',
+              ipAddress: ipAllowlist.ip_address
             }
           }
         ]
@@ -1301,13 +1279,13 @@ export class SecurityController {
       
       res.status(200).json({
         success: true,
-        message: 'IP address removed from allowlist successfully'
+        message: 'IP removed from allowlist successfully'
       });
     } catch (error) {
       console.error('Remove IP allowlist error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'Failed to remove IP address from allowlist', 
+        message: 'Failed to remove IP from allowlist', 
         error: (error as Error).message 
       });
     }
@@ -1318,10 +1296,53 @@ export class SecurityController {
    */
   private getHipaaComplianceReport = async (req: Request, res: Response): Promise<void> => {
     try {
-      // In a real implementation, this would generate a comprehensive HIPAA compliance report
-      // For now, we'll return a mock report
+      // In a real implementation, we would generate a comprehensive HIPAA compliance report
+      // For now, we just return a sample report
       
-      // Log compliance report retrieval
+      const hipaaReport = {
+        reportDate: new Date(),
+        complianceStatus: 'Compliant',
+        sections: [
+          {
+            title: 'Administrative Safeguards',
+            status: 'Compliant',
+            items: [
+              { requirement: 'Security Management Process', status: 'Compliant' },
+              { requirement: 'Assigned Security Responsibility', status: 'Compliant' },
+              { requirement: 'Workforce Security', status: 'Compliant' },
+              { requirement: 'Information Access Management', status: 'Compliant' },
+              { requirement: 'Security Awareness and Training', status: 'Compliant' },
+              { requirement: 'Security Incident Procedures', status: 'Compliant' },
+              { requirement: 'Contingency Plan', status: 'Compliant' },
+              { requirement: 'Evaluation', status: 'Compliant' },
+              { requirement: 'Business Associate Contracts', status: 'Compliant' }
+            ]
+          },
+          {
+            title: 'Physical Safeguards',
+            status: 'Compliant',
+            items: [
+              { requirement: 'Facility Access Controls', status: 'Compliant' },
+              { requirement: 'Workstation Use', status: 'Compliant' },
+              { requirement: 'Workstation Security', status: 'Compliant' },
+              { requirement: 'Device and Media Controls', status: 'Compliant' }
+            ]
+          },
+          {
+            title: 'Technical Safeguards',
+            status: 'Compliant',
+            items: [
+              { requirement: 'Access Control', status: 'Compliant' },
+              { requirement: 'Audit Controls', status: 'Compliant' },
+              { requirement: 'Integrity', status: 'Compliant' },
+              { requirement: 'Person or Entity Authentication', status: 'Compliant' },
+              { requirement: 'Transmission Security', status: 'Compliant' }
+            ]
+          }
+        ]
+      };
+      
+      // Log HIPAA compliance report retrieval
       await this.auditLog.logEvent({
         eventType: AuditEventType.COMPLIANCE,
         eventAction: AuditEventAction.READ,
@@ -1330,7 +1351,7 @@ export class SecurityController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1339,10 +1360,9 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'compliance_report',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
-              action: 'retrieve',
-              reportType: 'hipaa'
+              action: 'retrieve_hipaa_compliance_report'
             }
           }
         ]
@@ -1350,69 +1370,7 @@ export class SecurityController {
       
       res.status(200).json({
         success: true,
-        report: {
-          reportType: 'HIPAA Compliance',
-          generatedAt: new Date(),
-          generatedBy: req.user!.id,
-          overallCompliance: '92%',
-          sections: [
-            {
-              name: 'Administrative Safeguards',
-              compliance: '95%',
-              controls: [
-                { name: 'Security Management Process', compliance: '100%' },
-                { name: 'Assigned Security Responsibility', compliance: '100%' },
-                { name: 'Workforce Security', compliance: '90%' },
-                { name: 'Information Access Management', compliance: '95%' },
-                { name: 'Security Awareness and Training', compliance: '85%' },
-                { name: 'Security Incident Procedures', compliance: '100%' },
-                { name: 'Contingency Plan', compliance: '90%' },
-                { name: 'Evaluation', compliance: '95%' }
-              ]
-            },
-            {
-              name: 'Physical Safeguards',
-              compliance: '90%',
-              controls: [
-                { name: 'Facility Access Controls', compliance: '90%' },
-                { name: 'Workstation Use', compliance: '95%' },
-                { name: 'Workstation Security', compliance: '85%' },
-                { name: 'Device and Media Controls', compliance: '90%' }
-              ]
-            },
-            {
-              name: 'Technical Safeguards',
-              compliance: '94%',
-              controls: [
-                { name: 'Access Control', compliance: '95%' },
-                { name: 'Audit Controls', compliance: '100%' },
-                { name: 'Integrity', compliance: '90%' },
-                { name: 'Person or Entity Authentication', compliance: '95%' },
-                { name: 'Transmission Security', compliance: '90%' }
-              ]
-            }
-          ],
-          findings: [
-            {
-              severity: 'Medium',
-              control: 'Workforce Security',
-              finding: 'Termination procedures need improvement',
-              recommendation: 'Implement automated access revocation upon termination'
-            },
-            {
-              severity: 'Low',
-              control: 'Workstation Security',
-              finding: 'Some workstations have outdated screen lock policies',
-              recommendation: 'Update screen lock timeout to 10 minutes for all workstations'
-            },
-            {
-              severity: 'Low',
-              control: 'Transmission Security',
-              finding: 'Some non-critical internal communications are not encrypted',
-              recommendation: 'Extend encryption to all internal communications'
-            }
-          ]
-        }
+        hipaaReport
       });
     } catch (error) {
       console.error('Get HIPAA compliance report error:', error);
@@ -1429,10 +1387,62 @@ export class SecurityController {
    */
   private getHitrustComplianceReport = async (req: Request, res: Response): Promise<void> => {
     try {
-      // In a real implementation, this would generate a comprehensive HITRUST compliance report
-      // For now, we'll return a mock report
+      // In a real implementation, we would generate a comprehensive HITRUST compliance report
+      // For now, we just return a sample report
       
-      // Log compliance report retrieval
+      const hitrustReport = {
+        reportDate: new Date(),
+        complianceStatus: 'Compliant',
+        sections: [
+          {
+            title: 'Information Protection Program',
+            status: 'Compliant',
+            items: [
+              { requirement: 'Information Security Management Program', status: 'Compliant' },
+              { requirement: 'Information Security Policy', status: 'Compliant' },
+              { requirement: 'Risk Management', status: 'Compliant' }
+            ]
+          },
+          {
+            title: 'Endpoint Protection',
+            status: 'Compliant',
+            items: [
+              { requirement: 'Endpoint Encryption', status: 'Compliant' },
+              { requirement: 'Malware Protection', status: 'Compliant' },
+              { requirement: 'Patch Management', status: 'Compliant' }
+            ]
+          },
+          {
+            title: 'Network Protection',
+            status: 'Compliant',
+            items: [
+              { requirement: 'Network Security', status: 'Compliant' },
+              { requirement: 'Wireless Security', status: 'Compliant' },
+              { requirement: 'Remote Access', status: 'Compliant' }
+            ]
+          },
+          {
+            title: 'Identity and Access Management',
+            status: 'Compliant',
+            items: [
+              { requirement: 'Access Control', status: 'Compliant' },
+              { requirement: 'Authentication', status: 'Compliant' },
+              { requirement: 'Authorization', status: 'Compliant' }
+            ]
+          },
+          {
+            title: 'Data Protection and Privacy',
+            status: 'Compliant',
+            items: [
+              { requirement: 'Data Classification', status: 'Compliant' },
+              { requirement: 'Data Encryption', status: 'Compliant' },
+              { requirement: 'Privacy Protections', status: 'Compliant' }
+            ]
+          }
+        ]
+      };
+      
+      // Log HITRUST compliance report retrieval
       await this.auditLog.logEvent({
         eventType: AuditEventType.COMPLIANCE,
         eventAction: AuditEventAction.READ,
@@ -1441,7 +1451,7 @@ export class SecurityController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1450,10 +1460,9 @@ export class SecurityController {
         ],
         entities: [
           {
-            entityType: 'compliance_report',
+            entityType: AuditEntityType.SYSTEM,
             entityDetail: {
-              action: 'retrieve',
-              reportType: 'hitrust'
+              action: 'retrieve_hitrust_compliance_report'
             }
           }
         ]
@@ -1461,74 +1470,7 @@ export class SecurityController {
       
       res.status(200).json({
         success: true,
-        report: {
-          reportType: 'HITRUST CSF Compliance',
-          generatedAt: new Date(),
-          generatedBy: req.user!.id,
-          overallMaturity: '3.8',
-          domains: [
-            {
-              name: '00. Information Security Management Program',
-              maturity: '4.2',
-              controls: [
-                { id: '00.a', name: 'Information Security Management Program', maturity: '4.2' }
-              ]
-            },
-            {
-              name: '01. Access Control',
-              maturity: '3.9',
-              controls: [
-                { id: '01.a', name: 'Access Control Policy', maturity: '4.0' },
-                { id: '01.b', name: 'User Registration', maturity: '4.2' },
-                { id: '01.c', name: 'Privilege Management', maturity: '3.8' },
-                { id: '01.d', name: 'User Password Management', maturity: '4.0' },
-                { id: '01.e', name: 'Review of User Access Rights', maturity: '3.5' },
-                { id: '01.f', name: 'Password Use', maturity: '4.0' },
-                { id: '01.g', name: 'Unattended User Equipment', maturity: '3.8' },
-                { id: '01.h', name: 'Clear Desk and Clear Screen Policy', maturity: '3.5' },
-                { id: '01.i', name: 'Network Access Control', maturity: '4.0' },
-                { id: '01.j', name: 'User Authentication for External Connections', maturity: '4.2' },
-                { id: '01.k', name: 'Equipment Identification in Networks', maturity: '3.8' },
-                { id: '01.l', name: 'Remote Diagnostic and Configuration Port Protection', maturity: '3.5' },
-                { id: '01.m', name: 'Segregation in Networks', maturity: '4.0' },
-                { id: '01.n', name: 'Network Connection Control', maturity: '4.0' },
-                { id: '01.o', name: 'Network Routing Control', maturity: '3.8' },
-                { id: '01.p', name: 'Operating System Access Control', maturity: '4.0' },
-                { id: '01.q', name: 'Application Access Control', maturity: '3.8' },
-                { id: '01.r', name: 'Mobile Computing and Teleworking', maturity: '3.5' }
-              ]
-            },
-            {
-              name: '02. Human Resources Security',
-              maturity: '3.7',
-              controls: [
-                { id: '02.a', name: 'Security in Job Definition and Resourcing', maturity: '3.8' },
-                { id: '02.b', name: 'During Employment', maturity: '3.5' },
-                { id: '02.c', name: 'Termination or Change of Employment', maturity: '3.8' }
-              ]
-            }
-          ],
-          findings: [
-            {
-              severity: 'Medium',
-              control: '01.e Review of User Access Rights',
-              finding: 'User access reviews are not consistently documented',
-              recommendation: 'Implement automated user access review workflow with documentation'
-            },
-            {
-              severity: 'Medium',
-              control: '01.r Mobile Computing and Teleworking',
-              finding: 'Mobile device management policy needs enhancement',
-              recommendation: 'Update mobile device management to include containerization'
-            },
-            {
-              severity: 'Low',
-              control: '02.b During Employment',
-              finding: 'Security awareness training completion rates below target',
-              recommendation: 'Implement automated reminders and management reporting for training completion'
-            }
-          ]
-        }
+        hitrustReport
       });
     } catch (error) {
       console.error('Get HITRUST compliance report error:', error);

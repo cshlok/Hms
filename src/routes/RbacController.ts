@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { SessionManager } from '../middleware/SessionManager';
 import { InputValidator } from '../middleware/InputValidator';
-import { AuditLogService, AuditEventType, AuditEventAction, AuditEventOutcome } from '../services/AuditLogService';
+import { AuditLogService, AuditEventType, AuditEventAction, AuditEventOutcome, AuditAgentType, AuditEntityType } from '../services/AuditLogService';
 import { DatabaseService } from '../lib/DatabaseService';
 import Joi from 'joi';
 
@@ -362,7 +362,7 @@ export class RbacController {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -371,7 +371,7 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'role',
+            entityType: AuditEntityType.SYSTEM,
             entityId: roleId,
             entityDetail: {
               name,
@@ -588,7 +588,7 @@ export class RbacController {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -597,30 +597,21 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'role',
+            entityType: AuditEntityType.SYSTEM,
             entityId: id,
             entityDetail: {
-              name,
-              description,
-              isActive,
-              parentRoleId
+              name: name !== undefined ? name : role.name,
+              description: description !== undefined ? description : role.description,
+              isActive: isActive !== undefined ? isActive : role.is_active,
+              parentRoleId: parentRoleId !== undefined ? parentRoleId : role.parent_role_id
             }
           }
         ]
       });
       
-      // Get updated role
-      const updatedRoleResult = await this.db.query(
-        `SELECT r.*, pr.name as parent_role_name
-         FROM roles r
-         LEFT JOIN roles pr ON r.parent_role_id = pr.id
-         WHERE r.id = $1`,
-        [id]
-      );
-      
       res.status(200).json({
         success: true,
-        role: updatedRoleResult.rows[0]
+        message: 'Role updated successfully'
       });
     } catch (error) {
       console.error('Update role error:', error);
@@ -684,7 +675,7 @@ export class RbacController {
         [id]
       );
       
-      // Delete user roles
+      // Delete user role assignments
       await this.db.query(
         'DELETE FROM user_roles WHERE role_id = $1',
         [id]
@@ -705,7 +696,7 @@ export class RbacController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -714,7 +705,7 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'role',
+            entityType: AuditEntityType.SYSTEM,
             entityId: id,
             entityDetail: {
               name: role.name
@@ -813,7 +804,7 @@ export class RbacController {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -822,12 +813,13 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'permission',
+            entityType: AuditEntityType.SYSTEM,
             entityId: permissionId,
             entityDetail: {
               name,
               resource,
-              action
+              action,
+              conditions
             }
           }
         ]
@@ -879,21 +871,9 @@ export class RbacController {
         return;
       }
       
-      // Get roles with this permission
-      const rolesResult = await this.db.query(
-        `SELECT r.*
-         FROM roles r
-         JOIN role_permissions rp ON r.id = rp.role_id
-         WHERE rp.permission_id = $1`,
-        [id]
-      );
-      
       res.status(200).json({
         success: true,
-        permission: {
-          ...permissionResult.rows[0],
-          roles: rolesResult.rows
-        }
+        permission: permissionResult.rows[0]
       });
     } catch (error) {
       console.error('Get permission error:', error);
@@ -1006,7 +986,7 @@ export class RbacController {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1015,27 +995,22 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'permission',
+            entityType: AuditEntityType.SYSTEM,
             entityId: id,
             entityDetail: {
-              name,
-              resource,
-              action,
-              isActive
+              name: name !== undefined ? name : permission.name,
+              resource: resource !== undefined ? resource : permission.resource,
+              action: action !== undefined ? action : permission.action,
+              conditions: conditions !== undefined ? conditions : permission.conditions,
+              isActive: isActive !== undefined ? isActive : permission.is_active
             }
           }
         ]
       });
       
-      // Get updated permission
-      const updatedPermissionResult = await this.db.query(
-        'SELECT * FROM permissions WHERE id = $1',
-        [id]
-      );
-      
       res.status(200).json({
         success: true,
-        permission: updatedPermissionResult.rows[0]
+        message: 'Permission updated successfully'
       });
     } catch (error) {
       console.error('Update permission error:', error);
@@ -1070,7 +1045,7 @@ export class RbacController {
       
       const permission = permissionResult.rows[0];
       
-      // Delete role permissions
+      // Delete role permission assignments
       await this.db.query(
         'DELETE FROM role_permissions WHERE permission_id = $1',
         [id]
@@ -1091,7 +1066,7 @@ export class RbacController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1100,7 +1075,7 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'permission',
+            entityType: AuditEntityType.SYSTEM,
             entityId: id,
             entityDetail: {
               name: permission.name,
@@ -1161,7 +1136,7 @@ export class RbacController {
         return;
       }
       
-      // Get existing role permissions
+      // Get existing permissions for role
       const existingPermissionsResult = await this.db.query(
         'SELECT permission_id FROM role_permissions WHERE role_id = $1',
         [roleId]
@@ -1171,23 +1146,15 @@ export class RbacController {
         (row: any) => row.permission_id
       );
       
-      // Filter out permissions that are already assigned
-      const newPermissionIds = permissionIds.filter(
+      // Determine permissions to add
+      const permissionsToAdd = permissionIds.filter(
         (id: string) => !existingPermissionIds.includes(id)
       );
       
-      if (newPermissionIds.length === 0) {
-        res.status(200).json({
-          success: true,
-          message: 'All permissions are already assigned to the role'
-        });
-        return;
-      }
-      
-      // Assign permissions to role
+      // Add new permissions
       const now = new Date();
       
-      for (const permissionId of newPermissionIds) {
+      for (const permissionId of permissionsToAdd) {
         await this.db.query(
           `INSERT INTO role_permissions (
             id, role_id, permission_id, created_at, created_by
@@ -1211,7 +1178,7 @@ export class RbacController {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1220,11 +1187,11 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'role',
+            entityType: AuditEntityType.SYSTEM,
             entityId: roleId,
             entityDetail: {
               action: 'assign_permissions',
-              permissionIds: newPermissionIds
+              permissionIds: permissionsToAdd
             }
           }
         ]
@@ -1233,7 +1200,7 @@ export class RbacController {
       res.status(200).json({
         success: true,
         message: 'Permissions assigned to role successfully',
-        assignedPermissions: newPermissionIds
+        addedPermissions: permissionsToAdd.length
       });
     } catch (error) {
       console.error('Assign permissions error:', error);
@@ -1280,7 +1247,7 @@ export class RbacController {
         return;
       }
       
-      // Check if permission is assigned to role
+      // Check if role has permission
       const rolePermissionResult = await this.db.query(
         'SELECT * FROM role_permissions WHERE role_id = $1 AND permission_id = $2',
         [roleId, permissionId]
@@ -1289,7 +1256,7 @@ export class RbacController {
       if (rolePermissionResult.rows.length === 0) {
         res.status(404).json({ 
           success: false,
-          message: 'Permission is not assigned to role' 
+          message: 'Role does not have this permission' 
         });
         return;
       }
@@ -1309,7 +1276,7 @@ export class RbacController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1318,7 +1285,7 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'role',
+            entityType: AuditEntityType.SYSTEM,
             entityId: roleId,
             entityDetail: {
               action: 'remove_permission',
@@ -1378,23 +1345,13 @@ export class RbacController {
         return;
       }
       
-      // Get existing user roles
-      const existingRolesResult = await this.db.query(
-        'SELECT role_id FROM user_roles WHERE user_id = $1',
-        [userId]
-      );
-      
-      const existingRoleIds = existingRolesResult.rows.map(
-        (row: any) => row.role_id
-      );
-      
       // Delete existing user roles
       await this.db.query(
         'DELETE FROM user_roles WHERE user_id = $1',
         [userId]
       );
       
-      // Assign roles to user
+      // Assign new roles
       const now = new Date();
       
       for (const roleId of roleIds) {
@@ -1421,7 +1378,7 @@ export class RbacController {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -1430,12 +1387,11 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: userId,
             entityDetail: {
               action: 'assign_roles',
-              roleIds,
-              previousRoleIds: existingRoleIds
+              roleIds
             }
           }
         ]
@@ -1443,8 +1399,7 @@ export class RbacController {
       
       res.status(200).json({
         success: true,
-        message: 'Roles assigned to user successfully',
-        assignedRoles: roleIds
+        message: 'Roles assigned to user successfully'
       });
     } catch (error) {
       console.error('Assign roles error:', error);
@@ -1482,37 +1437,47 @@ export class RbacController {
         `SELECT r.*
          FROM roles r
          JOIN user_roles ur ON r.id = ur.role_id
-         WHERE ur.user_id = $1`,
+         WHERE ur.user_id = $1 AND r.is_active = true`,
         [userId]
       );
       
+      // Get permissions for each role
       const roleIds = userRolesResult.rows.map((role: any) => role.id);
       
-      // Get permissions from user roles
-      const permissionsResult = await this.db.query(
-        `SELECT DISTINCT p.*
-         FROM permissions p
-         JOIN role_permissions rp ON p.id = rp.permission_id
-         WHERE rp.role_id = ANY($1)`,
-        [roleIds]
-      );
+      let permissions: any[] = [];
+      
+      if (roleIds.length > 0) {
+        const permissionsResult = await this.db.query(
+          `SELECT DISTINCT p.*
+           FROM permissions p
+           JOIN role_permissions rp ON p.id = rp.permission_id
+           WHERE rp.role_id = ANY($1) AND p.is_active = true`,
+          [roleIds]
+        );
+        
+        permissions = permissionsResult.rows;
+      }
       
       // Get delegated permissions
-      const delegatedPermissionsResult = await this.db.query(
-        `SELECT d.*, p.name, p.resource, p.action
+      const delegationsResult = await this.db.query(
+        `SELECT d.* 
          FROM delegations d
-         JOIN permissions p ON d.permission_id = p.id
          WHERE d.delegate_to_user_id = $1
-         AND d.start_time <= $2
-         AND (d.end_time IS NULL OR d.end_time >= $2)`,
+         AND d.is_active = true
+         AND (d.end_time IS NULL OR d.end_time > $2)
+         AND (d.start_time IS NULL OR d.start_time <= $2)`,
         [userId, new Date()]
+      );
+      
+      const delegatedPermissions = delegationsResult.rows.flatMap(
+        (delegation: any) => delegation.permissions || []
       );
       
       res.status(200).json({
         success: true,
         roles: userRolesResult.rows,
-        permissions: permissionsResult.rows,
-        delegatedPermissions: delegatedPermissionsResult.rows
+        permissions,
+        delegatedPermissions
       });
     } catch (error) {
       console.error('Get user permissions error:', error);
@@ -1530,14 +1495,15 @@ export class RbacController {
   private delegateAuthority = async (req: Request, res: Response): Promise<void> => {
     try {
       const { delegateToUserId, permissions, startTime, endTime, reason } = req.body;
+      const delegateFromUserId = req.user!.id;
       
       // Check if delegate user exists
-      const delegateUserResult = await this.db.query(
+      const userResult = await this.db.query(
         'SELECT * FROM users WHERE id = $1',
         [delegateToUserId]
       );
       
-      if (delegateUserResult.rows.length === 0) {
+      if (userResult.rows.length === 0) {
         res.status(404).json({ 
           success: false,
           message: 'Delegate user not found' 
@@ -1545,48 +1511,31 @@ export class RbacController {
         return;
       }
       
-      // Check if permissions exist
-      const permissionsResult = await this.db.query(
-        'SELECT * FROM permissions WHERE name = ANY($1)',
-        [permissions]
+      // Create delegation
+      const delegationId = uuidv4();
+      const now = new Date();
+      
+      await this.db.query(
+        `INSERT INTO delegations (
+          id, delegate_from_user_id, delegate_to_user_id, 
+          permissions, start_time, end_time, reason, 
+          is_active, created_at, created_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          delegationId,
+          delegateFromUserId,
+          delegateToUserId,
+          JSON.stringify(permissions),
+          startTime ? new Date(startTime) : null,
+          endTime ? new Date(endTime) : null,
+          reason,
+          true,
+          now,
+          delegateFromUserId
+        ]
       );
       
-      if (permissionsResult.rows.length !== permissions.length) {
-        res.status(400).json({ 
-          success: false,
-          message: 'One or more permissions not found' 
-        });
-        return;
-      }
-      
-      // Create delegations
-      const now = new Date();
-      const delegationIds = [];
-      
-      for (const permission of permissionsResult.rows) {
-        const delegationId = uuidv4();
-        
-        await this.db.query(
-          `INSERT INTO delegations (
-            id, delegated_by_user_id, delegate_to_user_id, permission_id,
-            start_time, end_time, reason, created_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-          [
-            delegationId,
-            req.user!.id,
-            delegateToUserId,
-            permission.id,
-            startTime ? new Date(startTime) : now,
-            endTime ? new Date(endTime) : null,
-            reason,
-            now
-          ]
-        );
-        
-        delegationIds.push(delegationId);
-      }
-      
-      // Log delegation
+      // Log delegation creation
       await this.auditLog.logEvent({
         eventType: AuditEventType.DELEGATION,
         eventAction: AuditEventAction.CREATE,
@@ -1595,8 +1544,8 @@ export class RbacController {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
-            agentId: req.user!.id,
+            agentType: AuditAgentType.USER,
+            agentId: delegateFromUserId,
             agentName: req.user!.username,
             networkAddress: req.ip,
             userAgent: req.headers['user-agent'] as string
@@ -1604,10 +1553,11 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: delegateToUserId,
             entityDetail: {
               action: 'delegate_authority',
+              delegationId,
               permissions,
               startTime,
               endTime,
@@ -1619,8 +1569,17 @@ export class RbacController {
       
       res.status(201).json({
         success: true,
-        message: 'Authority delegated successfully',
-        delegationIds
+        delegation: {
+          id: delegationId,
+          delegateFromUserId,
+          delegateToUserId,
+          permissions,
+          startTime,
+          endTime,
+          reason,
+          isActive: true,
+          createdAt: now
+        }
       });
     } catch (error) {
       console.error('Delegate authority error:', error);
@@ -1637,24 +1596,34 @@ export class RbacController {
    */
   private getDelegations = async (req: Request, res: Response): Promise<void> => {
     try {
-      // Get delegations by user
-      const delegationsResult = await this.db.query(
-        `SELECT d.*, 
-         p.name as permission_name, p.resource, p.action,
-         u1.username as delegated_by_username,
-         u2.username as delegate_to_username
+      const userId = req.user!.id;
+      
+      // Get delegations from user
+      const delegationsFromResult = await this.db.query(
+        `SELECT d.*, u.username as delegate_to_username
          FROM delegations d
-         JOIN permissions p ON d.permission_id = p.id
-         JOIN users u1 ON d.delegated_by_user_id = u1.id
-         JOIN users u2 ON d.delegate_to_user_id = u2.id
-         WHERE d.delegated_by_user_id = $1 OR d.delegate_to_user_id = $1
+         JOIN users u ON d.delegate_to_user_id = u.id
+         WHERE d.delegate_from_user_id = $1
          ORDER BY d.created_at DESC`,
-        [req.user!.id]
+        [userId]
+      );
+      
+      // Get delegations to user
+      const delegationsToResult = await this.db.query(
+        `SELECT d.*, u.username as delegate_from_username
+         FROM delegations d
+         JOIN users u ON d.delegate_from_user_id = u.id
+         WHERE d.delegate_to_user_id = $1
+         AND d.is_active = true
+         AND (d.end_time IS NULL OR d.end_time > $2)
+         ORDER BY d.created_at DESC`,
+        [userId, new Date()]
       );
       
       res.status(200).json({
         success: true,
-        delegations: delegationsResult.rows
+        delegationsFrom: delegationsFromResult.rows,
+        delegationsTo: delegationsToResult.rows
       });
     } catch (error) {
       console.error('Get delegations error:', error);
@@ -1672,8 +1641,9 @@ export class RbacController {
   private revokeDelegation = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
+      const userId = req.user!.id;
       
-      // Check if delegation exists
+      // Check if delegation exists and belongs to user
       const delegationResult = await this.db.query(
         'SELECT * FROM delegations WHERE id = $1',
         [id]
@@ -1689,22 +1659,22 @@ export class RbacController {
       
       const delegation = delegationResult.rows[0];
       
-      // Check if user has permission to revoke
-      if (delegation.delegated_by_user_id !== req.user!.id && !req.user!.roles.includes('admin')) {
+      // Only the delegator can revoke
+      if (delegation.delegate_from_user_id !== userId) {
         res.status(403).json({ 
           success: false,
-          message: 'You do not have permission to revoke this delegation' 
+          message: 'You can only revoke your own delegations' 
         });
         return;
       }
       
       // Revoke delegation
       await this.db.query(
-        'DELETE FROM delegations WHERE id = $1',
-        [id]
+        'UPDATE delegations SET is_active = false, updated_at = $1, updated_by = $2 WHERE id = $3',
+        [new Date(), userId, id]
       );
       
-      // Log revocation
+      // Log delegation revocation
       await this.auditLog.logEvent({
         eventType: AuditEventType.DELEGATION,
         eventAction: AuditEventAction.DELETE,
@@ -1713,8 +1683,8 @@ export class RbacController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
-            agentId: req.user!.id,
+            agentType: AuditAgentType.USER,
+            agentId: userId,
             agentName: req.user!.username,
             networkAddress: req.ip,
             userAgent: req.headers['user-agent'] as string
@@ -1722,13 +1692,11 @@ export class RbacController {
         ],
         entities: [
           {
-            entityType: 'delegation',
-            entityId: id,
+            entityType: AuditEntityType.PERSON,
+            entityId: delegation.delegate_to_user_id,
             entityDetail: {
               action: 'revoke_delegation',
-              delegatedByUserId: delegation.delegated_by_user_id,
-              delegateToUserId: delegation.delegate_to_user_id,
-              permissionId: delegation.permission_id
+              delegationId: id
             }
           }
         ]
@@ -1755,37 +1723,39 @@ export class RbacController {
    * @returns Whether there is a circular reference
    */
   private async checkCircularRoleReference(
-    parentRoleId: string, 
+    parentRoleId: string,
     childRoleId: string
   ): Promise<boolean> {
-    // Check if parent role has the child role as ancestor
-    const visited = new Set<string>();
-    const queue = [parentRoleId];
+    // Get all ancestors of the parent role
+    const ancestors: string[] = [];
+    let currentRoleId = parentRoleId;
     
-    while (queue.length > 0) {
-      const currentRoleId = queue.shift()!;
+    while (currentRoleId) {
+      // If we've seen this role before, there's a circular reference
+      if (ancestors.includes(currentRoleId)) {
+        return true;
+      }
       
+      // If we find the child role, there's a circular reference
       if (currentRoleId === childRoleId) {
-        return true; // Circular reference detected
+        return true;
       }
       
-      if (visited.has(currentRoleId)) {
-        continue;
-      }
+      ancestors.push(currentRoleId);
       
-      visited.add(currentRoleId);
-      
-      // Get parent role of current role
-      const parentRoleResult = await this.db.query(
+      // Get the parent of the current role
+      const roleResult = await this.db.query(
         'SELECT parent_role_id FROM roles WHERE id = $1',
         [currentRoleId]
       );
       
-      if (parentRoleResult.rows.length > 0 && parentRoleResult.rows[0].parent_role_id) {
-        queue.push(parentRoleResult.rows[0].parent_role_id);
+      if (roleResult.rows.length === 0 || !roleResult.rows[0].parent_role_id) {
+        break;
       }
+      
+      currentRoleId = roleResult.rows[0].parent_role_id;
     }
     
-    return false; // No circular reference
+    return false;
   }
 }

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { DatabaseService } from '../lib/DatabaseService';
-import { AuditLogService, AuditEventType, AuditEventAction, AuditEventOutcome } from './AuditLogService';
+import { AuditLogService, AuditEventType, AuditEventAction, AuditEventOutcome, AuditAgentType, AuditEntityType } from './AuditLogService';
 import * as OTPAuth from 'otpauth';
 
 /**
@@ -125,13 +125,13 @@ export class MfaService {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: userId
           }
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: userId,
             entityDetail: {
               action: 'mfa_setup'
@@ -197,13 +197,13 @@ export class MfaService {
           occurredAt: now,
           agents: [
             {
-              agentType: 'user',
+              agentType: AuditAgentType.USER,
               agentId: userId
             }
           ],
           entities: [
             {
-              entityType: 'user',
+              entityType: AuditEntityType.PERSON,
               entityId: userId,
               entityDetail: {
                 action: 'mfa_backup_code'
@@ -237,13 +237,13 @@ export class MfaService {
           occurredAt: new Date(),
           agents: [
             {
-              agentType: 'user',
+              agentType: AuditAgentType.USER,
               agentId: userId
             }
           ],
           entities: [
             {
-              entityType: 'user',
+              entityType: AuditEntityType.PERSON,
               entityId: userId,
               entityDetail: {
                 action: 'mfa_verify'
@@ -273,13 +273,13 @@ export class MfaService {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: userId
           }
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: userId,
             entityDetail: {
               action: verified ? 'mfa_verify' : 'mfa_setup_complete'
@@ -321,13 +321,13 @@ export class MfaService {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: userId
           }
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: userId,
             entityDetail: {
               action: 'mfa_disable'
@@ -395,13 +395,13 @@ export class MfaService {
         occurredAt: now,
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: userId
           }
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: userId,
             entityDetail: {
               action: 'mfa_backup_regenerate'

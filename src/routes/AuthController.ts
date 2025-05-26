@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthenticationService } from '../services/AuthenticationService';
 import { MfaService } from '../services/MfaService';
-import { AuditLogService, AuditEventType, AuditEventAction, AuditEventOutcome } from '../services/AuditLogService';
+import { AuditLogService, AuditEventType, AuditEventAction, AuditEventOutcome, AuditAgentType, AuditEntityType } from '../services/AuditLogService';
 import { SessionManager } from '../middleware/SessionManager';
 import { InputValidator } from '../middleware/InputValidator';
 import Joi from 'joi';
@@ -227,7 +227,7 @@ export class AuthController {
           occurredAt: new Date(),
           agents: [
             {
-              agentType: 'user',
+              agentType: AuditAgentType.USER,
               agentName: username,
               networkAddress: req.ip,
               userAgent: req.headers['user-agent'] as string
@@ -235,7 +235,7 @@ export class AuthController {
           ],
           entities: [
             {
-              entityType: 'user',
+              entityType: AuditEntityType.PERSON,
               entityId: 'unknown',
               entityDetail: {
                 action: 'login',
@@ -267,7 +267,7 @@ export class AuthController {
           occurredAt: new Date(),
           agents: [
             {
-              agentType: 'user',
+              agentType: AuditAgentType.USER,
               agentId: user.id,
               agentName: user.username,
               networkAddress: req.ip,
@@ -276,7 +276,7 @@ export class AuthController {
           ],
           entities: [
             {
-              entityType: 'user',
+              entityType: AuditEntityType.PERSON,
               entityId: user.id,
               entityDetail: {
                 action: 'login'
@@ -303,7 +303,7 @@ export class AuthController {
           occurredAt: new Date(),
           agents: [
             {
-              agentType: 'user',
+              agentType: AuditAgentType.USER,
               agentId: user.id,
               agentName: user.username,
               networkAddress: req.ip,
@@ -312,7 +312,7 @@ export class AuthController {
           ],
           entities: [
             {
-              entityType: 'user',
+              entityType: AuditEntityType.PERSON,
               entityId: user.id,
               entityDetail: {
                 action: 'login',
@@ -357,7 +357,7 @@ export class AuthController {
             occurredAt: new Date(),
             agents: [
               {
-                agentType: 'user',
+                agentType: AuditAgentType.USER,
                 agentId: user.id,
                 agentName: user.username,
                 networkAddress: req.ip,
@@ -366,7 +366,7 @@ export class AuthController {
             ],
             entities: [
               {
-                entityType: 'user',
+                entityType: AuditEntityType.PERSON,
                 entityId: user.id,
                 entityDetail: {
                   action: 'mfa_verify'
@@ -401,7 +401,7 @@ export class AuthController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: user.id,
             agentName: user.username,
             networkAddress: req.ip,
@@ -410,7 +410,7 @@ export class AuthController {
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: user.id,
             entityDetail: {
               action: 'login'
@@ -450,7 +450,7 @@ export class AuthController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: req.user!.id,
             agentName: req.user!.username,
             networkAddress: req.ip,
@@ -459,7 +459,7 @@ export class AuthController {
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: req.user!.id,
             entityDetail: {
               action: 'logout'
@@ -525,7 +525,7 @@ export class AuthController {
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
+            agentType: AuditAgentType.USER,
             agentId: user.id,
             agentName: user.username,
             networkAddress: req.ip,
@@ -534,7 +534,7 @@ export class AuthController {
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: user.id,
             entityDetail: {
               action: 'token_refresh'
@@ -571,76 +571,74 @@ export class AuthController {
       );
       
       if (existingUserResult.rows.length > 0) {
+        const existingUser = existingUserResult.rows[0];
+        const conflictField = existingUser.username === userData.username ? 'username' : 'email';
+        
         res.status(409).json({ 
           success: false,
-          message: 'Username or email already exists' 
+          message: `User with this ${conflictField} already exists` 
         });
         return;
       }
       
-      // Prepare new user
-      const newUserData = await this.authService.prepareNewUser(userData);
-      const userId = uuidv4();
+      // Hash password
+      const hashedPassword = await this.authService.hashPassword(userData.password);
       
-      // Save to database
+      // Create user
+      const userId = uuidv4();
+      const now = new Date();
+      
       await this.db.query(
         `INSERT INTO users (
           id, username, email, password, first_name, last_name, 
-          phone_number, status, roles, mfa_enabled, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+          phone_number, status, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [
           userId,
-          newUserData.username,
-          newUserData.email,
-          newUserData.password,
-          newUserData.firstName,
-          newUserData.lastName,
-          newUserData.phoneNumber || null,
-          newUserData.status,
-          JSON.stringify(newUserData.roles),
-          newUserData.mfaEnabled,
-          newUserData.createdAt,
-          newUserData.updatedAt
+          userData.username,
+          userData.email,
+          hashedPassword,
+          userData.firstName,
+          userData.lastName,
+          userData.phoneNumber || null,
+          'active',
+          now,
+          now
         ]
       );
       
       // Log user registration
       await this.auditLog.logEvent({
-        eventType: AuditEventType.USER_MANAGEMENT,
+        eventType: AuditEventType.AUTHENTICATION,
         eventAction: AuditEventAction.CREATE,
         eventOutcome: AuditEventOutcome.SUCCESS,
-        eventOutcomeDesc: 'User registration successful',
-        occurredAt: new Date(),
+        eventOutcomeDesc: 'User registered successfully',
+        occurredAt: now,
         agents: [
           {
-            agentType: 'user',
-            agentId: userId,
-            agentName: newUserData.username,
-            networkAddress: req.ip,
-            userAgent: req.headers['user-agent'] as string
+            agentType: AuditAgentType.SYSTEM,
+            agentId: 'system',
+            agentName: 'Registration Service',
+            networkAddress: req.ip
           }
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: userId,
             entityDetail: {
               action: 'register',
-              username: newUserData.username,
-              email: newUserData.email
+              username: userData.username,
+              email: userData.email
             }
           }
         ]
       });
       
-      const newUser = {
-        id: userId,
-        ...newUserData
-      };
-      
       res.status(201).json({
         success: true,
-        user: this.authService.prepareUserResponse(newUser)
+        message: 'User registered successfully',
+        userId
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -653,7 +651,7 @@ export class AuthController {
   };
 
   /**
-   * Initiate password reset
+   * Send password reset email
    */
   private forgotPassword = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -666,7 +664,7 @@ export class AuthController {
       );
       
       if (userResult.rows.length === 0) {
-        // Don't reveal that the email doesn't exist
+        // For security reasons, don't reveal that the email doesn't exist
         res.status(200).json({ 
           success: true,
           message: 'If your email is registered, you will receive a password reset link' 
@@ -677,47 +675,39 @@ export class AuthController {
       const user = userResult.rows[0];
       
       // Generate reset token
-      const token = crypto.randomBytes(32).toString('hex');
-      const expires = new Date();
-      expires.setHours(expires.getHours() + 1); // Token expires in 1 hour
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
       
       // Store reset token
       await this.db.query(
-        `INSERT INTO password_reset_tokens (
-          id, user_id, token, expires_at, created_at
-        ) VALUES ($1, $2, $3, $4, $5)`,
-        [
-          uuidv4(),
-          user.id,
-          token,
-          expires,
-          new Date()
-        ]
+        `UPDATE users 
+         SET reset_token = $1, reset_token_expiry = $2
+         WHERE id = $3`,
+        [resetToken, resetTokenExpiry, user.id]
       );
       
       // In a real implementation, we would send an email with the reset link
       // For now, we just log it
-      console.log(`Password reset token for ${email}: ${token}`);
+      console.log(`Reset token for ${user.email}: ${resetToken}`);
       
       // Log password reset request
       await this.auditLog.logEvent({
-        eventType: AuditEventType.USER_MANAGEMENT,
+        eventType: AuditEventType.AUTHENTICATION,
         eventAction: AuditEventAction.EXECUTE,
         eventOutcome: AuditEventOutcome.SUCCESS,
         eventOutcomeDesc: 'Password reset requested',
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
-            agentId: user.id,
-            agentName: user.username,
-            networkAddress: req.ip,
-            userAgent: req.headers['user-agent'] as string
+            agentType: AuditAgentType.SYSTEM,
+            agentId: 'system',
+            agentName: 'Password Reset Service',
+            networkAddress: req.ip
           }
         ],
         entities: [
           {
-            entityType: 'user',
+            entityType: AuditEntityType.PERSON,
             entityId: user.id,
             entityDetail: {
               action: 'password_reset_request',
@@ -735,70 +725,66 @@ export class AuthController {
       console.error('Forgot password error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'Password reset request failed', 
+        message: 'Failed to process password reset request', 
         error: (error as Error).message 
       });
     }
   };
 
   /**
-   * Reset password with token
+   * Reset password using token
    */
   private resetPassword = async (req: Request, res: Response): Promise<void> => {
     try {
       const { token, password } = req.body;
       
-      // Find valid reset token
-      const tokenResult = await this.db.query(
-        `SELECT * FROM password_reset_tokens 
-         WHERE token = $1 AND expires_at > $2 AND used = FALSE`,
+      // Find user by reset token
+      const userResult = await this.db.query(
+        `SELECT * FROM users 
+         WHERE reset_token = $1 AND reset_token_expiry > $2`,
         [token, new Date()]
       );
       
-      if (tokenResult.rows.length === 0) {
+      if (userResult.rows.length === 0) {
         res.status(400).json({ 
           success: false,
-          message: 'Invalid or expired token' 
+          message: 'Invalid or expired reset token' 
         });
         return;
       }
       
-      const resetToken = tokenResult.rows[0];
+      const user = userResult.rows[0];
       
       // Hash new password
       const hashedPassword = await this.authService.hashPassword(password);
       
-      // Update user password
+      // Update password and clear reset token
       await this.db.query(
-        'UPDATE users SET password = $1, updated_at = $2 WHERE id = $3',
-        [hashedPassword, new Date(), resetToken.user_id]
-      );
-      
-      // Mark token as used
-      await this.db.query(
-        'UPDATE password_reset_tokens SET used = TRUE, used_at = $1 WHERE id = $2',
-        [new Date(), resetToken.id]
+        `UPDATE users 
+         SET password = $1, reset_token = NULL, reset_token_expiry = NULL, updated_at = $2
+         WHERE id = $3`,
+        [hashedPassword, new Date(), user.id]
       );
       
       // Log password reset
       await this.auditLog.logEvent({
-        eventType: AuditEventType.USER_MANAGEMENT,
+        eventType: AuditEventType.AUTHENTICATION,
         eventAction: AuditEventAction.UPDATE,
         eventOutcome: AuditEventOutcome.SUCCESS,
         eventOutcomeDesc: 'Password reset successful',
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
-            agentId: resetToken.user_id,
-            networkAddress: req.ip,
-            userAgent: req.headers['user-agent'] as string
+            agentType: AuditAgentType.SYSTEM,
+            agentId: 'system',
+            agentName: 'Password Reset Service',
+            networkAddress: req.ip
           }
         ],
         entities: [
           {
-            entityType: 'user',
-            entityId: resetToken.user_id,
+            entityType: AuditEntityType.PERSON,
+            entityId: user.id,
             entityDetail: {
               action: 'password_reset'
             }
@@ -814,23 +800,24 @@ export class AuthController {
       console.error('Reset password error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'Password reset failed', 
+        message: 'Failed to reset password', 
         error: (error as Error).message 
       });
     }
   };
 
   /**
-   * Change password (authenticated)
+   * Change password
    */
   private changePassword = async (req: Request, res: Response): Promise<void> => {
     try {
       const { currentPassword, newPassword } = req.body;
+      const userId = req.user!.id;
       
       // Get user from database
       const userResult = await this.db.query(
         'SELECT * FROM users WHERE id = $1',
-        [req.user!.id]
+        [userId]
       );
       
       if (userResult.rows.length === 0) {
@@ -849,15 +836,15 @@ export class AuthController {
       if (!isPasswordValid) {
         // Log failed password change
         await this.auditLog.logEvent({
-          eventType: AuditEventType.USER_MANAGEMENT,
+          eventType: AuditEventType.AUTHENTICATION,
           eventAction: AuditEventAction.UPDATE,
           eventOutcome: AuditEventOutcome.MINOR_FAILURE,
-          eventOutcomeDesc: 'Current password is incorrect',
+          eventOutcomeDesc: 'Invalid current password',
           occurredAt: new Date(),
           agents: [
             {
-              agentType: 'user',
-              agentId: user.id,
+              agentType: AuditAgentType.USER,
+              agentId: userId,
               agentName: user.username,
               networkAddress: req.ip,
               userAgent: req.headers['user-agent'] as string
@@ -865,8 +852,8 @@ export class AuthController {
           ],
           entities: [
             {
-              entityType: 'user',
-              entityId: user.id,
+              entityType: AuditEntityType.PERSON,
+              entityId: userId,
               entityDetail: {
                 action: 'change_password'
               }
@@ -876,7 +863,7 @@ export class AuthController {
         
         res.status(401).json({ 
           success: false,
-          message: 'Current password is incorrect' 
+          message: 'Invalid current password' 
         });
         return;
       }
@@ -884,23 +871,23 @@ export class AuthController {
       // Hash new password
       const hashedPassword = await this.authService.hashPassword(newPassword);
       
-      // Update user password
+      // Update password
       await this.db.query(
         'UPDATE users SET password = $1, updated_at = $2 WHERE id = $3',
-        [hashedPassword, new Date(), user.id]
+        [hashedPassword, new Date(), userId]
       );
       
       // Log password change
       await this.auditLog.logEvent({
-        eventType: AuditEventType.USER_MANAGEMENT,
+        eventType: AuditEventType.AUTHENTICATION,
         eventAction: AuditEventAction.UPDATE,
         eventOutcome: AuditEventOutcome.SUCCESS,
         eventOutcomeDesc: 'Password changed successfully',
         occurredAt: new Date(),
         agents: [
           {
-            agentType: 'user',
-            agentId: user.id,
+            agentType: AuditAgentType.USER,
+            agentId: userId,
             agentName: user.username,
             networkAddress: req.ip,
             userAgent: req.headers['user-agent'] as string
@@ -908,8 +895,8 @@ export class AuthController {
         ],
         entities: [
           {
-            entityType: 'user',
-            entityId: user.id,
+            entityType: AuditEntityType.PERSON,
+            entityId: userId,
             entityDetail: {
               action: 'change_password'
             }
@@ -925,22 +912,22 @@ export class AuthController {
       console.error('Change password error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'Password change failed', 
+        message: 'Failed to change password', 
         error: (error as Error).message 
       });
     }
   };
 
   /**
-   * Enable MFA for user
+   * Enable MFA for a user
    */
   private enableMfa = async (req: Request, res: Response): Promise<void> => {
     try {
+      const userId = req.user!.id;
+      const username = req.user!.username;
+      
       // Generate MFA secret
-      const mfaSetup = await this.mfaService.generateMfaSecret(
-        req.user!.id,
-        req.user!.username
-      );
+      const mfaSetup = await this.mfaService.generateMfaSecret(userId, username);
       
       res.status(200).json({
         success: true,
@@ -950,21 +937,22 @@ export class AuthController {
       console.error('Enable MFA error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'MFA setup failed', 
+        message: 'Failed to enable MFA', 
         error: (error as Error).message 
       });
     }
   };
 
   /**
-   * Verify MFA code and complete setup
+   * Verify MFA setup
    */
   private verifyMfa = async (req: Request, res: Response): Promise<void> => {
     try {
+      const userId = req.user!.id;
       const { code } = req.body;
       
       // Verify MFA code
-      const isValid = await this.mfaService.verifyMfaCode(req.user!.id, code);
+      const isValid = await this.mfaService.verifyMfaCode(userId, code);
       
       if (!isValid) {
         res.status(400).json({ 
@@ -974,35 +962,30 @@ export class AuthController {
         return;
       }
       
-      // Update user MFA status
-      await this.db.query(
-        'UPDATE users SET mfa_enabled = TRUE, updated_at = $1 WHERE id = $2',
-        [new Date(), req.user!.id]
-      );
-      
       res.status(200).json({
         success: true,
-        message: 'MFA enabled successfully'
+        message: 'MFA verified successfully'
       });
     } catch (error) {
       console.error('Verify MFA error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'MFA verification failed', 
+        message: 'Failed to verify MFA', 
         error: (error as Error).message 
       });
     }
   };
 
   /**
-   * Disable MFA for user
+   * Disable MFA for a user
    */
   private disableMfa = async (req: Request, res: Response): Promise<void> => {
     try {
+      const userId = req.user!.id;
       const { code } = req.body;
       
-      // Verify MFA code
-      const isValid = await this.mfaService.verifyMfaCode(req.user!.id, code);
+      // Verify MFA code first
+      const isValid = await this.mfaService.verifyMfaCode(userId, code);
       
       if (!isValid) {
         res.status(400).json({ 
@@ -1013,7 +996,7 @@ export class AuthController {
       }
       
       // Disable MFA
-      const isDisabled = await this.mfaService.disableMfa(req.user!.id);
+      const isDisabled = await this.mfaService.disableMfa(userId);
       
       if (!isDisabled) {
         res.status(400).json({ 
@@ -1023,12 +1006,6 @@ export class AuthController {
         return;
       }
       
-      // Update user MFA status
-      await this.db.query(
-        'UPDATE users SET mfa_enabled = FALSE, updated_at = $1 WHERE id = $2',
-        [new Date(), req.user!.id]
-      );
-      
       res.status(200).json({
         success: true,
         message: 'MFA disabled successfully'
@@ -1037,19 +1014,21 @@ export class AuthController {
       console.error('Disable MFA error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'MFA disabling failed', 
+        message: 'Failed to disable MFA', 
         error: (error as Error).message 
       });
     }
   };
 
   /**
-   * Regenerate backup codes
+   * Regenerate backup codes for MFA
    */
   private regenerateBackupCodes = async (req: Request, res: Response): Promise<void> => {
     try {
+      const userId = req.user!.id;
+      
       // Regenerate backup codes
-      const backupCodes = await this.mfaService.regenerateBackupCodes(req.user!.id);
+      const backupCodes = await this.mfaService.regenerateBackupCodes(userId);
       
       res.status(200).json({
         success: true,
@@ -1066,32 +1045,33 @@ export class AuthController {
   };
 
   /**
-   * Get login history for user
+   * Get login history for a user
    */
   private getLoginHistory = async (req: Request, res: Response): Promise<void> => {
     try {
+      const userId = req.user!.id;
+      
       // Get login history from audit logs
-      const loginHistoryResult = await this.db.query(
-        `SELECT 
-          ae.id, ae.event_outcome, ae.event_outcome_desc, ae.occurred_at,
-          aa.network_address, aa.user_agent
-        FROM audit_events ae
-        JOIN audit_agents aa ON ae.id = aa.audit_event_id
-        WHERE ae.event_type = $1 AND aa.agent_id = $2
-        ORDER BY ae.occurred_at DESC
-        LIMIT 50`,
-        ['authentication', req.user!.id]
+      const loginHistory = await this.auditLog.getEvents(
+        {
+          eventType: AuditEventType.AUTHENTICATION,
+          eventAction: AuditEventAction.EXECUTE,
+          entityId: userId,
+          entityType: AuditEntityType.PERSON
+        },
+        20, // Limit
+        0 // Offset
       );
       
       res.status(200).json({
         success: true,
-        loginHistory: loginHistoryResult.rows
+        loginHistory
       });
     } catch (error) {
       console.error('Get login history error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'Failed to retrieve login history', 
+        message: 'Failed to get login history', 
         error: (error as Error).message 
       });
     }
@@ -1102,31 +1082,27 @@ export class AuthController {
    */
   private getUserActivity = async (req: Request, res: Response): Promise<void> => {
     try {
+      const userId = req.user!.id;
+      
       // Get user activity from audit logs
-      const activityResult = await this.db.query(
-        `SELECT 
-          ae.id, ae.event_type, ae.event_action, ae.event_outcome, 
-          ae.event_outcome_desc, ae.occurred_at,
-          aa.network_address, aa.user_agent,
-          aent.entity_type, aent.entity_id, aent.entity_detail
-        FROM audit_events ae
-        JOIN audit_agents aa ON ae.id = aa.audit_event_id
-        LEFT JOIN audit_entities aent ON ae.id = aent.audit_event_id
-        WHERE aa.agent_id = $1
-        ORDER BY ae.occurred_at DESC
-        LIMIT 100`,
-        [req.user!.id]
+      const userActivity = await this.auditLog.getEvents(
+        {
+          entityId: userId,
+          entityType: AuditEntityType.PERSON
+        },
+        50, // Limit
+        0 // Offset
       );
       
       res.status(200).json({
         success: true,
-        activity: activityResult.rows
+        userActivity
       });
     } catch (error) {
       console.error('Get user activity error:', error);
       res.status(500).json({ 
         success: false,
-        message: 'Failed to retrieve user activity', 
+        message: 'Failed to get user activity', 
         error: (error as Error).message 
       });
     }
